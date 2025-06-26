@@ -21,7 +21,7 @@ class CachedSpec extends PlaySpecification {
   sequential
 
   def cached(implicit app: Application) = {
-    new Cached(app.injector.instanceOf[AsyncCacheApi])(app.materializer)
+    new Cached(app.injector.instanceOf[AsyncCacheApi])(using app.materializer)
   }
 
   // Tests here don't use the body
@@ -85,7 +85,7 @@ class CachedSpec extends PlaySpecification {
         cacheManager.addCache(diskEhcache)
         val diskEhcache2 = cacheManager.getCache("disk")
         assert(diskEhcache2 != null)
-        val diskCache  = new EhCacheApi(diskEhcache2)(app.materializer.executionContext)
+        val diskCache  = new EhCacheApi(diskEhcache2)(using app.materializer.executionContext)
         val diskCached = new Cached(diskCache)
         val invoked    = new AtomicInteger()
         val action     = diskCached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
@@ -106,7 +106,7 @@ class CachedSpec extends PlaySpecification {
     "cache values using Application's Cached" in new WithApplication() {
       override def running() = {
         val invoked = new AtomicInteger()
-        val action = cached(app)(_ => "foo") {
+        val action = cached(using app)(_ => "foo") {
           Action(Results.Ok("" + invoked.incrementAndGet()))
         }
         val result1 = action(FakeRequest()).run()
@@ -126,7 +126,7 @@ class CachedSpec extends PlaySpecification {
     "use etags for values" in new WithApplication() {
       override def running() = {
         val invoked = new AtomicInteger()
-        val action  = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+        val action  = cached(using app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
         val result1 = action(FakeRequest()).run()
         status(result1) must_== 200
         invoked.get() must_== 1
@@ -141,7 +141,7 @@ class CachedSpec extends PlaySpecification {
     "support wildcard etags" in new WithApplication() {
       override def running() = {
         val invoked = new AtomicInteger()
-        val action  = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+        val action  = cached(using app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
         val result1 = action(FakeRequest()).run()
         status(result1) must_== 200
         invoked.get() must_== 1
@@ -154,7 +154,7 @@ class CachedSpec extends PlaySpecification {
     "use etags weak comparison" in new WithApplication() {
       override def running() = {
         val invoked = new AtomicInteger()
-        val action  = cached(app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+        val action  = cached(using app)(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
         val result1 = action(FakeRequest()).run()
         status(result1) must_== 200
         invoked.get() must_== 1
@@ -168,7 +168,7 @@ class CachedSpec extends PlaySpecification {
 
     "work with etag cache misses" in new WithApplication() {
       override def running() = {
-        val action  = cached(app)(_.uri)(Action(Results.Ok))
+        val action  = cached(using app)(_.uri)(Action(Results.Ok))
         val resultA = action(FakeRequest("GET", "/a")).run()
         status(resultA) must_== 200
         status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "\"foo\"")).run()) must_== 200
@@ -188,7 +188,7 @@ class CachedSpec extends PlaySpecification {
   "Cached EssentialAction composition" should {
     "cache infinite ok results" in new WithApplication() {
       override def running() = {
-        val cacheOk = cached(app)
+        val cacheOk = cached(using app)
           .empty { x => x.uri }
           .includeStatus(200)
 
@@ -211,7 +211,7 @@ class CachedSpec extends PlaySpecification {
 
     "cache everything for infinite" in new WithApplication() {
       override def running() = {
-        val cache = cached(app).everything { x => x.uri }
+        val cache = cached(using app).everything { x => x.uri }
 
         val actionOk       = cache.build(dummyAction)
         val actionNotFound = cache.build(notFoundAction)
@@ -230,7 +230,7 @@ class CachedSpec extends PlaySpecification {
 
     "cache everything one hour" in new WithApplication() {
       override def running() = {
-        val cache = cached(app).everything((x: RequestHeader) => x.uri, 3600)
+        val cache = cached(using app).everything((x: RequestHeader) => x.uri, 3600)
 
         val actionOk       = cache.build(dummyAction)
         val actionNotFound = cache.build(notFoundAction)

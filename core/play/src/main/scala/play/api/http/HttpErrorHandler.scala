@@ -210,7 +210,9 @@ class DefaultHttpErrorHandler(
    * @param message The error message.
    */
   protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message)(request)))
+    Future.successful(
+      BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message)(using request))
+    )
 
   /**
    * Invoked when a client makes a request that was forbidden.
@@ -219,7 +221,7 @@ class DefaultHttpErrorHandler(
    * @param message The error message.
    */
   protected def onForbidden(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(Forbidden(views.html.defaultpages.unauthorized()(request)))
+    Future.successful(Forbidden(views.html.defaultpages.unauthorized()(using request)))
 
   /**
    * Invoked when a handler or resource is not found.
@@ -230,9 +232,9 @@ class DefaultHttpErrorHandler(
   protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
     Future.successful {
       if (config.showDevErrors) {
-        NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, router)(request))
+        NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, router)(using request))
       } else {
-        NotFound(views.html.defaultpages.notFound(request.method, request.uri)(request))
+        NotFound(views.html.defaultpages.notFound(request.method, request.uri)(using request))
       }
     }
   }
@@ -247,7 +249,9 @@ class DefaultHttpErrorHandler(
    */
   protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     Future.successful {
-      Results.Status(statusCode)(views.html.defaultpages.badRequest(request.method, request.uri, message)(request))
+      Results.Status(statusCode)(
+        views.html.defaultpages.badRequest(request.method, request.uri, message)(using request)
+      )
     }
   }
 

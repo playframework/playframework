@@ -58,8 +58,8 @@ class TextBodyParserSpec extends PlaySpecification {
     "reject non text/plain content types" in new WithApplication() {
       override def running() = {
         val textBodyParser = app.injector.instanceOf[PlayBodyParsers].text
-        parse("bar", Some("application/xml"), "utf-8")(app.materializer, textBodyParser) must beLeft
-        parse("bar", None, "utf-8")(app.materializer, textBodyParser) must beLeft
+        parse("bar", Some("application/xml"), "utf-8")(using app.materializer, textBodyParser) must beLeft
+        parse("bar", None, "utf-8")(using app.materializer, textBodyParser) must beLeft
       }
     }
   }

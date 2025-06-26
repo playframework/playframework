@@ -176,7 +176,7 @@ private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]
 private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
   @Inject private var injector: Injector = _
   lazy val get: Cached =
-    new Cached(injector.instanceOf(key))(injector.instanceOf[Materializer])
+    new Cached(injector.instanceOf(key))(using injector.instanceOf[Materializer])
 }
 
 private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwable)
@@ -222,7 +222,7 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
     if (resultJFuture == null) Future.successful(None)
     else
       resultJFuture.asScala
-        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))(trampoline)
+        .map(valueFromCache => Some(valueFromCache.asInstanceOf[ExpirableCacheValue[T]].value))(using trampoline)
   }
 
   def remove(key: String): Future[Done] = {
@@ -232,10 +232,13 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
     lazy val orElseAsJavaFuture =
-      orElse.map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(trampoline).asJava.toCompletableFuture
+      orElse
+        .map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(using trampoline)
+        .asJava
+        .toCompletableFuture
 
     val resultAsJavaFuture = cache.get(key, (_: Any, _: Executor) => orElseAsJavaFuture)
-    resultAsJavaFuture.asScala.map(_.asInstanceOf[ExpirableCacheValue[A]].value)(trampoline)
+    resultAsJavaFuture.asScala.map(_.asInstanceOf[ExpirableCacheValue[A]].value)(using trampoline)
   }
 
   def removeAll(): Future[Done] = {

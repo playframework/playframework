@@ -236,7 +236,7 @@ trait Writeables {
     Writeable(_ => ByteString.empty, None)
 
   implicit def writeableOf_AnyContentAsMultipartForm(implicit codec: Codec): Writeable[AnyContentAsMultipartFormData] =
-    Writeable.writeableOf_MultipartFormData(None)(codec).map(_.mfd)
+    Writeable.writeableOf_MultipartFormData(None)(using codec).map(_.mfd)
 
   // TODO: After removing that method we can rename (and deprecate) writeableOf_AnyContentAsMultipartFormWithBoundary (remove ...WithBoundary)
   @deprecated(
@@ -536,7 +536,7 @@ trait ResultExtractors {
 
           def iterator: Iterator[Cookie] = cookies.iterator
         }
-      }(play.core.Execution.trampoline),
+      }(using play.core.Execution.trampoline),
       timeout.duration
     )
   }
@@ -551,7 +551,7 @@ trait ResultExtractors {
    * Extracts the Flash values set by this Result value.
    */
   def flash(of: Future[Result])(implicit timeout: Timeout): Flash = {
-    Await.result(of.map(_.newFlash.getOrElse(new Flash()))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map(_.newFlash.getOrElse(new Flash()))(using play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -563,7 +563,7 @@ trait ResultExtractors {
    * Extracts the Session values set by this Result value.
    */
   def session(of: Future[Result])(implicit timeout: Timeout): Session = {
-    Await.result(of.map(_.newSession.getOrElse(new Session()))(play.core.Execution.trampoline), timeout.duration)
+    Await.result(of.map(_.newSession.getOrElse(new Session()))(using play.core.Execution.trampoline), timeout.duration)
   }
 
   /**
@@ -758,14 +758,14 @@ trait StubControllerComponentsFactory
    */
   def stubControllerComponents(
       bodyParser: BodyParser[AnyContent] = stubBodyParser(AnyContentAsEmpty),
-      playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(NoMaterializer),
+      playBodyParsers: PlayBodyParsers = stubPlayBodyParsers(using NoMaterializer),
       messagesApi: MessagesApi = stubMessagesApi(),
       langs: Langs = stubLangs(),
       fileMimeTypes: FileMimeTypes = new DefaultFileMimeTypes(FileMimeTypesConfiguration()),
       executionContext: ExecutionContext = ExecutionContext.global
   ): ControllerComponents = {
     DefaultControllerComponents(
-      DefaultActionBuilder(bodyParser)(executionContext),
+      DefaultActionBuilder(bodyParser)(using executionContext),
       playBodyParsers,
       messagesApi,
       langs,
@@ -777,8 +777,10 @@ trait StubControllerComponentsFactory
   def stubMessagesControllerComponents(): MessagesControllerComponents = {
     val stub = stubControllerComponents()
     DefaultMessagesControllerComponents(
-      new DefaultMessagesActionBuilderImpl(stubBodyParser(AnyContentAsEmpty), stub.messagesApi)(stub.executionContext),
-      DefaultActionBuilder(stub.actionBuilder.parser)(stub.executionContext),
+      new DefaultMessagesActionBuilderImpl(stubBodyParser(AnyContentAsEmpty), stub.messagesApi)(
+        using stub.executionContext
+      ),
+      DefaultActionBuilder(stub.actionBuilder.parser)(using stub.executionContext),
       stub.parsers,
       stub.messagesApi,
       stub.langs,

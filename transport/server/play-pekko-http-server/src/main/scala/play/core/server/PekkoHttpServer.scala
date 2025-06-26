@@ -219,14 +219,14 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] =
       try {
-        Http()(context.actorSystem)
+        Http()(using context.actorSystem)
           .bindAndHandleAsync(
             handler = handleRequest(_, connectionContext.isSecure),
             interface = context.config.address,
             port = port,
             connectionContext = connectionContext,
             settings = createServerSettings(port, connectionContext, secure)
-          )(context.materializer)
+          )(using context.materializer)
       } catch {
         // Http2SupportNotPresentException is private[pekko] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
@@ -470,7 +470,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
               }
             }
           }
-        }(mat.executionContext)
+        }(using mat.executionContext)
         .recoverWith {
           case _: EntityStreamSizeException =>
             errorHandler.onClientError(
@@ -480,7 +480,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
             )
           case e: Throwable =>
             errorHandler.onServerError(taggedRequestHeader, e)
-        }(mat.executionContext)
+        }(using mat.executionContext)
 
     val deferBodyParsing = deferredBodyParsingAllowed &&
       Server.routeModifierDefersBodyParsing(serverConfig.underlying.getBoolean("deferBodyParsing"), taggedRequestHeader)
@@ -521,7 +521,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     }
 
     val serverTerminateTimeout =
-      Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(context.actorSystem)
+      Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(using context.actorSystem)
 
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "pekko-http-server-unbind") { () =>
       def unbind(binding: Option[Http.ServerBinding]): Future[Done] = {
@@ -548,7 +548,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
             org.apache.pekko.pattern.after(terminationDelay) {
               logger.info(s"Terminating server binding for ${binding.localAddress}")
               binding.terminate(serverTerminateTimeout - 100.millis).map(_ => Done)
-            }(context.actorSystem)
+            }(using context.actorSystem)
           }
           .getOrElse {
             Future.successful(Done)

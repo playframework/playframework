@@ -106,7 +106,7 @@ object HttpBinApplication {
       Action { request => Ok(requestHeaderWriter.writes(request)) }
   }
 
-  private def gzipFilter(mat: Materializer) = new GzipFilter()(mat)
+  private def gzipFilter(mat: Materializer) = new GzipFilter()(using mat)
 
   def gzip(implicit mat: Materializer, Action: DefaultActionBuilder): Routes =
     Seq("GET", "PATCH", "POST", "PUT", "DELETE")

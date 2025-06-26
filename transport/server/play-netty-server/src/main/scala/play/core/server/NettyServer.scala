@@ -343,7 +343,7 @@ class NettyServer(
     }
 
     val serverTerminateTimeout =
-      Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(actorSystem)
+      Server.determineServerTerminateTimeout(terminationTimeout, terminationDelay)(using actorSystem)
 
     val unbindTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceUnbind)
     cs.addTask(CoordinatedShutdown.PhaseServiceUnbind, "netty-server-unbind") { () =>
@@ -382,7 +382,7 @@ class NettyServer(
               TimeUnit.MILLISECONDS
             )
             .awaitUninterruptibly(remainingServiceRequestsDoneTimeout - 100)
-        })(actorSystem)
+        })(using actorSystem)
         .map(_ => Done)
     }
 
@@ -471,7 +471,7 @@ class NettyServerProvider extends ServerProvider {
       context.stopHook,
       context.actorSystem
     )(
-      context.materializer
+      using context.materializer
     )
 }
 
@@ -535,7 +535,7 @@ trait NettyServerComponents extends ServerComponents {
     // Start the application first
     Play.start(application)
     new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook, application.actorSystem)(
-      application.materializer
+      using application.materializer
     )
   }
 

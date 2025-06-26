@@ -42,7 +42,7 @@ private[play] case class PlayCoreTestApplication(
   override lazy val requestHandler: HttpRequestHandler = NotImplementedHttpRequestHandler
 
   override lazy val actorSystem: ActorSystem                 = ActorSystemProvider.start(classloader, configuration)
-  override lazy val materializer: Materializer               = Materializer.matFromSystem(actorSystem)
+  override lazy val materializer: Materializer               = Materializer.matFromSystem(using actorSystem)
   override lazy val coordinatedShutdown: CoordinatedShutdown = CoordinatedShutdown(actorSystem)
 
   def stop(): Future[Unit] = {

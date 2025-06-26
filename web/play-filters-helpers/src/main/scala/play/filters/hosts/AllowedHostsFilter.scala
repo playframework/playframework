@@ -51,7 +51,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
     if (!config.shouldProtect(req) || hostMatchers.exists(_(req.host))) {
       next(req)
     } else {
-      logger.warn(s"Host not allowed: ${req.host}")(SecurityMarkerContext)
+      logger.warn(s"Host not allowed: ${req.host}")(using SecurityMarkerContext)
       Accumulator.done(
         errorHandler.onClientError(
           req.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("allowed-hosts-filter")),

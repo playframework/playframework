@@ -173,9 +173,9 @@ object WsTestClient extends WsTestClient {
       val name = "ws-test-client-" + count.getAndIncrement()
       logger.info(s"createNewClient: name = $name")
       val system       = ActorSystem(name)
-      val materializer = Materializer.matFromSystem(system)
+      val materializer = Materializer.matFromSystem(using system)
       val config       = AhcWSClientConfig(maxRequestRetry = 0) // Don't retry for tests
-      val client       = AhcWSClient(config)(materializer)
+      val client       = AhcWSClient(config)(using materializer)
       (client, system)
     }
 
@@ -199,7 +199,7 @@ object WsTestClient extends WsTestClient {
               } else {
                 logger.debug(s"check: client references = ${references.toArray.toSeq}")
               }
-            )(system.dispatcher)
+            )(using system.dispatcher)
           }
       }
     }

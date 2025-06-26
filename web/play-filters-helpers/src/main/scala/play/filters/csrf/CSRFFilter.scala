@@ -41,7 +41,7 @@ class CSRFFilter(
       tokenProvider: TokenProvider,
       errorHandler: ErrorHandler
   )(mat: Materializer) = {
-    this(config.get, tokenSignerProvider.get, sessionConfiguration, tokenProvider, errorHandler)(mat)
+    this(config.get, tokenSignerProvider.get, sessionConfiguration, tokenProvider, errorHandler)(using mat)
   }
 
   // Java constructor for manually constructing the filter
@@ -58,7 +58,7 @@ class CSRFFilter(
       sessionConfiguration,
       tokenProvider,
       new JavaCSRFErrorHandlerAdapter(errorHandler)
-    )(mat)
+    )(using mat)
   }
 
   @deprecated("Use constructor without JavaContextComponents", "2.8.0")
@@ -76,7 +76,7 @@ class CSRFFilter(
       sessionConfiguration,
       tokenProvider,
       new JavaCSRFErrorHandlerAdapter(errorHandler)
-    )(mat)
+    )(using mat)
   }
 
   def apply(next: EssentialAction): EssentialAction =

@@ -44,7 +44,7 @@ trait ServerIntegrationSpecificationSpec
     "run the right HTTP server when using TestServer constructor" in {
       runningWithPort(TestServer(testServerPort, GuiceApplicationBuilder().routes(httpServerTagRoutes).build())) {
         port =>
-          val plainRequest   = wsUrl("/httpServerTag")(port)
+          val plainRequest   = wsUrl("/httpServerTag")(using port)
           val responseFuture = plainRequest.get()
           val response       = await(responseFuture)
           response.status must_== 200

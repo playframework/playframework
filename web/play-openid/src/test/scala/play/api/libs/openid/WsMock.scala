@@ -25,9 +25,9 @@ class WSMock extends WSClient {
   when(response.body).thenReturn("")
 
   when(request.get()).thenReturn(Future.successful(response.asInstanceOf[request.Response]))
-  when(request.post(anyString)(any[BodyWritable[String]]))
+  when(request.post(anyString)(using any[BodyWritable[String]]))
     .thenReturn(Future.successful(response.asInstanceOf[request.Response]))
-  when(request.post(any[Map[String, Seq[String]]])(any[BodyWritable[Map[String, Seq[String]]]]))
+  when(request.post(any[Map[String, Seq[String]]])(using any[BodyWritable[Map[String, Seq[String]]]]))
     .thenReturn(Future.successful(response.asInstanceOf[request.Response]))
 
   def url(url: String): WSRequest = {

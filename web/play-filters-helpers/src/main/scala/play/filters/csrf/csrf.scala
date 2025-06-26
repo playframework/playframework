@@ -226,7 +226,7 @@ object CSRF {
    * @return The token, if found.
    */
   def getToken(requestHeader: play.mvc.Http.RequestHeader): Optional[Token] = {
-    Optional.ofNullable(getToken(requestHeader.asScala()).orNull)
+    Optional.ofNullable(getToken(using requestHeader.asScala()).orNull)
   }
 
   /**
@@ -296,7 +296,7 @@ object CSRF {
       this(underlying)
     }
     def handle(request: RequestHeader, msg: String) =
-      underlying.handle(request.asJava, msg).asScala.map(_.asScala)(Execution.trampoline)
+      underlying.handle(request.asJava, msg).asScala.map(_.asScala)(using Execution.trampoline)
   }
 
   class JavaCSRFErrorHandlerDelegate @Inject() (delegate: ErrorHandler) extends CSRFErrorHandler {

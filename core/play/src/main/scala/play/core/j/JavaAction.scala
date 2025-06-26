@@ -132,8 +132,8 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
                   // If the request contains TemporaryFiles, they will be deleted when they are garbage collected.
                   // By keeping a reference to the request, it prevents the TemporaryFiles from becoming GC targets.
                   r
-                }(trampoline)
-          )(executionContext)
+                }(using trampoline)
+          )(using executionContext)
           .map(_.asJava)
           .asJava
     }
@@ -193,9 +193,9 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     }
     val actionFuture: Future[Future[JResult]] = Future {
       firstAction.call(javaRequest).asScala
-    }(trampolineWithContext)
-    val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
-    val resultFuture: Future[Result]           = flattenedActionFuture.map(_.asScala)(trampoline)
+    }(using trampolineWithContext)
+    val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(using trampoline)
+    val resultFuture: Future[Result]           = flattenedActionFuture.map(_.asScala)(using trampoline)
     resultFuture
   }
 }

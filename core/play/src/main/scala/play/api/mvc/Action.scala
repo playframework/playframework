@@ -28,7 +28,7 @@ trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result])
   def apply(): EssentialAction = this
 
   def asJava: play.mvc.EssentialAction = new play.mvc.EssentialAction() {
-    def apply(rh: play.mvc.Http.RequestHeader) = self(rh.asScala).map(_.asJava)(Execution.trampoline).asJava
+    def apply(rh: play.mvc.Http.RequestHeader) = self(rh.asScala).map(_.asJava)(using Execution.trampoline).asJava
     override def apply(rh: RequestHeader)      = self(rh)
   }
 }
@@ -79,7 +79,7 @@ trait Action[A] extends EssentialAction {
     } else {
       logger.trace("Not deferring body parsing for request, will parse now: " + rh)
       // Run the parser first and then call the action
-      BodyParser.runParserThenInvokeAction(parser, rh, apply)(executionContext)
+      BodyParser.runParserThenInvokeAction(parser, rh, apply)(using executionContext)
     }
 
   /** @return The execution context to run the action in */
@@ -114,7 +114,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).map(_.map(f))(pec)
+      def apply(request: RequestHeader) = self(request).map(_.map(f))(using pec)
       override def toString             = self.toString
     }
   }
@@ -135,9 +135,10 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     new BodyParser[B] {
       def apply(request: RequestHeader) =
         self(request).mapFuture {
-          case Right(a) => f(a).map(Right.apply)(Execution.trampoline) // safe to execute `Right.apply` in same thread
-          case left     => Future.successful(left.asInstanceOf[Either[Result, B]])
-        }(pec)
+          case Right(a) =>
+            f(a).map(Right.apply)(using Execution.trampoline) // safe to execute `Right.apply` in same thread
+          case left => Future.successful(left.asInstanceOf[Either[Result, B]])
+        }(using pec)
       override def toString = self.toString
     }
   }
@@ -165,7 +166,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ExecCtxUtils.prepare(ec)
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).map(_.flatMap(f))(pec)
+      def apply(request: RequestHeader) = self(request).map(_.flatMap(f))(using pec)
       override def toString             = self.toString
     }
   }
@@ -187,7 +188,7 @@ trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Re
         self(request).mapFuture {
           case Right(a) => f(a) // safe to execute `Done.apply` in same thread
           case Left(e)  => Future.successful(Left(e))
-        }(pec)
+        }(using pec)
       override def toString = self.toString
     }
   }
@@ -257,7 +258,7 @@ object BodyParser {
         val request = Request(rh, a)
         logger.trace("Invoking action with request: " + request)
         next(request)
-    }(ExecCtxUtils.prepare(executionContext))
+    }(using ExecCtxUtils.prepare(executionContext))
 }
 
 /**
@@ -436,7 +437,7 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
               // If the request contains TemporaryFiles, they will be deleted when they are garbage collected.
               // By keeping a reference to the request, it prevents the TemporaryFiles from becoming GC targets.
               request
-            }(Execution.trampoline)
+            }(using Execution.trampoline)
         } catch {
           // NotImplementedError is not caught by NonFatal, wrap it
           case e: NotImplementedError => throw new RuntimeException(e)
@@ -473,14 +474,16 @@ trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
 
 object ActionBuilder {
   class IgnoringBody()(implicit ec: ExecutionContext)
-      extends ActionBuilderImpl(BodyParsers.utils.ignore[AnyContent](AnyContentAsEmpty))(ec)
+      extends ActionBuilderImpl(BodyParsers.utils.ignore[AnyContent](AnyContentAsEmpty))(using ec)
 
   /**
    * An ActionBuilder that ignores the body passed into it. This uses the trampoline execution context, which
    * executes in the current thread. Since using this execution context in user code can cause unexpected
    * consequences, this method is private[play].
    */
-  private[play] lazy val ignoringBody: ActionBuilder[Request, AnyContent] = new IgnoringBody()(Execution.trampoline)
+  private[play] lazy val ignoringBody: ActionBuilder[Request, AnyContent] = new IgnoringBody()(
+    using Execution.trampoline
+  )
 }
 
 /**
@@ -529,7 +532,7 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
   protected def refine[A](request: R[A]): Future[Either[Result, P[A]]]
 
   final def invokeBlock[A](request: R[A], block: P[A] => Future[Result]) =
-    refine(request).flatMap(_.fold(Future.successful, block))(executionContext)
+    refine(request).flatMap(_.fold(Future.successful, block))(using executionContext)
 }
 
 /**
@@ -547,7 +550,8 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
    */
   protected def transform[A](request: R[A]): Future[P[A]]
 
-  final def refine[A](request: R[A]): Future[Either[Result, P[A]]] = transform(request).map(Right(_))(executionContext)
+  final def refine[A](request: R[A]): Future[Either[Result, P[A]]] =
+    transform(request).map(Right(_))(using executionContext)
 }
 
 /**
@@ -567,5 +571,5 @@ trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
    */
   protected def filter[A](request: R[A]): Future[Option[Result]]
 
-  protected final def refine[A](request: R[A]) = filter(request).map(_.toLeft(request))(executionContext)
+  protected final def refine[A](request: R[A]) = filter(request).map(_.toLeft(request))(using executionContext)
 }
