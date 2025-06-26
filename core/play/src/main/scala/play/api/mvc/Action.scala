@@ -98,7 +98,7 @@ trait Action[A] extends EssentialAction {
  */
 trait BodyParser[+A] extends (RequestHeader => Accumulator[ByteString, Either[Result, A]]) {
   // "with Any" because we need to prevent 2.12 SAM inference here
-  self: BodyParser[A] with Any =>
+  self: BodyParser[A] & Any =>
 
   /**
    * Uses the provided function to transform the BodyParser's computed result

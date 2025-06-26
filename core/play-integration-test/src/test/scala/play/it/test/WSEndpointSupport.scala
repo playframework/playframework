@@ -37,7 +37,7 @@ import play.core.server.ServerEndpoint
  * arbitrary scheme and port.
  */
 trait WSEndpointSupport {
-  self: EndpointIntegrationSpecification with FutureAwaits with DefaultAwaitTimeout =>
+  self: EndpointIntegrationSpecification & FutureAwaits & DefaultAwaitTimeout =>
 
   /** Describes a [[WSClient]] that is bound to a particular [[ServerEndpoint]]. */
   @implicitNotFound("Use withAllWSEndpoints { implicit wsEndpoint: WSEndpoint => ... } to get a value")
