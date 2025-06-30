@@ -21,7 +21,7 @@ import Omnidoc.autoImport.omnidocTagPrefix
 object PlayLibraryBase extends AutoPlugin {
 
   override def trigger  = noTrigger
-  override def requires = PlayBuildBase && PlaySonatypeBase && Omnidoc
+  override def requires = PlayBuildBase && Omnidoc
 
   import PlayBuildBase.autoImport._
 
