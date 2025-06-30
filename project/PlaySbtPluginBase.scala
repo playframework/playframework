@@ -16,7 +16,7 @@ import sbt.ScriptedPlugin.autoImport._
 object PlaySbtPluginBase extends AutoPlugin {
 
   override def trigger  = noTrigger
-  override def requires = PlaySonatypeBase && PlayBuildBase && PlaySbtBuildBase && SbtPlugin
+  override def requires = PlayBuildBase && PlaySbtBuildBase && SbtPlugin
 
   override def projectSettings = Seq(
     scriptedLaunchOpts += version.apply { v => s"-Dproject.version=$v" }.value
