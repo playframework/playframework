@@ -12,6 +12,6 @@ import sbt.AutoPlugin
 object PlaySbtLibraryBase extends AutoPlugin {
 
   override def trigger  = noTrigger
-  override def requires = PlayBuildBase && PlaySbtBuildBase && PlaySonatypeBase
+  override def requires = PlayBuildBase && PlaySbtBuildBase
 
 }
