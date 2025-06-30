@@ -28,8 +28,8 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
 
   def timeouts(httpTimeout: Duration, httpsTimeout: Duration): Map[String, String] = {
     def getTimeout(d: Duration) = d match {
-      case Duration.Inf   => "null"
-      case Duration(t, u) => s"${u.toMillis(t)}ms"
+      case _: Duration.Infinite => "null"
+      case fd: FiniteDuration   => s"${fd.toMillis}ms"
     }
 
     Map(
