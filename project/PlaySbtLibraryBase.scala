@@ -6,8 +6,6 @@ import sbt.AutoPlugin
 
 /**
  * Base Plugin for Play SBT libraries.
- *
- * - Publishes to sonatype
  */
 object PlaySbtLibraryBase extends AutoPlugin {
 
