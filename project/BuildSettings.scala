@@ -94,7 +94,6 @@ object BuildSettings {
   def playCommonSettings: Seq[Setting[_]] = Def.settings(
     fileHeaderSettings,
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    resolvers ++= Resolver.sonatypeOssRepos("releases"), // sync ScriptedTools.scala
     evictionSettings,
     ivyConfigurations ++= Seq(DocsApplication, SourcesApplication),
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-Xlint:deprecation"),
