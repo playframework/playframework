@@ -90,7 +90,10 @@ nexusPublishing {
     packageGroup.set(project.group.toString())
     clientTimeout.set(Duration.ofMinutes(60))
     this.repositories {
-        sonatype()
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
     }
 }
 
