@@ -3,6 +3,7 @@
  */
 
 import java.net.URLClassLoader
+import java.util.Locale
 import java.util.Optional
 
 import sbt._
@@ -244,7 +245,11 @@ object Docs {
   // Converts an artifact into a Javadoc URL.
   def artifactToJavadoc(organization: String, name: String, apiVersion: String, jarBaseFile: String): String = {
     val slashedOrg = organization.replace('.', '/')
-    raw"""https://oss.sonatype.org/service/local/repositories/public/archive/$slashedOrg/$name/$apiVersion/$jarBaseFile-javadoc.jar/!/index.html"""
+    if (apiVersion.toLowerCase(Locale.ENGLISH).endsWith("-snapshot")) {
+      raw"""https://central.sonatype.com/repository/maven-snapshots/$slashedOrg/$name/$apiVersion/$jarBaseFile-javadoc.jar/!/index.html"""
+    } else {
+      raw"""https://repo1.maven.org/maven2/$slashedOrg/$name/$apiVersion/$jarBaseFile-javadoc.jar/!/index.html"""
+    }
   }
 
   // Converts an sbt module into a Javadoc URL.
