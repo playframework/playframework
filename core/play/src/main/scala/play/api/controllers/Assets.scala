@@ -717,21 +717,11 @@ object Assets {
 
 @Singleton
 class Assets @Inject() (errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: Environment)
-    extends AssetsBuilder(errorHandler, meta, env) {
-  @deprecated("Use Assets(errorHandler,meta,env) instead.", "2.9")
-  def this(errorHandler: HttpErrorHandler, meta: AssetsMetadata) = {
-    this(errorHandler, meta, null)
-  }
-}
+    extends AssetsBuilder(errorHandler, meta, env)
 
 class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: Environment) extends ControllerHelpers {
   import meta._
   import Assets._
-
-  @deprecated("Use AssetsBuilder(errorHandler,meta,env) instead.", "2.9")
-  def this(errorHandler: HttpErrorHandler, meta: AssetsMetadata) = {
-    this(errorHandler, meta, null)
-  }
 
   protected val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
 
