@@ -4,6 +4,8 @@
 
 package play.data;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 import jakarta.validation.ValidatorFactory;
@@ -485,6 +487,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     }
 
     /** @return the data. */
+    @JsonAnyGetter
     public Map<String, Object> getData() {
       return data;
     }
@@ -496,6 +499,17 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public void setData(Map<String, Object> data) {
       this.data = data;
+    }
+
+    /**
+     * Put data property.
+     *
+     * @param key the property key.
+     * @param value the property value.
+     */
+    @JsonAnySetter
+    public void putData(String key, Object value) {
+      data.put(key, value);
     }
 
     public String toString() {
