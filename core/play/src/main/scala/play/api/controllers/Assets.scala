@@ -415,7 +415,7 @@ class DefaultAssetsMetadata(
 ) extends AssetsMetadata {
   @Inject
   def this(env: Environment, config: AssetsConfiguration, fileMimeTypes: FileMimeTypes) =
-    this(config, env.resource _, fileMimeTypes)
+    this(config, env.resource, fileMimeTypes)
 
   lazy val finder: AssetsFinder = new AssetsFinder {
     val assetsBasePath  = config.path
