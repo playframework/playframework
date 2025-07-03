@@ -25,10 +25,10 @@ class JavaHttpErrorHandlerAdapter @Inject() (underlying: JHttpErrorHandler) exte
     underlying
       .onClientError(request.asJava, statusCode, message)
       .asScala
-      .map(_.asScala)(Execution.trampoline)
+      .map(_.asScala)(using Execution.trampoline)
   }
 
   def onServerError(request: RequestHeader, exception: Throwable) = {
-    underlying.onServerError(request.asJava, exception).asScala.map(_.asScala)(Execution.trampoline)
+    underlying.onServerError(request.asJava, exception).asScala.map(_.asScala)(using Execution.trampoline)
   }
 }

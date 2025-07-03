@@ -21,7 +21,7 @@ class ExecutionSpec extends Specification {
 
   "trampoline" should {
     "execute code in the same thread" in {
-      val f = Future(Thread.currentThread())(trampoline)
+      val f = Future(Thread.currentThread())(using trampoline)
       Await.result(f, waitTime) must equalTo(Thread.currentThread())
     }
 

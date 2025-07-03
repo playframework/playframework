@@ -31,11 +31,11 @@ class MessagesSpec extends Specification {
   }
 
   def translate(msg: String, lang: String, reg: String): Option[String] = {
-    api.translate(msg, Nil)(Lang(lang, reg))
+    api.translate(msg, Nil)(using Lang(lang, reg))
   }
 
   def isDefinedAt(msg: String, lang: String, reg: String): Boolean =
-    api.isDefinedAt(msg)(Lang(lang, reg))
+    api.isDefinedAt(msg)(using Lang(lang, reg))
 
   "MessagesApi" should {
     "fall back to less specific translation" in {

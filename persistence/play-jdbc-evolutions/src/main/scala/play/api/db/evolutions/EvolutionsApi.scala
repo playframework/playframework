@@ -713,7 +713,7 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
     Seq
       .unfold(1) { revision =>
         loadResource(db, revision).map { stream =>
-          ((revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)), revision + 1)
+          ((revision, PlayIO.readStreamAsString(stream)(using Codec.UTF8)), revision + 1)
         }
       }
       .sortBy(_._1)

@@ -1022,7 +1022,7 @@ case class FieldMapping[T](key: String = "", constraints: Seq[Constraint[T]] = N
    * @return the same mapping with a new binder
    */
   def as(binder: Formatter[T]): Mapping[T] = {
-    this.copy()(binder)
+    this.copy()(using binder)
   }
 
   /**

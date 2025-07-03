@@ -18,15 +18,15 @@ package views.html.helper {
       p: play.api.i18n.MessagesProvider
   ) {
     def infos: Seq[Any] = {
-      args.get(Symbol("_help")).map(m => Seq(translate(m)(p))).getOrElse {
+      args.get(Symbol("_help")).map(m => Seq(translate(m)(using p))).getOrElse {
         if (
           args.get(Symbol("_showConstraints")) match {
             case Some(false) => false
             case _           => true
           }
         ) {
-          field.constraints.map(c => p.messages(c._1, c._2.map(a => translate(a)(p))*)) ++
-            field.format.map(f => p.messages(f._1, f._2.map(a => translate(a)(p))*))
+          field.constraints.map(c => p.messages(c._1, c._2.map(a => translate(a)(using p))*)) ++
+            field.format.map(f => p.messages(f._1, f._2.map(a => translate(a)(using p))*))
         } else Nil
       }
     }
@@ -34,11 +34,11 @@ package views.html.helper {
     def errors: Seq[Any] = {
       (args.get(Symbol("_error")) match {
         case Some(Some(FormError(_, message, args))) =>
-          Some(p.messages(message, args.map(a => translate(a)(p))*))
+          Some(p.messages(message, args.map(a => translate(a)(using p))*))
         case Some(FormError(_, message, args)) =>
-          Some(p.messages(message, args.map(a => translate(a)(p))*))
+          Some(p.messages(message, args.map(a => translate(a)(using p))*))
         case Some(None)  => None
-        case Some(value) => Some(translate(value)(p))
+        case Some(value) => Some(translate(value)(using p))
         case _           => None
       }).map(Seq(_)).getOrElse {
         if (
@@ -47,7 +47,7 @@ package views.html.helper {
             case _           => true
           }
         ) {
-          field.errors.map(e => p.messages(e.message, e.args.map(a => translate(a)(p))*))
+          field.errors.map(e => p.messages(e.message, e.args.map(a => translate(a)(using p))*))
         } else Nil
       }
     }
@@ -57,13 +57,13 @@ package views.html.helper {
     }
 
     def label: Any = {
-      args.get(Symbol("_label")).map(l => translate(l)(p)).getOrElse(p.messages(field.label))
+      args.get(Symbol("_label")).map(l => translate(l)(using p)).getOrElse(p.messages(field.label))
     }
 
     def hasName: Boolean = args.get(Symbol("_name")).isDefined
 
     def name: Any = {
-      args.get(Symbol("_name")).map(n => translate(n)(p)).getOrElse(p.messages(field.label))
+      args.get(Symbol("_name")).map(n => translate(n)(using p)).getOrElse(p.messages(field.label))
     }
   }
 

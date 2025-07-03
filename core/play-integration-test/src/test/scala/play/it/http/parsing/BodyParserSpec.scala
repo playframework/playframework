@@ -24,7 +24,7 @@ import play.core.Execution.Implicits.trampoline
 class BodyParserSpec extends PlaySpecification with ScalaCheck {
   def run[A](bodyParser: BodyParser[A]): Either[Result, A] = {
     val system: ActorSystem                   = ActorSystem()
-    implicit val mat: Materializer            = Materializer.matFromSystem(system)
+    implicit val mat: Materializer            = Materializer.matFromSystem(using system)
     implicit val ec: ExecutionContextExecutor = system.dispatcher
     try {
       await {

@@ -88,7 +88,7 @@ private[cors] trait AbstractCORSPolicy {
      * inaccurate if re-used across-origins.
      */
     resultAcc.map { result => result.withHeaders(result.header.varyWith(HeaderNames.ORIGIN)) }(
-      play.core.Execution.trampoline
+      using play.core.Execution.trampoline
     )
   }
 
@@ -292,7 +292,7 @@ private[cors] trait AbstractCORSPolicy {
   private def handleInvalidCORSRequest(request: RequestHeader): Accumulator[ByteString, Result] = {
     logger.warn(s"""Invalid CORS request;Origin=${request.headers
         .get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers
-        .get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(SecurityMarkerContext)
+        .get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")(using SecurityMarkerContext)
     Accumulator.done(Future.successful(Results.Forbidden))
   }
 

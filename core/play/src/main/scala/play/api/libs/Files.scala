@@ -390,7 +390,7 @@ object Files {
             }
           }
           .getOrElse(Seq.empty)
-      }(blockingExecutionContext)
+      }(using blockingExecutionContext)
     }
 
     def delete(path: Path): Unit = {
@@ -418,7 +418,7 @@ object Files {
       }
 
       cancellable = Some(
-        actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () => reap() }(actorSystem.dispatcher)
+        actorSystem.scheduler.scheduleAtFixedRate(initialDelay, interval) { () => reap() }(using actorSystem.dispatcher)
       )
     }
   }

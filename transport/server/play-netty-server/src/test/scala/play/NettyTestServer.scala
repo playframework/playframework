@@ -9,7 +9,7 @@ import play.api.routing.sird._
 import play.core.server._
 
 object NettyTestServer extends App {
-  lazy val Action = new ActionBuilder.IgnoringBody()(_root_.controllers.Execution.trampoline)
+  lazy val Action = new ActionBuilder.IgnoringBody()(using _root_.controllers.Execution.trampoline)
 
   val port: Int = 8000
 

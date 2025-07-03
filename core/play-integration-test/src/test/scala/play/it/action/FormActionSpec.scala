@@ -51,7 +51,7 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
       import play.api.routing.sird.{ POST => SirdPost, _ }
 
       override lazy val actorSystem: ActorSystem            = ActorSystem("form-action-spec")
-      implicit override lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
+      implicit override lazy val materializer: Materializer = Materializer.matFromSystem(using actorSystem)
 
       override def router: Router = Router.from {
         case SirdPost(p"/multipart") =>
@@ -65,10 +65,11 @@ class FormActionSpec extends PlaySpecification with WsTestClient {
             Ok(s"${user.name} - ${user.email}")
           }
         case SirdPost(p"/multipart/wrapped-max-length") =>
-          defaultActionBuilder(playBodyParsers.maxLength(1024, playBodyParsers.multipartFormData)(this.materializer)) {
-            implicit request =>
-              val user = userForm.bindFromRequest().get
-              Ok(s"${user.name} - ${user.email}")
+          defaultActionBuilder(
+            playBodyParsers.maxLength(1024, playBodyParsers.multipartFormData)(using this.materializer)
+          ) { implicit request =>
+            val user = userForm.bindFromRequest().get
+            Ok(s"${user.name} - ${user.email}")
           }
         case SirdPost(p"/tmpfileexists") =>
           // return true if the temporary file exists.

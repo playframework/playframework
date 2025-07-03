@@ -295,7 +295,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
         next(request).recover {
           case t: Throwable =>
             Results.InternalServerError(t.getMessage)
-        }(ec)
+        }(using ec)
       } catch {
         case t: Throwable => Accumulator.done(Results.InternalServerError(t.getMessage))
       }
@@ -342,7 +342,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val expectedText = "This filter calls next and throws an exception afterwards"
 
     def apply(next: EssentialAction) = EssentialAction { request =>
-      next(request).map { _ => throw new RuntimeException(expectedText) }(ec)
+      next(request).map { _ => throw new RuntimeException(expectedText) }(using ec)
     }
   }
 
@@ -351,7 +351,7 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val expectedValue = "1"
 
     def apply(next: EssentialAction) = EssentialAction { request =>
-      next(request).map { result => result.withHeaders(header -> expectedValue) }(ec)
+      next(request).map { result => result.withHeaders(header -> expectedValue) }(using ec)
     }
   }
 
@@ -387,9 +387,9 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
       case POST(p"/error") =>
         Action { request => throw new RuntimeException(request.body.asText.getOrElse("")) }
       case GET(p"/error-async") =>
-        Action.async { request => Future { throw new RuntimeException(expectedErrorText) }(ec) }
+        Action.async { request => Future { throw new RuntimeException(expectedErrorText) }(using ec) }
       case POST(p"/error-async") =>
-        Action.async { request => Future { throw new RuntimeException(request.body.asText.getOrElse("")) }(ec) }
+        Action.async { request => Future { throw new RuntimeException(request.body.asText.getOrElse("")) }(using ec) }
     }
   }
 

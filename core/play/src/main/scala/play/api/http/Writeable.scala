@@ -142,7 +142,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
       (_, value) <- mt.parameters.find(_._1.equalsIgnoreCase("boundary"))
       boundary   <- value
     } yield boundary
-    writeableOf_MultipartFormData(maybeBoundary)(codec)
+    writeableOf_MultipartFormData(maybeBoundary)(using codec)
   }
 
   /**

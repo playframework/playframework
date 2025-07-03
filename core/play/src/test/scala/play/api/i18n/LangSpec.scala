@@ -58,11 +58,11 @@ class LangSpec extends org.specs2.mutable.Specification {
       case (locale, obj) =>
         s"be ${locale.toLanguageTag}" >> {
           "and written as JSON object" in {
-            Json.toJson(Lang(locale))(Lang.jsonOWrites) must_== obj
+            Json.toJson(Lang(locale))(using Lang.jsonOWrites) must_== obj
           }
 
           "be read as JSON object" in {
-            Json.fromJson[Lang](obj)(Lang.jsonOReads) mustEqual (JsSuccess(Lang(locale)))
+            Json.fromJson[Lang](obj)(using Lang.jsonOReads) mustEqual (JsSuccess(Lang(locale)))
           }
         }
     }

@@ -287,7 +287,7 @@ class ProdServerStartSpec extends Specification {
               case Failure(e) =>
                 throw e
             }
-          }(threadPool)
+          }(using threadPool)
         }
 
         // Await the result

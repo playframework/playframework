@@ -45,7 +45,7 @@ class DefaultCSPResultProcessor @Inject() (cspProcessor: CSPProcessor) extends C
           .getOrElse(request)
 
         next(maybeNonceRequest).map { result => result.withHeaders(generateHeaders(cspResult)*) }(
-          play.core.Execution.trampoline
+          using play.core.Execution.trampoline
         )
       }
       .getOrElse {

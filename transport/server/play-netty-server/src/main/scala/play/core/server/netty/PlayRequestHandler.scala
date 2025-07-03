@@ -155,7 +155,7 @@ private[play] class PlayRequestHandler(
         val wsUrl      = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
         val factory    = new WebSocketServerHandshakerFactory(wsUrl, "*", true, wsBufferLimit)
 
-        val executed = Future(ws(requestHeader))(app.actorSystem.dispatcher)
+        val executed = Future(ws(requestHeader))(using app.actorSystem.dispatcher)
 
         import play.core.Execution.Implicits.trampoline
         executed
@@ -330,7 +330,7 @@ private[play] class PlayRequestHandler(
       requestHeader.addAttr(RequestAttrKey.DeferredBodyParsing, invokeAction _)
     } else {
       requestHeader
-    }))(mat.executionContext)
+    }))(using mat.executionContext)
     for {
       // Execute the action and get a result, calling errorHandler if errors happen in this process
       actionResult <- invokeAction(actionFuture, deferBodyParsing)

@@ -110,7 +110,7 @@ trait PekkoComponents {
   lazy val coordinatedShutdown: CoordinatedShutdown =
     new CoordinatedShutdownProvider(actorSystem, applicationLifecycle).get
 
-  implicit lazy val materializer: Materializer = Materializer.matFromSystem(actorSystem)
+  implicit lazy val materializer: Materializer = Materializer.matFromSystem(using actorSystem)
 
   implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
 }
@@ -146,7 +146,7 @@ class ClassicActorSystemProviderProvider @Inject() (actorSystem: ActorSystem)
  */
 @Singleton
 class MaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[Materializer] {
-  lazy val get: Materializer = Materializer.matFromSystem(actorSystem)
+  lazy val get: Materializer = Materializer.matFromSystem(using actorSystem)
 }
 
 /**

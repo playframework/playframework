@@ -56,7 +56,7 @@ trait HeadActionSpec
 
     def withServer[T](block: WSClient => T): T = {
       // Routes from HttpBinApplication
-      Server.withRouterFromComponents()(components => routes(components.defaultActionBuilder)) { implicit port =>
+      Server.withRouterFromComponents()(components => routes(using components.defaultActionBuilder)) { implicit port =>
         WsTestClient.withClient(block)
       }
     }

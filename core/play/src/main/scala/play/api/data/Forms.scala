@@ -36,7 +36,7 @@ object Forms {
    * @tparam T the mapping type
    * @return a mapping for a simple field
    */
-  def of[T](implicit binder: Formatter[T]): FieldMapping[T] = FieldMapping[T]()(binder)
+  def of[T](implicit binder: Formatter[T]): FieldMapping[T] = FieldMapping[T]()(using binder)
 
   /**
    * Creates a Mapping of type `T`.
@@ -457,7 +457,7 @@ object Forms {
    *
    * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
    */
-  def ignored[A](value: A): Mapping[A] = of(ignoredFormat(value))
+  def ignored[A](value: A): Mapping[A] = of(using ignoredFormat(value))
 
   /**
    * Defines an optional mapping.
@@ -570,7 +570,7 @@ object Forms {
    *   Form("birthdate" -> sqlDate)
    * }}}
    */
-  val sqlDate: Mapping[java.sql.Date] = of[java.sql.Date](sqlDateFormat)
+  val sqlDate: Mapping[java.sql.Date] = of[java.sql.Date](using sqlDateFormat)
 
   /**
    * Constructs a simple mapping for a date field (mapped as `sql.Date type`).
@@ -592,7 +592,7 @@ object Forms {
    *   Form("birthdate" -> sqlTimestamp)
    * }}}
    */
-  val sqlTimestamp: Mapping[java.sql.Timestamp] = of[java.sql.Timestamp](sqlTimestampFormat)
+  val sqlTimestamp: Mapping[java.sql.Timestamp] = of[java.sql.Timestamp](using sqlTimestampFormat)
 
   /**
    * Constructs a simple mapping for a Timestamp field (mapped as `java.sql.Timestamp type`).

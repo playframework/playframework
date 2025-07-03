@@ -33,7 +33,7 @@ class WSSpec extends PlaySpecification with WsTestClient {
         }
       } { implicit port =>
         withClient { ws =>
-          val mat    = Materializer.matFromSystem(ActorSystem())
+          val mat    = Materializer.matFromSystem(using ActorSystem())
           val javaWs = new AhcWSClient(ws.underlying[AsyncHttpClient], mat)
           val input  = this.getClass.getClassLoader.getResourceAsStream("play/libs/ws/play_full_color.png")
           val rep    = javaWs.url(s"http://localhost:$port/").post(input).toCompletableFuture.get()

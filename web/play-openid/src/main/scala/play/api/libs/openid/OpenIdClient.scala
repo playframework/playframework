@@ -347,6 +347,6 @@ trait OpenIDComponents {
   def wsClient: WSClient
   def executionContext: ExecutionContext
 
-  lazy val openIdDiscovery: Discovery = new WsDiscovery(wsClient)(executionContext)
-  lazy val openIdClient: OpenIdClient = new WsOpenIdClient(wsClient, openIdDiscovery)(executionContext)
+  lazy val openIdDiscovery: Discovery = new WsDiscovery(wsClient)(using executionContext)
+  lazy val openIdClient: OpenIdClient = new WsOpenIdClient(wsClient, openIdDiscovery)(using executionContext)
 }
