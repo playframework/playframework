@@ -16,6 +16,7 @@ import com.google.inject.util.{ Providers => GuiceProviders }
 import com.google.inject.Binder
 import com.google.inject.CreationException
 import com.google.inject.Guice
+import com.google.inject.Scopes
 import com.google.inject.Stage
 import jakarta.inject.Inject
 import jakarta.inject.Provider
@@ -379,8 +380,13 @@ trait GuiceableModuleConversions {
             case BindingKeyTarget(key)                => builder.to(GuiceKey(key))
           }
           (binding.scope, binding.eager) match {
-            case (Some(scope), false) => builder.in(scope)
-            case (None, true)         => builder.asEagerSingleton()
+            case (Some(scope), false) =>
+              if (
+                scope.getName.equals(classOf[play.api.inject.guice.NoScope].getName) ||
+                scope.getName.equals(classOf[play.inject.guice.NoScope].getName)
+              ) builder.in(Scopes.NO_SCOPE)
+              else builder.in(scope)
+            case (None, true) => builder.asEagerSingleton()
             case (Some(scope), true) =>
               throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
             case _ => // do nothing
