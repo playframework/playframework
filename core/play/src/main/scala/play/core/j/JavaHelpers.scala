@@ -27,6 +27,7 @@ import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestTarget
 import play.api.Configuration
 import play.api.Environment
+import play.core.parsers.FormUrlEncodedParser
 import play.i18n
 import play.libs.typedmap.TypedEntry
 import play.libs.typedmap.TypedKey
@@ -117,21 +118,37 @@ trait JavaHelpers {
       override val path: String      = parsedUri.getRawPath
       override val queryMap: Map[String, Seq[String]] = {
         val query: String = uri.getRawQuery
+        FormUrlEncodedParser.parse(queryString)
+        /*
         if (query == null || query.isEmpty) {
           Map.empty
         } else {
-          query.split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
+          def updatem = (acc: Map[String, Seq[String]],key: String, value: String) => acc.get(key) match {
+            case None         => acc.updated(key, Seq(value))
+            case Some(values) => acc.updated(key, values :+ value)
+          }
+          println("1: " + query)
+          println("2: " + query.replaceAll("&&", "&=&").replaceAll("&&", "&=&"))
+          val map = query.replaceAll("&&", "&=&").replaceAll("&&", "&=&").split("&").foldLeft[Map[String, Seq[String]]](Map.empty) {
             case (acc, pair) =>
+              println("PAIR:" + pair)
               val idx: Int    = pair.indexOf("=")
-              val key: String = URLDecoder.decode(if (idx > 0) pair.substring(0, idx) else pair, "UTF-8")
+              val key: String = if(pair == "=") "" else URLDecoder.decode(if (idx > 0) pair.substring(0, idx) else pair, "UTF-8")
               val value: String =
-                if (idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else ""
-              acc.get(key) match {
-                case None         => acc.updated(key, Seq(value))
-                case Some(values) => acc.updated(key, values :+ value)
-              }
+                if (pair != "=" && idx > 0 && pair.length > idx + 1) URLDecoder.decode(pair.substring(idx + 1), "UTF-8") else ""
+              updatem(acc, key, value)
+          }
+          println("SIZE:" + map.get("").map(_.size))
+          // special case:
+          if(query.startsWith("&") && query.endsWith("&")) {
+            updatem(updatem(map, "", ""), "", "")
+          } else if(query.startsWith("&") || query.endsWith("&")) {
+              updatem(map, "", "")
+          } else {
+            map
           }
         }
+        */
       }
     })
   }
