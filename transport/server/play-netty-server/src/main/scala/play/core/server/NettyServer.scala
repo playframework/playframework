@@ -34,6 +34,7 @@ import io.netty.channel.uring.IoUringChannelOption
 import io.netty.channel.uring.IoUringIoHandler
 import io.netty.channel.uring.IoUringServerSocketChannel
 import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
@@ -274,6 +275,7 @@ class NettyServer(
       pipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       pipeline.addLast("encoder", new HttpResponseEncoder())
       pipeline.addLast("decompressor", new HttpContentDecompressor())
+      pipeline.addLast("ws-compressor", new WebSocketServerCompressionHandler())
       if (logWire) {
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }
