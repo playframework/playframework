@@ -45,7 +45,7 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
   def at(rootPath: String, file: String): Action[AnyContent] = Action.async { request =>
     environment.mode match {
       case Mode.Prod => Future.successful(NotFound)
-      case _ =>
+      case _         =>
         Future {
           val fileToServe = rootPath match {
             case AbsolutePath(_) => new File(rootPath, file)

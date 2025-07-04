@@ -44,7 +44,7 @@ object Play {
   def start(app: Application): Unit = synchronized {
     app.mode match {
       case Mode.Test =>
-      case mode =>
+      case mode      =>
         logger.info(s"Application started ($mode)")
     }
   }

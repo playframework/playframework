@@ -325,16 +325,16 @@ class RangeResultSpec extends Specification {
 
   "Result" should {
     "have status ok when there is no range" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                   = List[Byte](1, 2, 3)
+      val source                                              = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(status, _, _), _, _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, None, None)
       status must_== 200
     }
 
     "have headers" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                                                         = List[Byte](1, 2, 3)
+      val source                                                                                    = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(_, _, contentType), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, None, None)
       headers must havePair("Accept-Ranges" -> "bytes")
@@ -342,16 +342,16 @@ class RangeResultSpec extends Specification {
     }
 
     "support Content-Disposition header" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                    = List[Byte](1, 2, 3)
+      val source                                               = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), _, _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, Some("video.mp4"), None)
       headers must havePair("Content-Disposition" -> "attachment; filename=\"video.mp4\"")
     }
 
     "support non-ISO-8859-1 filename in Content-Disposition header" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                    = List[Byte](1, 2, 3)
+      val source                                               = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), _, _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, None, Some("测 试.tmp"), None)
       headers.get("Content-Disposition") must beSome(
@@ -360,8 +360,8 @@ class RangeResultSpec extends Specification {
     }
 
     "support first byte position" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                                                  = List[Byte](1, 2, 3)
+      val source                                                                             = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, Some("bytes=1-"), None, None)
       headers must havePair("Content-Range" -> "bytes 1-2/3")
@@ -373,8 +373,8 @@ class RangeResultSpec extends Specification {
     }
 
     "support last byte position" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3, 4, 5, 6)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                                                  = List[Byte](1, 2, 3, 4, 5, 6)
+      val source                                                                             = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(bytes.length, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/6")
@@ -385,8 +385,8 @@ class RangeResultSpec extends Specification {
     }
 
     "support last byte position without entity length" in {
-      val bytes: List[Byte] = List[Byte](1, 2, 3, 4, 5, 6)
-      val source            = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val bytes: List[Byte]                                                                  = List[Byte](1, 2, 3, 4, 5, 6)
+      val source                                                                             = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(None, source, Some("bytes=2-4"), None, None)
       headers must havePair("Content-Range" -> "bytes 2-4/*")
@@ -397,8 +397,8 @@ class RangeResultSpec extends Specification {
     }
 
     "support a Source function that handles pre-seeking" in {
-      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
-      val source: Long => (Long, Source[ByteString, ?]) = offsetSupportingGenerator(bytes)
+      val bytes: List[Byte]                                                                  = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, ?])                                      = offsetSupportingGenerator(bytes)
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
       implicit val system: ActorSystem        = ActorSystem()
@@ -408,8 +408,8 @@ class RangeResultSpec extends Specification {
     }
 
     "support a Source function that ignores pre-seeking" in {
-      val bytes: List[Byte]                             = List[Byte](1, 2, 3, 4, 5, 6)
-      val source: Long => (Long, Source[ByteString, ?]) = offsetIgnoringGenerator(bytes)
+      val bytes: List[Byte]                                                                  = List[Byte](1, 2, 3, 4, 5, 6)
+      val source: Long => (Long, Source[ByteString, ?])                                      = offsetIgnoringGenerator(bytes)
       val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
         RangeResult.ofSource(Some(bytes.size.toLong), source, Some("bytes=3-4"), None, None)
       implicit val system: ActorSystem        = ActorSystem()

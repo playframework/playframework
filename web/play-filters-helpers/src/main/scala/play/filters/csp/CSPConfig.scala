@@ -83,8 +83,8 @@ object CSPConfig {
 
     val reportOnly = config.get[Boolean]("reportOnly")
 
-    val whitelistModifiers = config.get[Seq[String]]("routeModifiers.whiteList")
-    val blacklistModifiers = config.get[Seq[String]]("routeModifiers.blackList")
+    val whitelistModifiers                                      = config.get[Seq[String]]("routeModifiers.whiteList")
+    val blacklistModifiers                                      = config.get[Seq[String]]("routeModifiers.blackList")
     @inline def checkRouteModifiers(rh: RequestHeader): Boolean = {
       import play.api.routing.Router.RequestImplicits._
       if (whitelistModifiers.isEmpty) {
@@ -95,14 +95,14 @@ object CSPConfig {
     }
     val shouldFilterRequest: RequestHeader => Boolean = { rh => checkRouteModifiers(rh) }
 
-    val nonce = config.get[Configuration]("nonce")
+    val nonce       = config.get[Configuration]("nonce")
     val nonceConfig = CSPNonceConfig(
       enabled = nonce.get[Boolean]("enabled"),
       pattern = nonce.get[String]("pattern"),
       header = nonce.get[Boolean]("header")
     )
 
-    val hashes = config.underlying.getConfigList("hashes").asScala
+    val hashes      = config.underlying.getConfigList("hashes").asScala
     val hashConfigs = hashes.map { hc =>
       val hashConfig = Configuration(hc)
       CSPHashConfig(
@@ -112,7 +112,7 @@ object CSPConfig {
       )
     }
 
-    val drctves = config.get[Configuration]("directives")
+    val drctves                             = config.get[Configuration]("directives")
     val directivesConfig: Seq[CSPDirective] = drctves.entrySet.toSeq.flatMap {
       case (k, v) if v.unwrapped() == null =>
         None

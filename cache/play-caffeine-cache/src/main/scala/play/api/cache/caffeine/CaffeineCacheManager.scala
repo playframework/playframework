@@ -25,7 +25,7 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
         cacheName,
         cacheName => {
           val cacheBuilder: Caffeine[K, V] = getCacheBuilder(cacheName).asInstanceOf[Caffeine[K, V]]
-          val namedCache =
+          val namedCache                   =
             new NamedCaffeineCache[K, V](cacheName, cacheBuilder.buildAsync().asInstanceOf[AsyncCache[K, V]])
           namedCache.asInstanceOf[NamedCaffeineCache[?, ?]]
         }
@@ -46,7 +46,7 @@ class CaffeineCacheManager(private val config: Config, private val actorSystem: 
     val defaultExpiry: DefaultCaffeineExpiry = new DefaultCaffeineExpiry
     val caches: Config                       = config.getConfig("caches")
     val defaults: Config                     = config.getConfig("defaults")
-    val cacheConfig =
+    val cacheConfig                          =
       if (caches.hasPath(cacheName))
         caches.getConfig(cacheName).withFallback(defaults)
       else defaults

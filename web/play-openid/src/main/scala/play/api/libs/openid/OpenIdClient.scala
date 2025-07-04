@@ -40,7 +40,7 @@ object UserInfo {
    * (i.e. listed in the openid.signed field) and verified in the check_authentication step.
    */
   private[openid] class UserInfoExtractor(params: Map[String, Seq[String]]) {
-    val AxAttribute = """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
+    val AxAttribute                                                   = """^openid\.([^.]+\.value\.([^.]+(\.\d+)?))$""".r
     val extractAxAttribute: PartialFunction[String, (String, String)] = {
       case AxAttribute(fullKey, key, num) =>
         (fullKey, key) // fullKey e.g. 'ext1.value.email', shortKey e.g. 'email' or 'fav_movie.2'

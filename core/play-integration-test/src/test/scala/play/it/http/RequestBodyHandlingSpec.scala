@@ -32,7 +32,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     def withServerAndConfig[T](
         configuration: (String, Any)*
     )(action: (DefaultActionBuilder, PlayBodyParsers) => EssentialAction)(block: Port => T) = {
-      val config = Configuration(configuration*)
+      val config                     = Configuration(configuration*)
       val serverConfig: ServerConfig = {
         val c = ServerConfig(port = Some(testServerPort), mode = Mode.Test)
         c.copy(configuration = config.withFallback(c.configuration))
@@ -70,7 +70,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
         compressor.finish()
         val compressedDataLength = compressor.deflate(output)
 
-        val client = new BasicHttpClient(port, false)
+        val client   = new BasicHttpClient(port, false)
         val response = client.sendRaw(
           output.take(compressedDataLength),
           Map(
@@ -86,7 +86,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     "handle large bodies" in withServer((_, _) =>
       EssentialAction { rh => Accumulator(Sink.ignore).map(_ => Results.Ok) }
     ) { port =>
-      val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
+      val body      = new String(Random.alphanumeric.take(50 * 1024).toArray)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body),
         // Second request ensures that Play switches back to its normal handler
@@ -116,7 +116,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
     ) { port =>
       // big body that should not crash pekko and netty
-      val body = "Hello World" * (1024 * 1024)
+      val body      = "Hello World" * (1024 * 1024)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(1))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
       )
@@ -130,7 +130,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     )((Action, parse) =>
       Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
     ) { port =>
-      val body = "Hello World" * 2 // => 22 bytes, but we allow only 21 bytes
+      val body      = "Hello World" * 2 // => 22 bytes, but we allow only 21 bytes
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
       )
@@ -144,7 +144,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     )((Action, parse) =>
       Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
     ) { port =>
-      val body = "Hello World" * 2 // => 22 bytes, same what we allow
+      val body      = "Hello World" * 2 // => 22 bytes, same what we allow
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
         BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
       )

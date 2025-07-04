@@ -187,7 +187,7 @@ object Modules {
       case e: PlayException       => throw e
       case e: VirtualMachineError => throw e
       case e: ThreadDeath         => throw e
-      case e: Throwable =>
+      case e: Throwable           =>
         throw new PlayException("Cannot load module", "Module [" + className + "] cannot be instantiated.", e)
     }
   }

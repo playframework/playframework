@@ -319,16 +319,16 @@ package object templates {
    * Generate the reverse call
    */
   def reverseCall(route: Route, localNames: Map[String, String] = Map()): String = {
-    val df = if (route.path.parts.isEmpty) "" else " + { _defaultPrefix } + "
+    val df       = if (route.path.parts.isEmpty) "" else " + { _defaultPrefix } + "
     val callPath = "_prefix" + df + route.path.parts
       .map {
-        case StaticPart(part) => "\"" + part + "\""
+        case StaticPart(part)             => "\"" + part + "\""
         case DynamicPart(name, _, encode) =>
           route.call.routeParams
             .find(_.name == name)
             .map { param =>
               val paramName: String = paramNameOnQueryString(param.name)
-              val unbound = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
+              val unbound           = s"""implicitly[play.api.mvc.PathBindable[${param.typeName}]]""" +
                 s""".unbind("$paramName", ${safeKeyword(localNames.getOrElse(param.name, param.name))})"""
               if (encode) s"play.core.routing.dynamicString($unbound)" else unbound
             }
@@ -407,8 +407,8 @@ package object templates {
         (route, localNames, constraints)
       }
       .foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
-        case ((_routes, true), dead)                       => (_routes, true)
-        case ((_routes, false), (route, localNames, None)) => (_routes :+ ((route, localNames, "true")), true)
+        case ((_routes, true), dead)                                    => (_routes, true)
+        case ((_routes, false), (route, localNames, None))              => (_routes :+ ((route, localNames, "true")), true)
         case ((_routes, false), (route, localNames, Some(constraints))) =>
           (_routes :+ ((route, localNames, constraints)), false)
       }
@@ -422,7 +422,7 @@ package object templates {
     val path = "\"\"\"\" + _prefix + " + {
       if (route.path.parts.isEmpty) "" else "{ _defaultPrefix } + "
     } + "\"\"\"\"" + route.path.parts.map {
-      case StaticPart(part) => " + \"" + part + "\""
+      case StaticPart(part)             => " + \"" + part + "\""
       case DynamicPart(name, _, encode) =>
         route.call.parameters
           .getOrElse(Nil)
@@ -430,7 +430,7 @@ package object templates {
           .filterNot(_.isJavaRequest)
           .map { param =>
             val paramName: String = paramNameOnQueryString(param.name)
-            val jsUnbound =
+            val jsUnbound         =
               "(\"\"\" + implicitly[play.api.mvc.PathBindable[" + param.typeName + "]].javascriptUnbind + \"\"\")" +
                 s"""("$paramName", ${localNames.getOrElse(param.name, param.name)})"""
             if (encode) s" + encodeURIComponent($jsUnbound)" else s" + $jsUnbound"
@@ -493,8 +493,8 @@ package object templates {
     constant.split('$').mkString(tq, s"""$tq + "$$" + $tq""", tq)
   }
 
-  def groupRoutesByPackage(routes: Seq[Route]): Map[Option[String], Seq[Route]] = routes.groupBy(_.call.packageName)
-  def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]]      = routes.groupBy(_.call.controller)
+  def groupRoutesByPackage(routes: Seq[Route]): Map[Option[String], Seq[Route]]       = routes.groupBy(_.call.packageName)
+  def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]]            = routes.groupBy(_.call.controller)
   def groupRoutesByMethod(routes: Seq[Route]): Map[(String, Seq[String]), Seq[Route]] =
     routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeNameReal)))
 

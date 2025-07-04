@@ -131,7 +131,7 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
     if (!isRedirect(redirectStatusCode)) {
       throw c.reportError(statusCodePath, s"Status Code $redirectStatusCode is not a Redirect status code!")
     }
-    val port = c.get[Option[Int]](portPath)
+    val port            = c.get[Option[Int]](portPath)
     val redirectEnabled = c.get[Option[Boolean]](redirectEnabledPath).getOrElse {
       if (e.mode != Mode.Prod) {
         logger.info(
@@ -144,8 +144,8 @@ class RedirectHttpsConfigurationProvider @Inject() (c: Configuration, e: Environ
     val xProtoEnabled = c.get[Boolean](forwardedProtoEnabled)
     val excludePaths  = c.get[Seq[String]](RedirectHttpsKeys.excludePaths)
 
-    val whitelistModifiers = c.get[Seq[String]](whitelistModifier)
-    val blacklistModifiers = c.get[Seq[String]](blacklistModifier)
+    val whitelistModifiers                                      = c.get[Seq[String]](whitelistModifier)
+    val blacklistModifiers                                      = c.get[Seq[String]](blacklistModifier)
     @inline def checkRouteModifiers(rh: RequestHeader): Boolean = {
       import play.api.routing.Router.RequestImplicits._
       if (whitelistModifiers.isEmpty) {

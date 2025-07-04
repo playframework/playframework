@@ -113,7 +113,7 @@ class ScalaLoggingSpec extends Specification {
 
       class AccessLoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: ExecutionContext)
           extends ActionBuilderImpl(parser) {
-        val accessLogger = Logger("access")
+        val accessLogger                                                                        = Logger("access")
         override def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           accessLogger.info(s"method=${request.method} uri=${request.uri} remote-address=${request.remoteAddress}")
           block(request)
@@ -143,7 +143,7 @@ class ScalaLoggingSpec extends Specification {
       implicit val system: ActorSystem  = ActorSystem()
       implicit val mat: Materializer    = Materializer.matFromSystem
       implicit val ec: ExecutionContext = system.dispatcher
-      val controller =
+      val controller                    =
         new Application(new AccessLoggingAction(new BodyParsers.Default()), Helpers.stubControllerComponents())
 
       controller.accessLoggingAction.accessLogger.underlyingLogger.getName must equalTo("access")

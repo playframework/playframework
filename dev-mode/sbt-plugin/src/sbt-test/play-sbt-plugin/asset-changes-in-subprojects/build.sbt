@@ -6,7 +6,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(common: _*)
   .settings(
-    name := "asset-changes-main",
+    name                                     := "asset-changes-main",
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
@@ -59,7 +59,7 @@ lazy val root = (project in file("."))
         sys.error("Usage: checkGeneratedJarFiles <difffile>")
       } else {
         val libfolder = "target/universal/stage/lib/"
-        val lsOutput = IO
+        val lsOutput  = IO
           .listFiles(new File(libfolder), file => file.getName().toLowerCase().contains("asset"))
           .map(_.getName)
           .sorted

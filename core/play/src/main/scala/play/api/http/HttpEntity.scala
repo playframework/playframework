@@ -96,7 +96,7 @@ object HttpEntity {
       extends HttpEntity {
     def isKnownEmpty                      = false
     def dataStream: Source[ByteString, ?] = data
-    def asJava: JHttpEntity =
+    def asJava: JHttpEntity               =
       new JHttpEntity.Streamed(
         data.asJava,
         contentLength.asInstanceOf[Option[java.lang.Long]].toJava,
@@ -115,8 +115,8 @@ object HttpEntity {
    * @param contentType The content type, if known.
    */
   final case class Chunked(chunks: Source[HttpChunk, ?], contentType: Option[String]) extends HttpEntity {
-    def isKnownEmpty                = false
-    def contentLength: Option[Long] = None
+    def isKnownEmpty                      = false
+    def contentLength: Option[Long]       = None
     def dataStream: Source[ByteString, ?] = chunks.collect {
       case HttpChunk.Chunk(data) => data
     }

@@ -57,9 +57,9 @@ private[sird] object QueryStringParameterMacros {
 
         // Extract paramName, and validate
         val startOfString = Position.ofMacroExpansion.start + name.length + 1
-        val paramName = parts.head match {
+        val paramName     = parts.head match {
           case paramEquals(param) => param
-          case _ =>
+          case _                  =>
             report.errorAndAbort(
               "Invalid start of string for query string extractor '" + parts.head + "', extractor string must have format " + name + "\"param=$extracted\"",
               withPoint(Position.ofMacroExpansion, startOfString)

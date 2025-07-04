@@ -219,9 +219,9 @@ class DefaultHttpRequestHandler(
         // 2. Resolve handlers that preprocess the request
         // 3. Modify the handler to do filtering, if necessary
         // 4. Again resolve any handlers that do preprocessing
-        val routedHandler                              = routeWithFallback(request)
-        val (preprocessedRequest, preprocessedHandler) = Handler.applyStages(request, routedHandler)
-        val filteredHandler                            = filterHandler(preprocessedRequest, preprocessedHandler)
+        val routedHandler                                                  = routeWithFallback(request)
+        val (preprocessedRequest, preprocessedHandler)                     = Handler.applyStages(request, routedHandler)
+        val filteredHandler                                                = filterHandler(preprocessedRequest, preprocessedHandler)
         val (preprocessedPreprocessedRequest, preprocessedFilteredHandler) =
           Handler.applyStages(preprocessedRequest, filteredHandler)
         (preprocessedPreprocessedRequest, preprocessedFilteredHandler)

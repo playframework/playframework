@@ -72,7 +72,7 @@ object IPFilterConfig {
   def fromConfiguration(conf: Configuration): IPFilterConfig = {
     val ipConfig                   = conf.get[Configuration]("play.filters.ip")
     val accessDeniedHttpStatusCode = ipConfig.getOptional[Int]("accessDeniedHttpStatusCode").getOrElse(Status.FORBIDDEN)
-    val whiteList =
+    val whiteList                  =
       ipConfig.getOptional[Seq[String]]("whiteList").getOrElse(Seq.empty).map(InetAddress.getByName(_).getAddress())
     val blackList =
       ipConfig.getOptional[Seq[String]]("blackList").getOrElse(Seq.empty).map(InetAddress.getByName(_).getAddress())

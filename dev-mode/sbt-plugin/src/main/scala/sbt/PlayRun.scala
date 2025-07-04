@@ -140,7 +140,7 @@ object PlayRun {
 
     val serverDidStart = interaction match {
       case nonBlocking: PlayNonBlockingInteractionMode => nonBlocking.start(devModeServer)
-      case _ =>
+      case _                                           =>
         devModeServer
 
         println()
@@ -315,8 +315,8 @@ object PlayRun {
     }
 
     Project.runTask(stage, state) match {
-      case None                  => fail(state)
-      case Some((state, Inc(_))) => fail(state)
+      case None                             => fail(state)
+      case Some((state, Inc(_)))            => fail(state)
       case Some((state, Value(stagingDir))) =>
         val stagingBin = {
           val path  = (stagingDir / "bin" / extracted.get(executableScriptName)).getAbsolutePath

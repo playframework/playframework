@@ -445,7 +445,7 @@ object ConfigLoader {
   implicit val intLoader: ConfigLoader[Int]         = ConfigLoader(_.getInt)
   implicit val seqIntLoader: ConfigLoader[Seq[Int]] = ConfigLoader(_.getIntList).map(_.asScala.map(_.toInt).toSeq)
 
-  implicit val booleanLoader: ConfigLoader[Boolean] = ConfigLoader(_.getBoolean)
+  implicit val booleanLoader: ConfigLoader[Boolean]         = ConfigLoader(_.getBoolean)
   implicit val seqBooleanLoader: ConfigLoader[Seq[Boolean]] =
     ConfigLoader(_.getBooleanList).map(_.asScala.map(_.booleanValue).toSeq)
 
@@ -474,18 +474,18 @@ object ConfigLoader {
 
   implicit val temporalLoader: ConfigLoader[TemporalAmount] = ConfigLoader(_.getTemporal)
 
-  implicit val doubleLoader: ConfigLoader[Double] = ConfigLoader(_.getDouble)
+  implicit val doubleLoader: ConfigLoader[Double]         = ConfigLoader(_.getDouble)
   implicit val seqDoubleLoader: ConfigLoader[Seq[Double]] =
     ConfigLoader(_.getDoubleList).map(_.asScala.map(_.doubleValue).toSeq)
 
   implicit val numberLoader: ConfigLoader[Number]         = ConfigLoader(_.getNumber)
   implicit val seqNumberLoader: ConfigLoader[Seq[Number]] = ConfigLoader(_.getNumberList).map(_.asScala.toSeq)
 
-  implicit val longLoader: ConfigLoader[Long] = ConfigLoader(_.getLong)
+  implicit val longLoader: ConfigLoader[Long]         = ConfigLoader(_.getLong)
   implicit val seqLongLoader: ConfigLoader[Seq[Long]] =
     ConfigLoader(_.getLongList).map(_.asScala.map(_.longValue).toSeq)
 
-  implicit val bytesLoader: ConfigLoader[ConfigMemorySize] = ConfigLoader(_.getMemorySize)
+  implicit val bytesLoader: ConfigLoader[ConfigMemorySize]         = ConfigLoader(_.getMemorySize)
   implicit val seqBytesLoader: ConfigLoader[Seq[ConfigMemorySize]] =
     ConfigLoader(_.getMemorySizeList).map(_.asScala.toSeq)
 

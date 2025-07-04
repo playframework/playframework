@@ -203,7 +203,7 @@ abstract class GuiceBuilder[Self] protected (
       case e: CreationException =>
         e.getCause match {
           case p: PlayException => throw p
-          case _ => {
+          case _                => {
             e.getErrorMessages.asScala.foreach(_.getCause match {
               case p: PlayException => throw p
               case _                => // do nothing
@@ -305,7 +305,7 @@ object GuiceableModule extends GuiceableModuleConversions {
   def guiceable(module: Any): GuiceableModule = module match {
     case playModule: PlayModule   => fromPlayModule(playModule)
     case guiceModule: GuiceModule => fromGuiceModule(guiceModule)
-    case unknown =>
+    case unknown                  =>
       throw new PlayException(
         "Unknown module type",
         s"Module [$unknown] is not a Play module or a Guice module"
@@ -381,7 +381,7 @@ trait GuiceableModuleConversions {
           (binding.scope, binding.eager) match {
             case (Some(scope), false) => builder.in(scope)
             case (None, true)         => builder.asEagerSingleton()
-            case (Some(scope), true) =>
+            case (Some(scope), true)  =>
               throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
             case _ => // do nothing
           }

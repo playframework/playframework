@@ -149,8 +149,8 @@ package scalaguide.http.scalaactionscomposition {
         import play.api.mvc._
 
         // ###skip:2
-        val logger = Logger(getClass)
-        val Action = actionBuilder
+        val logger                        = Logger(getClass)
+        val Action                        = actionBuilder
         def logging[A](action: Action[A]) = Action.async(action.parser) { request =>
           logger.info("Calling action")
           action(request)
@@ -174,10 +174,10 @@ package scalaguide.http.scalaactionscomposition {
         import play.api.mvc.request.RemoteConnection
 
         // ###skip:1
-        val Action = actionBuilder
+        val Action                              = actionBuilder
         def xForwardedFor[A](action: Action[A]) = Action.async(action.parser) { request =>
           val newRequest = request.headers.get("X-Forwarded-For") match {
-            case None => request
+            case None      => request
             case Some(xff) =>
               val xffConnection = RemoteConnection(xff, request.connection.secure, None)
               request.withConnection(xffConnection)
@@ -195,7 +195,7 @@ package scalaguide.http.scalaactionscomposition {
         // ###insert: import play.api.mvc.Results._
 
         // ###skip:1
-        val Action = actionBuilder
+        val Action                          = actionBuilder
         def onlyHttps[A](action: Action[A]) = Action.async(action.parser) { request =>
           request.headers
             .get("X-Forwarded-Proto")
@@ -216,7 +216,7 @@ package scalaguide.http.scalaactionscomposition {
         import play.api.mvc._
 
         // ###skip:1
-        val Action = actionBuilder
+        val Action                            = actionBuilder
         def addUaHeader[A](action: Action[A]) = Action.async(action.parser) { request =>
           action(request).map(_.withHeaders("X-UA-Compatible" -> "Chrome=1"))
         }
@@ -265,7 +265,7 @@ package scalaguide.http.scalaactionscomposition {
 
         // #item-action-builder
         def ItemAction(itemId: String)(implicit ec: ExecutionContext) = new ActionRefiner[UserRequest, ItemRequest] {
-          def executionContext = ec
+          def executionContext                                                         = ec
           def refine[A](input: UserRequest[A]): Future[Either[Status, ItemRequest[A]]] = Future.successful {
             ItemDao
               .findById(itemId)
@@ -277,7 +277,7 @@ package scalaguide.http.scalaactionscomposition {
 
         // #permission-check-action
         def PermissionCheckAction(implicit ec: ExecutionContext) = new ActionFilter[ItemRequest] {
-          def executionContext = ec
+          def executionContext                 = ec
           def filter[A](input: ItemRequest[A]) = Future.successful {
             if (!input.item.accessibleByUser(input.username))
               Some(Forbidden)

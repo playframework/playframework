@@ -59,7 +59,7 @@ class ScalaWebSockets extends PlaySpecification {
 
       "allow cleaning up" in new WithApplication() {
         override def running() = {
-          val closed = Promise[Boolean]()
+          val closed       = Promise[Boolean]()
           val someResource = new Closeable() {
             def close() = closed.success(true)
           }
@@ -234,7 +234,7 @@ object Controller2 {
       extends AbstractController(cc) {
     def socket = WebSocket.acceptOrResult[String, String] { request =>
       Future.successful(request.session.get("user") match {
-        case None => Left(Forbidden)
+        case None    => Left(Forbidden)
         case Some(_) =>
           Right(ActorFlow.actorRef { out => MyWebSocketActor.props(out) })
       })

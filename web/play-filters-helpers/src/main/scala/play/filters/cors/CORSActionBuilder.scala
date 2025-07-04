@@ -90,7 +90,7 @@ object CORSActionBuilder {
         new BodyParsers.Default(tempFileCreator, eh, parserConfig)(using materializer)
       protected override def mat: Materializer                  = materializer
       protected override def executionContext: ExecutionContext = ec
-      protected override def corsConfig: CORSConfig = {
+      protected override def corsConfig: CORSConfig             = {
         val prototype  = config.get[Configuration]("play.filters.cors")
         val corsConfig = config.get[Configuration](configPath).withFallback(prototype)
         CORSConfig.fromUnprefixedConfiguration(corsConfig)

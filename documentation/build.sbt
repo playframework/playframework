@@ -42,7 +42,7 @@ lazy val main = Project("Play-Documentation", file("."))
       ("net.logstash.logback" % "logstash-logback-encoder" % "8.1" % Test)
         .excludeAll(ExclusionRule("com.fasterxml.jackson.core")), // Avoid conflicts with Play's Jackson dependency
     ),
-    PlayDocsKeys.docsJarFile := Some((playDocs / Compile / packageBin).value),
+    PlayDocsKeys.docsJarFile              := Some((playDocs / Compile / packageBin).value),
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
       downstreamWikiPages = Set(
         "JavaEbean",

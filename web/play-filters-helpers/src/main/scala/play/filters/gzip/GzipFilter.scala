@@ -110,8 +110,8 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
           val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
             import GraphDSL.Implicits._
 
-            val extractChunks = Flow[HttpChunk].collect { case HttpChunk.Chunk(data) => data }
-            val createChunks  = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
+            val extractChunks   = Flow[HttpChunk].collect { case HttpChunk.Chunk(data) => data }
+            val createChunks    = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
             val filterLastChunk = Flow[HttpChunk]
               .filter(_.isInstanceOf[HttpChunk.LastChunk])
               // Since we're doing a merge by concatenating, the filter last chunk won't receive demand until the gzip

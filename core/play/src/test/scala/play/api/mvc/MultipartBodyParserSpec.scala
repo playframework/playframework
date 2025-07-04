@@ -27,13 +27,13 @@ class MultipartBodyParserSpec extends Specification {
     "return an error if temporary file creation fails" in {
       val fileSize = 100
       val boundary = "-----------------------------14568445977970839651285587160"
-      val header =
+      val header   =
         s"--$boundary\r\n" +
           "Content-Disposition: form-data; name=\"uploadedfile\"; filename=\"uploadedfile.txt\"\r\n" +
           "Content-Type: application/octet-stream\r\n" +
           "\r\n"
       val content = Array.ofDim[Byte](fileSize)
-      val footer =
+      val footer  =
         "\r\n" +
           "\r\n" +
           s"--$boundary--\r\n"

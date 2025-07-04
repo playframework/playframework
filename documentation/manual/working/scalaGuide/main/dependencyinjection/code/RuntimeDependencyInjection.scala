@@ -146,7 +146,7 @@ package dynamicguicemodule {
       // class associated with that language. Use Play's
       // ClassLoader to load the classes.
       for (l <- languages) {
-        val bindingClassName: String = helloConfiguration.get[String](l)
+        val bindingClassName: String        = helloConfiguration.get[String](l)
         val bindingClass: Class[? <: Hello] =
           environment.classLoader
             .loadClass(bindingClassName)

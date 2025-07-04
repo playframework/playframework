@@ -96,7 +96,7 @@ object HandlerInvokerFactory {
   ): JavaActionAnnotations = {
     if (annotations == null) {
       val controller = loadJavaControllerClass(handlerDef)
-      val method =
+      val method     =
         MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes*)
       new JavaActionAnnotations(controller, method, config)
     } else {
@@ -199,10 +199,10 @@ object HandlerInvokerFactory {
                   Right(
                     Flow[Message]
                       .map {
-                        case TextMessage(text)   => new JMessage.Text(text)
-                        case BinaryMessage(data) => new JMessage.Binary(data)
-                        case PingMessage(data)   => new JMessage.Ping(data)
-                        case PongMessage(data)   => new JMessage.Pong(data)
+                        case TextMessage(text)          => new JMessage.Text(text)
+                        case BinaryMessage(data)        => new JMessage.Binary(data)
+                        case PingMessage(data)          => new JMessage.Ping(data)
+                        case PongMessage(data)          => new JMessage.Pong(data)
                         case CloseMessage(code, reason) =>
                           new JMessage.Close(code.toJava.asInstanceOf[Optional[Integer]], reason)
                       }
@@ -212,7 +212,7 @@ object HandlerInvokerFactory {
                         case binary: JMessage.Binary => BinaryMessage(binary.data)
                         case ping: JMessage.Ping     => PingMessage(ping.data)
                         case pong: JMessage.Pong     => PongMessage(pong.data)
-                        case close: JMessage.Close =>
+                        case close: JMessage.Close   =>
                           CloseMessage(close.code.toScala.asInstanceOf[Option[Int]], close.reason)
                       }
                   )
