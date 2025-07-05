@@ -209,7 +209,7 @@ object Dependencies {
     )
   }
 
-  val playFileWatch = "org.playframework" % "play-file-watch" % "3.0.0-M3"
+  val playFileWatch = "org.playframework" % "play-file-watch" % "3.0.0-M4"
 
   val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
