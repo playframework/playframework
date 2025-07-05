@@ -46,7 +46,7 @@ class LangSpec extends org.specs2.mutable.Specification {
         "language"   -> "fr",
         "keywords"   -> Json.obj("ka" -> "ipsum", "kb" -> "value"),
         "script"     -> "Latn",
-        "extension" -> Json.obj(
+        "extension"  -> Json.obj(
           "a" -> "foo",
           "b" -> "bar",
           "u" -> "bar-foo-ka-ipsum-kb-value"

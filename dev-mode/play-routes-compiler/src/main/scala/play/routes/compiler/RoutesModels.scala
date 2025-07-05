@@ -63,7 +63,7 @@ case class HandlerCall(
   private val dynamic                  = if (instantiate) "@" else ""
   lazy val routeParams: Seq[Parameter] = parameters.toIndexedSeq.flatten.filterNot(_.isJavaRequest)
   lazy val passJavaRequest: Boolean    = parameters.getOrElse(Nil).exists(_.isJavaRequest)
-  override def toString =
+  override def toString                =
     dynamic + packageName.map(_ + ".").getOrElse("") + controller + dynamic + "." + method + parameters
       .map { params => "(" + params.mkString(", ") + ")" }
       .getOrElse("")
@@ -87,7 +87,7 @@ case class Parameter(name: String, typeName: String, fixed: Option[String], defa
   import Parameter._
 
   def isJavaRequest = typeName == requestClass || typeName == requestClassFQ
-  def typeNameReal =
+  def typeNameReal  =
     if (isJavaRequest) {
       requestClassFQ
     } else {

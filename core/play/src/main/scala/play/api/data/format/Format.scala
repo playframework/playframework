@@ -103,7 +103,7 @@ object Formats {
   private def numberFormatter[T](convert: String => T, real: Boolean = false): Formatter[T] = {
     val (formatString, errorString) = if (real) ("format.real", "error.real") else ("format.numeric", "error.number")
     new Formatter[T] {
-      override val format: Option[(String, Seq[Any])] = Some(formatString -> Nil)
+      override val format: Option[(String, Seq[Any])]  = Some(formatString -> Nil)
       def bind(key: String, data: Map[String, String]) =
         parsing(convert, errorString, Nil)(key, data)
       def unbind(key: String, value: T) = Map(key -> value.toString)

@@ -124,7 +124,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "support a custom signature calculator" in {
     var called = false
-    val calc = new play.shaded.ahc.org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
+    val calc   = new play.shaded.ahc.org.asynchttpclient.SignatureCalculator with WSSignatureCalculator {
       override def calculateAndAddSignature(
           request: play.shaded.ahc.org.asynchttpclient.Request,
           requestBuilder: play.shaded.ahc.org.asynchttpclient.RequestBuilderBase[?]
@@ -143,9 +143,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Have form params on POST of content type application/x-www-form-urlencoded when signed" in {
     import scala.jdk.CollectionConverters._
-    val consumerKey  = ConsumerKey("key", "secret")
-    val requestToken = RequestToken("token", "secret")
-    val calc         = OAuthCalculator(consumerKey, requestToken)
+    val consumerKey     = ConsumerKey("key", "secret")
+    val requestToken    = RequestToken("token", "secret")
+    val calc            = OAuthCalculator(consumerKey, requestToken)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
       .sign(calc)
@@ -178,9 +178,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Remove a user defined content length header if we are parsing body explicitly when signed" in {
     import scala.jdk.CollectionConverters._
-    val consumerKey  = ConsumerKey("key", "secret")
-    val requestToken = RequestToken("token", "secret")
-    val calc         = OAuthCalculator(consumerKey, requestToken)
+    val consumerKey     = ConsumerKey("key", "secret")
+    val requestToken    = RequestToken("token", "secret")
+    val calc            = OAuthCalculator(consumerKey, requestToken)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withBody(Map("param1" -> Seq("value1")))
       .addHttpHeaders("Content-Length" -> "9001") // add a meaningless content length here...
@@ -209,7 +209,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "POST binary data as is" in {
-    val binData = ByteString((0 to 511).map(_.toByte).toArray)
+    val binData         = ByteString((0 to 511).map(_.toByte).toArray)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .addHttpHeaders("Content-Type" -> "application/x-custom-bin-data")
       .withBody(binData)
@@ -331,7 +331,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
   }
 
   "support a proxy server" in {
-    val proxy = DefaultWSProxyServer(host = "localhost", port = 8080)
+    val proxy           = DefaultWSProxyServer(host = "localhost", port = 8080)
     val req: AHCRequest = makeAhcRequest("http://playframework.com/")
       .withProxyServer(proxy)
       .asInstanceOf[AhcWSRequest]
@@ -445,7 +445,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
         val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
         val file     = new java.io.File(this.getClass.getResource("/testassets/foo.txt").toURI)
         val dp       = MultipartFormData.DataPart("h\"e\rl\nl\"o\rwo\nrld", "world")
-        val fp =
+        val fp       =
           MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, FileIO.fromPath(file.toPath))
         val source         = Source(List(dp, fp))
         val futureResponse = wsClient.url(s"http://localhost:${port}/").post(source)
@@ -464,7 +464,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
 
   "Ahc WS Response" should {
     "get cookies from an AHC response" in {
-      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
+      val ahcResponse: AHCResponse                                    = Mockito.mock(classOf[AHCResponse])
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 
@@ -485,7 +485,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     }
 
     "get a single cookie from an AHC response" in {
-      val ahcResponse: AHCResponse = Mockito.mock(classOf[AHCResponse])
+      val ahcResponse: AHCResponse                                    = Mockito.mock(classOf[AHCResponse])
       val (name, value, wrap, domain, path, maxAge, secure, httpOnly) =
         ("someName", "someValue", true, "example.com", "/", 1000L, false, false)
 

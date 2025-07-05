@@ -399,8 +399,8 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
       testServerPort
     ) {
       override def running() = {
-        val token = signedTokenProvider.generateToken
-        val ws    = inject[WSClient]
+        val token    = signedTokenProvider.generateToken
+        val ws       = inject[WSClient]
         val response = await(
           ws.url("http://localhost:" + port)
             .withSession(TokenName -> token)

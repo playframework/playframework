@@ -191,7 +191,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       clientCertificateChain: Option[Seq[X509Certificate]] = None,
       attrs: TypedMap = TypedMap.empty
   ): FakeRequest[A] = {
-    val _uri = uri
+    val _uri                = uri
     val request: Request[A] = requestFactory.createRequest(
       RemoteConnection(remoteAddress, secure, clientCertificateChain),
       method,

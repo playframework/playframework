@@ -41,7 +41,7 @@ import play.it.http.websocket.WebSocketClient.ContinuationMessage
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
 import play.it.http.websocket.WebSocketClient.SimpleMessage
 
-class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
+class NettyWebSocketSpec     extends WebSocketSpec with NettyIntegrationSpecification
 class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
   "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
@@ -324,7 +324,7 @@ trait WebSocketSpec
           ActorFlow.actorRef { out =>
             Props(new Actor() {
               var messages = List.empty[String]
-              def receive = {
+              def receive  = {
                 case msg: String =>
                   messages = msg :: messages
               }
@@ -384,7 +384,7 @@ trait WebSocketSpec
           ActorFlow.actorRef { out =>
             Props(new Actor() {
               def receive: Actor.Receive = PartialFunction.empty
-              override def postStop() = {
+              override def postStop()    = {
                 cleanedUp.success(true)
               }
             })
@@ -449,14 +449,14 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   ): A = {
     val currentApp = new AtomicReference[Application]
     val config     = Configuration(ConfigFactory.parseMap(extraConfig.asJava))
-    val app = GuiceApplicationBuilder()
+    val app        = GuiceApplicationBuilder()
       .configure(config)
       .routes {
         case _ => webSocket(currentApp.get())
       }
       .build()
     currentApp.set(app)
-    val testServer = TestServer(testServerPort, app)
+    val testServer           = TestServer(testServerPort, app)
     val configuredTestServer =
       testServer.copy(config =
         testServer.config.copy(configuration = config.withFallback(testServer.config.configuration))

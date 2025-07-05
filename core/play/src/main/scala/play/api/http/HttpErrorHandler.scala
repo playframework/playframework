@@ -197,7 +197,7 @@ class DefaultHttpErrorHandler(
       case FORBIDDEN                                            => onForbidden(request, message)
       case NOT_FOUND                                            => onNotFound(request, message)
       case clientError if statusCode >= 400 && statusCode < 500 => onOtherClientError(request, statusCode, message)
-      case nonClientError =>
+      case nonClientError                                       =>
         throw new IllegalArgumentException(
           s"onClientError invoked with non client error status code $statusCode: $message"
         )
@@ -386,7 +386,7 @@ object HttpErrorHandlerExceptions {
     case useful: UsefulException => useful
     case e: ExecutionException   => throwableToUsefulException(sourceMapper, isProd, e.getCause)
     case prodException if isProd => UnexpectedException(unexpected = Some(prodException))
-    case e =>
+    case e                       =>
       handlers.foldLeft(e) {
         case (e, (_, handler)) => handler.applyOrElse(e, identity[Throwable])
       } match {
@@ -546,11 +546,11 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
  */
 object DevHttpErrorHandler
     extends DefaultHttpErrorHandler(HttpErrorConfig(showDevErrors = true, playEditor = None), None, None) {
-  private val logger = Logger(getClass)
+  private val logger               = Logger(getClass)
   private lazy val setEditor: Unit =
     Try(Configuration.load(Environment.simple())) match {
       case Success(conf) => conf.getOptional[String]("play.editor").foreach(setPlayEditor)
-      case Failure(t) =>
+      case Failure(t)    =>
         logger.error(
           "Can't read play.editor config because the configuration can't be loaded. This usually means there's a syntax error in your conf files.",
           t

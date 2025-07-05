@@ -31,9 +31,9 @@ class AccumulatorSpec extends Specification {
     }
   }
 
-  def source                    = Source(1 to 3)
-  def await[T](f: Future[T]): T = Await.result(f, 10.seconds)
-  def error[T](any: Any): T     = throw sys.error("error")
+  def source                             = Source(1 to 3)
+  def await[T](f: Future[T]): T          = Await.result(f, 10.seconds)
+  def error[T](any: Any): T              = throw sys.error("error")
   def errorSource[T]: Source[T, NotUsed] =
     Source.fromPublisher((s: Subscriber[? >: T]) =>
       s.onSubscribe(new Subscription {

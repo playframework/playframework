@@ -48,7 +48,7 @@ trait EhCacheComponents {
    */
   def cacheApi(name: String, create: Boolean = true): AsyncCacheApi = {
     val createNamedCaches = configuration.get[Boolean]("play.cache.createBoundCaches")
-    val ec = configuration
+    val ec                = configuration
       .get[Option[String]]("play.cache.dispatcher")
       .fold(executionContext)(actorSystem.dispatchers.lookup(_))
     new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager, createNamedCaches))(using ec)
@@ -147,7 +147,7 @@ private[play] class NamedAsyncCacheApiProvider(key: BindingKey[Ehcache]) extends
   @Inject private var defaultEc: ExecutionContext = _
   @Inject private var config: Configuration       = _
   @Inject private var actorSystem: ActorSystem    = _
-  private lazy val ec: ExecutionContext =
+  private lazy val ec: ExecutionContext           =
     config.get[Option[String]]("play.cache.dispatcher").map(actorSystem.dispatchers.lookup(_)).getOrElse(defaultEc)
   lazy val get: AsyncCacheApi =
     new EhCacheApi(injector.instanceOf(key))(using ec)
@@ -167,7 +167,7 @@ private[play] class NamedSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) ex
 
 private[play] class NamedJavaAsyncCacheApiProvider(key: BindingKey[AsyncCacheApi]) extends Provider[JavaAsyncCacheApi] {
   @Inject private var injector: Injector = _
-  lazy val get: JavaAsyncCacheApi =
+  lazy val get: JavaAsyncCacheApi        =
     new JavaDefaultAsyncCacheApi(injector.instanceOf(key))
 }
 
@@ -178,7 +178,7 @@ private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]
 
 private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
   @Inject private var injector: Injector = _
-  lazy val get: Cached =
+  lazy val get: Cached                   =
     new Cached(injector.instanceOf(key))(injector.instanceOf[Materializer])
 }
 
@@ -189,7 +189,7 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
     val element = new Element(key, value)
     expiration match {
       case infinite: Duration.Infinite => element.setEternal(true)
-      case finite: FiniteDuration =>
+      case finite: FiniteDuration      =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {
           element.setTimeToLive(1)
@@ -208,7 +208,7 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
     get[A](key) match {
       case Some(value) => value
-      case None =>
+      case None        =>
         val value = orElse
         set(key, value, expiration)
         value

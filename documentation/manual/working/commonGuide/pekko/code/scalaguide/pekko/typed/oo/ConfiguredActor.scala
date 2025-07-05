@@ -29,7 +29,7 @@ final class ConfiguredActor private (
 ) extends AbstractBehavior(context) {
   import ConfiguredActor._
 
-  val config = configuration.get[String]("my.config")
+  val config                                     = configuration.get[String]("my.config")
   def onMessage(msg: GetConfig): ConfiguredActor = {
     msg.replyTo ! config
     this

@@ -265,7 +265,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    */
   def errorsAsJson(implicit provider: MessagesProvider): JsValue = {
     val messages = provider.messages
-    val map = errors
+    val map      = errors
       .groupBy(_.key)
       .view
       .mapValues(_.map(e => messages(e.message, e.args.map(translate)*)))
@@ -508,9 +508,9 @@ private[data] object FormUtils {
   }
   private case class FromJsonArray(parent: FromJsonContextValue, values: scala.collection.IndexedSeq[JsValue], idx: Int)
       extends FromJsonContextValue {
-    override val depth: Int     = parent.depth + 1
-    override def value: JsValue = values(idx)
-    override val prefix: String = s"${parent.prefix}[$idx]"
+    override val depth: Int                 = parent.depth + 1
+    override def value: JsValue             = values(idx)
+    override val prefix: String             = s"${parent.prefix}[$idx]"
     override lazy val next: FromJsonContext = if (idx + 1 < values.length) {
       FromJsonArray(parent, values, idx + 1)
     } else {

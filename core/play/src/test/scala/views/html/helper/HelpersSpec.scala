@@ -163,7 +163,7 @@ class HelpersSpec extends Specification {
   }
 
   "@repeat" should {
-    val form = Form(single("foo" -> Forms.seq(Forms.text)))
+    val form                                   = Form(single("foo" -> Forms.seq(Forms.text)))
     def renderFoo(form: Form[?], min: Int = 1) =
       repeat
         .apply(form("foo"), min) { f => Html(f.name + ":" + f.value.getOrElse("")) }
@@ -228,7 +228,7 @@ class HelpersSpec extends Specification {
       implicit val lang = Lang("en-US")
 
       val roleForm = Form(single("role" -> Forms.text)).fill("foo")
-      val body = repeat
+      val body     = repeat
         .apply(roleForm("bar"), min = 1) { roleField =>
           select.apply(roleField, Seq("baz" -> "qux"), Symbol("_default") -> "Role")
         }

@@ -103,9 +103,9 @@ object UriEncoding {
    * @return A decoded string in the `outputCharset` character set.
    */
   def decodePathSegment(s: String, outputCharset: String): String = {
-    val in    = s.getBytes("US-ASCII")
-    val out   = new ByteArrayOutputStream()
-    var inPos = 0
+    val in          = s.getBytes("US-ASCII")
+    val out         = new ByteArrayOutputStream()
+    var inPos       = 0
     def next(): Int = {
       val b = in(inPos) & 0xff
       inPos += 1

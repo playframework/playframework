@@ -9,8 +9,8 @@ import org.specs2.mutable.Specification
 class JavaScriptReverseRouterSpec extends Specification {
   "JavaScriptReverseRouter" should {
     "Create a JavaScript router with the right script" in {
-      val foo = "function(foo) { return null; }"
-      val bar = "function(bar) { return null; }"
+      val foo    = "function(foo) { return null; }"
+      val bar    = "function(bar) { return null; }"
       val router = JavaScriptReverseRouter(
         name = "foobarRoutes",
         ajaxMethod = Some("doAjaxRequest"),

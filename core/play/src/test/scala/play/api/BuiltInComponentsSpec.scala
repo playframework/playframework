@@ -16,7 +16,7 @@ class BuiltInComponentsSpec extends Specification {
   "BuiltinComponents" should {
     "use the Environment ClassLoader for runtime injection" in {
       val classLoader = new URLClassLoader(Array())
-      val components = new BuiltInComponents {
+      val components  = new BuiltInComponents {
         override val environment: Environment                          = Environment(new File("."), classLoader, Mode.Test)
         override def configuration: Configuration                      = Configuration.load(environment)
         override def applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle

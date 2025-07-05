@@ -135,7 +135,7 @@ class ScalaResultsSpec extends PlaySpecification {
   def withLegacyCookiesModule[T](block: Application => T) =
     withApplication(
       "play.modules.disabled" -> Seq("play.api.mvc.CookiesModule"),
-      "play.modules.enabled" -> Seq(
+      "play.modules.enabled"  -> Seq(
         "play.api.i18n.I18nModule",
         "play.api.inject.BuiltinModule",
         "play.api.mvc.LegacyCookiesModule"

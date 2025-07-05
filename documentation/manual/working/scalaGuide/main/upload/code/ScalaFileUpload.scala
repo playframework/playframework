@@ -67,7 +67,7 @@ package scalaguide.upload.fileupload {
           // #upload-file-action
           val temporaryFileCreator = SingletonTemporaryFileCreator
           val tf                   = temporaryFileCreator.create(tmpFile)
-          val request = FakeRequest().withBody(
+          val request              = FakeRequest().withBody(
             MultipartFormData(Map.empty, Seq(FilePart("picture", "formuploaded", None, tf, JFiles.size(tf.path))), Nil)
           )
           testAction(upload, request)

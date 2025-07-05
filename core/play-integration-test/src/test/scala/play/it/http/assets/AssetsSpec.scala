@@ -287,7 +287,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
     "return not modified when etag matches" in withServer() { client =>
       val Some(etag) = await(client.url("/foo.txt").get()).header(ETAG)
-      val result = await(
+      val result     = await(
         client
           .url("/foo.txt")
           .addHttpHeaders(IF_NONE_MATCH -> etag)
@@ -303,7 +303,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
     "return not modified when multiple etags supply and one matches" in withServer() { client =>
       val Some(etag) = await(client.url("/foo.txt").get()).header(ETAG)
-      val result = await(
+      val result     = await(
         client
           .url("/foo.txt")
           .addHttpHeaders(IF_NONE_MATCH -> ("\"foo\", " + etag + ", \"bar\""))
@@ -328,7 +328,7 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
 
     "return not modified when not modified since" in withServer() { client =>
       val Some(timestamp) = await(client.url("/foo.txt").get()).header(LAST_MODIFIED)
-      val result = await(
+      val result          = await(
         client
           .url("/foo.txt")
           .addHttpHeaders(IF_MODIFIED_SINCE -> timestamp)

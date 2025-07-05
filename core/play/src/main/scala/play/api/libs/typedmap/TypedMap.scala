@@ -186,11 +186,11 @@ object TypedMap {
  * An implementation of `TypedMap` that wraps a standard Scala [[Map]].
  */
 private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Map[TypedKey[?], Any]) extends TypedMap {
-  override def apply[A](key: TypedKey[A]): A                    = m.apply(key).asInstanceOf[A]
-  override def get[A](key: TypedKey[A]): Option[A]              = m.get(key).asInstanceOf[Option[A]]
-  override def contains(key: TypedKey[?]): Boolean              = m.contains(key)
-  override def updated[A](key: TypedKey[A], value: A): TypedMap = new DefaultTypedMap(m.updated(key, value))
-  override def updated(e1: TypedEntry[?]): TypedMap             = new DefaultTypedMap(m.updated(e1.key, e1.value))
+  override def apply[A](key: TypedKey[A]): A                           = m.apply(key).asInstanceOf[A]
+  override def get[A](key: TypedKey[A]): Option[A]                     = m.get(key).asInstanceOf[Option[A]]
+  override def contains(key: TypedKey[?]): Boolean                     = m.contains(key)
+  override def updated[A](key: TypedKey[A], value: A): TypedMap        = new DefaultTypedMap(m.updated(key, value))
+  override def updated(e1: TypedEntry[?]): TypedMap                    = new DefaultTypedMap(m.updated(e1.key, e1.value))
   override def updated(e1: TypedEntry[?], e2: TypedEntry[?]): TypedMap =
     new DefaultTypedMap(m.updated(e1.key, e1.value).updated(e2.key, e2.value))
   override def updated(e1: TypedEntry[?], e2: TypedEntry[?], e3: TypedEntry[?]): TypedMap =
@@ -201,8 +201,8 @@ private[typedmap] final class DefaultTypedMap private[typedmap] (m: immutable.Ma
     }
     new DefaultTypedMap(m2)
   }
-  override def +(entries: TypedEntry[?]*): TypedMap = updated(entries*)
-  override def removed(k1: TypedKey[?]): TypedMap   = new DefaultTypedMap(m - k1)
+  override def +(entries: TypedEntry[?]*): TypedMap                = updated(entries*)
+  override def removed(k1: TypedKey[?]): TypedMap                  = new DefaultTypedMap(m - k1)
   override def removed(k1: TypedKey[?], k2: TypedKey[?]): TypedMap =
     new DefaultTypedMap(m - k1 - k2)
   override def removed(k1: TypedKey[?], k2: TypedKey[?], k3: TypedKey[?]): TypedMap =

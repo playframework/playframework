@@ -142,7 +142,7 @@ object ProdServerStart {
     else {
       val pidFile = new File(pidFilePath).getAbsoluteFile
       val pid     = process.pid.getOrElse(throw ServerStartException("Couldn't determine current process's pid"))
-      val out =
+      val out     =
         try Files.newOutputStream(pidFile.toPath, StandardOpenOption.CREATE_NEW)
         catch {
           case _: FileAlreadyExistsException =>

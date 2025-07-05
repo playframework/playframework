@@ -119,7 +119,7 @@ trait ScalaWSSpec
     "send a multipart request body with escaped 'name' and 'filename' params" in withEchoServer { ws =>
       val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
       val dp   = MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
-      val fp = MultipartFormData.FilePart(
+      val fp   = MultipartFormData.FilePart(
         "f\"i\rl\nef\"ie\nld\r1",
         "f\rir\"s\ntf\ril\"e\n.txt",
         None,

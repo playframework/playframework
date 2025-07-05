@@ -35,7 +35,7 @@ private case class KeyRead(content: ListBuffer[(String, JsonNode)], fieldName: S
 
 // Context for reading one item of an Object (we already red fieldName)
 private case class ReadingMap(content: ListBuffer[(String, JsonNode)]) extends DeserializerContext {
-  def setField(fieldName: String) = KeyRead(content, fieldName)
+  def setField(fieldName: String)                    = KeyRead(content, fieldName)
   def addValue(value: JsonNode): DeserializerContext =
     throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
 }

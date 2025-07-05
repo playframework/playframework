@@ -17,7 +17,7 @@ import play.routing.Router.RouteDocumentation
 class JavaRouterAdapter @Inject() (underlying: play.api.routing.Router) extends play.routing.Router {
   def route(requestHeader: RequestHeader)             = underlying.handlerFor(requestHeader.asScala()).toJava
   def withPrefix(prefix: String): play.routing.Router = new JavaRouterAdapter(asScala.withPrefix(prefix))
-  def documentation() =
+  def documentation()                                 =
     asScala.documentation.map {
       case (httpMethod, pathPattern, controllerMethodInvocation) =>
         new RouteDocumentation(httpMethod, pathPattern, controllerMethodInvocation)

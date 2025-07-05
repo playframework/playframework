@@ -619,7 +619,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
     @tailrec
     def collectResults(values: List[String], results: List[T]): Either[String, Seq[T]] = {
       values match {
-        case Nil => Right(results.reverse) // to preserve the original order
+        case Nil          => Right(results.reverse) // to preserve the original order
         case head :: rest =>
           implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(head))) match {
             case None                => collectResults(rest, results)
@@ -632,7 +632,7 @@ object QueryStringBindable extends QueryStringBindableMacros {
     @tailrec
     def collectErrs(values: List[String], errs: List[String]): Left[String, Seq[T]] = {
       values match {
-        case Nil => Left(errs.reverse.mkString("\n"))
+        case Nil          => Left(errs.reverse.mkString("\n"))
         case head :: rest =>
           implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(head))) match {
             case Some(Left(err))       => collectErrs(rest, err :: errs)
@@ -845,7 +845,7 @@ object PathBindable extends PathBindableMacros {
         catch { case e: Exception => Left(e.getMessage) }
       }
       def unbind(key: String, value: T) = value.unbind(key)
-      override def javascriptUnbind =
+      override def javascriptUnbind     =
         Option(ct.runtimeClass.getDeclaredConstructor().newInstance().asInstanceOf[T].javascriptUnbind())
           .getOrElse(super.javascriptUnbind)
     }

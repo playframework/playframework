@@ -34,7 +34,7 @@ object Omnidoc extends AutoPlugin {
       val tagged: String      = (omnidocTagPrefix ?? "v").value + version.value
       val tree: String        = if (isSnapshot.value) development else tagged
       val prefix: String      = "/" + (omnidocPathPrefix ?? "").value
-      val path: String = {
+      val path: String        = {
         val buildDir: File      = (ThisBuild / baseDirectory).value
         val projDir: File       = baseDirectory.value
         val rel: Option[String] = IO.relativize(buildDir, projDir)

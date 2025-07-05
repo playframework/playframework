@@ -5,10 +5,9 @@ lazy val root = (project in file("."))
 
 libraryDependencies ++= Seq(
   guice,
-  "org.assertj" % "assertj-core" % "3.26.3" % Test,
-  "org.java-websocket" % "Java-WebSocket" % "1.5.7" % Test,
+  "org.assertj"        % "assertj-core"   % "3.26.3" % Test,
+  "org.java-websocket" % "Java-WebSocket" % "1.5.7"  % Test,
 )
-
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
 updateOptions := updateOptions.value.withLatestSnapshots(false)

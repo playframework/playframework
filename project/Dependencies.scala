@@ -15,10 +15,10 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M1"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.17"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.18"
 
   val specs2Version = "4.21.0"
-  val specs2Deps = Seq(
+  val specs2Deps    = Seq(
     "specs2-core",
     "specs2-junit"
   ).map("org.specs2" %% _ % specs2Version)
@@ -33,7 +33,7 @@ object Dependencies {
 
   val jacksonVersion  = "2.14.3"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
-  val jacksons = Seq(
+  val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
     "com.fasterxml.jackson.core"     % "jackson-annotations",
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
@@ -56,14 +56,14 @@ object Dependencies {
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "33.4.0-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.16.0"
+  val guava      = "com.google.guava" % "guava"        % "33.4.8-jre"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.16.1"
 
   val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
   val h2database = "com.h2database" % "h2" % "2.3.232"
 
-  val derbyVersion = "10.16.1.1"
+  val derbyVersion  = "10.16.1.1"
   val derbyDatabase = Seq(
     "org.apache.derby" % "derby",
     "org.apache.derby" % "derbytools"
@@ -73,7 +73,7 @@ object Dependencies {
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.12.6"
-  val jjwts = Seq(
+  val jjwts       = Seq(
     "io.jsonwebtoken" % "jjwt-api",
     "io.jsonwebtoken" % "jjwt-impl"
   ).map(_ % jjwtVersion) ++ Seq(
@@ -106,7 +106,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.2.3"
+  val springFrameworkVersion = "6.2.8"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -146,7 +146,7 @@ object Dependencies {
   ).map(_ % Test)
 
   val guiceVersion = "7.0.0"
-  val guiceDeps = Seq(
+  val guiceDeps    = Seq(
     "com.google.inject"            % "guice"                % guiceVersion,
     "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
   )
@@ -235,7 +235,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion = "3.0.1"
+  val playDocVersion       = "3.0.1"
   val playDocsDependencies = Seq(
     "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -288,20 +288,20 @@ object Dependencies {
     "javax.cache" % "cache-api" % "1.1.1"
   )
 
-  val ehcacheVersion = "2.10.9.2"
+  val ehcacheVersion  = "2.10.9.2"
   val playEhcacheDeps = Seq(
     "net.sf.ehcache" % "ehcache" % ehcacheVersion,
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion = "3.2.0"
+  val caffeineVersion  = "3.2.1"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
   val playWsStandaloneVersion = "3.1.0-M6"
-  val playWsDeps = Seq(
+  val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-json" % playWsStandaloneVersion,
@@ -324,7 +324,7 @@ object Dependencies {
   )
 
   val salvationVersion = "2.7.2"
-  val playFilterDeps = Seq(
+  val playFilterDeps   = Seq(
     "com.shapesecurity" % "salvation" % salvationVersion % Test
   )
 }

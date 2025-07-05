@@ -25,7 +25,7 @@ class HelpersSpec extends Specification {
   val ctrl = new HelpersTest
   class HelpersTest extends ControllerHelpers {
     lazy val Action: ActionBuilder[Request, AnyContent] = ActionBuilder.ignoringBody
-    def abcAction: EssentialAction = Action {
+    def abcAction: EssentialAction                      = Action {
       Ok("abc").as("text/plain")
     }
     def jsonAction: EssentialAction = Action {
@@ -226,7 +226,7 @@ class HelpersSpec extends Specification {
       }
 
       "successfully execute a GET request in an Application" in {
-        val request = FakeRequest(GET, "/abc")
+        val request         = FakeRequest(GET, "/abc")
         val fakeApplication = Helpers.baseApplicationBuilder
           .routes {
             case (GET, "/abc") => ctrl.abcAction
@@ -239,7 +239,7 @@ class HelpersSpec extends Specification {
 
       "successfully execute a GET request in a Router" in {
         val request = FakeRequest(GET, "/abc")
-        val router = {
+        val router  = {
           import play.api.routing.Router
           import play.api.routing.sird._
           Router.from {

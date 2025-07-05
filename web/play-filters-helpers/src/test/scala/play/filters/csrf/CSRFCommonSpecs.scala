@@ -37,17 +37,17 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   def inject[T: ClassTag](implicit app: Application) = app.injector.instanceOf[T]
 
-  val cookieSigner          = new DefaultCookieSigner(SecretConfiguration(CRYPTO_SECRET))
-  val tokenSigner           = new DefaultCSRFTokenSigner(cookieSigner, java.time.Clock.systemUTC())
-  val signedTokenProvider   = new SignedTokenProvider(tokenSigner)
-  val unsignedTokenProvider = new UnsignedTokenProvider(tokenSigner)
+  val cookieSigner                           = new DefaultCookieSigner(SecretConfiguration(CRYPTO_SECRET))
+  val tokenSigner                            = new DefaultCSRFTokenSigner(cookieSigner, java.time.Clock.systemUTC())
+  val signedTokenProvider                    = new SignedTokenProvider(tokenSigner)
+  val unsignedTokenProvider                  = new UnsignedTokenProvider(tokenSigner)
   val sessionCookieBaker: SessionCookieBaker = new DefaultSessionCookieBaker(
     SessionConfiguration(),
     SecretConfiguration(secret = CRYPTO_SECRET),
     cookieSigner
   )
 
-  val Boundary = "83ff53821b7c"
+  val Boundary                                                     = "83ff53821b7c"
   def multiPartFormDataBody(tokenName: String, tokenValue: String) = {
     s"""--$Boundary
        |Content-Disposition: form-data; name="foo"; filename="foo.txt"
@@ -200,7 +200,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken                            = buildCsrfAddToken()
       def generate                                = signedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withSession(TokenName -> token)
-      def getToken(response: WSResponse) = {
+      def getToken(response: WSResponse)          = {
         val session =
           response.cookies.find(_.name == sessionCookieBaker.COOKIE_NAME).map(_.value).map(sessionCookieBaker.decode)
         session.flatMap(_.get(TokenName))
@@ -238,7 +238,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken                            = buildCsrfAddToken("play.filters.csrf.token.sign" -> "false")
       def generate                                = unsignedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withSession(TokenName -> token)
-      def getToken(response: WSResponse) = {
+      def getToken(response: WSResponse)          = {
         val session = response.cookie(sessionCookieBaker.COOKIE_NAME).map(_.value).map(sessionCookieBaker.decode)
         session.flatMap(_.get(TokenName))
       }
@@ -286,7 +286,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.secure" -> "true")
       def generate                                = signedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: WSResponse) = {
+      def getToken(response: WSResponse)          = {
         response.cookie("csrf").map { cookie =>
           cookie.secure must beTrue
           cookie.value
@@ -308,7 +308,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.partitioned" -> "true")
       def generate                                = signedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: WSResponse) = {
+      def getToken(response: WSResponse)          = {
         response.cookie("csrf").map { cookie =>
           // WSCookie does not have a Partitioned property, we need to read the response header as a workaround
           response.headers("Set-Cookie")(0) must beMatching("""csrf=.*; Partitioned""")
@@ -331,7 +331,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
         buildCsrfAddToken("play.filters.csrf.cookie.name" -> "csrf", "play.filters.csrf.cookie.sameSite" -> "lax")
       def generate                                = signedTokenProvider.generateToken
       def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: WSResponse) = {
+      def getToken(response: WSResponse)          = {
         response.cookie("csrf").map { cookie =>
           // WSCookie does not have a SameSite property, we need to read the response header as a workaround
           response.headers("Set-Cookie")(0) must beMatching("""csrf=.*; SameSite=Lax; Path=\/""")

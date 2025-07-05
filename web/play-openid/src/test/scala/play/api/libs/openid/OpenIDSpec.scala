@@ -46,8 +46,8 @@ class OpenIDSpec extends Specification {
     }
 
     "generate a valid redirectUrl" in {
-      val ws     = createMockWithValidOpDiscoveryAndVerification
-      val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
+      val ws          = createMockWithValidOpDiscoveryAndVerification
+      val openId      = new WsOpenIdClient(ws, new WsDiscovery(ws))
       val redirectUrl =
         Await.result(openId.redirectURL("http://example.com", "http://foo.bar.com/returnto?foo$bar=ba$z"), dur)
 
@@ -61,8 +61,8 @@ class OpenIDSpec extends Specification {
     }
 
     "generate a valid redirectUrl with a proper required extended attributes request" in {
-      val ws     = createMockWithValidOpDiscoveryAndVerification
-      val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
+      val ws          = createMockWithValidOpDiscoveryAndVerification
+      val openId      = new WsOpenIdClient(ws, new WsDiscovery(ws))
       val redirectUrl = Await.result(
         openId.redirectURL(
           "http://example.com",
@@ -83,8 +83,8 @@ class OpenIDSpec extends Specification {
     }
 
     "generate a valid redirectUrl with a proper 'if_available' extended attributes request" in {
-      val ws     = createMockWithValidOpDiscoveryAndVerification
-      val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
+      val ws          = createMockWithValidOpDiscoveryAndVerification
+      val openId      = new WsOpenIdClient(ws, new WsDiscovery(ws))
       val redirectUrl = Await.result(
         openId.redirectURL(
           "http://example.com",
@@ -105,8 +105,8 @@ class OpenIDSpec extends Specification {
     }
 
     "generate a valid redirectUrl with a proper 'if_available' AND required extended attributes request" in {
-      val ws     = createMockWithValidOpDiscoveryAndVerification
-      val openId = new WsOpenIdClient(ws, new WsDiscovery(ws))
+      val ws          = createMockWithValidOpDiscoveryAndVerification
+      val openId      = new WsOpenIdClient(ws, new WsDiscovery(ws))
       val redirectUrl = Await.result(
         openId.redirectURL(
           "http://example.com",

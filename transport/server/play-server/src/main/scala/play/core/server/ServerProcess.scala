@@ -46,7 +46,7 @@ class RealServerProcess(val args: Seq[String]) extends ServerProcess {
 
   // These properties are used in Prod mode and for the Server in Dev Mode (not the Application).
   def properties: Properties = System.getProperties
-  def pid: Option[String] = {
+  def pid: Option[String]    = {
     ManagementFactory.getRuntimeMXBean.getName.split('@').headOption
   }
   def addShutdownHook(hook: => Unit): Unit = {

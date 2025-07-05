@@ -77,7 +77,7 @@ class DBApiProvider(
   lazy val get: DBApi = {
     val config = configuration.underlying
     val dbKey  = config.getString("play.db.config")
-    val pool = maybeInjector
+    val pool   = maybeInjector
       .map(injector =>
         ConnectionPool.fromConfig(config.getString("play.db.pool"), injector, environment, defaultConnectionPool)
       )

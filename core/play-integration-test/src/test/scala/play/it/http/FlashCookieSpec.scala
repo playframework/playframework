@@ -67,8 +67,8 @@ class FlashCookieSpec
           import CollectionConverters._
           def call(path: String, cookies: List[okhttp3.Cookie]): (okhttp3.Response, List[okhttp3.Cookie]) = {
             var responseCookies: List[okhttp3.Cookie] = null
-            val cookieJar = new CookieJar {
-              override def loadForRequest(url: HttpUrl): util.List[okhttp3.Cookie] = cookies.asJava
+            val cookieJar                             = new CookieJar {
+              override def loadForRequest(url: HttpUrl): util.List[okhttp3.Cookie]                  = cookies.asJava
               override def saveFromResponse(url: HttpUrl, cookies: util.List[okhttp3.Cookie]): Unit = {
                 assert(responseCookies == null, "This CookieJar only handles a single response")
                 responseCookies = cookies.asScala.toList

@@ -116,7 +116,7 @@ object PlayImport {
     val devSettings = SettingKey[Seq[(String, String)]]("playDevSettings")
 
     val generateSecret = TaskKey[String]("playGenerateSecret", "Generate a new application secret", KeyRanks.BTask)
-    val updateSecret =
+    val updateSecret   =
       TaskKey[File]("playUpdateSecret", "Update the application conf to generate an application secret", KeyRanks.BTask)
 
     val assetsPrefix      = SettingKey[String]("assetsPrefix")
@@ -124,7 +124,7 @@ object PlayImport {
     val playPackageAssets = TaskKey[File]("playPackageAssets")
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
-    val fileWatchService =
+    val fileWatchService   =
       SettingKey[FileWatchService]("fileWatchService", "The watch service Play uses to watch for file changes")
 
     val includeDocumentationInBinary =

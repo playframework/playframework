@@ -60,7 +60,7 @@ class JavaActionAnnotations(
     .flatten
 
   val actionMixins: Seq[(Annotation, Class[? <: JAction[?]], AnnotatedElement)] = {
-    val methodAnnotations = ArraySeq.unsafeWrapArray(method.getDeclaredAnnotations.map((_, method)))
+    val methodAnnotations                                                                = ArraySeq.unsafeWrapArray(method.getDeclaredAnnotations.map((_, method)))
     val allDeclaredAnnotations: Seq[(java.lang.annotation.Annotation, AnnotatedElement)] =
       if (config.controllerAnnotationsFirst) {
         controllerAnnotations ++ methodAnnotations
@@ -69,7 +69,7 @@ class JavaActionAnnotations(
       }
     allDeclaredAnnotations
       .collect {
-        case (a: play.mvc.With, ae) => a.value.map(c => (a, c, ae)).toSeq
+        case (a: play.mvc.With, ae)                                                  => a.value.map(c => (a, c, ae)).toSeq
         case (a, ae) if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
           a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c, ae)).toSeq
         case (a, ae) if !a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>

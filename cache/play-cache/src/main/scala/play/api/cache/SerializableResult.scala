@@ -59,7 +59,7 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
 
     val body = {
       val hasContentType = in.readBoolean()
-      val contentType = if (hasContentType) {
+      val contentType    = if (hasContentType) {
         Some(in.readUTF())
       } else {
         None

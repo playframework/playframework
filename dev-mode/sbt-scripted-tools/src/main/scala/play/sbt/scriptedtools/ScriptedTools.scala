@@ -47,7 +47,7 @@ object ScriptedTools extends AutoPlugin {
       case Nil =>
         sys.error("Unable to detect scalaVersion! Did you pass scala.crossversions and scala.version Java properties?")
       case Seq(version) => version
-      case multiple =>
+      case multiple     =>
         sys.error(
           s"Multiple crossScalaVersions matched query '${sys.props("scala.version")}': ${multiple.mkString(", ")}"
         )
@@ -133,8 +133,8 @@ object ScriptedTools extends AutoPlugin {
     conn.setReadTimeout(10000)
     headers.foreach { case (k, v) => conn.setRequestProperty(k, v) }
     try {
-      val status = conn.getResponseCode
-      val in     = if (conn.getResponseCode < 400) conn.getInputStream else conn.getErrorStream
+      val status   = conn.getResponseCode
+      val in       = if (conn.getResponseCode < 400) conn.getInputStream else conn.getErrorStream
       val contents =
         if (in == null) ""
         else {

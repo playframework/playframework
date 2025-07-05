@@ -171,7 +171,7 @@ class ResultsSpec extends Specification {
     }
 
     "support clearing a language cookie using withoutLang" in withApplication { (app: Application) =>
-      val langs: Langs = new DefaultLangsProvider(app.configuration).get
+      val langs: Langs                      = new DefaultLangsProvider(app.configuration).get
       implicit val messagesApi: MessagesApi =
         new DefaultMessagesApiProvider(app.environment, app.configuration, langs, app.httpConfiguration).get
       val cookie = cookieHeaderEncoding.decodeSetCookieHeader(bake(Ok.clearingLang).header.headers("Set-Cookie")).head
@@ -312,7 +312,7 @@ class ResultsSpec extends Specification {
       implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
-        val res = Results.Ok.sendFile(
+        val res      = Results.Ok.sendFile(
           file,
           onClose = () => {
             fileSent = true
@@ -335,7 +335,7 @@ class ResultsSpec extends Specification {
       implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
-        val res = Results.Ok.sendPath(
+        val res      = Results.Ok.sendPath(
           file.toPath,
           onClose = () => {
             fileSent = true
@@ -358,7 +358,7 @@ class ResultsSpec extends Specification {
       implicit val mat: Materializer   = Materializer.matFromSystem
       try {
         var fileSent = false
-        val res = Results.Ok.sendResource(
+        val res      = Results.Ok.sendResource(
           "multipart-form-data-file.txt",
           onClose = () => {
             fileSent = true
@@ -394,7 +394,7 @@ class ResultsSpec extends Specification {
     }
 
     "redirect with a query string" in {
-      val url = "http://host:port/path"
+      val url         = "http://host:port/path"
       val queryString = Map(
         "*-._"   -> Seq(""" """"),
         """ """" -> Seq("*-._")
@@ -454,8 +454,8 @@ class ResultsSpec extends Specification {
         Results.Ok.withAttrs(TypedMap(y -> "hello")).addAttr(x, 3).attrs(y) must_== "hello"
       }
       "overrides current attribute value" in {
-        val x = TypedKey[Int]
-        val y = TypedKey[String]
+        val x       = TypedKey[Int]
+        val y       = TypedKey[String]
         val request = Results.Ok
           .withAttrs(TypedMap(y -> "hello"))
           .addAttr(x, 3)
@@ -481,9 +481,9 @@ class ResultsSpec extends Specification {
           .attrs(z) must_== "hello"
       }
       "overrides current attribute value when adding multiple attributes" in {
-        val x = TypedKey[Int]
-        val y = TypedKey[Int]
-        val z = TypedKey[String]
+        val x             = TypedKey[Int]
+        val y             = TypedKey[Int]
+        val z             = TypedKey[String]
         val requestHeader = Results.Ok
           .withAttrs(TypedMap(z -> "hello"))
           .addAttrs(TypedEntry(x, 3), TypedEntry(y, 4), TypedEntry(z, "white"))

@@ -43,7 +43,7 @@ object GzipFlow {
     private val in  = Inlet[ByteString]("Chunker.in")
     private val out = Outlet[ByteString]("Chunker.out")
 
-    override val shape: FlowShape[ByteString, ByteString] = FlowShape.of(in, out)
+    override val shape: FlowShape[ByteString, ByteString]                      = FlowShape.of(in, out)
     override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
       private var buffer = ByteString.empty
 

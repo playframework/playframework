@@ -26,11 +26,11 @@ lazy val root = (project in file("."))
     // can't use test directory since scripted calls its script "test"
     Test / sourceDirectory := baseDirectory.value / "tests",
     Test / scalaSource     := baseDirectory.value / "tests",
-    transform := { (mappings: Seq[PathMapping]) =>
+    transform              := { (mappings: Seq[PathMapping]) =>
       streams.value.log.info("Running transform")
       mappings
     },
-    Assets / pipelineStages := Seq(transform),
+    Assets / pipelineStages                  := Seq(transform),
     InputKey[Unit]("verifyResourceContains") := {
       val args       = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path       = args.head
@@ -68,7 +68,7 @@ lazy val root = (project in file("."))
       } else {
         val filename      = args(0)
         val expectedCount = args(1).toInt
-        val baseDir =
+        val baseDir       =
           if (args.length == 3) originalBaseDir.toPath.resolve(args(2)).normalize() else originalBaseDir.toPath
 
         if (!Files.exists(baseDir) || !Files.isDirectory(baseDir)) {

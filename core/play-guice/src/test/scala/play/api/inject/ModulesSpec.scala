@@ -15,7 +15,7 @@ import play.api.Environment
 class ModulesSpec extends Specification {
   "Modules.locate" should {
     "load simple Guice modules" in {
-      val env = Environment.simple()
+      val env  = Environment.simple()
       val conf = Configuration(
         "play.modules.enabled" -> Seq(
           classOf[PlainGuiceModule].getName
@@ -30,7 +30,7 @@ class ModulesSpec extends Specification {
     }
 
     "load Guice modules that take a Scala Environment and Configuration" in {
-      val env = Environment.simple()
+      val env  = Environment.simple()
       val conf = Configuration(
         "play.modules.enabled" -> Seq(
           classOf[ScalaGuiceModule].getName
@@ -46,7 +46,7 @@ class ModulesSpec extends Specification {
     }
 
     "load Guice modules that take a Java Environment and Config" in {
-      val env = Environment.simple()
+      val env  = Environment.simple()
       val conf = Configuration(
         "play.modules.enabled" -> Seq(
           classOf[JavaGuiceConfigModule].getName
@@ -62,7 +62,7 @@ class ModulesSpec extends Specification {
     }
 
     "load Guice modules that take a Config" in {
-      val env = Environment.simple()
+      val env  = Environment.simple()
       val conf = Configuration(
         "play.modules.enabled" -> Seq(
           classOf[GuiceConfigModule].getName

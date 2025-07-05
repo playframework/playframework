@@ -43,7 +43,7 @@ object PlayMagic {
     case key: Html         => Html(p.messages(key.toString))
     case Some(key: String) => Some(p.messages(key))
     case Some(key: Html)   => Some(Html(p.messages(key.toString)))
-    case key: Optional[?] =>
+    case key: Optional[?]  =>
       key.toScala match {
         case Some(key: String) => Some(p.messages(key)).toJava
         case Some(key: Html)   => Some(Html(p.messages(key.toString))).toJava

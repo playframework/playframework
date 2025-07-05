@@ -39,7 +39,7 @@ class ConfigurationSpec extends Specification {
     "blah.2"   -> List(1.1, 2.2, 3.3),
     "blah.3"   -> List(1L, 2L, 3L),
     "blah.4"   -> List("one", "two", "three"),
-    "blah2" -> Map(
+    "blah2"    -> Map(
       "blah3" -> Map(
         "blah4" -> "value6"
       )
@@ -160,7 +160,7 @@ class ConfigurationSpec extends Specification {
       }
 
       "invalid URL" in {
-        val conf = config("my.url" -> invalidUrl)
+        val conf       = config("my.url" -> invalidUrl)
         def a: Nothing = {
           conf.get[URL]("my.url")
           throw FailureException(failure("IllegalArgumentException should be thrown"))
@@ -180,7 +180,7 @@ class ConfigurationSpec extends Specification {
       }
 
       "invalid URI" in {
-        val conf = config("my.uri" -> invalidUri)
+        val conf       = config("my.uri" -> invalidUri)
         def a: Nothing = {
           conf.get[URI]("my.uri")
           throw FailureException(failure("URISyntaxException should be thrown"))

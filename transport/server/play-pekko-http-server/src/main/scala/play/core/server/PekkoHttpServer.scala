@@ -85,11 +85,11 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
 
   private lazy val initialSettings = ServerSettings(pekkoHttpConfig)
 
-  private val httpIdleTimeout  = serverConfig.get[Duration]("http.idleTimeout")
-  private val httpsIdleTimeout = serverConfig.get[Duration]("https.idleTimeout")
-  private val requestTimeout   = pekkoServerConfig.get[Duration]("requestTimeout")
-  private val bindTimeout      = pekkoServerConfig.get[FiniteDuration]("bindTimeout")
-  private val terminationDelay = serverConfig.get[FiniteDuration]("waitBeforeTermination")
+  private val httpIdleTimeout    = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout   = serverConfig.get[Duration]("https.idleTimeout")
+  private val requestTimeout     = pekkoServerConfig.get[Duration]("requestTimeout")
+  private val bindTimeout        = pekkoServerConfig.get[FiniteDuration]("bindTimeout")
+  private val terminationDelay   = serverConfig.get[FiniteDuration]("waitBeforeTermination")
   private val terminationTimeout =
     serverConfig.getDeprecated[Option[FiniteDuration]]("terminationTimeout", "pekko.terminationTimeout")
 
@@ -102,12 +102,12 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   private val transparentHeadRequests     = pekkoServerConfig.get[Boolean]("transparent-head-requests")
   private val serverHeaderConfig          = pekkoServerConfig.getOptional[String]("server-header")
   private val pipeliningLimit             = pekkoServerConfig.get[Int]("pipelining-limit")
-  private val serverHeader = serverHeaderConfig.collect {
+  private val serverHeader                = serverHeaderConfig.collect {
     case s if s.nonEmpty => headers.Server(s)
   }
 
-  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
-  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val httpsNeedClientAuth                      = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpsWantClientAuth                      = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
     pekkoServerConfig.get[String]("illegal-response-header-value-processing-mode")
   private val wsBufferLimit      = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
@@ -185,8 +185,8 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
    */
   private val reloadCache = new ReloadCache[ReloadCacheValues] {
     protected override def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
-      val serverResultUtils      = reloadServerResultUtils(tryApp)
-      val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
+      val serverResultUtils          = reloadServerResultUtils(tryApp)
+      val forwardedHeaderHandler     = reloadForwardedHeaderHandler(tryApp)
       val illegalResponseHeaderValue = ParserSettings.IllegalResponseHeaderValueProcessingMode(
         illegalResponseHeaderValueProcessingMode
       )
@@ -335,10 +335,10 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     def clientError(statusCode: Int, message: String): (RequestHeader, Handler) = {
       val headers        = modelConversion(tryApp).convertRequestHeadersPekko(decodedRequest)
       val unparsedTarget = Server.createUnparsedRequestTarget(headers.uri)
-      val requestHeader =
+      val requestHeader  =
         modelConversion(tryApp).createRequestHeader(headers, secure, remoteAddress, unparsedTarget, request)
       val debugHeader = attachDebugInfo(requestHeader)
-      val result = errorHandler(tryApp).onClientError(
+      val result      = errorHandler(tryApp).onClientError(
         debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
         statusCode,
         if (message == null) "" else message
@@ -489,7 +489,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     } else {
       taggedRequestHeader
     }))
-    val resultFuture: Future[Result] = invokeAction(futureAcc, deferBodyParsing)
+    val resultFuture: Future[Result]         = invokeAction(futureAcc, deferBodyParsing)
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = resultUtils(tryApp).prepareCookies(taggedRequestHeader, result)
       modelConversion(tryApp).convertResult(taggedRequestHeader, cleanedResult, request.protocol, errorHandler)
@@ -499,7 +499,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
 
   mode match {
     case Mode.Test =>
-    case _ =>
+    case _         =>
       httpServerBinding.foreach { http => logger.info(s"Listening for HTTP on ${http.localAddress}") }
       httpsServerBinding.foreach { https => logger.info(s"Listening for HTTPS on ${https.localAddress}") }
   }

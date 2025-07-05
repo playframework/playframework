@@ -44,7 +44,7 @@ object BuildSettings {
 
   /** File header settings. */
   private def fileUriRegexFilter(pattern: String): FileFilter = new FileFilter {
-    val compiledPattern = Pattern.compile(pattern)
+    val compiledPattern                          = Pattern.compile(pattern)
     override def accept(pathname: File): Boolean = {
       val uriString = pathname.toURI.toString
       compiledPattern.matcher(uriString).matches()
@@ -71,7 +71,7 @@ object BuildSettings {
       FileType("js")               -> HeaderCommentStyle.cStyleBlockComment,
       FileType("less")             -> HeaderCommentStyle.cStyleBlockComment,
       FileType("md")               -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
-      FileType("html") -> CommentStyle(
+      FileType("html")             -> CommentStyle(
         new CommentBlockCreator("<!--", "  ~", "  -->"),
         commentBetween("<!--", "*", " -->")
       ),
@@ -119,7 +119,7 @@ object BuildSettings {
         sys.props.get("pekko.http.version").map("-pekko-http-" + _).getOrElse("")
     },
     pekkoVersionCheckFailBuildOnNonMatchingVersions := true,
-    apiURL := {
+    apiURL                                          := {
       val v = version.value
       if (isSnapshot.value) {
         v match {

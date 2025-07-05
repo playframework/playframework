@@ -109,14 +109,14 @@ class DefaultRequestFactory @Inject() (
       attrs: TypedMap
   ): RequestHeader = {
     val requestId: Long = RequestIdProvider.freshId()
-    val cookieCell = new LazyCell[Cookies] {
+    val cookieCell      = new LazyCell[Cookies] {
       protected override def emptyMarker: Cookies = null
-      protected override def create: Cookies =
+      protected override def create: Cookies      =
         cookieHeaderEncoding.fromCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE))
     }
     val sessionCell = new LazyCell[Session] {
       protected override def emptyMarker: Session = null
-      protected override def create: Session =
+      protected override def create: Session      =
         sessionBaker.decodeFromCookie(cookieCell.value.get(sessionBaker.COOKIE_NAME))
     }
     val flashCell = new LazyCell[Flash] {
