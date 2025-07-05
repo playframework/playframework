@@ -81,7 +81,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP"  % "6.2.1",
+    "com.zaxxer"         % "HikariCP"  % "6.3.0",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
