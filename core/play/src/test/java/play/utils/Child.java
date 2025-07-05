@@ -7,17 +7,16 @@ package play.utils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.Objects;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 // refs https://github.com/lagom/lagom/issues/3241
 @JsonDeserialize(using = ChildDeserializer.class)
 public class Child {
 
-  private final @NonNull Long updatedAt;
-  private final @NonNull String updatedBy;
+  private final Long updatedAt;
+  private final String updatedBy;
 
   @JsonCreator
-  public Child(@NonNull Long updatedAt, @NonNull String updatedBy) {
+  public Child(Long updatedAt, String updatedBy) {
     this.updatedAt = updatedAt;
     this.updatedBy = updatedBy;
   }
