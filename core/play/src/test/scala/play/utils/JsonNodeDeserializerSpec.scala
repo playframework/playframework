@@ -14,13 +14,11 @@ class JsonNodeDeserializerSpec extends BaseJacksonDeserializer("JsonNodeDeserial
   def baseMapper(): ObjectMapper =
     JsonMapper.builder
       .build()
-      .registerModule(JacksonJsonNodeModule)
 
   override def baseMapper(jsonReadFeature: JsonReadFeature): ObjectMapper =
     JsonMapper.builder
       .enable(jsonReadFeature)
       .build()
-      .registerModule(JacksonJsonNodeModule)
 }
 
 class DefaultDeserializerSpec extends BaseJacksonDeserializer("default") {
