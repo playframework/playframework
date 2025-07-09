@@ -446,6 +446,17 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig._7"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig._8"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.filters.csrf.CSRFConfig._9"),
+      // Remove JsonNodeDeserializer and related classes
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.DeserializerContext"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.JacksonJsonNodeModule"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.JacksonJsonNodeModule$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.JsonNodeDeserializer"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.KeyRead"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.KeyRead$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingList"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingList$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap"),
+      ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
