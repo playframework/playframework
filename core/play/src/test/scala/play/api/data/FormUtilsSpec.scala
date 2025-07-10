@@ -62,9 +62,9 @@ class FormUtilsSpec extends Specification {
         val cfg = ConfigFactory
           .parseString("play.json.read.max-nesting-depth=12000")
           .withFallback(ConfigFactory.load)
-        val jacksonUtil = new play.api.libs.json.JacksonUtil(new Configuration(cfg))
+        val jsonUtil = new play.api.libs.Json(new Configuration(cfg))
         FormUtils.fromJson(
-          jacksonUtil.parseJsValue("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"),
+          jsonUtil.parseJsValue("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"),
           1000000,
           30000
         )
