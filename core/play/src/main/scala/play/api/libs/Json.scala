@@ -48,13 +48,20 @@ class Json(config: Configuration) {
 
   def parseJsValue(input: String): JsValue = jacksonJson.parseJsValue(input)
 
+  /**
+   * Internal method to create a new default ObjectMapper.
+   * <p>
+   *   Only for internal use.
+   * </p>
+   * @return a new ObjectMapper instance configured with the default settings
+   */
   private[play] def newDefaultMapper: ObjectMapper = {
     val factory = new JsonFactory()
     factory.setStreamReadConstraints(streamReadConstraints)
     factory.setStreamWriteConstraints(streamWriteConstraints)
     JsonMapper
       .builder(factory)
-      .addModules(new Jdk8Module, new JavaTimeModule, new ParameterNamesModule, new DefaultScalaModule)
+      .addModules(new Jdk8Module, new JavaTimeModule, new ParameterNamesModule, DefaultScalaModule)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
       .disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
