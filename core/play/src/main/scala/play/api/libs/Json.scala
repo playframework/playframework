@@ -21,8 +21,13 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.JsonConfig
 import play.api.Configuration
 
-// TODO add scala doc for this class
-class Json(config: Configuration) {
+/**
+ * Internal class for Play JSON parsing.
+ * <p>
+ *   Only for internal use.
+ * </p>
+ */
+private[play] class Json(config: Configuration) {
 
   private val streamReadConstraints = StreamReadConstraints
     .builder()
@@ -69,4 +74,10 @@ class Json(config: Configuration) {
   }
 }
 
-object Json extends Json(new Configuration(ConfigFactory.load))
+/**
+ * Internal class for Play JSON parsing.
+ * <p>
+ *   Only for internal use.
+ * </p>
+ */
+private[play] object Json extends Json(new Configuration(ConfigFactory.load))
