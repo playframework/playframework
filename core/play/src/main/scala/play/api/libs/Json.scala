@@ -16,8 +16,6 @@ import play.api.Configuration
 import play.api.libs.json.{JsValue, JsonConfig}
 import play.api.libs.json.jackson.JacksonJson
 
-import java.io.InputStream
-
 // TODO add scala doc for this class
 class Json(config: Configuration) {
 
@@ -38,7 +36,9 @@ class Json(config: Configuration) {
       JsonConfig.settings.bigDecimalSerializerConfig,
       streamReadConstraints
     )
-    JacksonJson(jsonConfig)
+    // JacksonJson companion object is less visible than the JacksonJson class
+    // so we need to use the constructor directly here.
+    new JacksonJson(jsonConfig)
   }
 
   def parseJsValue(input: String): JsValue = jacksonJson.parseJsValue(input)
