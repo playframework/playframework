@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import play.api.libs.Json$;
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
@@ -291,9 +290,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                Json$.MODULE$.parse(play.libs.Json.stringify(data)),
-                maxChars,
-                maxJsonDepth())),
+                Json$.MODULE$.parse(play.libs.Json.stringify(data)), maxChars, maxJsonDepth())),
         allowedFields);
   }
 

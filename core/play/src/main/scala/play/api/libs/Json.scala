@@ -4,6 +4,8 @@
 
 package play.api.libs
 
+import java.io.InputStream
+
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.StreamReadConstraints
 import com.fasterxml.jackson.core.StreamWriteConstraints
@@ -20,8 +22,6 @@ import play.api.libs.json.jackson.JacksonJson
 import play.api.libs.json.JsValue
 import play.api.libs.json.JsonConfig
 import play.api.Configuration
-
-import java.io.InputStream
 
 /**
  * Internal class for Play JSON parsing.

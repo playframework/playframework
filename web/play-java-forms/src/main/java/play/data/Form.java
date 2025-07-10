@@ -781,9 +781,7 @@ public class Form<T> {
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                Json$.MODULE$.parse(play.libs.Json.stringify(data)),
-                maxChars,
-                maxJsonDepth())),
+                Json$.MODULE$.parse(play.libs.Json.stringify(data)), maxChars, maxJsonDepth())),
         allowedFields);
   }
 
