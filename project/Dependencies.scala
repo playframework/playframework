@@ -11,7 +11,7 @@ object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.1.4")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.2.0")
 
-  val playJsonVersion = "3.1.0-M2"
+  val playJsonVersion = "3.1.0-M3"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.20"
 
