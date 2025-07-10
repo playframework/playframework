@@ -55,7 +55,7 @@ package scalaguide.forms.scalaforms {
       "generate from request" in new WithApplication {
         override def running() = {
           import play.api.data.FormBinding.Implicits._
-          import play.api.libs.Json
+          import play.api.libs.json.Json
 
           val controller = app.injector.instanceOf[controllers.Application]
           val userForm   = controller.userForm
