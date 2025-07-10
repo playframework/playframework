@@ -64,7 +64,7 @@ class FormUtilsSpec extends Specification {
           .withFallback(ConfigFactory.load)
         val jsonUtil = new play.api.libs.Json(new Configuration(cfg))
         FormUtils.fromJson(
-          jsonUtil.parseJsValue("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"),
+          jsonUtil.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"),
           1000000,
           30000
         )

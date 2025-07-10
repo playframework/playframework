@@ -21,6 +21,8 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.JsonConfig
 import play.api.Configuration
 
+import java.io.InputStream
+
 /**
  * Internal class for Play JSON parsing.
  * <p>
@@ -51,7 +53,13 @@ private[play] class Json(config: Configuration) {
     new JacksonJson(jsonConfig)
   }
 
-  def parseJsValue(input: String): JsValue = jacksonJson.parseJsValue(input)
+  def parse(input: String): JsValue = jacksonJson.parseJsValue(input)
+
+  def parse(input: InputStream): JsValue = jacksonJson.parseJsValue(input)
+
+  def stringify(value: JsValue): String = jacksonJson.generateFromJsValue(value, false)
+
+  def toBytes(value: JsValue): Array[Byte] = jacksonJson.jsValueToBytes(value)
 
   /**
    * Internal method to create a new default ObjectMapper.
