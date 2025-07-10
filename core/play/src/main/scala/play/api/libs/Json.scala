@@ -4,17 +4,22 @@
 
 package play.api.libs
 
-import com.fasterxml.jackson.core.{JsonFactory, StreamReadConstraints, StreamWriteConstraints}
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.core.StreamReadConstraints
+import com.fasterxml.jackson.core.StreamWriteConstraints
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper, SerializationFeature}
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.config.ConfigFactory
-import play.api.Configuration
-import play.api.libs.json.{JsValue, JsonConfig}
 import play.api.libs.json.jackson.JacksonJson
+import play.api.libs.json.JsValue
+import play.api.libs.json.JsonConfig
+import play.api.Configuration
 
 // TODO add scala doc for this class
 class Json(config: Configuration) {
@@ -43,11 +48,12 @@ class Json(config: Configuration) {
 
   def parseJsValue(input: String): JsValue = jacksonJson.parseJsValue(input)
 
-  private[play ]def newDefaultMapper: ObjectMapper = {
+  private[play] def newDefaultMapper: ObjectMapper = {
     val factory = new JsonFactory()
     factory.setStreamReadConstraints(streamReadConstraints)
     factory.setStreamWriteConstraints(streamWriteConstraints)
-    JsonMapper.builder(factory)
+    JsonMapper
+      .builder(factory)
       .addModules(new Jdk8Module, new JavaTimeModule, new ParameterNamesModule, new DefaultScalaModule)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
