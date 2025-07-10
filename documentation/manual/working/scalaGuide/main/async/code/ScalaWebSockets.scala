@@ -16,7 +16,7 @@ class ScalaWebSockets extends PlaySpecification {
 
   import org.apache.pekko.stream.scaladsl._
   import org.apache.pekko.stream.Materializer
-  import play.api.libs.json.Json
+  import play.api.libs.Json
   import play.api.libs.streams.ActorFlow
   import play.api.mvc.Result
   import play.api.mvc.WebSocket
