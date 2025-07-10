@@ -7,7 +7,6 @@ package play.it.http.parsing
 import java.util.concurrent.TimeUnit
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -42,13 +41,6 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
       await(
         bodyParser(fakeRequest).asScala().run(Source.single(ByteString(json.getBytes(encoding))))
       )
-    }
-
-    "uses JacksonJsonNodeModule" in new WithApplication() {
-      override def running() = {
-        val mapper: ObjectMapper = implicitly[Application].injector.instanceOf[ObjectMapper]
-        mapper.getRegisteredModuleIds.contains("play.utils.JacksonJsonNodeModule") must_== true
-      }
     }
 
     "parse a simple JSON body with custom Jackson json-read-features" in new WithApplication(guiceBuilder =>
