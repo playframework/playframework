@@ -77,8 +77,7 @@ public abstract class WebSocket {
                 try {
                   if (message instanceof Message.Binary) {
                     return F.Either.Left(
-                        play.libs.Json.parse(
-                            ((Message.Binary) message).data().iterator().asInputStream()));
+                        play.libs.Json.parse(((Message.Binary) message).data().asInputStream()));
                   } else if (message instanceof Message.Text) {
                     return F.Either.Left(play.libs.Json.parse(((Message.Text) message).data()));
                   }
@@ -106,8 +105,7 @@ public abstract class WebSocket {
                 if (message instanceof Message.Binary) {
                   return F.Either.Left(
                       play.libs.Json.mapper()
-                          .readValue(
-                              ((Message.Binary) message).data().iterator().asInputStream(), in));
+                          .readValue(((Message.Binary) message).data().asInputStream(), in));
                 } else if (message instanceof Message.Text) {
                   return F.Either.Left(
                       play.libs.Json.mapper().readValue(((Message.Text) message).data(), in));

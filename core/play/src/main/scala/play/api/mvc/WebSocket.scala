@@ -135,7 +135,7 @@ object WebSocket {
 
       (flow: Flow[JsValue, JsValue, ?]) => {
         PekkoStreams.bypassWith[Message, JsValue, Message](Flow[Message].collect {
-          case BinaryMessage(data) => closeOnException(Json.parse(data.iterator.asInputStream))
+          case BinaryMessage(data) => closeOnException(Json.parse(data.asInputStream))
           case TextMessage(text)   => closeOnException(Json.parse(text))
         })(flow.map { json => TextMessage(Json.stringify(json)) })
       }
