@@ -34,7 +34,7 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / test := (Test / test).dependsOn(playDocs / publishLocal).value,
     version     := PlayVersion.current,
     libraryDependencies ++= Seq(
-      "com.typesafe"   % "config"       % "1.4.3"   % Test,
+      "com.typesafe"   % "config"       % "1.4.4"   % Test,
       "com.h2database" % "h2"           % "2.3.232" % Test,
       "org.mockito"    % "mockito-core" % "5.18.0"  % Test,
       "org.assertj"    % "assertj-core" % "3.27.3"  % Test,

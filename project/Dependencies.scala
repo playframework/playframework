@@ -214,7 +214,7 @@ object Dependencies {
 
   val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.4"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
