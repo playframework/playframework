@@ -85,7 +85,7 @@ object RequestFactory {
 /**
  * The default [[RequestFactory]] used by a Play application. This
  * `RequestFactory` adds the following typed attributes to requests:
- * - request id
+ * - request id (if not existing yet)
  * - cookie
  * - session cookie
  * - flash cookie
@@ -109,7 +109,8 @@ class DefaultRequestFactory @Inject() (
       headers: Headers,
       attrs: TypedMap
   ): RequestHeader = {
-    val requestId: Long = RequestIdProvider.freshId()
+    // Generate a new request ID only if one has not already been generated at an earlier stage
+    val requestId: Long = attrs.get(RequestAttrKey.Id).getOrElse(RequestIdProvider.freshId())
     val cookieCell      = new LazyCell[Cookies] {
       protected override def emptyMarker: Cookies = null
       protected override def create: Cookies      =
