@@ -7,22 +7,21 @@ package play.utils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 // refs https://github.com/lagom/lagom/issues/3241
 public class Parent {
 
-  private final @NonNull Long createdAt;
+  private final Long createdAt;
   private final Child child;
-  private final @NonNull Long updatedAt;
-  private final @NonNull String updatedBy;
+  private final Long updatedAt;
+  private final String updatedBy;
 
   @JsonCreator
   public Parent(
-      @JsonProperty("createdAt") @NonNull Long createdAt,
+      @JsonProperty("createdAt") Long createdAt,
       @JsonProperty("child") Child child,
-      @JsonProperty("updatedAt") @NonNull Long updatedAt,
-      @JsonProperty("updatedBy") @NonNull String updatedBy) {
+      @JsonProperty("updatedAt") Long updatedAt,
+      @JsonProperty("updatedBy") String updatedBy) {
     this.createdAt = createdAt;
     this.child = child;
     this.updatedAt = updatedAt;
