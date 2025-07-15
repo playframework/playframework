@@ -337,14 +337,18 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       val unparsedTarget = Server.createUnparsedRequestTarget(headers.uri)
       val requestHeader  =
         modelConversion(tryApp).createRequestHeader(headers, secure, remoteAddress, unparsedTarget, request)
-      val debugHeader = attachDebugInfo(requestHeader)
-      val result      = errorHandler(tryApp).onClientError(
-        debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+      val debugHeader                    = attachDebugInfo(requestHeader)
+      val enrichedRequest: RequestHeader = tryApp match {
+        case Success(application) => application.requestFactory.copyRequestHeader(debugHeader)
+        case Failure(_)           => debugHeader
+      }
+      val result = errorHandler(tryApp).onClientError(
+        enrichedRequest.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
         statusCode,
         if (message == null) "" else message
       )
       // If there's a problem in parsing the request, then we should close the connection, once done with it
-      debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
+      enrichedRequest -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
 
     val (taggedRequestHeader, handler): (RequestHeader, Handler) = convertedRequestHeader match {

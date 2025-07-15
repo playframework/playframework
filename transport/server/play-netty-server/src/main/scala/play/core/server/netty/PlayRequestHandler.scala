@@ -107,20 +107,24 @@ private[play] class PlayRequestHandler(
     }
 
     def clientError(statusCode: Int, message: String, bypassErrorHandler: Boolean = false): (RequestHeader, Handler) = {
-      val unparsedTarget = Server.createUnparsedRequestTarget(request.uri)
-      val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
-      val debugHeader    = attachDebugInfo(requestHeader)
-      val cleanMessage   = if (message == null) "" else message
-      val result         =
+      val unparsedTarget                 = Server.createUnparsedRequestTarget(request.uri)
+      val requestHeader                  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
+      val debugHeader                    = attachDebugInfo(requestHeader)
+      val cleanMessage                   = if (message == null) "" else message
+      val enrichedRequest: RequestHeader = tryApp match {
+        case Success(application) => application.requestFactory.copyRequestHeader(debugHeader)
+        case Failure(_)           => debugHeader
+      }
+      val result =
         if (bypassErrorHandler) Future.successful(Results.Status(statusCode)(cleanMessage))
         else
           errorHandler(tryApp).onClientError(
-            debugHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+            enrichedRequest.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
             statusCode,
             cleanMessage
           )
       // If there's a problem in parsing the request, then we should close the connection, once done with it
-      debugHeader -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
+      enrichedRequest -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
 
     val (requestHeader, handler): (RequestHeader, Handler) = tryRequest match {

@@ -106,7 +106,7 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       )(0)
 
       response.status must_== 400
-      response.body must beLeft("cookies: Iterable() session: Session(Map()) flash: Flash(Map())")
+      response.body must beLeft("cookies: Map() session: Session(Map()) flash: Flash(Map())")
     }
 
     "allow accessing cookies, session and flash from an error handler if headers are set" in withServer(
