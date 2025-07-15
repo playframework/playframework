@@ -118,6 +118,19 @@ class RequestHeaderSpec extends Specification {
         req.attrs.get(x) must beNone
         req.attrs.get(y) must beNone
       }
+      "handle empty attributes" in {
+        "always return (at least an empty) cookies" in {
+          dummyRawRequestHeaderWithEmptyAttrs().cookies.size must_== 0
+        }
+
+        "always return (at least an empty) session" in {
+          dummyRawRequestHeaderWithEmptyAttrs().session.isEmpty must_== true
+        }
+
+        "always return (at least an empty) flash" in {
+          dummyRawRequestHeaderWithEmptyAttrs().flash.isEmpty must_== true
+        }
+      }
     }
     "handle transient lang" in {
       val req1 = dummyRequestHeader()
@@ -213,5 +226,14 @@ class RequestHeaderSpec extends Specification {
       headers = headers,
       attrs = TypedMap.empty
     )
+  }
+
+  private def dummyRawRequestHeaderWithEmptyAttrs() = new RequestHeader {
+    override def connection: RemoteConnection = ???
+    override def method: String               = ???
+    override def target: RequestTarget        = ???
+    override def version: String              = ???
+    override def headers: Headers             = ???
+    override def attrs: TypedMap              = TypedMap.empty
   }
 }
