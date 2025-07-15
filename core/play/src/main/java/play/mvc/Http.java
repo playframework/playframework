@@ -373,7 +373,10 @@ public class Http {
      * {@link Cell} to store the session cookie, to allow it to be evaluated on-demand.
      */
     default Session session() {
-      return attrs().get(RequestAttrKey.Session().asJava()).value().asJava();
+      return attrs()
+          .getOptional(RequestAttrKey.Session().asJava())
+          .map(cell -> cell.value().asJava())
+          .orElseGet(() -> new Session());
     }
 
     /**
@@ -382,7 +385,10 @@ public class Http {
      * store the flash, to allow it to be evaluated on-demand.
      */
     default Flash flash() {
-      return attrs().get(RequestAttrKey.Flash().asJava()).value().asJava();
+      return attrs()
+          .getOptional(RequestAttrKey.Flash().asJava())
+          .map(cell -> cell.value().asJava())
+          .orElseGet(() -> new Flash());
     }
 
     /**
