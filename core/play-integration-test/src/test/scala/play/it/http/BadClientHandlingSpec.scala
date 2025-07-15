@@ -71,17 +71,23 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       response.body must beLeft("_")
     }
 
-    "allow accessing the raw unparsed path from an error handler" in withServer(new HttpErrorHandler() {
+    "allow accessing the raw unparsed path and request-id from an error handler" in withServer(new HttpErrorHandler() {
       def onClientError(request: RequestHeader, statusCode: Int, message: String) =
-        Future.successful(Results.BadRequest("Bad path: " + request.path + " message: " + message))
+        Future.successful(
+          Results.BadRequest("Bad path: " + request.path + " message: " + message + " r.id: " + request.id)
+        )
       def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = Future.successful(Results.Ok)
     }) { port =>
       val response = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/[", "HTTP/1.1", Map(), "")
       )(0)
 
+      val expectedBodyTrailing = "Bad path: /[ message: Cannot parse path from URI: /[ r.id: "
       response.status must_== 400
-      response.body must beLeft("Bad path: /[ message: Cannot parse path from URI: /[")
+      response.body.isLeft must_== true
+      val responseBody = response.body.swap.getOrElse("<empty>")
+      responseBody must startWith(expectedBodyTrailing)
+      responseBody.substring(expectedBodyTrailing.length).matches("[0-9]+") must_== true // must have request id
     }
   }
 }
