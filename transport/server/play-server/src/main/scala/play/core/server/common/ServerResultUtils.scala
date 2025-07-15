@@ -182,7 +182,7 @@ private[play] final class ServerResultUtils(
         // Call the HttpErrorHandler to generate an alternative error
         val futureErrorResult = if (isInvalidHeaderCharacter) {
           errorHandler.onClientError(
-            requestHeader,
+            requestHeader.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
             400,
             s"Invalid header: ${conversionError.getMessage()}"
           )
