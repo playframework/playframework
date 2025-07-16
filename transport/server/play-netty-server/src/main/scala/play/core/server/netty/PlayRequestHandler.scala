@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
 import scala.util.control.Exception.catching
-import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -108,29 +107,21 @@ private[play] class PlayRequestHandler(
     }
 
     def clientError(statusCode: Int, message: String, bypassErrorHandler: Boolean = false): (RequestHeader, Handler) = {
-      val unparsedTarget                      = Server.createUnparsedRequestTarget(request.uri)
-      val requestHeader                       = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
-      val debugHeader                         = attachDebugInfo(requestHeader)
-      val cleanMessage                        = if (message == null) "" else message
-      val maybeEnrichedRequest: RequestHeader =
-        try {
-          tryApp match {
-            case Success(application) => application.requestFactory.copyRequestHeader(debugHeader)
-            case Failure(_)           => debugHeader
-          }
-        } catch {
-          case NonFatal(_) => debugHeader // just in case something went wrong in the requestFactory above
-        }
-      val result =
+      val unparsedTarget = Server.createUnparsedRequestTarget(request.uri)
+      val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
+      val debugHeader    = attachDebugInfo(requestHeader)
+      val cleanMessage   = if (message == null) "" else message
+      val maybeEnriched  = Server.tryToEnrichHeader(tryApp, debugHeader)
+      val result         =
         if (bypassErrorHandler) Future.successful(Results.Status(statusCode)(cleanMessage))
         else
           errorHandler(tryApp).onClientError(
-            maybeEnrichedRequest.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
+            maybeEnriched.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("server-backend")),
             statusCode,
             cleanMessage
           )
       // If there's a problem in parsing the request, then we should close the connection, once done with it
-      maybeEnrichedRequest -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
+      maybeEnriched -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
 
     val (requestHeader, handler): (RequestHeader, Handler) = tryRequest match {
