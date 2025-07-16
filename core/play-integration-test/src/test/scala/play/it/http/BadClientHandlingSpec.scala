@@ -89,5 +89,24 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       responseBody must startWith(expectedBodyTrailing)
       responseBody.substring(expectedBodyTrailing.length).matches("[0-9]+") must_== true // must have request id
     }
+
+    "allow accessing (empty) cookies, (empty) session and (empty) flash from an error handler if no headers are given" in withServer(
+      new HttpErrorHandler() {
+        def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+          Future.successful(
+            Results.BadRequest(
+              "cookies: " + request.cookies + " session: " + request.session + " flash: " + request.flash
+            )
+          )
+        def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = Future.successful(Results.Ok)
+      }
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/[", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 400
+      response.body must beLeft("cookies: Iterable() session: Session(Map()) flash: Flash(Map())")
+    }
   }
 }
