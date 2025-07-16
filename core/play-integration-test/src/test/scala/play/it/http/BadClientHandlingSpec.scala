@@ -89,5 +89,57 @@ trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpec
       responseBody must startWith(expectedBodyTrailing)
       responseBody.substring(expectedBodyTrailing.length).matches("[0-9]+") must_== true // must have request id
     }
+
+    "allow accessing (empty) cookies, (empty) session and (empty) flash from an error handler if no headers are given" in withServer(
+      new HttpErrorHandler() {
+        def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+          Future.successful(
+            Results.BadRequest(
+              "cookies: " + request.cookies + " session: " + request.session + " flash: " + request.flash
+            )
+          )
+        def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = Future.successful(Results.Ok)
+      }
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/[", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 400
+      response.body must beLeft("cookies: Iterable() session: Session(Map()) flash: Flash(Map())")
+    }
+
+    "allow accessing cookies, session and flash from an error handler if headers are set" in withServer(
+      new HttpErrorHandler() {
+        def onClientError(request: RequestHeader, statusCode: Int, message: String) =
+          Future.successful(
+            Results.BadRequest(
+              "cookies: " + request.cookies + " session: " + request.session + " flash: " + request.flash
+            )
+          )
+        def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = Future.successful(Results.Ok)
+      }
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest(
+          "GET",
+          "/[",
+          "HTTP/1.1",
+          Map(
+            "Cookie" ->
+              ("PLAY_SESSION=eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7InNlc3Npb25mb28iOiJzZXNzaW9uYmFyIn0sIm5iZiI6MTc1MjY2ODA1NSwiaWF0IjoxNzUyNjY4MDU1fQ.HgN1CB4OqFE7NlAwuOKMpn5733_wXq295wC_gX34VvU; " +
+                "PLAY_FLASH=eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImZsYXNoZm9vIjoiZmxhc2hiYXIifSwibmJmIjoxNzUyNjY3OTg0LCJpYXQiOjE3NTI2Njc5ODR9.LXzAn-N8BnlodhFhG3Q4YGAVd47jqq7gGAGrYCrLCEQ")
+          ),
+          ""
+        )
+      )(0)
+
+      response.status must_== 400
+      response.body must beLeft(
+        "cookies: Map(PLAY_SESSION -> Cookie(PLAY_SESSION,eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7InNlc3Npb25mb28iOiJzZXNzaW9uYmFyIn0sIm5iZiI6MTc1MjY2ODA1NSwiaWF0IjoxNzUyNjY4MDU1fQ.HgN1CB4OqFE7NlAwuOKMpn5733_wXq295wC_gX34VvU,None,/,None,false,true,None,false), PLAY_FLASH -> Cookie(PLAY_FLASH,eyJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImZsYXNoZm9vIjoiZmxhc2hiYXIifSwibmJmIjoxNzUyNjY3OTg0LCJpYXQiOjE3NTI2Njc5ODR9.LXzAn-N8BnlodhFhG3Q4YGAVd47jqq7gGAGrYCrLCEQ,None,/,None,false,true,None,false)) " +
+          "session: Session(Map(sessionfoo -> sessionbar)) " +
+          "flash: Flash(Map(flashfoo -> flashbar))"
+      )
+    }
   }
 }
