@@ -42,6 +42,7 @@ import play.api.Logger
 import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
+import play.core.system.RequestIdProvider
 
 private[server] class NettyModelConversion(
     resultUtils: ServerResultUtils,
@@ -127,10 +128,14 @@ private[server] class NettyModelConversion(
       target,
       request.protocolVersion.text(),
       headers,
-      // Send an attribute so our tests can tell which kind of server we're using.
-      // We only do this for the "non-default" engine, so we used to tag
-      // akka-http explicitly, so that benchmarking isn't affected by this.
-      TypedMap(RequestAttrKey.Server -> "netty")
+      TypedMap(
+        // Send an attribute so our tests can tell which kind of server we're using.
+        // We only do this for the "non-default" engine, so we used to tag
+        // akka-http explicitly, so that benchmarking isn't affected by this.
+        RequestAttrKey.Server -> "netty",
+        // This is the earliest stage of a Play request at which we can set an id.
+        RequestAttrKey.Id -> RequestIdProvider.freshId(),
+      )
     )
   }
 
