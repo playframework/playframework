@@ -8,12 +8,12 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.3")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.1")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.1.5")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.2.0")
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "3.1.0-M1"
+  val playJsonVersion = "3.1.0-M3"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.18"
 
@@ -31,7 +31,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.18.1"      % Test
   )
 
-  val jacksonVersion  = "2.14.3"
+  val jacksonVersion  = "2.19.2"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -40,9 +40,7 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % jacksonVersion) ++ jacksonDatabind
   // Overrides additional jackson deps pulled in by pekko-serialization-jackson
-  // https://github.com/apache/pekko/blob/v1.0.1/project/Dependencies.scala#L117-L125
-  // https://github.com/apache/pekko/blob/v1.0.1/build.sbt#L273
-  // Can be removed as soon as pekko upgrades to same jackson version like Play uses
+  // Play uses a newer version of Jackson than Pekko 1.1
   val pekkoSerializationJacksonOverrides = Seq(
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
     "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
