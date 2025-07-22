@@ -1,0 +1,3 @@
+-> playRoutes
+> set generateReverseRouter := false
+> compile
