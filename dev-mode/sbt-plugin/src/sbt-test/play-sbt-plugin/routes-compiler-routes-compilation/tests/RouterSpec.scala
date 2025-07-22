@@ -9,6 +9,7 @@ import scala.concurrent.Future
 import models.UserId
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import play.api.mvc.Result
 import play.api.test._
 
 @RunWith(classOf[JUnitRunner])
@@ -146,6 +147,16 @@ object RouterSpec extends PlaySpecification {
       override def running() = {
         val result = route(implicitApp, FakeRequest(GET, "/take-jlist-jint?x=1&x=2&x=3")).get
         contentAsString(result) must equalTo("1,2,3")
+      }
+    }
+    "use a new instance for each instantiated controller" in new WithApplication() {
+      override def running() = {
+        route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
+          case result => contentAsString(result) must_== "1"
+        }
+        route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
+          case result => contentAsString(result) must_== "1"
+        }
       }
     }
   }
