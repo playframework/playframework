@@ -125,12 +125,13 @@ object PlaySettings {
       .value,
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
-    playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
-    playCompileEverything := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
-    playReload            := PlayCommands.playReloadTask.value,
-    ivyLoggingLevel       := UpdateLogging.DownloadOnly,
-    playMonitoredFiles    := PlayCommands.playMonitoredFilesTask.value,
-    fileWatchService      := {
+    playCommonClassloader      := PlayCommands.playCommonClassloaderTask.value,
+    playCompileEverything      := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
+    playReload                 := PlayCommands.playReloadTask.value,
+    ivyLoggingLevel            := UpdateLogging.DownloadOnly,
+    playMonitoredFiles         := PlayCommands.playMonitoredFilesTask.value,
+    playMonitoredFilesExcludes := Seq.empty,
+    fileWatchService           := {
       FileWatchService.detect(pollInterval.value.toMillis.toInt, sLog.value)
     },
     playDefaultPort    := 9000,

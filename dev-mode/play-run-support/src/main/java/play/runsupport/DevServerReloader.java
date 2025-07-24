@@ -77,6 +77,7 @@ class DevServerReloader implements BuildLink, Closeable {
       Map<String, String> devSettings,
       Supplier<Boolean> triggerReload,
       List<File> monitoredFiles,
+      List<File> monitoredFilesExcludes,
       FileWatchService fileWatchService,
       Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
       Object reloadLock) {
@@ -88,7 +89,17 @@ class DevServerReloader implements BuildLink, Closeable {
     this.triggerReload = triggerReload;
     if (!monitoredFiles.isEmpty() && fileWatchService != null) {
       // Create the watcher, updates the changed boolean when a file has changed:
-      this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
+      this.watcher =
+          fileWatchService.watch(
+              monitoredFiles,
+              maybePath ->
+                  maybePath.ifPresentOrElse(
+                      path -> {
+                        if (!monitoredFilesExcludes.contains(path.toFile())) {
+                          changed = true;
+                        }
+                      },
+                      () -> changed = true));
     } else {
       this.watcher = null;
     }
