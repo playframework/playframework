@@ -127,6 +127,7 @@ object PlayRun {
       null,
       // avoid monitoring same folder twice or folders that don't exist
       playMonitoredFiles.value.distinct.filter(_.exists()).asJava,
+      playMonitoredFilesExcludes.value.distinct.asJava,
       fileWatchService.value,
       generatedSourceHandlers.asJava,
       playDefaultPort.value,
