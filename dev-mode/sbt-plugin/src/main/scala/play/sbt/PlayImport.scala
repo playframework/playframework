@@ -123,8 +123,9 @@ object PlayImport {
     val generateAssetsJar = TaskKey[Boolean]("generateAssetsJar")
     val playPackageAssets = TaskKey[File]("playPackageAssets")
 
-    val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
-    val fileWatchService   =
+    val playMonitoredFiles         = TaskKey[Seq[File]]("playMonitoredFiles")
+    val playMonitoredFilesExcludes = SettingKey[Seq[File]]("playMonitoredFilesExcludes")
+    val fileWatchService           =
       SettingKey[FileWatchService]("fileWatchService", "The watch service Play uses to watch for file changes")
 
     val includeDocumentationInBinary =
