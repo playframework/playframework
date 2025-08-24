@@ -3,7 +3,7 @@
 //#jpa-sbt-dependencies
 libraryDependencies ++= Seq(
   javaJpa,
-  "org.hibernate.orm" % "hibernate-core" % "7.0.10.Final" // replace by your jpa implementation
+  "org.hibernate.orm" % "hibernate-core" % "7.1.0.Final" // replace by your jpa implementation
 )
 //#jpa-sbt-dependencies
 
