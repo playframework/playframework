@@ -81,7 +81,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP"  % "6.3.0",
+    "com.zaxxer"         % "HikariCP"  % "6.3.2",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -107,7 +107,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.2.8"
+  val springFrameworkVersion = "6.2.10"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -136,7 +136,7 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.27.3"
+  val assertj = "org.assertj" % "assertj-core" % "3.27.4"
 
   val javaTestDeps = Seq(
     junit,
@@ -192,7 +192,7 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
-  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.0"
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.1"
 
   val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.1.0"
 
@@ -295,7 +295,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion  = "3.2.1"
+  val caffeineVersion  = "3.2.2"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
