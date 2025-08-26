@@ -15,7 +15,7 @@ object PlaySbtBuildBase extends AutoPlugin {
     crossScalaVersions            := Seq(ScalaVersions.scala212, ScalaVersions.scala3),
     pluginCrossBuild / sbtVersion := {
       scalaBinaryVersion.value match {
-        case ScalaVersions.scala212 =>
+        case "2.12" =>
           SbtVersions.sbt111
         case _ =>
           SbtVersions.sbt2
