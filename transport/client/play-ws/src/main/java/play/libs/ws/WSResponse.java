@@ -93,7 +93,7 @@ public interface WSResponse extends StandaloneWSResponse {
   /**
    * Gets the body as a stream.
    *
-   * @deprecated use {@link #getBody(BodyReadable)} with {@code WSBodyWritables.inputStream()}.
+   * @deprecated use {@link #getBody(BodyReadable)} with {@link WSBodyReadables#inputStream()}.
    */
   @Deprecated
   InputStream getBodyAsStream();
