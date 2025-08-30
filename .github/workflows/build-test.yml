@@ -85,13 +85,13 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v3
     with:
-      java: 25-ea36
+      java: 11
       java-index: https://github.com/mkurz/jvm-index/raw/adoptium_temurin_eaps/index.json
       cmd: |
         rm -rf ~/.ivy2/local
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
       cache-path: ~/.ivy2/local/org.playframework
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-jdk11-testing_25-ea36-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   tests:
     name: Tests
@@ -168,7 +168,7 @@ jobs:
           scripted play-sbt-plugin/$MATRIX_SBT_STEPS
         "
       cache-path: ~/.ivy2/local/org.playframework
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+      cache-key: play-published-local-jdk11-testing_25-ea36-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
 
   finish:
     name: Finish
