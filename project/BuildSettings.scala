@@ -179,7 +179,7 @@ object BuildSettings {
             None
         }
         url <- urlOption
-      } yield fullyFile -> url)(collection.breakOut(Map.canBuildFrom))
+      } yield fullyFile -> url).toMap
     }
   )
 

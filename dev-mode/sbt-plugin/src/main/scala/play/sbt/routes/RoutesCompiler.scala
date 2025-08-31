@@ -201,7 +201,7 @@ object RoutesCompiler extends AutoPlugin {
             errs ++= details
             op -> OpFailure
         }
-      }(scala.collection.breakOut)
+      }.toMap
 
       opResults -> errs.result()
     }
