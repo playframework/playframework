@@ -96,7 +96,7 @@ object PlaySettings {
     Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
     // Adds app directory's source files to continuous hot reloading
     watchSources ++= {
-      ((Compile / sourceDirectory).value ** "*" --- (Assets / sourceDirectory).value ** "*").get
+      ((Compile / sourceDirectory).value ** "*" --- (Assets / sourceDirectory).value ** "*").get()
     },
     commands ++= {
       import PlayCommands._
@@ -186,7 +186,7 @@ object PlaySettings {
           val docDirectory    = (Compile / doc).value
           val docDirectoryLen = docDirectory.getCanonicalPath.length
           val pathFinder      = docDirectory ** "*"
-          pathFinder.get.map { (docFile: File) =>
+          pathFinder.get().map { (docFile: File) =>
             docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
           }
         }
@@ -198,7 +198,7 @@ object PlaySettings {
     }.value,
     Universal / mappings ++= {
       val pathFinder = baseDirectory.value * "README*"
-      pathFinder.get.map { (readmeFile: File) => readmeFile -> readmeFile.getName }
+      pathFinder.get().map { (readmeFile: File) => readmeFile -> readmeFile.getName }
     },
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
@@ -207,7 +207,7 @@ object PlaySettings {
     // by default, compile any routes files in the root named "routes" or "*.routes"
     Compile / RoutesKeys.routes / sources ++= {
       val dirs = (Compile / unmanagedResourceDirectories).value
-      (dirs * "routes").get ++ (dirs * "*.routes").get
+      (dirs * "routes").get() ++ (dirs * "*.routes").get()
     },
     inConfig(Compile)(externalizedSettings),
     // Avoid duplicated asset files in dist packages, see https://github.com/playframework/playframework/issues/5765
