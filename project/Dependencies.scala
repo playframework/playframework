@@ -33,11 +33,21 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.18"
 
+  val bytebuddyVersion = "1.17.7"
+  val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
+  val bytebuddyAgent   = "net.bytebuddy" % "byte-buddy-agent" % bytebuddyVersion
+
+  val bytebuddyAll = Seq(
+    bytebuddy,
+    bytebuddyAgent
+  )
+
   val specs2Version = "4.20.9"
   val specs2Deps    = Seq(
     "specs2-core",
     "specs2-junit"
-  ).map("org.specs2" %% _ % specs2Version)
+  ).map("org.specs2" %% _ % specs2Version) ++
+    bytebuddyAll // overrides outdated version in specs2 / mockito
   val specs2Mock = "org.specs2" %% "specs2-mock" % specs2Version // Be aware: This lib is only published for Scala 2
 
   val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specs2Version
@@ -285,6 +295,7 @@ object Dependencies {
   val htmlunitVersion = "4.13.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
+    bytebuddy, // overrides outdated version in fluentlenium 6
     ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion)
       .exclude("org.jboss.netty", "netty")
       .excludeAll(ExclusionRule("commons-beanutils", "commons-beanutils")) // comes with CVE-2025-48734
