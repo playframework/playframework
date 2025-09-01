@@ -16,6 +16,7 @@ import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.request.RequestTarget
 
 class RequestHeaderSpec extends Specification {
@@ -118,6 +119,19 @@ class RequestHeaderSpec extends Specification {
         req.attrs.get(x) must beNone
         req.attrs.get(y) must beNone
       }
+      "handle empty attributes" in {
+        "always return (at least an empty) cookies" in {
+          dummyRawRequestHeaderWithEmptyAttrs().cookies.size must_== 0
+        }
+
+        "always return (at least an empty) session" in {
+          dummyRawRequestHeaderWithEmptyAttrs().session.isEmpty must_== true
+        }
+
+        "always return (at least an empty) flash" in {
+          dummyRawRequestHeaderWithEmptyAttrs().flash.isEmpty must_== true
+        }
+      }
     }
     "handle transient lang" in {
       val req1 = dummyRequestHeader()
@@ -193,6 +207,19 @@ class RequestHeaderSpec extends Specification {
         accept("en-US;q=0.7, es") must contain(exactly(Lang("es"), Lang("en-US")).inOrder)
       }
     }
+
+    "have request id" in {
+      "generated if it does not exist yet" in {
+        val rh = dummyRequestHeader()
+        // The request id will likely be somewhere from 1 to 10000 in the tests
+        rh.id must beBetween(1L, 10000L)
+        rh.attrs(RequestAttrKey.Id) must beBetween(1L, 10000L)
+      }
+
+      "not generated if one exists in the attrs already" in {
+        dummyRequestHeader(attrs = TypedMap(RequestAttrKey.Id -> 987656789)).id must_== 987656789
+      }
+    }
   }
 
   private def accept(value: String) =
@@ -203,7 +230,8 @@ class RequestHeaderSpec extends Specification {
   private def dummyRequestHeader(
       requestMethod: String = "GET",
       requestUri: String = "/",
-      headers: Headers = Headers()
+      headers: Headers = Headers(),
+      attrs: TypedMap = TypedMap.empty
   ): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
       connection = RemoteConnection("", false, None),
@@ -211,7 +239,16 @@ class RequestHeaderSpec extends Specification {
       target = RequestTarget(requestUri, "", Map.empty),
       version = "",
       headers = headers,
-      attrs = TypedMap.empty
+      attrs = attrs
     )
+  }
+
+  private def dummyRawRequestHeaderWithEmptyAttrs() = new RequestHeader {
+    override def connection: RemoteConnection = ???
+    override def method: String               = ???
+    override def target: RequestTarget        = ???
+    override def version: String              = ???
+    override def headers: Headers             = ???
+    override def attrs: TypedMap              = TypedMap.empty
   }
 }

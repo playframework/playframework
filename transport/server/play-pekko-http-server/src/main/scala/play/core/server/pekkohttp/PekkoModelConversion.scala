@@ -29,11 +29,13 @@ import play.api.http.HttpErrorHandler
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.request.RequestTarget
 import play.api.Logger
 import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
+import play.core.system.RequestIdProvider
 import play.mvc.Http.HeaderNames
 
 /**
@@ -109,7 +111,10 @@ private[server] class PekkoModelConversion(
       requestTarget,
       request.protocol.value,
       headers,
-      TypedMap.empty
+      TypedMap(
+        // This is the earliest stage of a Play request at which we can set an id.
+        RequestAttrKey.Id -> RequestIdProvider.freshId(),
+      )
     )
   }
 

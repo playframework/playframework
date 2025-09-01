@@ -10,6 +10,9 @@ import java.util.function.{ Function => JFunction }
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
 import scala.language.postfixOps
+import scala.util.control.NonFatal
+import scala.util.Failure
+import scala.util.Success
 import scala.util.Try
 
 import com.typesafe.config.Config
@@ -184,6 +187,24 @@ object Server {
         Map.empty
       }
     }
+  }
+
+  /**
+   * Tries to add the following typed attributes to requests:
+   * - request id (if not existing yet)
+   * - cookie
+   * - session cookie
+   * - flash cookie
+   *
+   * If, for some reason, this is not possible, the passed header will be returned as fallback.
+   */
+  private[server] def tryToEnrichHeader(tryApp: Try[Application], header: RequestHeader): RequestHeader = try {
+    tryApp match {
+      case Success(application) => application.requestFactory.copyRequestHeader(header)
+      case Failure(_)           => header
+    }
+  } catch {
+    case NonFatal(_) => header // just in case something went wrong in the requestFactory above
   }
 
   /**

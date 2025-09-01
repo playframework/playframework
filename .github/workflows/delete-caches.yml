@@ -16,7 +16,7 @@ jobs:
     name: Delete unneeded caches
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: |
           gh cache list --limit 500 --order asc --sort last_accessed_at | grep 'play-published-local' > caches.txt || true
           echo "Found $(wc -l < caches.txt | xargs) published local cache entries"

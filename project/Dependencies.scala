@@ -55,7 +55,7 @@ object Dependencies {
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava" % "guava"        % "33.4.8-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.18.0"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.19.0"
 
   val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
@@ -70,7 +70,7 @@ object Dependencies {
   val acolyteVersion = "1.2.10"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
-  val jjwtVersion = "0.12.6"
+  val jjwtVersion = "0.13.0"
   val jjwts       = Seq(
     "io.jsonwebtoken" % "jjwt-api",
     "io.jsonwebtoken" % "jjwt-impl"
@@ -79,7 +79,7 @@ object Dependencies {
   )
 
   val jdbcDeps = Seq(
-    "com.zaxxer"         % "HikariCP"  % "6.3.0",
+    "com.zaxxer"         % "HikariCP"  % "7.0.2",
     "com.googlecode.usc" % "jdbcdslog" % "1.0.6.2",
     h2database           % Test,
     acolyte              % Test,
@@ -89,8 +89,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.0.5.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.0.5.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.1.0.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.1.0.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -105,7 +105,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.2.8"
+  val springFrameworkVersion = "6.2.10"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -134,7 +134,7 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.27.3"
+  val assertj = "org.assertj" % "assertj-core" % "3.27.4"
 
   val javaTestDeps = Seq(
     junit,
@@ -167,7 +167,7 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.2.2.Final"
+  val nettyVersion = "4.2.4.Final"
 
   val netty = Seq(
     "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.4",
@@ -190,7 +190,7 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
-  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.0"
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.1"
 
   val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.1.0"
 
@@ -212,7 +212,7 @@ object Dependencies {
 
   val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.4"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
@@ -223,8 +223,8 @@ object Dependencies {
       playFileWatch,
       sbtDep("org.playframework.twirl" % "sbt-twirl"           % BuildInfo.sbtTwirlVersion),
       sbtDep("com.github.sbt"          % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
-      sbtDep("com.github.sbt"          % "sbt-web"             % "1.5.8"),
-      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.3.9"),
+      sbtDep("com.github.sbt"          % "sbt-web"             % "1.6.0-M1"),
+      sbtDep("com.github.sbt"          % "sbt-js-engine"       % "1.4.0-M1"),
       logback % Test
     ) ++ specs2Deps.map(_ % Test) ++ scalaReflect(scalaVersion)
   }
@@ -275,7 +275,7 @@ object Dependencies {
       ExclusionRule("commons-io", "commons-io") // comes with outdated commons-io
     ),
     "commons-beanutils"       % "commons-beanutils"       % "1.11.0", // explicitly bump for fluentlenium and htmlunit to fix CVE-2025-48734
-    "commons-io"              % "commons-io"              % "2.19.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
+    "commons-io"              % "commons-io"              % "2.20.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
     "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
@@ -293,7 +293,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion  = "3.2.1"
+  val caffeineVersion  = "3.2.2"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion

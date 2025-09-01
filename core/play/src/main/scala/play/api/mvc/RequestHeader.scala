@@ -266,19 +266,19 @@ trait RequestHeader {
    * [[play.api.mvc.request.RequestAttrKey.Cookies]]. The attribute uses a Cell to store the cookies,
    * to allow them to be evaluated on-demand.
    */
-  def cookies: Cookies = attrs(RequestAttrKey.Cookies).value
+  def cookies: Cookies = attrs.get(RequestAttrKey.Cookies).map(_.value).getOrElse(Cookies(Seq.empty))
 
   /**
    * Parses the `Session` cookie and returns the `Session` data. The request's session cookie is stored in an attribute indexed by
    * [[play.api.mvc.request.RequestAttrKey.Session]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the session cookie, to allow it to be evaluated on-demand.
    */
-  def session: Session = attrs(RequestAttrKey.Session).value
+  def session: Session = attrs.get(RequestAttrKey.Session).map(_.value).getOrElse(Session(Map.empty))
 
   /**
    * Parses the `Flash` cookie and returns the `Flash` data. The request's flash cookie is stored in an attribute indexed by
    * [[play.api.mvc.request.RequestAttrKey.Flash]]. The attribute uses a [[play.api.mvc.request.Cell]] to store the flash, to allow it to be evaluated on-demand.
    */
-  def flash: Flash = attrs(RequestAttrKey.Flash).value
+  def flash: Flash = attrs.get(RequestAttrKey.Flash).map(_.value).getOrElse(Flash(Map.empty))
 
   /**
    * Returns the raw query string. This method delegates to `connection.rawQueryString`.

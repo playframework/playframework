@@ -176,7 +176,7 @@ object RoutesCompiler extends AutoPlugin {
       routesCompilerTasks.value,
       routesGenerator.value,
       (routes / target).value,
-      streams.value.cacheDirectory,
+      streams.value.cacheDirectory / scalaVersion.value,
       log
     )
   }
@@ -201,7 +201,7 @@ object RoutesCompiler extends AutoPlugin {
             errs ++= details
             op -> OpFailure
         }
-      }(scala.collection.breakOut)
+      }.toMap
 
       opResults -> errs.result()
     }

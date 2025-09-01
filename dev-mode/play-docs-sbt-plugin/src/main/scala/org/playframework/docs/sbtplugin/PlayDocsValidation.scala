@@ -12,7 +12,6 @@ import java.net.URI
 import java.util.concurrent.Executors
 import java.util.jar.JarFile
 
-import scala.collection.breakOut
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
@@ -61,7 +60,7 @@ object PlayDocsValidation {
    */
   case class CodeSamplesReport(files: Seq[FileWithCodeSamples]) {
     lazy val byFile: Map[String, FileWithCodeSamples] =
-      files.map(f => f.name -> f)(breakOut)
+      files.map(f => f.name -> f).toMap
 
     lazy val byName: Map[String, FileWithCodeSamples] = files.collect {
       case file if !file.name.endsWith("_Sidebar.md") =>
@@ -69,7 +68,7 @@ object PlayDocsValidation {
         val name     = filename.takeRight(filename.length - filename.lastIndexOf('/'))
 
         name -> file
-    }(breakOut)
+    }.toMap
   }
   case class FileWithCodeSamples(name: String, source: String, codeSamples: Seq[CodeSample])
   case class CodeSample(source: String, segment: String, sourcePosition: Int, segmentPosition: Int)
@@ -379,7 +378,7 @@ object PlayDocsValidation {
     val pageIndex = PageIndex.parseFrom(combinedRepo, "", None)
 
     val pages: Map[String, File] =
-      report.markdownFiles.map(f => f.getName.dropRight(3) -> f)(breakOut)
+      report.markdownFiles.map(f => f.getName.dropRight(3) -> f).toMap
 
     var failed = false
 

@@ -5,6 +5,7 @@
 package play.mvc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -16,6 +17,7 @@ import org.junit.runners.Parameterized.Parameters;
 import play.core.j.RequestHeaderImpl;
 import play.libs.typedmap.TypedEntry;
 import play.libs.typedmap.TypedKey;
+import play.libs.typedmap.TypedMap;
 
 @RunWith(Parameterized.class)
 public final class AttributesTest {
@@ -117,5 +119,25 @@ public final class AttributesTest {
     assertTrue(newRequestHeader.attrs().containsKey(color));
     assertEquals(((Long) 5L), newRequestHeader.attrs().get(number));
     assertEquals("white", newRequestHeader.attrs().get(color));
+  }
+
+  @Test
+  public void testRequestHeader_emptyAttributesCookies() {
+    Http.RequestHeader newRequestHeader = requestHeader.withAttrs(TypedMap.empty());
+    assertFalse(newRequestHeader.cookies().iterator().hasNext());
+  }
+
+  @Test
+  public void testRequestHeader_emptyAttributesSession() {
+    Http.RequestHeader newRequestHeader = requestHeader.withAttrs(TypedMap.empty());
+    assertTrue(newRequestHeader.session().data().isEmpty());
+    assertTrue(newRequestHeader.session().asScala().isEmpty());
+  }
+
+  @Test
+  public void testRequestHeader_emptyAttributesFlash() {
+    Http.RequestHeader newRequestHeader = requestHeader.withAttrs(TypedMap.empty());
+    assertTrue(newRequestHeader.flash().data().isEmpty());
+    assertTrue(newRequestHeader.flash().asScala().isEmpty());
   }
 }
