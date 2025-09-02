@@ -67,9 +67,9 @@ object PlaySettings {
             |https://www.playframework.com/sponsors
             |
             |""".stripMargin +
-        (if (javaVersion != "17" && javaVersion != "21")
+        (if (javaVersion != "17" && javaVersion != "21" && javaVersion != "25")
            s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              |  Java version is ${sys.props("java.specification.version")}. Play supports only Java 17 and 21.
+              |  Java version is ${sys.props("java.specification.version")}. Play supports only Java 17, 21 and 25.
               |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
               |
               |""".stripMargin
