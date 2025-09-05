@@ -2,7 +2,7 @@
 
 //#pekko-update
 // The newer Pekko version you want to use.
-val pekkoVersion = "1.0.0"
+val pekkoVersion = "1.1.4"
 
 // Pekko dependencies used by Play
 libraryDependencies ++= Seq(
@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
 
 //#pekko-http-update
 // The newer Pekko HTTP version you want to use.
-val pekkoHTTPVersion = "1.0.0"
+val pekkoHTTPVersion = "1.2.0"
 
 // Pekko HTTP dependency used by Play
 libraryDependencies ++= Seq(
