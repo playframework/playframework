@@ -22,7 +22,29 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.ref }}
       - uses: sbt/setup-sbt@v1
+      - name: Set current timestamp (to the minute)
+        run: echo "TIMESTAMP_MINUTE=$(date +'%Y-%m-%d %H-%M')" >> $GITHUB_ENV
       - uses: scalacenter/sbt-dependency-submission@v3 # for root project
-      - uses: scalacenter/sbt-dependency-submission@v3
+        id: submit-root-build
         with:
+          correlator: '${{ github.workflow }}_${{ github.job }}_${{ github.action }}-branch_${{ github.ref_name }}'
+          manifest-override: '${{ env.TIMESTAMP_MINUTE }} [${{ github.ref_name}}] build.sbt'
+          # By hardcoding the sha and ref, we ensure that all branches update the same snapshots, differing only by their correlator.
+          sha-override: '90f6d1fc243dfaeff4657cb8ea586f1b3d74292b'
+          ref-override: 'refs/heads/main' # 2025-02-27: GitHub ignores it, but to be future-proof, let's hardcode it (not using github.event.repository.default_branch)
+          # mkurz: It does not make sense to ignore some configs or modules currently. (Only for SBOM we don't need them)
+          #configs-ignore: provided optional compile-internal test-internal runtime-internal scala-tool scala-doc-tool scripted-sbt scripted-sbt-launch jmh webjars
+          #modules-ignore: play-framework_2.13 play-framework_3 play-bom_2.13 play-bom_3 play-documentation_2.13 play-documentation_3 play-integration-test_2.13 play-integration-test_3 play-microbenchmark_2.13 play-microbenchmark_3
+      - name: Log dependency snapshot for build.sbt
+        run: cat ${{ steps.submit-root-build.outputs.snapshot-json-path }} | jq
+      - uses: scalacenter/sbt-dependency-submission@v3
+        id: submit-documentation-build
+        with:
+          # The comments above also apply here! (regarding sha, ref and ignore's)
           working-directory: './documentation/'
+          correlator: '${{ github.workflow }}_${{ github.job }}_${{ github.action }}-branch_${{ github.ref_name }}'
+          manifest-override: '${{ env.TIMESTAMP_MINUTE }} [${{ github.ref_name}}] documentation/build.sbt'
+          sha-override: '90f6d1fc243dfaeff4657cb8ea586f1b3d74292b'
+          ref-override: 'refs/heads/main'
+      - name: Log dependency snapshot for documentation/build.sbt
+        run: cat ${{ steps.submit-documentation-build.outputs.snapshot-json-path }} | jq
