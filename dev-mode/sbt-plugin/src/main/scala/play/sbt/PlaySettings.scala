@@ -60,7 +60,10 @@ object PlaySettings {
   // Settings for a Play service (not a web project)
   lazy val serviceSettings: Seq[Setting[_]] = Def.settings(
     onLoadMessage := {
-      val javaVersion = sys.props("java.specification.version")
+      val javaVersion            = sys.props("java.specification.version")
+      val unsupportedJavaWarning =
+        s"Java version is ${sys.props("java.specification.version")}. Play supports only Java 11, 17, 21 and 25."
+      val exclamationMarksWarning = "!".repeat(unsupportedJavaWarning.length + 4)
       """|  __              __
          |  \ \     ____   / /____ _ __  __
          |   \ \   / __ \ / // __ `// / / /
@@ -79,9 +82,9 @@ object PlaySettings {
             |
             |""".stripMargin +
         (if (javaVersion != "11" && javaVersion != "17" && javaVersion != "21" && javaVersion != "25")
-           s"""!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-              |  Java version is ${sys.props("java.specification.version")}. Play supports only Java 11, 17, 21 and 25.
-              |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           s"""${Colors.red(exclamationMarksWarning)}
+              |  ${Colors.red(unsupportedJavaWarning)}
+              |${Colors.red(exclamationMarksWarning)}
               |
               |""".stripMargin
          else "")
