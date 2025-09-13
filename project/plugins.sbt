@@ -29,7 +29,7 @@ addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
 addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.2")
 addSbtPlugin("com.github.sbt"     % "sbt-java-formatter"    % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
-addSbtPlugin("de.heikoseeberger"  % "sbt-header"            % sbtHeader)
+addSbtPlugin("com.github.sbt"     % "sbt-header"            % sbtHeader)
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
 addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.11.2")
 
