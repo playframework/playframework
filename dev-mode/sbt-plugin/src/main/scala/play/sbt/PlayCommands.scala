@@ -11,6 +11,10 @@ import sbt.Keys._
 
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import play.sbt.PlayInternalKeys._
+import sbt.*
+import sbt.Keys.*
+import com.typesafe.sbt.web.SbtWeb.autoImport.*
+import play.sbt.PlayInternalKeys.*
 
 object PlayCommands {
   val playReloadTask = Def.task {
@@ -21,7 +25,7 @@ object PlayCommands {
 
   val playPrompt = { (state: State) =>
     val extracted = Project.extract(state)
-    import extracted._
+    import extracted.*
 
     (currentRef / name)
       .get(structure.data)

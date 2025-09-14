@@ -4,43 +4,41 @@
 
 package play.sbt
 
-import scala.collection.JavaConverters._
-
-import sbt._
+import scala.jdk.CollectionConverters.*
+import sbt.*
 import sbt.internal.inc.Analysis
-import sbt.Keys._
-import sbt.Package.MainClass
-import sbt.Path._
-
+import sbt.Keys.*
+import sbt.Path.*
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
-import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
-import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.web.SbtWeb.autoImport._
-import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys._
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
+import com.typesafe.sbt.packager.Keys.*
+import com.typesafe.sbt.web.SbtWeb.autoImport.*
+import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys.*
 import play.core.PlayVersion
 import play.dev.filewatch.FileWatchService
 import play.sbt.routes.RoutesCompiler.autoImport._
+import play.sbt.routes.RoutesCompiler.autoImport.*
 import play.sbt.routes.RoutesKeys
 import play.sbt.run.toLoggerProxy
 import play.sbt.run.PlayRun
-import play.sbt.PlayImport.PlayKeys._
-import play.sbt.PlayInternalKeys._
-import play.twirl.sbt.Import.TwirlKeys._
+import play.sbt.PlayImport.PlayKeys.*
+import play.sbt.PlayInternalKeys.*
+import play.twirl.sbt.Import.TwirlKeys.*
 import play.TemplateImports
 
 object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[?]](
-    templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala,
+    templateImports ++= TemplateImports.minimalJavaTemplateImports.asScala.toSeq,
     routesImport ++= Seq("play.libs.F")
   )
 
   lazy val defaultJavaSettings = Seq[Setting[?]](
-    templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
+    templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala.toSeq,
     routesImport ++= Seq("play.libs.F")
   )
 
   lazy val defaultScalaSettings = Seq[Setting[?]](
-    templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
+    templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala.toSeq
   )
 
   lazy val serviceGlobalSettings: Seq[Setting[?]] = Seq(
@@ -59,7 +57,7 @@ object PlaySettings {
          |   / /  / /_/ // // /_/ // /_/ /
          |  /_/  / .___//_/ \__,_/ \__, /
          |      /_/               /____/
-         |""".stripMargin.linesIterator.map(Colors.green(_)).mkString("\n") +
+         |""".stripMargin.linesIterator.map(Colors.green).mkString("\n") +
         s"""|
             |
             |Version ${play.core.PlayVersion.current} running Java ${System.getProperty("java.version")}
@@ -102,8 +100,8 @@ object PlaySettings {
       ((Compile / sourceDirectory).value ** "*" --- (Assets / sourceDirectory).value ** "*").get()
     },
     commands ++= {
-      import PlayCommands._
-      import PlayRun._
+      import PlayCommands.*
+      import PlayRun.*
       Seq(playStartCommand, playRunProdCommand, playTestProdCommand, playStopProdCommand, h2Command)
     },
     // Assets classloader (used by PlayRun.playDefaultRunTask)

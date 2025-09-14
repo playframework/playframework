@@ -5,7 +5,7 @@
 package play.sbt
 
 object Colors {
-  import scala.Console._
+  import scala.Console.*
 
   private lazy val isANSISupported: Boolean = {
     sys.props

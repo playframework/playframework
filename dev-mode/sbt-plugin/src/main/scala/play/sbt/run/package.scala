@@ -6,7 +6,7 @@ package play.sbt
 
 import java.util.function.Supplier
 
-import sbt._
+import sbt.*
 
 import play.dev.filewatch.LoggerProxy
 

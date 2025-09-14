@@ -8,14 +8,14 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.Optional
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConverters.*
 import scala.util.control.NonFatal
 
-import sbt._
+import sbt.*
 import sbt.internal.inc.Analysis
 import sbt.internal.Output
 import sbt.util.InterfaceUtil.o2jo
-import sbt.Keys._
+import sbt.Keys.*
 
 import play.api.PlayException
 import play.runsupport.CompileResult

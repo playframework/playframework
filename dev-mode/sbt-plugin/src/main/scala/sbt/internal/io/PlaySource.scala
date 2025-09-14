@@ -18,5 +18,5 @@ import java.nio.file.Path
  * INTERNAL API: Provides access to sbt.internal.io.Source methods.
  */
 class PlaySource(source: Source) {
-  def getPaths: Seq[Path] = source.getUnfilteredPaths.filter(source.accept(_))
+  def getPaths: Seq[Path] = source.getUnfilteredPaths().filter(source.accept(_))
 }

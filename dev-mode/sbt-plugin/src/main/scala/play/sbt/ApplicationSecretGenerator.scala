@@ -6,7 +6,7 @@ package play.sbt
 
 import java.security.SecureRandom
 
-import sbt._
+import sbt.*
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
@@ -62,7 +62,7 @@ object ApplicationSecretGenerator {
         // Append secret at the end of the file and make sure there is an empty line before
         lines ++ lines.lastOption
           .map(_.trim)
-          .filter(!_.isEmpty)
+          .filter(_.nonEmpty)
           .map(_ => List("", secretConfig))
           .getOrElse(List(secretConfig))
       }

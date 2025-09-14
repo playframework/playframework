@@ -8,10 +8,10 @@ import java.util.Optional
 
 import scala.collection.mutable
 
-import sbt._
-import sbt.Keys._
+import sbt.*
+import sbt.Keys.*
 
-import com.typesafe.sbt.web.incremental._
+import com.typesafe.sbt.web.incremental.*
 import play.api.PlayException
 import play.core.PlayVersion
 import play.routes.compiler.RoutesCompilationError
@@ -61,7 +61,7 @@ object RoutesKeys {
 }
 
 object RoutesCompiler extends AutoPlugin {
-  import RoutesKeys._
+  import RoutesKeys.*
 
   override def trigger = noTrigger
 
@@ -151,7 +151,7 @@ object RoutesCompiler extends AutoPlugin {
   private final class MappedPos(generatedPosition: Position, generatedSource: GeneratedSource) extends Position {
     private val source = generatedSource.source.get
 
-    lazy val line        = generatedPosition.line.asScala.flatMap(l => generatedSource.mapLine(l).map(Int.box(_))).asJava
+    lazy val line        = generatedPosition.line.asScala.flatMap(l => generatedSource.mapLine(l).map(Int.box)).asJava
     lazy val lineContent = line.asScala.flatMap(l => IO.read(source).split('\n').lift(l - 1)).getOrElse("")
     val offset           = Optional.empty[Integer]
     val pointer          = Optional.empty[Integer]
