@@ -8,6 +8,7 @@ import scala.jdk.CollectionConverters.*
 import sbt.*
 import sbt.internal.inc.Analysis
 import sbt.Keys.*
+import sbt.Package.MainClass
 import sbt.Path.*
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
