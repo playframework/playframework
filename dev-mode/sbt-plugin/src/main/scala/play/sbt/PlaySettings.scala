@@ -5,11 +5,13 @@
 package play.sbt
 
 import scala.jdk.CollectionConverters.*
+
 import sbt.*
 import sbt.internal.inc.Analysis
 import sbt.Keys.*
 import sbt.Package.MainClass
 import sbt.Path.*
+
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
 import com.typesafe.sbt.packager.Keys.*
@@ -17,7 +19,7 @@ import com.typesafe.sbt.web.SbtWeb.autoImport.*
 import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys.*
 import play.core.PlayVersion
 import play.dev.filewatch.FileWatchService
-import play.sbt.routes.RoutesCompiler.autoImport._
+import play.sbt.routes.RoutesCompiler.autoImport.*
 import play.sbt.routes.RoutesCompiler.autoImport.*
 import play.sbt.routes.RoutesKeys
 import play.sbt.run.toLoggerProxy

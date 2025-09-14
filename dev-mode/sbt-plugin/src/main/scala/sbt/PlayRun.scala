@@ -5,16 +5,18 @@
 package sbt
 
 import java.nio.file.Files
-import java.util.Map as JMap
 import java.util.function.Supplier
+import java.util.Map as JMap
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.*
 import scala.sys.process.*
+
 import sbt.*
 import sbt.internal.io.PlaySource
 import sbt.util.LoggerContext
 import sbt.Keys.*
+
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
 import com.typesafe.sbt.packager.Keys.executableScriptName
 import com.typesafe.sbt.web.SbtWeb.autoImport.*

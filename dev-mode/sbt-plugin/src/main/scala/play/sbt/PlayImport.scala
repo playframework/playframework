@@ -4,9 +4,9 @@
 
 package play.sbt
 
-import sbt._
-
 import sbt.*
+import sbt.*
+
 import play.dev.filewatch.FileWatchService
 
 /**

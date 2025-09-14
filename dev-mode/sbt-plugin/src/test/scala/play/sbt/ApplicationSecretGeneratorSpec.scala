@@ -5,7 +5,7 @@
 package play.sbt
 
 import com.typesafe.config.ConfigFactory
-import org.specs2.mutable._
+import org.specs2.mutable.*
 
 class ApplicationSecretGeneratorSpec extends Specification {
   "ApplicationSecretGenerator" should {
