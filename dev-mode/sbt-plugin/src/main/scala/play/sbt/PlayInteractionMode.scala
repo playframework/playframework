@@ -12,7 +12,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 import scala.annotation.tailrec
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import jline.console.ConsoleReader
 

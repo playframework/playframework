@@ -4,9 +4,9 @@
 
 package play.sbt
 
-import sbt._
+import sbt.*
 
-import play.api._
+import play.api.*
 import xsbti.Problem
 
 object PlayExceptions {

@@ -5,24 +5,24 @@
 package sbt
 
 import java.nio.file.Files
-import java.util.{ Map => JMap }
 import java.util.function.Supplier
+import java.util.Map as JMap
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
-import scala.sys.process._
+import scala.collection.JavaConverters.*
+import scala.sys.process.*
 
-import sbt._
+import sbt.*
 import sbt.internal.io.PlaySource
 import sbt.util.LoggerContext
-import sbt.Keys._
+import sbt.Keys.*
 
-import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
 import com.typesafe.sbt.packager.Keys.executableScriptName
-import com.typesafe.sbt.web.SbtWeb.autoImport._
+import com.typesafe.sbt.web.SbtWeb.autoImport.*
 import play.core.BuildLink
-import play.dev.filewatch.{ SourceModificationWatch => PlaySourceModificationWatch }
-import play.dev.filewatch.{ WatchState => PlayWatchState }
+import play.dev.filewatch.SourceModificationWatch as PlaySourceModificationWatch
+import play.dev.filewatch.WatchState as PlayWatchState
 import play.runsupport.classloader.AssetsClassLoader
 import play.runsupport.CompileResult
 import play.runsupport.DevServerRunner
@@ -31,10 +31,10 @@ import play.runsupport.GeneratedSourceMapping
 import play.runsupport.RunHook
 import play.sbt.run.PlayReload
 import play.sbt.Colors
-import play.sbt.PlayImport._
-import play.sbt.PlayImport.PlayKeys._
+import play.sbt.PlayImport.*
+import play.sbt.PlayImport.PlayKeys.*
 import play.sbt.PlayInteractionMode
-import play.sbt.PlayInternalKeys._
+import play.sbt.PlayInternalKeys.*
 import play.sbt.PlayNonBlockingInteractionMode
 import play.sbt.PlayRunHook
 import play.sbt.StaticPlayNonBlockingInteractionMode

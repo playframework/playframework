@@ -6,9 +6,9 @@ package play.sbt
 
 import java.net.URL
 
-import sbt._
+import sbt.*
 import sbt.internal.inc.Analysis
-import sbt.Keys._
+import sbt.Keys.*
 
 object PlayInternalKeys {
   type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader

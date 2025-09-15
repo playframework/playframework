@@ -5,9 +5,9 @@
 package play.sbt
 
 import scala.collection.mutable.HashMap
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
-import org.specs2.mutable._
+import org.specs2.mutable.*
 import play.runsupport.RunHook
 import play.runsupport.RunHookCompositeThrowable
 import play.runsupport.RunHooksRunner
