@@ -9,7 +9,6 @@ import scala.jdk.CollectionConverters.*
 import sbt.*
 import sbt.internal.inc.Analysis
 import sbt.Keys.*
-import sbt.Package.MainClass
 import sbt.Path.*
 
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
@@ -25,8 +24,10 @@ import play.sbt.run.toLoggerProxy
 import play.sbt.run.PlayRun
 import play.sbt.PlayImport.PlayKeys.*
 import play.sbt.PlayInternalKeys.*
+import play.sbt.PluginCompat.*
 import play.twirl.sbt.Import.TwirlKeys.*
 import play.TemplateImports
+import xsbti.FileConverter
 
 object PlaySettings {
   lazy val minimalJavaSettings = Seq[Setting[?]](
@@ -183,6 +184,7 @@ object PlaySettings {
       }
     }.value,
     Universal / mappings ++= Def.taskDyn {
+      implicit val fc: FileConverter = fileConverter.value
       // the documentation will only be included if includeDocumentation is true (see: https://www.scala-sbt.org/1.x/docs/Tasks.html#Dynamic+Computations+with)
       if (includeDocumentationInBinary.value) {
         Def.task {
@@ -190,18 +192,19 @@ object PlaySettings {
           val docDirectoryLen = docDirectory.getCanonicalPath.length
           val pathFinder      = docDirectory ** "*"
           pathFinder.get().map { (docFile: File) =>
-            docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
+            toFileRef(docFile) -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
           }
         }
       } else {
         Def.task {
-          Seq[(sbt.File, String)]()
+          Seq[(FileRef, String)]()
         }
       }
     }.value,
     Universal / mappings ++= {
-      val pathFinder = baseDirectory.value * "README*"
-      pathFinder.get().map { (readmeFile: File) => readmeFile -> readmeFile.getName }
+      val pathFinder                 = baseDirectory.value * "README*"
+      implicit val fc: FileConverter = fileConverter.value
+      pathFinder.get().map { (readmeFile: File) => toFileRef(readmeFile) -> readmeFile.getName }
     },
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
@@ -266,7 +269,10 @@ object PlaySettings {
     }.value,
     // Assets for testing
     TestAssets / public := (TestAssets / public).value / assetsPrefix.value,
-    Test / fullClasspath += Attributed.blank((TestAssets / assets).value.getParentFile)
+    Test / fullClasspath += Def.taskDyn {
+      implicit val fc: FileConverter = fileConverter.value
+      Def.task(Attributed.blank(toFileRef((TestAssets / assets).value.getParentFile)))
+    }.value
   )
 
   /**
@@ -280,6 +286,7 @@ object PlaySettings {
         .pair(relativeTo(rdirs) | flat)
     },
     playJarSansExternalized / mappings := {
+      implicit val fc: FileConverter = fileConverter.value
       // packageBin mappings have all the copied resources from the classes directory
       // so we need to get the copied resources, and map the source files to the destination files,
       // so we can then exclude the destination files
@@ -287,7 +294,7 @@ object PlaySettings {
       val externalized       = playExternalizedResources.value.map(_._1).toSet
       val copied             = copyResources.value
       val toExclude          = copied.collect {
-        case (source, dest) if externalized(source) => dest
+        case (source, dest) if externalized(toFileRef(source)) => toFileRef(dest)
       }.toSet
       packageBinMappings.filterNot {
         case (file, _) => toExclude(file)

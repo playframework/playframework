@@ -215,7 +215,7 @@ object RoutesCompiler extends AutoPlugin {
       throw exceptions.head
     }
 
-    products.to[Seq]
+    products.toSeq
   }
 
   private def reportCompilationError(log: Logger, error: PlayException.ExceptionSource) = {
