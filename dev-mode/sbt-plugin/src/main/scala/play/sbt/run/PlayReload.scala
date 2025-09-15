@@ -25,7 +25,7 @@ import play.runsupport.Source
 import play.sbt.PlayExceptions.CompilationException
 import play.sbt.PlayExceptions.UnexpectedException
 import play.sbt.PluginCompat
-import play.sbt.PluginCompat._
+import play.sbt.PluginCompat.*
 import play.twirl.compiler.MaybeGeneratedSource
 import xsbti.CompileFailed
 import xsbti.FileConverter

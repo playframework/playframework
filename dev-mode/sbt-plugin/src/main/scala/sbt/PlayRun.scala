@@ -37,7 +37,7 @@ import play.sbt.PlayInternalKeys.*
 import play.sbt.PlayNonBlockingInteractionMode
 import play.sbt.PlayRunHook
 import play.sbt.PluginCompat
-import play.sbt.PluginCompat._
+import play.sbt.PluginCompat.*
 import play.sbt.StaticPlayNonBlockingInteractionMode
 import play.twirl.compiler.MaybeGeneratedSource
 import play.twirl.sbt.SbtTwirl
