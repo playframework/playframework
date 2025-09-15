@@ -1,14 +1,14 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-import sbtheader.CommentStyle
-import sbtheader.FileType
-import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
-import sbtheader.LineCommentCreator
 import org.playframework.docs.sbtplugin._
 import org.playframework.docs.sbtplugin.Imports._
 import play.core.PlayVersion
 import playbuild.CrossJava
 import playbuild.JavaVersion
+import sbtheader.CommentStyle
+import sbtheader.FileType
+import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
+import sbtheader.LineCommentCreator
 
 val DocsApplication = config("docs").hide
 

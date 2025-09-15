@@ -15,6 +15,7 @@ import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.core.ProblemFilters
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin
+import nl.gn0s1s.pekko.versioncheck.PekkoVersionCheckPlugin.autoImport._
 import sbtheader.AutomateHeaderPlugin
 import sbtheader.CommentBlockCreator
 import sbtheader.CommentStyle
@@ -22,7 +23,6 @@ import sbtheader.FileType
 import sbtheader.HeaderPlugin.autoImport._
 import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import sbtheader.LineCommentCreator
-import nl.gn0s1s.pekko.versioncheck.PekkoVersionCheckPlugin.autoImport._
 import Omnidoc.autoImport.omnidocPathPrefix
 import Omnidoc.autoImport.omnidocSnapshotBranch
 import PlayBuildBase.autoImport.PlayLibrary
