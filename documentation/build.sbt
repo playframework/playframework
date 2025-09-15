@@ -2,10 +2,10 @@
 
 import com.typesafe.play.docs.sbtplugin._
 import com.typesafe.play.docs.sbtplugin.Imports._
-import de.heikoseeberger.sbtheader.CommentStyle
-import de.heikoseeberger.sbtheader.FileType
-import de.heikoseeberger.sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
-import de.heikoseeberger.sbtheader.LineCommentCreator
+import sbtheader.CommentStyle
+import sbtheader.FileType
+import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
+import sbtheader.LineCommentCreator
 import play.core.PlayVersion
 import playbuild.CrossJava
 import playbuild.JavaVersion
