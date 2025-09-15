@@ -7,13 +7,9 @@ package play.sbt
 import java.nio.file.Path
 
 import sbt.*
-import sbt.*
-import sbt.Keys.*
 import sbt.Keys.*
 
 import com.typesafe.sbt.web.SbtWeb.autoImport.*
-import com.typesafe.sbt.web.SbtWeb.autoImport.*
-import play.sbt.PlayInternalKeys.*
 import play.sbt.PlayInternalKeys.*
 
 object PlayCommands {

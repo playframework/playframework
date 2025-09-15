@@ -5,7 +5,6 @@
 package play.sbt
 
 import sbt.*
-import sbt.*
 
 import play.dev.filewatch.FileWatchService
 

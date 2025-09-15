@@ -20,7 +20,6 @@ import com.typesafe.sbt.web.SbtWeb.autoImport.WebKeys.*
 import play.core.PlayVersion
 import play.dev.filewatch.FileWatchService
 import play.sbt.routes.RoutesCompiler.autoImport.*
-import play.sbt.routes.RoutesCompiler.autoImport.*
 import play.sbt.routes.RoutesKeys
 import play.sbt.run.toLoggerProxy
 import play.sbt.run.PlayRun
