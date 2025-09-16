@@ -9,17 +9,11 @@ import java.nio.file.Path as NioPath
 
 import scala.language.implicitConversions
 
-import sbt.AttributeMap
+import sbt.*
 import sbt.Def.Classpath
 import sbt.Defaults.files
-import sbt.Project
 import sbt.ProjectExtra.extract
 import sbt.ProjectExtra.projectToLocalProject
-import sbt.Result
-import sbt.ScopedKey
-import sbt.State
-import sbt.Task
-import sbt.TaskKey
 
 import play.sbt.routes.RoutesKeys.LazyProjectReference
 import xsbti.FileConverter
@@ -42,4 +36,5 @@ object PluginCompat:
   def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]           = c.files.map(_.toFile)
   def createLazyProjectRef(p: Project): LazyProjectReference                    = new LazyProjectReference(p)
   def getAttributeMap(t: Task[?]): AttributeMap                                 = t.attributes
+  inline def toKey(settingKey: SettingKey[String]): StringAttributeKey          = StringAttributeKey(settingKey.key.label)
 end PluginCompat
