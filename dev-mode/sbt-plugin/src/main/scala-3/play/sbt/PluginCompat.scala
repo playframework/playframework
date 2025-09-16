@@ -11,7 +11,11 @@ import sbt.{ ScopedKey, Task, Project, State, Result, TaskKey }
 import sbt.Def.Classpath
 import sbt.Defaults.files
 import sbt.ProjectExtra.extract
+import sbt.ProjectExtra.projectToLocalProject
 
+import scala.language.implicitConversions
+
+import play.sbt.routes.RoutesKeys.LazyProjectReference
 import xsbti.{ FileConverter, HashedVirtualFileRef, VirtualFileRef }
 
 object PluginCompat:
@@ -24,4 +28,5 @@ object PluginCompat:
   inline def fileName(file: FileRef): String = file.name
   inline def toNioPath(hvf: VirtualFileRef)(using conv: FileConverter): NioPath = conv.toPath(hvf)
   def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File] = c.files.map(_.toFile)
+  def createLazyProjectRef(p: Project): LazyProjectReference = new LazyProjectReference(p)
 end PluginCompat

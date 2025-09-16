@@ -18,6 +18,7 @@ import play.routes.compiler.RoutesCompilationError
 import play.routes.compiler.RoutesCompiler.GeneratedSource
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.routes.compiler.RoutesGenerator
+import play.sbt.PluginCompat.createLazyProjectRef
 import xsbti.Position
 
 object RoutesKeys {
@@ -49,7 +50,7 @@ object RoutesKeys {
   object LazyProjectReference {
     import scala.language.implicitConversions
     implicit def fromProjectReference(ref: => ProjectReference): LazyProjectReference = new LazyProjectReference(ref)
-    implicit def fromProject(project: => Project): LazyProjectReference               = new LazyProjectReference(project)
+    implicit def fromProject(project: => Project): LazyProjectReference               = createLazyProjectRef(project)
   }
 
   val aggregateReverseRoutes = SettingKey[Seq[LazyProjectReference]](

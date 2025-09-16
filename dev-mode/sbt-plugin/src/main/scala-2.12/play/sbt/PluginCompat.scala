@@ -14,6 +14,7 @@ import sbt.State
 import sbt.TaskKey
 import sbt.Value
 
+import play.sbt.routes.RoutesKeys.LazyProjectReference
 import xsbti.FileConverter
 
 object PluginCompat {
@@ -26,4 +27,5 @@ object PluginCompat {
   def fileName(file: FileRef): String                                                   = file.getName
   def toNioPath(f: File)(implicit conv: FileConverter): NioPath                         = f.toPath
   def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]                   = c.files
+  def createLazyProjectRef(p: Project): LazyProjectReference                            = new LazyProjectReference(p)
 }
