@@ -7,10 +7,12 @@ package play.sbt
 import java.io.File
 import java.nio.file.{ Path => NioPath }
 
+import sbt.AttributeMap
 import sbt.Def.Classpath
 import sbt.Project
 import sbt.Result
 import sbt.State
+import sbt.Task
 import sbt.TaskKey
 import sbt.Value
 
@@ -28,4 +30,5 @@ object PluginCompat {
   def toNioPath(f: File)(implicit conv: FileConverter): NioPath                         = f.toPath
   def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]                   = c.files
   def createLazyProjectRef(p: Project): LazyProjectReference                            = new LazyProjectReference(p)
+  def getAttributeMap(t: Task[?]): AttributeMap                                         = t.info.attributes
 }
