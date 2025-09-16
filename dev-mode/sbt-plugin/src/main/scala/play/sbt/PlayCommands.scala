@@ -11,6 +11,8 @@ import sbt.Keys.*
 
 import com.typesafe.sbt.web.SbtWeb.autoImport.*
 import play.sbt.PlayInternalKeys.*
+import play.sbt.PluginCompat.*
+import xsbti.FileConverter
 
 object PlayCommands {
   val playReloadTask = Def.task {
@@ -34,10 +36,11 @@ object PlayCommands {
   private[this] var commonClassLoader: ClassLoader = _
 
   val playCommonClassloaderTask = Def.task {
-    val classpath                                                    = (Compile / dependencyClasspath).value
-    val log                                                          = streams.value.log
-    lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
-      case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
+    implicit val fc: FileConverter                              = fileConverter.value
+    val classpath                                               = (Compile / dependencyClasspath).value
+    val log                                                     = streams.value.log
+    lazy val commonJars: PartialFunction[FileRef, java.net.URL] = {
+      case jar if fileName(jar).startsWith("h2-") || fileName(jar) == "h2.jar" => toNioPath(jar).toUri.toURL
     }
 
     if (commonClassLoader == null) {

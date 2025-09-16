@@ -7,6 +7,7 @@ package play.sbt
 import sbt.*
 
 import play.dev.filewatch.FileWatchService
+import play.sbt.PluginCompat.FileRef
 
 /**
  * Declares the default imports for Play plugins.
@@ -103,13 +104,13 @@ object PlayImport {
       "Whether resources should be externalized into the conf directory when Play is packaged as a distribution."
     )
     val playExternalizedResources =
-      TaskKey[Seq[(File, String)]]("playExternalizedResources", "The resources to externalize")
-    val externalizeResourcesExcludes = SettingKey[Seq[File]](
+      TaskKey[Seq[(FileRef, String)]]("playExternalizedResources", "The resources to externalize")
+    val externalizeResourcesExcludes = SettingKey[Seq[FileRef]](
       "externalizeResourcesExcludes",
       "Resources that should not be externalized but stay in the generated jar"
     )
     val playJarSansExternalized =
-      TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
+      TaskKey[FileRef]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
 
     val playPlugin = SettingKey[Boolean]("playPlugin")
 
@@ -121,7 +122,7 @@ object PlayImport {
 
     val assetsPrefix      = SettingKey[String]("assetsPrefix")
     val generateAssetsJar = TaskKey[Boolean]("generateAssetsJar")
-    val playPackageAssets = TaskKey[File]("playPackageAssets")
+    val playPackageAssets = TaskKey[FileRef]("playPackageAssets")
 
     val playMonitoredFiles = TaskKey[Seq[File]]("playMonitoredFiles")
     val fileWatchService   =

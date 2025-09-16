@@ -24,8 +24,11 @@ import play.runsupport.CompileResult.CompileSuccess
 import play.runsupport.Source
 import play.sbt.PlayExceptions.CompilationException
 import play.sbt.PlayExceptions.UnexpectedException
+import play.sbt.PluginCompat
+import play.sbt.PluginCompat.*
 import play.twirl.compiler.MaybeGeneratedSource
 import xsbti.CompileFailed
+import xsbti.FileConverter
 import xsbti.Position
 import xsbti.Problem
 import xsbti.Severity
@@ -137,11 +140,11 @@ object PlayReload {
       streams: () => Option[Streams],
       state: State,
       scope: Scope
-  ): CompileResult = {
+  )(implicit fc: FileConverter): CompileResult = {
     val compileResult: Either[Incomplete, CompileSuccess] = for {
       analysis  <- reloadCompile().toEither.right
       classpath <- classpath().toEither.right
-    } yield new CompileSuccess(sourceMap(analysis).asJava, classpath.files.asJava)
+    } yield new CompileSuccess(sourceMap(analysis).asJava, getFiles(classpath).asJava)
     compileResult.left.map(inc => new CompileFailure(taskFailureHandler(inc, streams(), state, scope))).merge
   }
 

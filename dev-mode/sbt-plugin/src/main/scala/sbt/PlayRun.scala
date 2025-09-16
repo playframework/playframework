@@ -28,7 +28,6 @@ import play.runsupport.CompileResult
 import play.runsupport.DevServerRunner
 import play.runsupport.DevServerSettings
 import play.runsupport.GeneratedSourceMapping
-import play.runsupport.RunHook
 import play.sbt.run.PlayReload
 import play.sbt.Colors
 import play.sbt.PlayImport.*
@@ -37,9 +36,12 @@ import play.sbt.PlayInteractionMode
 import play.sbt.PlayInternalKeys.*
 import play.sbt.PlayNonBlockingInteractionMode
 import play.sbt.PlayRunHook
+import play.sbt.PluginCompat
+import play.sbt.PluginCompat.*
 import play.sbt.StaticPlayNonBlockingInteractionMode
 import play.twirl.compiler.MaybeGeneratedSource
 import play.twirl.sbt.SbtTwirl
+import xsbti.FileConverter
 
 /**
  * Provides mechanisms for running a Play application in sbt
@@ -77,7 +79,8 @@ object PlayRun {
       assetsClassLoader: TaskKey[ClassLoader => ClassLoader],
       interactionMode: Option[PlayInteractionMode] = None
   ): Def.Initialize[InputTask[(PlayInteractionMode, Boolean)]] = Def.inputTask {
-    val args = Def.spaceDelimited().parsed
+    implicit val fc: FileConverter = fileConverter.value
+    val args                       = Def.spaceDelimited().parsed
 
     val state       = Keys.state.value
     val scope       = resolvedScoped.value.scope
@@ -121,7 +124,7 @@ object PlayRun {
       runHooks.value.asJava,
       (Runtime / javaOptions).value.asJava,
       playCommonClassloader.value,
-      dependencyClasspath.value.files.asJava,
+      getFiles(dependencyClasspath.value).asJava,
       reloadCompile,
       cls => assetsClassLoader.value.apply(cls),
       null,
