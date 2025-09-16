@@ -107,7 +107,7 @@ object RoutesCompiler extends AutoPlugin {
           thisProjectTasks ++ reverseRouterTasks
         }
     }.value,
-    Defaults.ConfigGlobal / watchSources ++= (routes / sources).value,
+    Defaults.ConfigZero / watchSources ++= (routes / sources).value,
     routes / target := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
     routes          := compileRoutesFiles.value,
     sourceGenerators += Def.task(routes.value).taskValue,
