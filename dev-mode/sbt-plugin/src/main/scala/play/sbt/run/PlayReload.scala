@@ -248,13 +248,13 @@ object PlayReload {
   }
 
   private class PositionImpl(fileName: String, lineNo: Int, pos: Option[Int]) extends Position {
-    def line         = Optional.ofNullable(lineNo)
-    def lineContent  = ""
-    def offset       = Optional.empty[Integer]
-    def pointer      = o2jo(pos.map(_ - 1))
-    def pointerSpace = Optional.empty[String]
-    def sourcePath   = Optional.ofNullable(fileName)
-    def sourceFile   = Optional.ofNullable(file(fileName))
+    def line: java.util.Optional[java.lang.Integer]    = Optional.ofNullable(lineNo)
+    def lineContent                                    = ""
+    def offset                                         = Optional.empty[Integer]
+    def pointer: java.util.Optional[java.lang.Integer] = o2jo(pos.map(_ - 1))
+    def pointerSpace                                   = Optional.empty[String]
+    def sourcePath                                     = Optional.ofNullable(fileName)
+    def sourceFile                                     = Optional.ofNullable(file(fileName))
   }
 
   private class ProblemImpl(msg: String, pos: Position) extends Problem {
