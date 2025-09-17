@@ -131,7 +131,7 @@ object PlayReload {
 
   def getScopedKey(incomplete: Incomplete): Option[ScopedKey[?]] = incomplete.node.flatMap {
     case key: ScopedKey[?] => Option(key)
-    case task: Task[?]     => task.info.attributes.get(taskDefinitionKey)
+    case task: Task[?]     => getAttributeMap(task).get(taskDefinitionKey)
   }
 
   def compile(

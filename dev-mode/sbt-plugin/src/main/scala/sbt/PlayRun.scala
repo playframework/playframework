@@ -16,6 +16,7 @@ import sbt.*
 import sbt.internal.io.PlaySource
 import sbt.util.LoggerContext
 import sbt.Keys.*
+import sbt.LoggerCompat.*
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
 import com.typesafe.sbt.packager.Keys.executableScriptName
@@ -96,7 +97,7 @@ object PlayRun {
       try {
         val newState = interaction match {
           case _: PlayNonBlockingInteractionMode =>
-            loggerContext = LoggerContext(useLog4J = state.get(Keys.useLog4J.key).getOrElse(false))
+            loggerContext = createLoggerContext(state)
             state.put(Keys.loggerContext, loggerContext)
           case _ => state
         }

@@ -128,7 +128,7 @@ object PlaySettings {
       .concatDistinct(Runtime / exportedProducts, Runtime / internalDependencyClasspath)
       .value,
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
-    playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
+    playReloaderClasspath ~= { _.filter(_.get(toKey(WebKeys.webModulesLib)).isEmpty) },
     playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
     playCompileEverything := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
     playReload            := PlayCommands.playReloadTask.value,
