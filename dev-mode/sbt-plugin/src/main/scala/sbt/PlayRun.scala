@@ -13,7 +13,6 @@ import scala.collection.JavaConverters.*
 import scala.sys.process.*
 
 import sbt.*
-import sbt.internal.io.PlaySource
 import sbt.util.LoggerContext
 import sbt.Keys.*
 import sbt.LoggerCompat.*
@@ -21,9 +20,6 @@ import sbt.LoggerCompat.*
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
 import com.typesafe.sbt.packager.Keys.executableScriptName
 import com.typesafe.sbt.web.SbtWeb.autoImport.*
-import play.core.BuildLink
-import play.dev.filewatch.SourceModificationWatch as PlaySourceModificationWatch
-import play.dev.filewatch.WatchState as PlayWatchState
 import play.runsupport.classloader.AssetsClassLoader
 import play.runsupport.CompileResult
 import play.runsupport.DevServerRunner
@@ -152,16 +148,8 @@ object PlayRun {
         println()
 
         try {
-          watchContinuously(state) match {
-            case Some(watched) =>
-              // ~ run mode
-              interaction.doWithoutEcho {
-                twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(PlayWatchState.empty))
-              }
-            case None =>
-              // run mode
-              interaction.waitForCancel()
-          }
+          // run mode
+          interaction.waitForCancel()
         } finally {
           devModeServer.close()
           println()
@@ -184,80 +172,6 @@ object PlayRun {
           }
       }
     }
-  }
-
-  /**
-   * Monitor changes in ~run mode.
-   */
-  @tailrec private def twiddleRunMonitor(
-      watched: Watched,
-      state: State,
-      reloader: BuildLink,
-      ws: Option[PlayWatchState] = None
-  ): Unit = {
-    val ContinuousState =
-      AttributeKey[PlayWatchState]("watch state", "Internal: tracks state for continuous execution.")
-
-    def isEOF(c: Int): Boolean = c == 4
-
-    @tailrec def shouldTerminate: Boolean =
-      (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
-
-    val sourcesFinder: Supplier[java.lang.Iterable[java.io.File]] = () => {
-      watched
-        .watchSources(state)
-        .iterator
-        .flatMap(new PlaySource(_).getPaths)
-        .collect {
-          case p if Files.exists(p) => p.toFile
-        }
-        .toIterable
-        .asJava
-    }
-
-    val watchState   = ws.getOrElse(state.get(ContinuousState).getOrElse(PlayWatchState.empty))
-    val pollInterval = watched.pollInterval.toMillis.toInt
-
-    val (triggered, newWatchState, newState) =
-      try {
-        val r =
-          PlaySourceModificationWatch.watch(sourcesFinder, pollInterval, watchState, () => shouldTerminate)
-        (r.isTriggered, r.getState, state)
-      } catch {
-        case e: Exception =>
-          val log = state.log
-          log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
-          log.trace(e)
-          (false, watchState, state.fail)
-      }
-
-    if (triggered) {
-      // Then launch compile
-      Project.synchronized {
-        val start = System.currentTimeMillis
-        Project.runTask(Compile / compile, newState).get._2.toEither.map { _ =>
-          val duration = System.currentTimeMillis - start match {
-            case ms if ms < 1000 => ms + "ms"
-            case seconds         => (seconds / 1000) + "s"
-          }
-          println(s"[${Colors.green("success")}] Compiled in $duration")
-        }
-      }
-
-      // Avoid launching too much compilation
-      Thread.sleep(Watched.PollDelay.toMillis)
-
-      // Call back myself
-      twiddleRunMonitor(watched, newState, reloader, Some(newWatchState))
-    }
-  }
-
-  private def watchContinuously(state: State): Option[Watched] = {
-    for {
-      watched <- state.get(Watched.Configuration)
-      monitor <- state.get(Watched.ContinuousEventMonitor)
-      if monitor.state.count > 0 // assume we're in ~ run mode
-    } yield watched
   }
 
   val playPrefixAndAssetsSetting = {
