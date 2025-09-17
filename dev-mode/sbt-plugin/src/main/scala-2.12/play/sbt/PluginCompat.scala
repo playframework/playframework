@@ -14,21 +14,10 @@ import play.sbt.routes.RoutesKeys.LazyProjectReference
 import xsbti.FileConverter
 
 object PluginCompat {
-  type MainClass = sbt.Package.MainClass
-  type FileRef   = File
   type MainClass     = sbt.Package.MainClass
   type FileRef       = File
   type PathFinderRef = Seq[File]
 
-  def toFileRef(file: java.io.File)(implicit fileConverter: FileConverter): FileRef     = file
-  def toFileRef(path: NioPath)(implicit fileConverter: FileConverter): FileRef          = path.toFile
-  def toFileRefs(files: Seq[File])(implicit fileConverter: FileConverter): Seq[FileRef] = files.map(toFileRef)
-  def fileName(file: FileRef): String                                                   = file.getName
-  def toNioPath(f: File)(implicit conv: FileConverter): NioPath                         = f.toPath
-  def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]                   = c.files
-  def createLazyProjectRef(p: Project): LazyProjectReference                            = new LazyProjectReference(p)
-  def getAttributeMap(t: Task[?]): AttributeMap                                         = t.info.attributes
-  def toKey(settingKey: SettingKey[String]): AttributeKey[String]                       = settingKey.key
   def toFileRef(file: java.io.File)(implicit fc: FileConverter): FileRef     = file
   def toFileRef(path: NioPath)(implicit fc: FileConverter): FileRef          = path.toFile
   def toFileRefs(files: Seq[File])(implicit fc: FileConverter): Seq[FileRef] = files.map(toFileRef)

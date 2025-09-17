@@ -27,10 +27,6 @@ object PluginCompat:
   type FileRef       = xsbti.HashedVirtualFileRef
   type PathFinderRef = sbt.io.PathFinder
 
-  inline def toFileRef(file: File)(using conv: FileConverter): FileRef = conv.toVirtualFile(file.toPath)
-  inline def toFileRef(path: NioPath)(using conv: FileConverter): FileRef = conv.toVirtualFile(path)
-  def toFileRefs(files: Seq[File])(using conv: FileConverter): Seq[FileRef] = files.map(toFileRef)
-  inline def fileName(file: FileRef): String = file.name
   inline def toFileRef(file: File)(using conv: FileConverter): FileRef          = conv.toVirtualFile(file.toPath)
   inline def toFileRef(path: NioPath)(using conv: FileConverter): FileRef       = conv.toVirtualFile(path)
   def toFileRefs(files: Seq[File])(using conv: FileConverter): Seq[FileRef]     = files.map(toFileRef)
