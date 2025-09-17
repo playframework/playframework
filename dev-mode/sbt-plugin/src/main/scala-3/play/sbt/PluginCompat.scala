@@ -21,8 +21,9 @@ import xsbti.HashedVirtualFileRef
 import xsbti.VirtualFileRef
 
 object PluginCompat:
-  type MainClass    = sbt.PackageOption.MainClass
-  type FileRef      = xsbti.HashedVirtualFileRef
+  type MainClass     = sbt.PackageOption.MainClass
+  type FileRef       = xsbti.HashedVirtualFileRef
+  type PathFinderRef = sbt.io.PathFinder
 
   inline def toFileRef(file: File)(using conv: FileConverter): FileRef = conv.toVirtualFile(file.toPath)
   inline def toFileRef(path: NioPath)(using conv: FileConverter): FileRef = conv.toVirtualFile(path)
@@ -37,4 +38,5 @@ object PluginCompat:
   def createLazyProjectRef(p: Project): LazyProjectReference                    = new LazyProjectReference(p)
   def getAttributeMap(t: Task[?]): AttributeMap                                 = t.attributes
   inline def toKey(settingKey: SettingKey[String]): StringAttributeKey          = StringAttributeKey(settingKey.key.label)
+  def toFinder(s: Seq[FileRef])(using conv: FileConverter): PathFinderRef       = PathFinder(s.map(toNioPath(_).toFile))
 end PluginCompat

@@ -281,9 +281,11 @@ object PlaySettings {
   private def externalizedSettings: Seq[Setting[?]] = Def.settings(
     Defaults.packageTaskSettings(playJarSansExternalized, playJarSansExternalized / mappings),
     playExternalizedResources := {
-      val rdirs = unmanagedResourceDirectories.value
-      (unmanagedResources.value --- rdirs --- externalizeResourcesExcludes.value)
+      implicit val fc: FileConverter = fileConverter.value
+      val rdirs                      = unmanagedResourceDirectories.value
+      (unmanagedResources.value --- rdirs --- toFinder(externalizeResourcesExcludes.value))
         .pair(relativeTo(rdirs) | flat)
+        .map(mapping => (toFileRef(mapping._1), mapping._2))
     },
     playJarSansExternalized / mappings := {
       implicit val fc: FileConverter = fileConverter.value

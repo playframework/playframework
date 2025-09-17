@@ -16,6 +16,9 @@ import xsbti.FileConverter
 object PluginCompat {
   type MainClass = sbt.Package.MainClass
   type FileRef   = File
+  type MainClass     = sbt.Package.MainClass
+  type FileRef       = File
+  type PathFinderRef = Seq[File]
 
   def toFileRef(file: java.io.File)(implicit fileConverter: FileConverter): FileRef     = file
   def toFileRef(path: NioPath)(implicit fileConverter: FileConverter): FileRef          = path.toFile
@@ -26,4 +29,5 @@ object PluginCompat {
   def createLazyProjectRef(p: Project): LazyProjectReference                            = new LazyProjectReference(p)
   def getAttributeMap(t: Task[?]): AttributeMap                                         = t.info.attributes
   def toKey(settingKey: SettingKey[String]): AttributeKey[String]                       = settingKey.key
+  def toFinder(s: Seq[FileRef])(implicit fc: FileConverter): PathFinderRef   = s
 }
