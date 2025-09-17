@@ -21,6 +21,8 @@ import xsbti.HashedVirtualFileRef
 import xsbti.VirtualFileRef
 
 object PluginCompat:
+  export sbt.Def.uncached
+
   type MainClass     = sbt.PackageOption.MainClass
   type FileRef       = xsbti.HashedVirtualFileRef
   type PathFinderRef = sbt.io.PathFinder

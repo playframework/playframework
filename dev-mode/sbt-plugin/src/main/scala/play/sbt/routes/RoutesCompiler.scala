@@ -19,6 +19,7 @@ import play.routes.compiler.RoutesCompiler.GeneratedSource
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.routes.compiler.RoutesGenerator
 import play.sbt.PluginCompat.createLazyProjectRef
+import play.sbt.PluginCompat.uncached
 import xsbti.Position
 
 object RoutesKeys {
@@ -74,39 +75,41 @@ object RoutesCompiler extends AutoPlugin {
       inConfig(Test)(routesSettings)
 
   def routesSettings = Seq(
-    routes / sources    := Nil,
-    routesCompilerTasks := Def.taskDyn {
-      val generateReverseRouterValue   = generateReverseRouter.value
-      val generateJsReverseRouterValue = generateJsReverseRouter.value
-      val namespaceReverseRouterValue  = namespaceReverseRouter.value
-      val sourcesInRoutes              = (routes / sources).value
-      val routesImportValue            = routesImport.value
+    routes / sources    := uncached { Nil },
+    routesCompilerTasks := uncached {
+      Def.taskDyn {
+        val generateReverseRouterValue   = generateReverseRouter.value
+        val generateJsReverseRouterValue = generateJsReverseRouter.value
+        val namespaceReverseRouterValue  = namespaceReverseRouter.value
+        val sourcesInRoutes              = (routes / sources).value
+        val routesImportValue            = routesImport.value
 
-      // Aggregate all the routes file tasks that we want to compile the reverse routers for.
-      aggregateReverseRoutes.value
-        .map { agg => agg.project / configuration.value / routesCompilerTasks }
-        .join
-        .map { (aggTasks: Seq[Seq[RoutesCompilerTask]]) =>
-          // Aggregated tasks need to have forwards router compilation disabled and reverse router compilation enabled.
-          val reverseRouterTasks = aggTasks.flatten.map { task =>
-            task.copy(forwardsRouter = false, reverseRouter = true)
+        // Aggregate all the routes file tasks that we want to compile the reverse routers for.
+        aggregateReverseRoutes.value
+          .map { agg => agg.project / configuration.value / routesCompilerTasks }
+          .join
+          .map { (aggTasks: Seq[Seq[RoutesCompilerTask]]) =>
+            // Aggregated tasks need to have forwards router compilation disabled and reverse router compilation enabled.
+            val reverseRouterTasks = aggTasks.flatten.map { task =>
+              task.copy(forwardsRouter = false, reverseRouter = true)
+            }
+
+            // Find the routes compile tasks for this project
+            val thisProjectTasks = sourcesInRoutes.map { file =>
+              RoutesCompilerTask(
+                file,
+                routesImportValue,
+                forwardsRouter = true,
+                reverseRouter = generateReverseRouterValue,
+                jsReverseRouter = generateJsReverseRouterValue,
+                namespaceReverseRouter = namespaceReverseRouterValue
+              )
+            }
+
+            thisProjectTasks ++ reverseRouterTasks
           }
-
-          // Find the routes compile tasks for this project
-          val thisProjectTasks = sourcesInRoutes.map { file =>
-            RoutesCompilerTask(
-              file,
-              routesImportValue,
-              forwardsRouter = true,
-              reverseRouter = generateReverseRouterValue,
-              jsReverseRouter = generateJsReverseRouterValue,
-              namespaceReverseRouter = namespaceReverseRouterValue
-            )
-          }
-
-          thisProjectTasks ++ reverseRouterTasks
-        }
-    }.value,
+      }.value
+    },
     Defaults.ConfigZero / watchSources ++= (routes / sources).value,
     routes / target := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
     routes          := compileRoutesFiles.value,
@@ -138,9 +141,9 @@ object RoutesCompiler extends AutoPlugin {
         }
     }.value,
     generateJsReverseRouter := true,
-    namespaceReverseRouter  := false,
-    routesGenerator         := InjectedRoutesGenerator,
-    sourcePositionMappers += routesPositionMapper
+    namespaceReverseRouter  := uncached { false },
+    routesGenerator         := uncached { InjectedRoutesGenerator },
+    sourcePositionMappers += uncached { routesPositionMapper }
   )
 
   private val routesPositionMapper: Position => Option[Position] = position => {
