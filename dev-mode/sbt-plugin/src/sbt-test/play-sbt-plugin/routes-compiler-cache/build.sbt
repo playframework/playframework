@@ -10,7 +10,7 @@ crossScalaVersions := Seq("2.13.16", Scala3)
 
 TaskKey[Unit]("check") := {
   val dir = crossTarget.value
-  (Compile / managedSources).value.foreach{ src =>
+  (Compile / managedSources).value.foreach { src =>
     assert(
       IO.relativize(dir, src).isDefined,
       s"scalaVersion = ${scalaVersion.value}, file = $src"
