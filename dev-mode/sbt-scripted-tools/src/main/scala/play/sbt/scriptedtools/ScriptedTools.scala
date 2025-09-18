@@ -93,7 +93,7 @@ object ScriptedTools extends AutoPlugin {
     val messages = ListBuffer.empty[String]
     try {
       if (ssl) setupSsl()
-      val loc = if (ssl) url(s"https://localhost:9443$path") else url(s"http://localhost:9000$path")
+      val loc = if (ssl) uri(s"https://localhost:9443$path") else uri(s"http://localhost:9000$path")
 
       val (requestStatus, contents) = callUrlImpl(loc, headers*)
 
@@ -124,11 +124,11 @@ object ScriptedTools extends AutoPlugin {
   }
 
   def callUrl(path: String, headers: (String, String)*): (Int, String) = {
-    callUrlImpl(url(s"http://localhost:9000$path"), headers*)
+    callUrlImpl(uri(s"http://localhost:9000$path"), headers*)
   }
 
-  private def callUrlImpl(url: URL, headers: (String, String)*): (Int, String) = {
-    val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
+  private def callUrlImpl(uri: URI, headers: (String, String)*): (Int, String) = {
+    val conn = uri.toURL.openConnection().asInstanceOf[java.net.HttpURLConnection]
     conn.setConnectTimeout(10000)
     conn.setReadTimeout(10000)
     headers.foreach { case (k, v) => conn.setRequestProperty(k, v) }
