@@ -129,9 +129,6 @@ jobs:
           { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}" }
         ]
       cmd: >-
-        if [ "$MATRIX_JAVA" = 17 ]; then
-          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
-        fi;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$(eval "echo $MATRIX_SBT_TEST_TASK")"
 
   docs-tests:
@@ -173,9 +170,6 @@ jobs:
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: >-
-        if [ "$MATRIX_JAVA" = 17 ]; then
-          export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
-        fi;
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
