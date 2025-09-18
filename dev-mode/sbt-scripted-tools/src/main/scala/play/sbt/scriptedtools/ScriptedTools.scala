@@ -166,10 +166,10 @@ object ScriptedTools extends AutoPlugin {
     // the test moves on before the app has finished to shut down
     val secs = 10
     val end  = System.currentTimeMillis() + secs * 1000
-    do {
+    while (processIsRunning(pid) && System.currentTimeMillis() < end) {
       println(s"Is the PID file deleted already? ${!pidFile.exists()}")
       TimeUnit.SECONDS.sleep(3)
-    } while (processIsRunning(pid) && System.currentTimeMillis() < end)
+    }
 
     if (processIsRunning(pid))
       throw new RuntimeException(s"Assertion failed: Process $pid didn't stop in $secs seconds.")
