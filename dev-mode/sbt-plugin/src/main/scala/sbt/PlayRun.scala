@@ -233,7 +233,7 @@ object PlayRun {
       state.fail
     }
 
-    Project.runTask(stage, state) match {
+    PluginCompat.runTask(stage, state) match {
       case None                             => fail(state)
       case Some((state, Inc(_)))            => fail(state)
       case Some((state, Value(stagingDir))) =>
