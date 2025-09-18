@@ -258,13 +258,16 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
       )
     }.taskValue,
     InputKey[Unit]("disableIncompatibleScriptedTests") := {
+      /*
+      // Example how you can disable a scripted test:
       if (scala.util.Properties.isJavaAtLeast("21")) {
-        val disabledTests = Seq("generated-keystore") // because of https://github.com/lightbend/ssl-config/issues/367
+        val disabledTests = Seq("generated-keystore")
         disabledTests.foreach(t => {
           streams.value.log.info(s"Disabling $t scripted test because it is not compatible with Java 21 or newer")
           IO.touch(new File(s"./dev-mode/sbt-plugin/src/sbt-test/play-sbt-plugin/${t}/disabled"))
         })
       }
+       */
     },
     (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
   )

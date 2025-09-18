@@ -10,13 +10,7 @@ import java.util.Properties
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLEngine
 
-import scala.util.Properties.isJavaAtLeast
-
 import org.mockito.Mockito
-import org.specs2.execute.AsResult
-import org.specs2.execute.Pending
-import org.specs2.execute.Result
-import org.specs2.execute.ResultExecution
 import org.specs2.matcher.MustThrownExpectations
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
@@ -69,13 +63,6 @@ class ServerSSLEngineSpec extends Specification {
     }
   }
 
-  implicit class UntilJavaFixesSelfSignedCertificates[T: AsResult](t: => T) {
-    def skipOnJava21andAbove: Result = {
-      if (isJavaAtLeast(21)) Pending("PENDING [INCOMPATIBLE WITH JAVA 21+]")
-      else ResultExecution.execute(AsResult(t))
-    }
-  }
-
   def serverConfig(tempDir: File, engineProvider: Option[String]): ServerConfig = {
     val props = new Properties()
     engineProvider.foreach(props.put("play.server.https.engineProvider", _))
@@ -97,7 +84,7 @@ class ServerSSLEngineSpec extends Specification {
   "ServerSSLContext" should {
     "default create a SSL engine suitable for development" in new ApplicationContext with TempConfDir {
       createEngine(None, Some(tempDir)) must beAnInstanceOf[SSLEngine]
-    }.skipOnJava21andAbove // because of https://github.com/lightbend/ssl-config/issues/367
+    }
 
     "fail to load a non existing SSLEngineProvider" in new ApplicationContext {
       createEngine(Some("bla bla")) must throwA[ClassNotFoundException]

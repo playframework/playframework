@@ -132,10 +132,6 @@ jobs:
         if [ "$MATRIX_JAVA" = 17 ]; then
           export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS --add-exports=java.base/sun.security.x509=ALL-UNNAMED";
         fi;
-        if [[ "$MATRIX_JAVA" != 11 && "$MATRIX_JAVA" != 17 ]]; then
-            # When on Java 21+ we only run plain tests, see https://github.com/lightbend/ssl-config/issues/367
-            export JMH_PARAMS="-p endpoint=nt-11-pln,ak-11-pln";
-        fi;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$(eval "echo $MATRIX_SBT_TEST_TASK")"
 
   docs-tests:
