@@ -44,14 +44,16 @@ object PluginCompat:
         case (state, t) => (state, execValue(t))
       }
     )
-  inline def toFileRef(file: File)(using conv: FileConverter): FileRef          = conv.toVirtualFile(file.toPath)
-  inline def toFileRef(path: NioPath)(using conv: FileConverter): FileRef       = conv.toVirtualFile(path)
-  def toFileRefs(files: Seq[File])(using conv: FileConverter): Seq[FileRef]     = files.map(toFileRef)
-  inline def fileName(file: FileRef): String                                    = file.name
-  inline def toNioPath(hvf: VirtualFileRef)(using conv: FileConverter): NioPath = conv.toPath(hvf)
-  inline def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]    = c.files.map(_.toFile)
-  inline def createLazyProjectRef(p: Project): LazyProjectReference             = new LazyProjectReference(p)
-  def getAttributeMap(t: Task[?]): AttributeMap                                 = t.attributes
-  inline def toKey(settingKey: SettingKey[String]): StringAttributeKey          = StringAttributeKey(settingKey.key.label)
-  def toFinder(s: Seq[FileRef])(using conv: FileConverter): PathFinderRef       = PathFinder(s.map(toNioPath(_).toFile))
+
+  // File converter shims
+  inline def toFileRef(file: File)(using fc: FileConverter): FileRef             = fc.toVirtualFile(file.toPath)
+  inline def toFileRef(path: NioPath)(using fc: FileConverter): FileRef          = fc.toVirtualFile(path)
+  inline def toNioPath(hvf: VirtualFileRef)(using fc: FileConverter): NioPath    = fc.toPath(hvf)
+  inline def getFiles(c: Classpath)(implicit fc: FileConverter): Seq[File]       = c.files.map(_.toFile)
+  def toFinder(s: Seq[FileRef])(using fc: FileConverter): PathFinderRef          = PathFinder(s.map(toNioPath(_).toFile))
+
+  inline def fileName(file: FileRef): String                           = file.name
+  inline def createLazyProjectRef(p: Project): LazyProjectReference    = new LazyProjectReference(p)
+  inline def getAttributeMap(t: Task[?]): AttributeMap                 = t.attributes
+  inline def toKey(settingKey: SettingKey[String]): StringAttributeKey = StringAttributeKey(settingKey.key.label)
 end PluginCompat
