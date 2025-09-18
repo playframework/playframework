@@ -106,7 +106,7 @@ object PlayReload {
               // anymore before adding it to "allProblems", the field that eventually gets used by the Incomplete. (The transformation still takes place to show
               // the mapped source file in the logs) Play however needs to know the mapped source file to display it in it's error pages for a nice dev experience.
               // So the solution is that Play itself will try to transform the source file to the mapped file by running it "through" sourcePositionMappers:
-              Project
+              PluginCompat
                 .runTask(scope / sourcePositionMappers, state)
                 .flatMap(_._2.toEither.toOption)
                 .map(mappers =>

@@ -27,13 +27,20 @@ object PluginCompat:
   type FileRef       = xsbti.HashedVirtualFileRef
   type PathFinderRef = sbt.io.PathFinder
 
+  def execValue[T](t: T)                                                        = sbt.Result.Value(t)
+  def runTask[T](taskKey: TaskKey[T], state: State): Option[(State, Result[T])] =
+    Some(
+      Project.extract(state).runTask(taskKey, state) match {
+        case (state, t) => (state, execValue(t))
+      }
+    )
   inline def toFileRef(file: File)(using conv: FileConverter): FileRef          = conv.toVirtualFile(file.toPath)
   inline def toFileRef(path: NioPath)(using conv: FileConverter): FileRef       = conv.toVirtualFile(path)
   def toFileRefs(files: Seq[File])(using conv: FileConverter): Seq[FileRef]     = files.map(toFileRef)
   inline def fileName(file: FileRef): String                                    = file.name
   inline def toNioPath(hvf: VirtualFileRef)(using conv: FileConverter): NioPath = conv.toPath(hvf)
-  def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]           = c.files.map(_.toFile)
-  def createLazyProjectRef(p: Project): LazyProjectReference                    = new LazyProjectReference(p)
+  inline def getFiles(c: Classpath)(implicit conv: FileConverter): Seq[File]    = c.files.map(_.toFile)
+  inline def createLazyProjectRef(p: Project): LazyProjectReference             = new LazyProjectReference(p)
   def getAttributeMap(t: Task[?]): AttributeMap                                 = t.attributes
   inline def toKey(settingKey: SettingKey[String]): StringAttributeKey          = StringAttributeKey(settingKey.key.label)
   def toFinder(s: Seq[FileRef])(using conv: FileConverter): PathFinderRef       = PathFinder(s.map(toNioPath(_).toFile))

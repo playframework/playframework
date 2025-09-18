@@ -18,6 +18,11 @@ object PluginCompat {
   type FileRef       = File
   type PathFinderRef = Seq[File]
 
+  def execValue[T](t: T) = Value(t)
+
+  def runTask[T](taskKey: TaskKey[T], state: State): Option[(State, Result[T])] =
+    Project.runTask(taskKey, state)
+
   def toFileRef(file: java.io.File)(implicit fc: FileConverter): FileRef     = file
   def toFileRef(path: NioPath)(implicit fc: FileConverter): FileRef          = path.toFile
   def toFileRefs(files: Seq[File])(implicit fc: FileConverter): Seq[FileRef] = files.map(toFileRef)
