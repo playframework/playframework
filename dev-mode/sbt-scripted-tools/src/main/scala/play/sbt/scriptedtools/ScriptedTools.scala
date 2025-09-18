@@ -22,6 +22,7 @@ import sbt.Keys._
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import play.sbt.routes.RoutesCompiler.autoImport._
 import play.sbt.run.PlayRun
+import play.sbt.PluginCompat._
 
 object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
@@ -179,12 +180,12 @@ object ScriptedTools extends AutoPlugin {
 
   val dumpRoutesSourceOnCompilationFailure = {
     val settings = Seq(
-      compile := {
+      compile := uncached {
         compile.result.value match {
           case Value(v) => v
           case Inc(inc) =>
             // If there was a compilation error, dump generated routes files so we can read them
-            ((Compile / routes / target).value ** AllPassFilter).filter(_.isFile).get.foreach { file =>
+            ((Compile / routes / target).value ** AllPassFilter).filter(_.isFile).get().foreach { file =>
               println(s"Dumping $file:")
               IO.readLines(file).zipWithIndex.foreach {
                 case (line, index) => println(f"${index + 1}%4d: $line")
