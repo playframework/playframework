@@ -114,7 +114,7 @@ object PlaySettings {
     Compile / Keys.run             := PlayRun.playDefaultRunTask.evaluated,
     Compile / Keys.run / mainClass := Some("play.core.server.DevServerStart"),
     Compile / Keys.bgRun           := PlayRun.playDefaultBgRunTask.evaluated,
-    PlayInternalKeys.playStop      := {
+    PlayInternalKeys.playStop      := uncached {
       playInteractionMode.value match {
         case x: PlayNonBlockingInteractionMode => x.stop()
         case _                                 => sys.error("Play interaction mode must be non blocking to stop it")
@@ -122,16 +122,18 @@ object PlaySettings {
     },
     shellPrompt := PlayCommands.playPrompt,
     // all dependencies from outside the project (all dependency jars)
-    playDependencyClasspath := (Runtime / externalDependencyClasspath).value,
+    playDependencyClasspath := uncached((Runtime / externalDependencyClasspath).value),
     // all user classes, in this project and any other subprojects that it depends on
-    playReloaderClasspath := Classpaths
-      .concatDistinct(Runtime / exportedProducts, Runtime / internalDependencyClasspath)
-      .value,
+    playReloaderClasspath := uncached {
+      Classpaths
+        .concatDistinct(Runtime / exportedProducts, Runtime / internalDependencyClasspath)
+        .value
+    },
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(toKey(WebKeys.webModulesLib)).isEmpty) },
-    playCommonClassloader := PlayCommands.playCommonClassloaderTask.value,
-    playCompileEverything := PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]],
-    playReload            := PlayCommands.playReloadTask.value,
+    playCommonClassloader := uncached { PlayCommands.playCommonClassloaderTask.value },
+    playCompileEverything := uncached { PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]] },
+    playReload            := uncached { PlayCommands.playReloadTask.value },
     ivyLoggingLevel       := UpdateLogging.DownloadOnly,
     playMonitoredFiles    := PlayCommands.playMonitoredFilesTask.value,
     fileWatchService      := {
@@ -140,7 +142,7 @@ object PlaySettings {
     playDefaultPort    := 9000,
     playDefaultAddress := "0.0.0.0",
     // Default hooks
-    playRunHooks        := Nil,
+    playRunHooks        := uncached { Nil },
     playInteractionMode := PlayConsoleInteractionMode,
     // Settings
     devSettings := Nil,
@@ -241,8 +243,8 @@ object PlaySettings {
     // sbt-web
     Assets / jsFilter         := new PatternFilter("""[^_].*\.js""".r.pattern),
     WebKeys.stagingDirectory  := WebKeys.stagingDirectory.value / "public",
-    playAssetsWithCompilation := (Compile / compile).value.asInstanceOf[Analysis],
-    playAssetsWithCompilation := playAssetsWithCompilation.dependsOn((Assets / assets).?).value,
+    playAssetsWithCompilation := uncached { (Compile / compile).value.asInstanceOf[Analysis] },
+    playAssetsWithCompilation := uncached { playAssetsWithCompilation.dependsOn((Assets / assets).?).value },
     // Assets for run mode
     PlayRun.playPrefixAndAssetsSetting,
     PlayRun.playAllAssetsSetting,
@@ -251,7 +253,7 @@ object PlaySettings {
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
     // The ...-assets.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
     Assets / packageBin / packageOptions := (Runtime / packageBin / packageOptions).value,
-    playPackageAssets                    := (Assets / packageBin).value,
+    playPackageAssets                    := uncached { (Assets / packageBin).value },
     scriptClasspathOrdering              := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       // only create a assets-jar if the task is active
@@ -269,10 +271,12 @@ object PlaySettings {
     }.value,
     // Assets for testing
     TestAssets / public := (TestAssets / public).value / assetsPrefix.value,
-    Test / fullClasspath += Def.taskDyn {
-      implicit val fc: FileConverter = fileConverter.value
-      Def.task(Attributed.blank(toFileRef((TestAssets / assets).value.getParentFile)))
-    }.value
+    Test / fullClasspath += uncached {
+      Def.taskDyn {
+        implicit val fc: FileConverter = fileConverter.value
+        Def.task(Attributed.blank(toFileRef((TestAssets / assets).value.getParentFile)))
+      }.value
+    }
   )
 
   /**
@@ -280,10 +284,12 @@ object PlaySettings {
    */
   private def externalizedSettings: Seq[Setting[?]] = Def.settings(
     Defaults.packageTaskSettings(playJarSansExternalized, playJarSansExternalized / mappings),
-    playExternalizedResources := {
-      val rdirs = unmanagedResourceDirectories.value
-      (unmanagedResources.value --- rdirs --- externalizeResourcesExcludes.value)
+    playExternalizedResources := uncached {
+      implicit val fc: FileConverter = fileConverter.value
+      val rdirs                      = unmanagedResourceDirectories.value
+      (unmanagedResources.value --- rdirs --- toFinder(externalizeResourcesExcludes.value))
         .pair(relativeTo(rdirs) | flat)
+        .map(mapping => (toFileRef(mapping._1), mapping._2))
     },
     playJarSansExternalized / mappings := {
       implicit val fc: FileConverter = fileConverter.value

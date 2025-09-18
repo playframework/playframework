@@ -54,8 +54,9 @@ object PlayRun {
 
   val generatedSourceHandlers = SbtTwirl.defaultFormats.map { case (k, _) => s"scala.$k" -> twirlSourceHandler }
 
-  val playDefaultRunTask =
-    playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader)
+  val playDefaultRunTask = {
+    playRunTask(playRunHooks, playDependencyClasspath, playReloaderClasspath, playAssetsClassLoader).map(_ => ())
+  }
 
   private val playDefaultRunTaskNonBlocking =
     playRunTask(
