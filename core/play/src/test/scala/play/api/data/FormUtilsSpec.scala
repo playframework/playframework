@@ -4,9 +4,11 @@
 
 package play.api.data
 
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsNull
 import play.api.libs.json.Json
+import play.api.Configuration
 
 class FormUtilsSpec extends Specification {
 
@@ -57,7 +59,15 @@ class FormUtilsSpec extends Specification {
 
     "not stack overflow when converting heavily nested arrays" in {
       try {
-        FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000, 30000)
+        val cfg = ConfigFactory
+          .parseString("play.json.read.max-nesting-depth=12000")
+          .withFallback(ConfigFactory.load)
+        val jsonUtil = new play.api.libs.Json(new Configuration(cfg))
+        FormUtils.fromJson(
+          jsonUtil.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"),
+          1000000,
+          30000
+        )
       } catch {
         case e: StackOverflowError =>
           ko("StackOverflowError thrown")
