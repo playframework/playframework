@@ -22,6 +22,7 @@ import sbt.Keys._
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import play.sbt.routes.RoutesCompiler.autoImport._
 import play.sbt.run.PlayRun
+import play.sbt.PluginCompat._
 
 object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
@@ -93,7 +94,7 @@ object ScriptedTools extends AutoPlugin {
     val messages = ListBuffer.empty[String]
     try {
       if (ssl) setupSsl()
-      val loc = if (ssl) url(s"https://localhost:9443$path") else url(s"http://localhost:9000$path")
+      val loc = if (ssl) uri(s"https://localhost:9443$path") else uri(s"http://localhost:9000$path")
 
       val (requestStatus, contents) = callUrlImpl(loc, headers*)
 
@@ -124,11 +125,11 @@ object ScriptedTools extends AutoPlugin {
   }
 
   def callUrl(path: String, headers: (String, String)*): (Int, String) = {
-    callUrlImpl(url(s"http://localhost:9000$path"), headers*)
+    callUrlImpl(uri(s"http://localhost:9000$path"), headers*)
   }
 
-  private def callUrlImpl(url: URL, headers: (String, String)*): (Int, String) = {
-    val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
+  private def callUrlImpl(uri: URI, headers: (String, String)*): (Int, String) = {
+    val conn = uri.toURL.openConnection().asInstanceOf[java.net.HttpURLConnection]
     conn.setConnectTimeout(10000)
     conn.setReadTimeout(10000)
     headers.foreach { case (k, v) => conn.setRequestProperty(k, v) }
@@ -166,10 +167,10 @@ object ScriptedTools extends AutoPlugin {
     // the test moves on before the app has finished to shut down
     val secs = 10
     val end  = System.currentTimeMillis() + secs * 1000
-    do {
+    while (processIsRunning(pid) && System.currentTimeMillis() < end) {
       println(s"Is the PID file deleted already? ${!pidFile.exists()}")
       TimeUnit.SECONDS.sleep(3)
-    } while (processIsRunning(pid) && System.currentTimeMillis() < end)
+    }
 
     if (processIsRunning(pid))
       throw new RuntimeException(s"Assertion failed: Process $pid didn't stop in $secs seconds.")
@@ -179,12 +180,12 @@ object ScriptedTools extends AutoPlugin {
 
   val dumpRoutesSourceOnCompilationFailure = {
     val settings = Seq(
-      compile := {
+      compile := uncached {
         compile.result.value match {
           case Value(v) => v
           case Inc(inc) =>
             // If there was a compilation error, dump generated routes files so we can read them
-            ((Compile / routes / target).value ** AllPassFilter).filter(_.isFile).get.foreach { file =>
+            ((Compile / routes / target).value ** AllPassFilter).filter(_.isFile).get().foreach { file =>
               println(s"Dumping $file:")
               IO.readLines(file).zipWithIndex.foreach {
                 case (line, index) => println(f"${index + 1}%4d: $line")
