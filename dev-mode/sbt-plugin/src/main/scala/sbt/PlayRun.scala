@@ -99,13 +99,13 @@ object PlayRun {
           case _ => state
         }
         PlayReload.compile(
-          () => Project.runTask(scope / playReload, newState).map(_._2).get,
+          () => PluginCompat.runTask(scope / playReload, newState).map(_._2).get,
           () =>
-            Project
+            PluginCompat
               .runTask(scope / reloaderClasspath, newState.put(WebKeys.disableExportedProducts, true))
               .map(_._2)
               .get,
-          () => Project.runTask(scope / streamsManager, newState).map(_._2).get.toEither.right.toOption,
+          () => PluginCompat.runTask(scope / streamsManager, newState).map(_._2).get.toEither.right.toOption,
           newState,
           scope
         )
@@ -182,7 +182,7 @@ object PlayRun {
   val playAllAssetsSetting = playAllAssets := Seq(playPrefixAndAssets.value)
 
   val playAssetsClassLoaderSetting = {
-    playAssetsClassLoader := {
+    playAssetsClassLoader := uncached {
       val assets =
         playAllAssets.value.map(asset => JMap.entry(asset._1, asset._2))
       parent => new AssetsClassLoader(parent, assets.asJava)
@@ -233,7 +233,7 @@ object PlayRun {
       state.fail
     }
 
-    Project.runTask(stage, state) match {
+    PluginCompat.runTask(stage, state) match {
       case None                             => fail(state)
       case Some((state, Inc(_)))            => fail(state)
       case Some((state, Value(stagingDir))) =>
@@ -242,7 +242,7 @@ object PlayRun {
           val isWin = System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win")
           if (isWin) s"$path.bat" else path
         }
-        val javaOpts = Project.runTask(Production / javaOptions, state).get._2.toEither.right.getOrElse(Nil)
+        val javaOpts = PluginCompat.runTask(Production / javaOptions, state).get._2.toEither.right.getOrElse(Nil)
 
         // Note that I'm unable to pass system properties along with properties... if I do then I receive:
         //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
