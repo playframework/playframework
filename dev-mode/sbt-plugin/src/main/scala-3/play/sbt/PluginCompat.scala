@@ -29,12 +29,7 @@ object PluginCompat:
 
   val Inc   = sbt.Result.Inc
   val Value = sbt.Result.Value
-  /**
-   * Shim for runTask. Project.runTask is removed in sbt 2.0.
-   *
-   * This will be replaced when Extracted.runTask with the same signature
-   * is supported in sbt 2.0.
-   */
+
   def runTask[T](taskKey: TaskKey[T], state: State): Option[(State, Result[T])] =
       Project.extract(state).runTaskUnhandled(taskKey, state)
 
