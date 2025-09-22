@@ -29,9 +29,6 @@ object PluginCompat:
 
   val Inc   = sbt.Result.Inc
   val Value = sbt.Result.Value
-
-  private def execValue[T](t: T) = sbt.Result.Value(t)
-
   /**
    * Shim for runTask. Project.runTask is removed in sbt 2.0.
    *
@@ -39,11 +36,7 @@ object PluginCompat:
    * is supported in sbt 2.0.
    */
   def runTask[T](taskKey: TaskKey[T], state: State): Option[(State, Result[T])] =
-    Some(
-      Project.extract(state).runTask(taskKey, state) match {
-        case (state, t) => (state, execValue(t))
-      }
-    )
+      Project.extract(state).runTaskUnhandled(taskKey, state)
 
   // File converter shims
   inline def toFileRef(file: File)(using fc: FileConverter): FileRef             = fc.toVirtualFile(file.toPath)
