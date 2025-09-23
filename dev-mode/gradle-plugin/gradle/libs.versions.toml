@@ -6,7 +6,7 @@ assertj = "3.27.4"
 commons-io = "2.20.0"
 freemarker = "2.3.34"
 twirl = "2.0.3"
-mockito = "5.19.0"
+mockito = "5.20.0"
 kotlin-plugin = "2.2.20"
 
 [libraries]
