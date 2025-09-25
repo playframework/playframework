@@ -4,19 +4,30 @@
 
 package play.core.server.ssl
 
-import play.api.Logger
-
-import java.security.{ KeyPair, KeyPairGenerator, KeyStore, SecureRandom }
-
-import sun.security.x509._
-import sun.security.util.ObjectIdentifier
-import java.util.Date
+import java.io._
 import java.math.BigInteger
 import java.security.cert.X509Certificate
-import java.io._
-
-import javax.net.ssl.KeyManagerFactory
 import java.security.interfaces.RSAPublicKey
+import java.security.KeyPair
+import java.security.KeyPairGenerator
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.util.Date
+import javax.net.ssl.KeyManagerFactory
+
+import org.bouncycastle.asn1.x500.X500Name
+import org.bouncycastle.asn1.x509.BasicConstraints
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage
+import org.bouncycastle.asn1.x509.Extension
+import org.bouncycastle.asn1.x509.GeneralName
+import org.bouncycastle.asn1.x509.GeneralNames
+import org.bouncycastle.asn1.x509.KeyPurposeId
+import org.bouncycastle.asn1.x509.KeyUsage
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
+import play.api.Logger
 
 /**
  * A fake key store with a single, selfsigned certificate and keypair. Includes also a `trustedCertEntry` for
@@ -85,39 +96,62 @@ object FakeKeyStore {
   }
 
   def createSelfSignedCertificate(keyPair: KeyPair): X509Certificate = {
-    val certInfo = new X509CertInfo()
-
-    // Serial number and version
-    certInfo.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(new BigInteger(64, new SecureRandom())))
-    certInfo.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3))
-
-    // Validity
     val validFrom = new Date()
-    val validTo = new Date(validFrom.getTime + 50l * 365l * 24l * 60l * 60l * 1000l)
-    val validity = new CertificateValidity(validFrom, validTo)
-    certInfo.set(X509CertInfo.VALIDITY, validity)
+    val validTo   = new Date(validFrom.getTime + 50L * 365L * 24L * 60L * 60L * 1000L)
+    val serial    = new BigInteger(160, new SecureRandom())
+    val owner     = new X500Name(SelfSigned.DistinguishedName)
 
-    // Subject and issuer
-    val owner = new X500Name(SelfSigned.DistinguishedName)
-    certInfo.set(X509CertInfo.SUBJECT, owner)
-    certInfo.set(X509CertInfo.ISSUER, owner)
+    val builder = new JcaX509v3CertificateBuilder(
+      owner, // issuer
+      serial,
+      validFrom,
+      validTo,
+      owner, // subject
+      keyPair.getPublic
+    )
 
-    // Key and algorithm
-    certInfo.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic))
-    val algorithm = AlgorithmId.get("SHA256WithRSA")
-    certInfo.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algorithm))
+    // Basic constraints: not a CA
+    builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false))
 
-    // Create a new certificate and sign it
-    val cert = new X509CertImpl(certInfo)
-    cert.sign(keyPair.getPrivate, KeystoreSettings.SignatureAlgorithmName)
+    // Key usage: server TLS
+    builder.addExtension(
+      Extension.keyUsage,
+      true,
+      new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)
+    )
 
-    // Since the signature provider may have a different algorithm ID to what we think it should be,
-    // we need to reset the algorithm ID, and resign the certificate
-    val actualAlgorithm = cert.get(X509CertImpl.SIG_ALG).asInstanceOf[AlgorithmId]
-    certInfo.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, actualAlgorithm)
-    val newCert = new X509CertImpl(certInfo)
-    newCert.sign(keyPair.getPrivate, KeystoreSettings.SignatureAlgorithmName)
-    newCert
+    // Extended Key Usage: serverAuth
+    builder.addExtension(
+      Extension.extendedKeyUsage,
+      false,
+      new ExtendedKeyUsage(KeyPurposeId.id_kp_serverAuth)
+    )
+
+    // Subject Key Identifier & Authority Key Identifier
+    val extUtils = new JcaX509ExtensionUtils()
+    builder.addExtension(Extension.subjectKeyIdentifier, false, extUtils.createSubjectKeyIdentifier(keyPair.getPublic))
+    builder.addExtension(Extension.authorityKeyIdentifier, false, extUtils.createAuthorityKeyIdentifier(keyPair.getPublic))
+
+    // Subject Alternative Names: localhost (DNS) + loopback IPs
+    val sans = new GeneralNames(
+      Array(
+        new GeneralName(GeneralName.dNSName, "localhost"),
+        new GeneralName(GeneralName.iPAddress, "127.0.0.1"),
+        new GeneralName(GeneralName.iPAddress, "::1")
+      )
+    )
+    builder.addExtension(Extension.subjectAlternativeName, false, sans)
+
+    // Sign and convert to JCA X509Certificate
+
+    val signer = new JcaContentSignerBuilder(KeystoreSettings.SignatureAlgorithmName).build(keyPair.getPrivate)
+
+    val certHolder = builder.build(signer)
+    val cert = new JcaX509CertificateConverter().getCertificate(certHolder)
+
+    // Sanity check
+    cert.verify(keyPair.getPublic)
+    cert
   }
 
 }
