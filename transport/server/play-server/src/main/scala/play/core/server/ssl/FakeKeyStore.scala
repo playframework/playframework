@@ -42,7 +42,7 @@ import play.api.Logger
  * Certificate fingerprint (SHA1): 19:2D:20:F0:36:59:E3:AD:C1:AA:55:82:0D:D2:94:5D:B3:75:3F:F8
  * }}}
  */
-object FakeKeyStore {
+private[server] object FakeKeyStore {
 
   private val EMPTY_PASSWORD = Array.emptyCharArray
 
@@ -74,8 +74,6 @@ object FakeKeyStore {
   /**
    * Generate a fresh KeyStore object in memory. This KeyStore
    * is not saved to disk. If you want that, then call `keyManagerFactory`.
-   *
-   * This method is public only for consumption by Play/Lagom.
    */
   def generateKeyStore: KeyStore = {
     // Create a new KeyStore
@@ -159,7 +157,7 @@ object FakeKeyStore {
 /**
  * A fake key store
  */
-final class FakeKeyStore {
+private[server] final class FakeKeyStore {
 
   import FakeKeyStore._
 
@@ -216,7 +214,6 @@ final class FakeKeyStore {
     weakKey || wrongSigAlg
   }
 
-  /** Public only for consumption by Play/Lagom. */
   def createKeyStore(appPath: File): KeyStore = {
     val keyStoreFile = getKeyStoreFilePath(appPath)
     val keyStoreDir = keyStoreFile.getParentFile
@@ -260,7 +257,6 @@ final class FakeKeyStore {
     }
   }
 
-  /** Public only for consumption by Play/Lagom. */
   def keyManagerFactory(appPath: File): KeyManagerFactory = {
     val keyStore = createKeyStore(appPath)
 
