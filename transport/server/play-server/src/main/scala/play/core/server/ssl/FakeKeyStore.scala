@@ -196,8 +196,24 @@ final class FakeKeyStore {
   }
 
   private[ssl] def certificateTooWeak(c: java.security.cert.Certificate): Boolean = {
-    val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
-    key.getModulus.bitLength < KeystoreSettings.KeyPairKeyLength || c.asInstanceOf[X509CertImpl].getSigAlgName != KeystoreSettings.SignatureAlgorithmName
+    // Must be RSA
+    val key: RSAPublicKey = c.getPublicKey match {
+      case k: RSAPublicKey => k
+      case _               => return true // treat non-RSA key as "too weak" / "unsupported"
+    }
+
+    // Must be at least the configured key length
+    val weakKey = key.getModulus.bitLength < KeystoreSettings.KeyPairKeyLength
+
+    // Check signature algorithm
+    val wrongSigAlg = c match {
+      case x509: X509Certificate =>
+        !x509.getSigAlgName.equalsIgnoreCase(KeystoreSettings.SignatureAlgorithmName)
+      case _ =>
+        true // if it's not an X509Certificate, be conservative
+    }
+
+    weakKey || wrongSigAlg
   }
 
   /** Public only for consumption by Play/Lagom. */
