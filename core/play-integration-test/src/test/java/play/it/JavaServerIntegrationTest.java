@@ -5,7 +5,6 @@
 package play.it;
 
 import static org.junit.Assert.*;
-import static org.junit.Assume.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +20,6 @@ import javax.net.ssl.SSLSocketFactory;
 import org.junit.Test;
 import play.routing.Router;
 import play.server.Server;
-import scala.util.Properties;
 
 public class JavaServerIntegrationTest {
   @Test
@@ -45,7 +43,6 @@ public class JavaServerIntegrationTest {
 
   @Test
   public void testHttpsEmbeddedServerUsesCorrectProtocolAndPort() throws Exception {
-    assumeFalse(Properties.isJavaAtLeast(21)); // because of lightbend/ssl-config#367
     int port = _availablePort();
     _running(
         new Server.Builder().https(port).build(_emptyRouter()),
@@ -65,7 +62,6 @@ public class JavaServerIntegrationTest {
 
   @Test
   public void testEmbeddedServerCanServeBothProtocolsSimultaneously() throws Exception {
-    assumeFalse(Properties.isJavaAtLeast(21)); // because of lightbend/ssl-config#367
     List<Integer> availablePorts = _availablePorts(2);
     int httpPort = availablePorts.get(0);
     int httpsPort = availablePorts.get(1);

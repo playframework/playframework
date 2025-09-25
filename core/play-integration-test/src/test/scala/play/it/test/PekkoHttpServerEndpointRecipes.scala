@@ -4,8 +4,6 @@
 
 package play.it.test
 
-import scala.util.Properties
-
 import play.api.http.HttpProtocol
 import play.api.test.HttpServerEndpointRecipe
 import play.api.test.HttpsServerEndpointRecipe
@@ -53,10 +51,9 @@ object PekkoHttpServerEndpointRecipes {
 
   val AllRecipes: Seq[ServerEndpointRecipe] = Seq(
     PekkoHttp11Plaintext,
-  ) ++ Seq(
     PekkoHttp11Encrypted,
-    PekkoHttp20Encrypted,
-  ).filter(_ => !Properties.isJavaAtLeast(21)) // because of https://github.com/lightbend/ssl-config/issues/367
+    PekkoHttp20Encrypted
+  )
 
   val AllRecipesIncludingExperimental: Seq[ServerEndpointRecipe] = AllRecipes :+ PekkoHttp20Plaintext
 }

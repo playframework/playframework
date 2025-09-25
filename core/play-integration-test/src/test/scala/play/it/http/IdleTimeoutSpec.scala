@@ -9,7 +9,6 @@ import java.net.SocketException
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.util.Properties
 import scala.util.Random
 
 import org.apache.pekko.stream.scaladsl.Sink
@@ -50,22 +49,18 @@ class IdleTimeoutSpec extends PlaySpecification with EndpointIntegrationSpecific
     }
 
     def endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
-      (Seq(
+      Seq(
         PekkoHttpServerEndpointRecipes.PekkoHttp11Plaintext,
+        PekkoHttpServerEndpointRecipes.PekkoHttp11Encrypted,
         NettyServerEndpointRecipes.Netty11Plaintext,
-      ) ++
-        Seq(PekkoHttpServerEndpointRecipes.PekkoHttp11Encrypted, NettyServerEndpointRecipes.Netty11Encrypted)
-          .filter(_ => !Properties.isJavaAtLeast(21))) // because of lightbend/ssl-config#367
-        .map(_.withExtraServerConfiguration(extraConfig))
+        NettyServerEndpointRecipes.Netty11Encrypted,
+      ).map(_.withExtraServerConfiguration(extraConfig))
 
     def pekkoHttp2endpoints(extraConfig: Map[String, Any]): Seq[ServerEndpointRecipe] =
-      (Seq(
+      Seq(
         PekkoHttpServerEndpointRecipes.PekkoHttp20Plaintext,
-      ) ++
-        Seq(
-          PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
-        ).filter(_ => !Properties.isJavaAtLeast(21))) // because of lightbend/ssl-config#367
-        .map(_.withExtraServerConfiguration(extraConfig))
+        PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted,
+      ).map(_.withExtraServerConfiguration(extraConfig))
 
     def doRequests(port: Int, trickle: Long, secure: Boolean = false) = {
       val body      = new String(Random.alphanumeric.take(50 * 1024).toArray)

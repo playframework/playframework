@@ -15,8 +15,6 @@ import javax.net.ssl.X509TrustManager
 
 import scala.util.control.NonFatal
 
-import com.typesafe.sslconfig.{ ssl => sslconfig }
-import com.typesafe.sslconfig.util.NoopLogger
 import play.api.Logger
 import play.core.server.ServerConfig
 import play.core.ApplicationProvider
@@ -63,8 +61,8 @@ class DefaultSSLEngineProvider(serverConfig: ServerConfig, appProvider: Applicat
     } else {
       // Load a generated key store
       logger.warn("Using generated key with self signed certificate for HTTPS. This should NOT be used in production.")
-      val FakeKeyStore = new sslconfig.FakeKeyStore(NoopLogger.factory())
-      FakeKeyStore.keyManagerFactory(serverConfig.rootDir)
+      val fakeKeyStore = new FakeKeyStore()
+      fakeKeyStore.keyManagerFactory(serverConfig.rootDir)
     }
 
     // Load the configured trust manager
