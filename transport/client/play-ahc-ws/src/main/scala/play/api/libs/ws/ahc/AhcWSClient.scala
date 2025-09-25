@@ -47,7 +47,6 @@ class AhcWSClient(underlyingClient: StandaloneAhcWSClient) extends WSClient {
 }
 
 object AhcWSClient {
-  private[ahc] val loggerFactory = new AhcLoggerFactory()
 
   /**
    * Convenient factory method that uses a play.api.libs.ws.WSClientConfig value for configuration instead of

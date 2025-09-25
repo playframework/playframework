@@ -457,6 +457,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingList$"),
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap"),
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap$"),
+      // Remove unused, package-private method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.ahc.AhcWSClient.loggerFactory"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
