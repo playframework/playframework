@@ -4,9 +4,10 @@
 
 package play.core.server.ssl
 
+import play.api.Logger
+
 import java.security.{ KeyPair, KeyPairGenerator, KeyStore, SecureRandom }
 
-import com.typesafe.sslconfig.util.{ LoggerFactory, NoDepsLogger }
 import sun.security.x509._
 import sun.security.util.ObjectIdentifier
 import java.util.Date
@@ -29,8 +30,6 @@ import java.security.interfaces.RSAPublicKey
  * sslconfig-selfsigned, Oct 4, 2018, PrivateKeyEntry,
  * Certificate fingerprint (SHA1): 19:2D:20:F0:36:59:E3:AD:C1:AA:55:82:0D:D2:94:5D:B3:75:3F:F8
  * }}}
- *
- * Was: play.core.server.ssl.FakeKeyStore
  */
 object FakeKeyStore {
 
@@ -125,14 +124,12 @@ object FakeKeyStore {
 
 /**
  * A fake key store
- *
- * Was: play.core.server.ssl.FakeKeyStore
  */
-final class FakeKeyStore(mkLogger: LoggerFactory) {
+final class FakeKeyStore {
 
   import FakeKeyStore._
 
-  private val logger: NoDepsLogger = mkLogger(getClass)
+  private val logger = Logger(getClass)
 
   /**
    * @param appPath a file descriptor to the root folder of the project (the root, not a particular module).
