@@ -11,8 +11,6 @@ object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.0.3")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.0.1")
 
-  val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
-
   val playJsonVersion = "3.1.0-M1"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.20"
@@ -165,7 +163,6 @@ object Dependencies {
         playJson,
         guava,
         jakartaInject,
-        sslConfig
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
