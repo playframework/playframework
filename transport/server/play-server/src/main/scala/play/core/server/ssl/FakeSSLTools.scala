@@ -5,10 +5,10 @@
 package play.core.server.ssl
 
 import java.security.KeyStore
-
 import javax.net.ssl._
 
 private[server] object FakeSSLTools {
+
   /**
    * NOT FOR PRODUCTION USE. Builds a "TLS" `SSLContext` and `X509TrustManager` initializing both with the keys and
    * certificates in the provided `KeyStore`. This means the `SSLContext` will produce `SSLEngine`'s, `SSLSocket``s

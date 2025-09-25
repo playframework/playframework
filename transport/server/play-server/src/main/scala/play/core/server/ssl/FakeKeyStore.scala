@@ -51,19 +51,20 @@ private[server] object FakeKeyStore {
     object Alias {
       // These two constants use a weird capitalization but that's what keystore uses internally (see class scaladoc)
       val trustedCertEntry = "sslconfig-selfsigned-trust"
-      val PrivateKeyEntry = "sslconfig-selfsigned"
+      val PrivateKeyEntry  = "sslconfig-selfsigned"
     }
 
-    val DistinguishedName = "CN=localhost, OU=Unit Testing (self-signed), O=Mavericks, L=SSL Config Base 1, ST=Cyberspace, C=CY"
+    val DistinguishedName =
+      "CN=localhost, OU=Unit Testing (self-signed), O=Mavericks, L=SSL Config Base 1, ST=Cyberspace, C=CY"
     val keyPassword: Array[Char] = EMPTY_PASSWORD
   }
 
   object KeystoreSettings {
-    val GeneratedKeyStore: String = fileInDevModeDir("selfsigned.keystore")
-    val SignatureAlgorithmName = "SHA256withRSA"
-    val KeyPairAlgorithmName = "RSA"
-    val KeyPairKeyLength = 2048 // 2048 is the NIST acceptable key length until 2030
-    val KeystoreType = "JKS"
+    val GeneratedKeyStore: String     = fileInDevModeDir("selfsigned.keystore")
+    val SignatureAlgorithmName        = "SHA256withRSA"
+    val KeyPairAlgorithmName          = "RSA"
+    val KeyPairKeyLength              = 2048 // 2048 is the NIST acceptable key length until 2030
+    val KeystoreType                  = "JKS"
     val keystorePassword: Array[Char] = EMPTY_PASSWORD
   }
 
@@ -128,7 +129,11 @@ private[server] object FakeKeyStore {
     // Subject Key Identifier & Authority Key Identifier
     val extUtils = new JcaX509ExtensionUtils()
     builder.addExtension(Extension.subjectKeyIdentifier, false, extUtils.createSubjectKeyIdentifier(keyPair.getPublic))
-    builder.addExtension(Extension.authorityKeyIdentifier, false, extUtils.createAuthorityKeyIdentifier(keyPair.getPublic))
+    builder.addExtension(
+      Extension.authorityKeyIdentifier,
+      false,
+      extUtils.createAuthorityKeyIdentifier(keyPair.getPublic)
+    )
 
     // Subject Alternative Names: localhost (DNS) + loopback IPs
     val sans = new GeneralNames(
@@ -145,7 +150,7 @@ private[server] object FakeKeyStore {
     val signer = new JcaContentSignerBuilder(KeystoreSettings.SignatureAlgorithmName).build(keyPair.getPrivate)
 
     val certHolder = builder.build(signer)
-    val cert = new JcaX509CertificateConverter().getCertificate(certHolder)
+    val cert       = new JcaX509CertificateConverter().getCertificate(certHolder)
 
     // Sanity check
     cert.verify(keyPair.getPublic)
@@ -184,7 +189,7 @@ private[server] final class FakeKeyStore {
 
   private def loadKeyStore(file: File): KeyStore = {
     val keyStore: KeyStore = KeyStore.getInstance(KeystoreSettings.KeystoreType)
-    val in = java.nio.file.Files.newInputStream(file.toPath)
+    val in                 = java.nio.file.Files.newInputStream(file.toPath)
     try {
       keyStore.load(in, "".toCharArray)
     } finally {
@@ -216,15 +221,17 @@ private[server] final class FakeKeyStore {
 
   def createKeyStore(appPath: File): KeyStore = {
     val keyStoreFile = getKeyStoreFilePath(appPath)
-    val keyStoreDir = keyStoreFile.getParentFile
+    val keyStoreDir  = keyStoreFile.getParentFile
 
     createKeystoreParentDirectory(keyStoreDir)
 
     val keyStore: KeyStore = synchronized(if (shouldGenerate(keyStoreFile)) {
-      logger.info(s"Generating HTTPS key pair in ${keyStoreFile.getAbsolutePath} - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+      logger.info(
+        s"Generating HTTPS key pair in ${keyStoreFile.getAbsolutePath} - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy."
+      )
 
       val freshKeyStore: KeyStore = generateKeyStore
-      val out = java.nio.file.Files.newOutputStream(keyStoreFile.toPath)
+      val out                     = java.nio.file.Files.newOutputStream(keyStoreFile.toPath)
       try {
         freshKeyStore.store(out, KeystoreSettings.keystorePassword)
       } finally {
@@ -249,11 +256,15 @@ private[server] final class FakeKeyStore {
     } else if (keyStoreDir.exists() && keyStoreDir.isFile) {
       // File.mkdirs also returns false when there is a file for that path.
       // A consumer will then fail to write the keystore file later, so we fail fast here.
-      throw new IllegalStateException(s"$keyStoreDir exists, but it is NOT a directory, making it not possible to generate a key store file.")
+      throw new IllegalStateException(
+        s"$keyStoreDir exists, but it is NOT a directory, making it not possible to generate a key store file."
+      )
     } else {
       // Not being able to create a directory inside target folder is weird, but if it happens
       // a consumer will then fail to write the keystore file later, so we fail fast here.
-      throw new IllegalStateException(s"Failed to create $keyStoreDir. Check if there is permission to create such folder.")
+      throw new IllegalStateException(
+        s"Failed to create $keyStoreDir. Check if there is permission to create such folder."
+      )
     }
   }
 
