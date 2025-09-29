@@ -4,6 +4,8 @@
 
 package scalaguide.tests.specs2
 
+import com.codeborne.selenide.Selenide._
+import com.codeborne.selenide.WebDriverRunner
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
@@ -112,15 +114,15 @@ class ScalaFunctionalTestSpec extends ExampleSpecification {
 
     "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = applicationWithBrowser) {
       override def running() = {
-        browser.goTo("/")
+        open("/");
 
         // Check the page
-        browser.el("#title").text() must equalTo("Hello Guest")
+        $("#title").text() must equalTo("Hello Guest")
 
-        browser.el("a").click()
+        $("a").click()
 
-        browser.url must equalTo("login")
-        browser.el("#title").text() must equalTo("Hello Coco")
+        WebDriverRunner.url() must endWith("/login")
+        $("#title").text() must equalTo("Hello Coco")
       }
     }
     // #scalafunctionaltest-testwithbrowser

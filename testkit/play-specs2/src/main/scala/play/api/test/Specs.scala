@@ -195,19 +195,19 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
   implicit def implicitApp: Application = app
   implicit def implicitPort: Port       = port
 
-  lazy val browser: TestBrowser = TestBrowser(webDriver, Some("http://localhost:" + port))
-
   override def wrap[T: AsResult](t: => T): Result = {
+    var browser: TestBrowser = null
     try {
       val currentPort = port
       val result      = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
         port = assignedPort // if port was 0, the OS assigns a random port
+        browser = new TestBrowser(webDriver, Some("http://localhost:" + assignedPort))
         AsResult.effectively(t)
       }
       port = currentPort
       result
     } finally {
-      browser.quit()
+      Option(browser).foreach(_.quit())
     }
   }
 }

@@ -4,20 +4,22 @@
 
 package play.test;
 
+import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.WebDriverRunner;
 import java.time.Duration;
 import java.util.function.Function;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
 /**
- * A test browser (Using Selenium WebDriver) with the FluentLenium API
- * (https://github.com/Fluentlenium/FluentLenium).
+ * A test browser (Using Selenium WebDriver) with the Selenide API
+ * (https://github.com/selenide/selenide).
  */
-public class TestBrowser extends FluentAdapter {
+public class TestBrowser {
 
   /**
-   * A test browser (Using Selenium WebDriver) with the FluentLenium API
-   * (https://github.com/Fluentlenium/FluentLenium).
+   * A test browser (Using Selenium WebDriver) with the Selenide API
+   * (https://github.com/selenide/selenide).
    *
    * @param webDriver The WebDriver instance to use.
    * @param baseUrl The base url to use for relative requests.
@@ -28,15 +30,15 @@ public class TestBrowser extends FluentAdapter {
   }
 
   /**
-   * A test browser (Using Selenium WebDriver) with the FluentLenium API
-   * (https://github.com/Fluentlenium/FluentLenium).
+   * A test browser (Using Selenium WebDriver) with the Selenide API
+   * (https://github.com/selenide/selenide).
    *
    * @param webDriver The WebDriver instance to use.
    * @param baseUrl The base url to use for relative requests.
    */
   public TestBrowser(WebDriver webDriver, String baseUrl) {
-    super.initFluent(webDriver);
-    super.getConfiguration().setBaseUrl(baseUrl);
+    WebDriverRunner.setWebDriver(webDriver); // super.initFluent(webDriver);
+    Configuration.baseUrl = baseUrl; // super.getConfiguration().setBaseUrl(baseUrl);
   }
 
   /**
@@ -45,16 +47,13 @@ public class TestBrowser extends FluentAdapter {
    * @return the webdriver contained in a fluent wait.
    */
   public FluentWait<WebDriver> fluentWait() {
-    return new FluentWait<>(super.getDriver());
+    return new FluentWait<>(WebDriverRunner.getWebDriver());
   }
 
   /**
    * Repeatedly applies this instance's input value to the given function until one of the following
    * occurs: the function returns neither null nor false, the function throws an unignored
    * exception, the timeout expires
-   *
-   * <p>Useful in situations where FluentAdapter#await is too specific (for example to check against
-   * page source)
    *
    * @param <T> the return type
    * @param wait generic {@code FluentWait<WebDriver>} instance
@@ -75,9 +74,6 @@ public class TestBrowser extends FluentAdapter {
    *   <li>the default timeout expires
    * </ul>
    *
-   * useful in situations where FluentAdapter#await is too specific (for example to check against
-   * page source or title)
-   *
    * @param f function to execute
    * @param <T> the return type
    * @return the return value.
@@ -94,14 +90,15 @@ public class TestBrowser extends FluentAdapter {
    * @return the web driver options.
    */
   public WebDriver.Options manage() {
-    return super.getDriver().manage();
+    return WebDriverRunner.getWebDriver().manage();
   }
 
   /** Quits and releases the {@link WebDriver} */
   void quit() {
-    if (getDriver() != null) {
-      getDriver().quit();
+    final WebDriver driver = WebDriverRunner.getWebDriver();
+    if (driver != null) {
+      driver.quit();
     }
-    releaseFluent();
+    // releaseFluent();
   }
 }

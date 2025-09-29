@@ -36,7 +36,7 @@ An application can also be passed to the test server, which is useful for settin
 
 ## WithBrowser
 
-If you want to test your application using a browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium) using [`WithBrowser`](api/scala/play/api/test/WithBrowser.html).  Like [`WithServer`](api/scala/play/api/test/WithServer.html), you can change the port, [`Application`](api/scala/play/api/Application.html), and you can also select the web browser to use:
+If you want to test your application using a browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [Selenide](https://github.com/selenide/selenide) using [`WithBrowser`](api/scala/play/api/test/WithBrowser.html).  Like [`WithServer`](api/scala/play/api/test/WithServer.html), you can change the port, [`Application`](api/scala/play/api/Application.html), and you can also select the web browser to use:
 
 @[scalafunctionaltest-testwithbrowser](code/specs2/ScalaFunctionalTestSpec.scala)
 

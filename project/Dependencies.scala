@@ -259,10 +259,9 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val seleniumVersion = "4.14.1"
-  val htmlunitVersion = "4.13.0"
-
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
+    "com.codeborne"           % "selenide"         % "7.11.1",
+    "org.seleniumhq.selenium" % "htmlunit3-driver" % "4.36.0",
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
