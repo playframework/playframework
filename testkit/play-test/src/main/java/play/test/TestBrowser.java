@@ -4,7 +4,6 @@
 
 package play.test;
 
-import io.fluentlenium.adapter.FluentAdapter;
 import java.time.Duration;
 import java.util.function.Function;
 import org.openqa.selenium.WebDriver;
