@@ -459,6 +459,11 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap$"),
       // Remove unused, package-private method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.ahc.AhcWSClient.loggerFactory"),
+      // Replace FluentLenium with Selenide
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.test.TestBrowser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.TestBrowser.submit"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.test.TestBrowser"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.WithBrowser.browser"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
