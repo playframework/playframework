@@ -4,7 +4,6 @@
 
 package javaguide.tests;
 
-import static com.codeborne.selenide.Selenide.*;
 import static org.junit.Assert.*;
 
 import org.junit.*;
@@ -15,8 +14,8 @@ public class BrowserFunctionalTest extends WithBrowser {
 
   @Test
   public void runInBrowser() {
-    open("/");
-    assertNotNull($("title").text());
+    browser.goTo("/");
+    assertNotNull(browser.el("title").text());
   }
 }
 // #test-withbrowser

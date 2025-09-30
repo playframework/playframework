@@ -4,18 +4,16 @@
 
 package play.test;
 
-import static com.codeborne.selenide.Selenide.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Test;
 
 public class WithBrowserTest extends WithBrowser {
   @Test
   public void withBrowserShouldProvideABrowser() {
     assertNotNull(browser);
-    open("/"); // browser.goTo("/");
-    assertThat(WebDriverRunner.source()).contains("Action Not Found");
+    browser.goTo("/");
+    assertThat(browser.pageSource()).contains("Action Not Found");
   }
 }

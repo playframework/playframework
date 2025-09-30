@@ -14,9 +14,6 @@ import play.mvc.*;
 import play.test.*;
 import play.libs.ws.*;
 
-import static com.codeborne.selenide.Selenide.*;
-import com.codeborne.selenide.WebDriverRunner;
-
 import static play.test.Helpers.*;
 import static org.junit.Assert.*;
 
@@ -92,10 +89,10 @@ public class FunctionalTest extends WithApplication {
         testServer(),
         HTMLUNIT,
         browser -> {
-          open("/");
-          assertEquals("Welcome to Play!", $("#title").text());
-          $("a").click();
-          assertTrue(WebDriverRunner.url().endsWith("/login"));
+          browser.goTo("/");
+          assertEquals("Welcome to Play!", browser.el("#title").text());
+          browser.$("a").click();
+          assertEquals("login", browser.url());
         });
   }
   // #test-browser
