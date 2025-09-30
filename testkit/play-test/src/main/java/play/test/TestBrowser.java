@@ -4,8 +4,9 @@
 
 package play.test;
 
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.SelenideConfig;
+import com.codeborne.selenide.SelenideDriver;
+import com.codeborne.selenide.SelenideElement;
 import java.time.Duration;
 import java.util.function.Function;
 import org.openqa.selenium.WebDriver;
@@ -16,6 +17,8 @@ import org.openqa.selenium.support.ui.FluentWait;
  * (https://github.com/selenide/selenide).
  */
 public class TestBrowser {
+
+  private SelenideDriver driver;
 
   /**
    * A test browser (Using Selenium WebDriver) with the Selenide API
@@ -37,8 +40,38 @@ public class TestBrowser {
    * @param baseUrl The base url to use for relative requests.
    */
   public TestBrowser(WebDriver webDriver, String baseUrl) {
-    WebDriverRunner.setWebDriver(webDriver); // super.initFluent(webDriver);
-    Configuration.baseUrl = baseUrl; // super.getConfiguration().setBaseUrl(baseUrl);
+    SelenideConfig config = new SelenideConfig();
+    config.baseUrl(baseUrl);
+    driver = new SelenideDriver(config, webDriver, null);
+  }
+
+  public void open(String relativeOrAbsoluteUrl) {
+    driver.open(relativeOrAbsoluteUrl);
+  }
+
+  public void goTo(String relativeOrAbsoluteUrl) {
+    open(relativeOrAbsoluteUrl);
+  }
+
+  public String source() {
+    return driver.source();
+  }
+
+  public String pageSource() {
+    return source();
+  }
+
+  public SelenideElement el(String cssSelector) {
+    return driver.find(cssSelector);
+  }
+
+  public SelenideElement $(String cssSelector) {
+    return el(cssSelector);
+  }
+
+  public String url() {
+    // return the relative url
+    return driver.url().substring(driver.config().baseUrl().length() + 1);
   }
 
   /**
@@ -47,7 +80,7 @@ public class TestBrowser {
    * @return the webdriver contained in a fluent wait.
    */
   public FluentWait<WebDriver> fluentWait() {
-    return new FluentWait<>(WebDriverRunner.getWebDriver());
+    return new FluentWait<>(driver.getWebDriver());
   }
 
   /**
@@ -90,14 +123,15 @@ public class TestBrowser {
    * @return the web driver options.
    */
   public WebDriver.Options manage() {
-    return WebDriverRunner.getWebDriver().manage();
+    return driver.getWebDriver().manage();
   }
 
   /** Quits and releases the {@link WebDriver} */
   void quit() {
-    final WebDriver driver = WebDriverRunner.getWebDriver();
-    if (driver != null) {
-      driver.quit();
+    // TODO siehe dprecation comment in WebDriverRunner.closeWebDriver
+    final WebDriver webDriver = driver.getWebDriver();
+    if (webDriver != null) {
+      webDriver.quit();
     }
     // releaseFluent();
   }

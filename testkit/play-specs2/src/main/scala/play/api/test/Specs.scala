@@ -194,9 +194,9 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
 
   implicit def implicitApp: Application = app
   implicit def implicitPort: Port       = port
+  var browser: TestBrowser              = null // TODO not var! just temporary now. either def or private[test] setBaseUrl
 
   override def wrap[T: AsResult](t: => T): Result = {
-    var browser: TestBrowser = null
     try {
       val currentPort = port
       val result      = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>

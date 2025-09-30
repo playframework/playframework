@@ -8,8 +8,9 @@ import java.util.concurrent.TimeUnit
 
 import scala.jdk.FunctionConverters._
 
-import com.codeborne.selenide.Configuration
-import com.codeborne.selenide.WebDriverRunner
+import com.codeborne.selenide.SelenideConfig
+import com.codeborne.selenide.SelenideDriver
+import com.codeborne.selenide.SelenideElement
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
@@ -21,8 +22,30 @@ import org.openqa.selenium.support.ui.FluentWait
  * @param webDriver The WebDriver instance to use.
  */
 case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) {
-  WebDriverRunner.setWebDriver(webDriver);                    // super.initFluent(webDriver)
-  baseUrl.foreach(baseUrl => Configuration.baseUrl = baseUrl) // super.getConfiguration.setBaseUrl(baseUrl))
+  private val config = new SelenideConfig()
+  baseUrl.foreach(baseUrl => config.baseUrl(baseUrl))
+  private val driver = new SelenideDriver(config, webDriver, null)
+
+  def open(relativeOrAbsoluteUrl: String): Unit = {
+    driver.open(relativeOrAbsoluteUrl)
+  }
+
+  def goTo(relativeOrAbsoluteUrl: String): Unit = {
+    open(relativeOrAbsoluteUrl)
+  }
+
+  def source: String = driver.source
+
+  def pageSource: String = source
+
+  def el(cssSelector: String): SelenideElement = driver.find(cssSelector)
+
+  def $(cssSelector: String): SelenideElement = el(cssSelector)
+
+  def url: String = {
+    // return the relative url
+    driver.url().substring(driver.config().baseUrl().length + 1)
+  }
 
   /**
    * Repeatedly applies this instance's input value to the given block until one of the following occurs:
@@ -69,10 +92,10 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) {
    * retrieves the underlying option interface that can be used
    * to set cookies, manage timeouts among other things
    */
-  def manage: WebDriver.Options = WebDriverRunner.getWebDriver().manage
+  def manage: WebDriver.Options = driver.getWebDriver().manage
 
   def quit(): Unit = {
-    Option(WebDriverRunner.getWebDriver()).foreach(_.quit())
+    Option(driver.getWebDriver()).foreach(_.quit())
     // releaseFluent()
   }
 }
