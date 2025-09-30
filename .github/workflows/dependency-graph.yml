@@ -16,6 +16,8 @@ jobs:
   dependency-graph:
     name: Submit dependencies to GitHub
     runs-on: ubuntu-latest
+    env:
+      SBT_OPTS: "-Xmx2G"
     steps:
       - uses: actions/checkout@v5
         with:
