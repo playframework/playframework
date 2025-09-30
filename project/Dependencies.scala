@@ -61,7 +61,7 @@ object Dependencies {
 
   val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
-  val h2database = "com.h2database" % "h2" % "2.3.232"
+  val h2database = "com.h2database" % "h2" % "2.4.240"
 
   val derbyVersion  = "10.16.1.1"
   val derbyDatabase = Seq(
