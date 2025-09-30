@@ -25,7 +25,7 @@ scalaVersion := "2.11.12"
 For Scala 2.13:
 
 ```scala
-scalaVersion := "2.13.16"
+scalaVersion := "2.13.17"
 ```
 
 ## Lifecycle managed by Akka's Coordinated Shutdown
