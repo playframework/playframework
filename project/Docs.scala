@@ -66,9 +66,9 @@ object Docs {
       val docBase     = baseDirectory.value / "../../documentation"
       val raw         = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
       val filtered    = raw.filter(_.getName != ".DS_Store")
-      val docMappings = filtered.get.pair(rebase(docBase, "play/docs/content/"))
+      val docMappings = filtered.get().pair(rebase(docBase, "play/docs/content/"))
 
-      val apiDocMappings = (apiBase ** "*").get.pair(rebase(apiBase, "play/docs/content/api"))
+      val apiDocMappings = (apiBase ** "*").get().pair(rebase(apiBase, "play/docs/content/api"))
 
       // The play version is added so that resource paths are versioned
       val webjarMappings = webjars.allPaths.pair(rebase(webjars, "play/docs/content/webjars/" + version.value))
@@ -92,7 +92,7 @@ object Docs {
       val docBase     = base / "documentation"
       val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
       val filtered    = raw.filter(_.getName != ".DS_Store")
-      val docMappings = filtered.get.pair(relativeTo(docBase))
+      val docMappings = filtered.get().pair(relativeTo(docBase))
 
       // The play version is added so that resource paths are versioned
       val webjars        = extractWebjars.value
@@ -233,7 +233,7 @@ object Docs {
     // Maps to Javadoc references in Scaladoc, and fixes the link so that it uses query parameters in
     // Javadoc style to link directly to the referenced class.
     // https://stackoverflow.com/questions/16934488/how-to-link-classes-from-jdk-into-scaladoc-generated-doc/
-    (apiTarget ** "*.html").get.filter(hasJavadocLink).foreach { f =>
+    (apiTarget ** "*.html").get().filter(hasJavadocLink).foreach { f =>
       val newContent: String = externalJavadocLinks.foldLeft(IO.read(f)) {
         case (oldContent: String, javadocURL: String) =>
           javadocLinkRegex(javadocURL).replaceAllIn(oldContent, fixJavaLinks)
