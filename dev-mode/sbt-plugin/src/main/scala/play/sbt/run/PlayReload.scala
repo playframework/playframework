@@ -120,7 +120,7 @@ object PlayReload {
                 )
                 .getOrElse(problem)
             )
-            .map(CompilationException)
+            .map(CompilationException.apply)
             .getOrElse(UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e)))
         case NonFatal(e) => UnexpectedException(unexpected = Some(e))
       }
@@ -142,8 +142,8 @@ object PlayReload {
       scope: Scope
   )(implicit fc: FileConverter): CompileResult = {
     val compileResult: Either[Incomplete, CompileSuccess] = for {
-      analysis  <- reloadCompile().toEither.right
-      classpath <- classpath().toEither.right
+      analysis  <- reloadCompile().toEither
+      classpath <- classpath().toEither
     } yield new CompileSuccess(sourceMap(analysis).asJava, getFiles(classpath).asJava)
     compileResult.left.map(inc => new CompileFailure(taskFailureHandler(inc, streams(), state, scope))).merge
   }
