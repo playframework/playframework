@@ -105,7 +105,7 @@ object PlayRun {
               .runTask(scope / reloaderClasspath, newState.put(WebKeys.disableExportedProducts, true))
               .map(_._2)
               .get,
-          () => PluginCompat.runTask(scope / streamsManager, newState).map(_._2).get.toEither.right.toOption,
+          () => PluginCompat.runTask(scope / streamsManager, newState).map(_._2).get.toEither.toOption,
           newState,
           scope
         )
@@ -242,7 +242,7 @@ object PlayRun {
           val isWin = System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win")
           if (isWin) s"$path.bat" else path
         }
-        val javaOpts = PluginCompat.runTask(Production / javaOptions, state).get._2.toEither.right.getOrElse(Nil)
+        val javaOpts = PluginCompat.runTask(Production / javaOptions, state).get._2.toEither.getOrElse(Nil)
 
         // Note that I'm unable to pass system properties along with properties... if I do then I receive:
         //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
