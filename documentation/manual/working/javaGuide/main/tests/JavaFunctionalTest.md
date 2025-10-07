@@ -68,7 +68,7 @@ Just as there exists a `WithApplication` class, there is also a [`WithServer`](a
 
 ## Testing with a browser
 
-If you want to test your application from with a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
+If you want to test your application from with a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [Selenide](https://github.com/selenide/selenide).
 
 @[test-browser](code/javaguide/tests/FunctionalTest.java)
 

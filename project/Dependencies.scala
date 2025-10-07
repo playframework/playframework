@@ -259,31 +259,9 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val fluentleniumVersion = "6.0.0"
-  // This is the selenium version compatible with the FluentLenium version declared above.
-  // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.14.1"
-  val htmlunitVersion = "4.13.0"
-
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
-    ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion)
-      .exclude("org.jboss.netty", "netty")
-      .excludeAll(ExclusionRule("commons-beanutils", "commons-beanutils")) // comes with CVE-2025-48734
-      .excludeAll(ExclusionRule("commons-io", "commons-io")),              // comes with outdated commons-io
-    // htmlunit-driver uses an open range to selenium dependencies. This is slightly
-    // slowing down the build. So the open range deps were removed and we can re-add
-    // them using a specific version. Using an open range is also not good for the
-    // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % htmlunitVersion).excludeAll(
-      ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
-      ExclusionRule("org.seleniumhq.selenium", "selenium-support"),
-      ExclusionRule("commons-io", "commons-io") // comes with outdated commons-io
-    ),
-    "commons-beanutils"       % "commons-beanutils"       % "1.11.0", // explicitly bump for fluentlenium and htmlunit to fix CVE-2025-48734
-    "commons-io"              % "commons-io"              % "2.20.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
-    "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
-    "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
-    "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
+    "com.codeborne"           % "selenide"         % "7.11.1",
+    "org.seleniumhq.selenium" % "htmlunit3-driver" % "4.36.0",
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
