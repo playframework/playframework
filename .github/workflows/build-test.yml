@@ -1,11 +1,12 @@
 name: Check
 
 on:
-  pull_request: # Check Pull Requests
+#  pull_request: # Check Pull Requests
 
   push:
     branches:
       - main # Check branch after merge
+      - test
 
   schedule:
     - cron: "0 4 * * *" # Nightly build (@daily)
@@ -40,7 +41,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -63,13 +64,14 @@ jobs:
       - "extra-vars"
       - "prefetch-for-caching"
       - "gradle-validation"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
       cmd: |
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
         cd dev-mode/gradle-plugin
         ./gradlew clean spotlessCheck --no-daemon
       gradle-build-root: dev-mode/gradle-plugin
+      gradle-cache-read-only: true
 
   check-binary-compatibility:
     name: Binary Compatibility
@@ -79,7 +81,7 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
       cmd: |
         cd documentation
@@ -92,13 +94,14 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    strategy:
+      matrix:
+        java: [ 21, 17 ]
+        exclude:
+          - java: "${{ github.event_name == 'schedule' || '21' }}"
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
-      java: 21, 17
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
+      java: ${{ matrix.java }}
       cmd: |
         rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal +publishM2
@@ -115,71 +118,69 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    strategy:
+      matrix:
+        java: [ 21, 17 ]
+        scala: [ 2.13.x, 3.x ]
+        sbt_test_task: [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true" ]
+        exclude:
+          - java: "${{ github.event_name == 'schedule' || '21' }}"
+          - sbt_test_task: "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}"
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
-      java: 21, 17
-      scala: 2.13.x, 3.x
-      add-dimensions: >-
-        {
-          "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true" ]
-        }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}" }
-        ]
+      java: ${{ matrix.java }}
       cmd: >-
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$(eval "echo $MATRIX_SBT_TEST_TASK")"
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++${{ matrix.scala }} "$(eval "echo $MATRIX_SBT_TEST_TASK")"
 
   docs-tests:
     name: Docs Tests
     if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-docs-tests')"
+    strategy:
+      matrix:
+        java: [ 21, 17 ]
+        scala: [ 2.13.x, 3.x ]
+        exclude:
+          - java: "${{ github.event_name == 'schedule' || '21' }}"
     needs:
       - "extra-vars"
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
-      java: 21, 17
-      scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
+      java: ${{ matrix.java }}
       cmd: >-
-        cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
+        cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++${{ matrix.scala }} test
 
   scripted-tests:
     name: Scripted Tests
-    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-scripted-tests')"
+#    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-scripted-tests')"
+    if: false
+    strategy:
+      matrix:
+        java: [ 21, 17 ]
+        scala: [ 2.13.x, 3.x ]
+        sbt: [ "1.11.6" ]
+        sbt_steps: [ "*1of3", "*2of3", "*3of3" ]
+        exclude:
+          - java: "${{ github.event_name == 'schedule' || '21' }}"
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
-      java: 21, 17
-      scala: 2.13.x, 3.x
-      add-dimensions: >-
-        {
-          "sbt": [ "1.11.6" ],
-          "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
-        }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
+      java: ${{ matrix.java }}
       cmd: >-
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
-          set scriptedSbt := \"$MATRIX_SBT\";
-          set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
+          set scriptedSbt := \"${{ matrix.sbt }}\";
+          set scriptedLaunchOpts += \"-Dscala.version=${{ matrix.scala }}\";
           set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
           show scriptedSbt;
           show scriptedLaunchOpts;
           disableIncompatibleScriptedTests;
-          scripted play-sbt-plugin/$MATRIX_SBT_STEPS
+          scripted play-sbt-plugin/${{ matrix.sbt_steps }}
         "
       cache-path: |
         ~/.ivy2/local/org.playframework
@@ -188,21 +189,23 @@ jobs:
 
   gradle-plugin-tests:
     name: Gradle Plugin Tests
+    strategy:
+      matrix:
+        java: [ 21, 17 ]
+        scala: [ 2.13.x, 3.x ]
+        exclude:
+          - java: "${{ github.event_name == 'schedule' || '21' }}"
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: ihostage/.github-play/.github/workflows/cmd.yml@matrix
     with:
-      java: 21, 17
-      scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
+      java: ${{ matrix.java }}
       cmd: |
         sbt savePlayVersion
         cd dev-mode/gradle-plugin
-        ./gradlew clean check -x spotlessCheck --no-daemon -Pscala.version="$MATRIX_SCALA"
+        ./gradlew clean check -x spotlessCheck --no-daemon -Pscala.version="${{ matrix.scala }}"
+        find ~/.gradle/caches -name "*play*.jar"
       gradle-build-root: dev-mode/gradle-plugin
       cache-path: |
         ~/.ivy2/local/org.playframework
