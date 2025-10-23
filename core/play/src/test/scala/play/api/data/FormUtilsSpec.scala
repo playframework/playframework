@@ -57,10 +57,13 @@ class FormUtilsSpec extends Specification {
 
     "not stack overflow when converting heavily nested arrays" in {
       try {
+        System.setProperty("play.json.parser.maxNestingDepth", "10001")
         FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000, 30000)
       } catch {
         case e: StackOverflowError =>
           ko("StackOverflowError thrown")
+      } finally {
+        System.clearProperty("play.json.parser.maxNestingDepth")
       }
       ok
     }

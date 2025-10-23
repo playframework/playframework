@@ -31,7 +31,7 @@ class JavaCSRFActionSpec extends CSRFCommonSpecs {
   def javaHandlerComponents(implicit app: Application) = inject[JavaHandlerComponents]
   def myAction(implicit app: Application)              = inject[JavaCSRFActionSpec.MyAction]
 
-  def javaAction[T: ClassTag](method: String, inv: JRequest => Result)(implicit app: Application) =
+  def javaAction[T: ClassTag](method: String, inv: JRequest => Result)(implicit app: Application): JavaAction =
     new JavaAction(javaHandlerComponents) {
       val clazz                                              = implicitly[ClassTag[T]].runtimeClass
       def parser                                             = HandlerInvokerFactory.javaBodyParserToScala(javaHandlerComponents.getBodyParser(annotations.parser))

@@ -13,11 +13,11 @@ object Dependencies {
 
   val sslConfig = "com.typesafe" %% "ssl-config-core" % "0.6.1"
 
-  val playJsonVersion = "3.0.5"
+  val playJsonVersion = "3.0.6"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.19"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.20"
 
-  val bytebuddyVersion = "1.17.7"
+  val bytebuddyVersion = "1.17.8"
   val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
   val bytebuddyAgent   = "net.bytebuddy" % "byte-buddy-agent" % bytebuddyVersion
 
@@ -181,7 +181,7 @@ object Dependencies {
   val nettyVersion = "4.1.128.Final"
 
   val netty = Seq(
-    "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.5",
+    "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.6",
     "io.netty"                % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"                % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
     // Provide various Linux native transport dependencies. Netty automatically loads the correct native library
@@ -308,7 +308,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "3.0.8"
+  val playWsStandaloneVersion = "3.0.9"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
