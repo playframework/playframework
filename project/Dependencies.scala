@@ -29,11 +29,11 @@ object Dependencies {
   val sslConfigCoreVersion = "0.6.1"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
-  val playJsonVersion = "2.10.7"
+  val playJsonVersion = "2.10.8"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.19"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.20"
 
-  val bytebuddyVersion = "1.17.7"
+  val bytebuddyVersion = "1.17.8"
   val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
   val bytebuddyAgent   = "net.bytebuddy" % "byte-buddy-agent" % bytebuddyVersion
 
@@ -201,7 +201,7 @@ object Dependencies {
   val nettyVersion = "4.1.128.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.15",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.16",
     "io.netty"           % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"           % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
     // Provide various Linux native transport dependencies. Netty automatically loads the correct native library
@@ -334,7 +334,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.12"
+  val playWsStandaloneVersion = "2.2.13"
   val playWsDeps              = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
