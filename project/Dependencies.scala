@@ -26,7 +26,7 @@ object Dependencies {
   val akkaVersion: String = sys.props.getOrElse("akka.version", "2.6.21")
   val akkaHttpVersion     = sys.props.getOrElse("akka.http.version", "10.2.10")
 
-  val sslConfigCoreVersion = "0.6.1"
+  val sslConfigCoreVersion = "0.7.0"
   val sslConfig            = "com.typesafe" %% "ssl-config-core" % sslConfigCoreVersion
 
   val playJsonVersion = "2.10.7"
