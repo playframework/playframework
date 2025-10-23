@@ -91,8 +91,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.1.2.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.1.2.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.1.4.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.1.4.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
