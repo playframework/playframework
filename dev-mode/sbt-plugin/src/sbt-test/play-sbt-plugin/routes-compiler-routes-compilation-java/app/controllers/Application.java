@@ -47,7 +47,11 @@ public class Application extends Controller {
   }
 
   public Result onlyRequestParam(Request request) {
-    return ok();
+    return ok(request.uri());
+  }
+
+  public Result notFirstRequestParam(String a, Request request) {
+    return ok(request.path() + "#" + a);
   }
 
   public Result multiParams(
