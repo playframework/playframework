@@ -459,6 +459,12 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap$"),
       // Remove unused, package-private method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.ahc.AhcWSClient.loggerFactory"),
+      // Actually following classes / traits / objects still exists, but were moved from play-java to play
+      // Therefore MiMa complains about missing them in play-java
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperComponents"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperModule"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperProvider"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperProvider$"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
