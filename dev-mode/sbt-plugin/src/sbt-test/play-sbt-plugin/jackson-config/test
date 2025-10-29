@@ -1,0 +1,21 @@
+# Make sure the files do not exist yet
+-$ exists play-java_injected-mapper.json
+-$ exists play-java_play-libs-mapper.json
+-$ exists play-scala_injected-mapper.json
+-$ exists play-scala_play-libs-mapper.json
+###
+> play-java/run
+> makeRequest / 200
+> play-java/playStop
+$ exists play-java_injected-mapper.json
+$ exists play-java_play-libs-mapper.json
+> checkLines expected.json play-java_injected-mapper.json
+> checkLines expected.json play-java_play-libs-mapper.json
+###
+> play-scala/run
+> makeRequest / 200
+> play-scala/playStop
+$ exists play-scala_injected-mapper.json
+$ exists play-scala_play-libs-mapper.json
+> checkLines expected.json play-scala_injected-mapper.json
+> checkLines expected.json play-scala_play-libs-mapper.json
