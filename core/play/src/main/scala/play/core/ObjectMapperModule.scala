@@ -42,7 +42,6 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSyst
       JacksonObjectMapperProvider
         .get(actorSystem)
         .getOrCreate(ObjectMapperProvider.BINDING_NAME, Option.empty)
-    mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.PUBLIC_ONLY)
     if (staticObjectMapperInitialized.compareAndSet(false, true)) {
       Json.setObjectMapper(mapper)
 

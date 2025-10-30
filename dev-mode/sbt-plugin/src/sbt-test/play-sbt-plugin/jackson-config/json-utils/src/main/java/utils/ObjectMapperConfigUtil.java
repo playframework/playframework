@@ -17,6 +17,9 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
+import com.fasterxml.jackson.databind.introspect.VisibilityChecker.Std;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -83,6 +86,8 @@ public final class ObjectMapperConfigUtil {
         root.put("subtypeResolver", classOrNull(mapper.getSubtypeResolver()));
         root.put("polymorphicTypeValidator", classOrNull(mapper.getPolymorphicTypeValidator()));
 
+        root.set("visibilityDefaults", buildVisibilityDefaults(mapper));
+
         return root;
     }
 
@@ -98,5 +103,53 @@ public final class ObjectMapperConfigUtil {
 
     private static String classOrNull(Object o) {
         return o == null ? null : o.getClass().getName();
+    }
+
+    private static ObjectNode buildVisibilityDefaults(ObjectMapper mapper) {
+        final ObjectNode out = mapper.createObjectNode();
+        out.set("serialization", visibilityToJson(mapper, mapper.getSerializationConfig().getDefaultVisibilityChecker()));
+        out.set("deserialization", visibilityToJson(mapper, mapper.getDeserializationConfig().getDefaultVisibilityChecker()));
+        return out;
+    }
+
+    private static ObjectNode visibilityToJson(ObjectMapper mapper, VisibilityChecker<?> vc) {
+        ObjectNode node = mapper.createObjectNode();
+        node.put("FIELD",       detectVisibilityLevel(vc, "FIELD"));
+        node.put("GETTER",      detectVisibilityLevel(vc, "GETTER"));
+        node.put("IS_GETTER",   detectVisibilityLevel(vc, "IS_GETTER"));
+        node.put("SETTER",      detectVisibilityLevel(vc, "SETTER"));
+        node.put("CREATOR",     detectVisibilityLevel(vc, "CREATOR"));
+        node.put("_implClass",  vc.getClass().getName()); // helpful breadcrumb
+        return node;
+    }
+
+    /** Read the enum for a given accessor from VisibilityChecker via reflection. */
+    private static String detectVisibilityLevel(VisibilityChecker<?> vc, String kind) {
+        if (vc instanceof Std) {
+            String candidate = switch (kind) {
+                case "FIELD"     -> "_fieldMinLevel";
+                case "GETTER"    -> "_getterMinLevel";
+                case "IS_GETTER" -> "_isGetterMinLevel";
+                case "SETTER"    -> "_setterMinLevel";
+                case "CREATOR"   -> "_creatorMinLevel";
+                default -> null;
+            };
+            JsonAutoDetect.Visibility v = (JsonAutoDetect.Visibility) tryReadFieldEnum(vc, candidate, JsonAutoDetect.Visibility.class);
+            if (v != null) return v.name();
+        }
+        return "UNKNOWN";
+    }
+
+    private static Object tryReadFieldEnum(Object target, String fieldName, Class<?> enumType) {
+        try {
+            var fld = target.getClass().getDeclaredField(fieldName);
+            fld.setAccessible(true);
+            Object val = fld.get(target);
+            if (val != null && enumType.isInstance(val)) return val;
+        } catch (NoSuchFieldException ignored) {
+        } catch (Throwable t) {
+            // Any other reflection issue: keep trying other names
+        }
+        return null;
     }
 }
