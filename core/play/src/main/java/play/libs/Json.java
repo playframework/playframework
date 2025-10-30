@@ -12,9 +12,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import org.apache.pekko.serialization.jackson.PekkoJacksonModule;
-import org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule;
-import org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule;
 
 /** Helper functions to handle JsonNode values. */
 public class Json {

@@ -18,6 +18,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.config.ConfigFactory
+import org.apache.pekko.serialization.jackson.PekkoJacksonModule
+import org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule
+import org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule
 import play.api.libs.json.jackson.JacksonJson
 import play.api.libs.json.JsValue
 import play.api.libs.json.JsonConfig
@@ -74,10 +77,19 @@ private[play] class Json(config: Configuration) {
     factory.setStreamWriteConstraints(streamWriteConstraints)
     JsonMapper
       .builder(factory)
-      .addModules(new Jdk8Module, new JavaTimeModule, new ParameterNamesModule, DefaultScalaModule)
+      .addModules(
+        new PekkoJacksonModule,
+        new PekkoTypedJacksonModule,
+        new PekkoStreamJacksonModule,
+        new ParameterNamesModule,
+        new Jdk8Module,
+        new JavaTimeModule,
+        new DefaultScalaModule
+      )
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
       .disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
+      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
       .build()
   }
 }
