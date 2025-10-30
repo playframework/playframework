@@ -25,6 +25,7 @@ public class HomeController extends Controller {
     public Result index() throws IOException {
         mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_injected-mapper.json"), ObjectMapperConfigUtil.toConfigJson(mapper));
         mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_play-libs-mapper.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.Json.mapper()));
+        mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_play-libs-newDefaultMapper.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.Json.newDefaultMapper()));
         return ok();
     }
 

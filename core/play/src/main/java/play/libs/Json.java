@@ -18,6 +18,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.fasterxml.jackson.module.scala.DefaultScalaModule;
 import java.io.IOException;
+import org.apache.pekko.serialization.jackson.PekkoJacksonModule;
+import org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule;
+import org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule;
 
 /** Helper functions to handle JsonNode values. */
 public class Json {
@@ -34,13 +37,17 @@ public class Json {
   public static ObjectMapper newDefaultMapper() {
     return JsonMapper.builder()
         .addModules(
+            new PekkoJacksonModule(),
+            new PekkoTypedJacksonModule(),
+            new PekkoStreamJacksonModule(),
+            new ParameterNamesModule(),
             new Jdk8Module(),
             new JavaTimeModule(),
-            new ParameterNamesModule(),
             new DefaultScalaModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
         .configure(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS, false)
+        .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
         .build();
   }
 
