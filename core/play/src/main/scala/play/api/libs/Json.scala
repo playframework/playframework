@@ -39,7 +39,7 @@ private[play] class Json(config: Configuration) {
     .maxNestingDepth(config.get[Int]("play.json.read.max-nesting-depth"))
     .maxStringLength(config.get[Int]("play.json.read.max-string-length"))
     .maxNameLength(config.get[Int]("play.json.read.max-name-length"))
-    .maxNumberLength(Int.MaxValue) // play-json uses BigDecimalParseConfig instead
+    .maxNumberLength(1000) // play-json uses BigDecimalParseConfig instead
     .build()
   private val streamWriteConstraints = StreamWriteConstraints
     .builder()
