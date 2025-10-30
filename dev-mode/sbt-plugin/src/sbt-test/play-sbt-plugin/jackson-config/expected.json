@@ -172,5 +172,23 @@
   "mixInCountSerialization" : 0,
   "mixInCountDeserialization" : 0,
   "subtypeResolver" : "com.fasterxml.jackson.databind.jsontype.impl.StdSubtypeResolver",
-  "polymorphicTypeValidator" : "com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator"
+  "polymorphicTypeValidator" : "com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator",
+  "visibilityDefaults" : {
+    "serialization" : {
+      "FIELD" : "PUBLIC_ONLY",
+      "GETTER" : "PUBLIC_ONLY",
+      "IS_GETTER" : "PUBLIC_ONLY",
+      "SETTER" : "ANY",
+      "CREATOR" : "ANY",
+      "_implClass" : "com.fasterxml.jackson.databind.introspect.VisibilityChecker$Std"
+    },
+    "deserialization" : {
+      "FIELD" : "PUBLIC_ONLY",
+      "GETTER" : "PUBLIC_ONLY",
+      "IS_GETTER" : "PUBLIC_ONLY",
+      "SETTER" : "ANY",
+      "CREATOR" : "ANY",
+      "_implClass" : "com.fasterxml.jackson.databind.introspect.VisibilityChecker$Std"
+    }
+  }
 }
