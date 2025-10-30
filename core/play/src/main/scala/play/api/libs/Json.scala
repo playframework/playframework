@@ -49,7 +49,8 @@ private[play] class Json(config: Configuration) {
     val jsonConfig = JsonConfig(
       JsonConfig.settings.bigDecimalParseConfig,
       JsonConfig.settings.bigDecimalSerializerConfig,
-      streamReadConstraints
+      streamReadConstraints,
+      streamWriteConstraints,
     )
     // JacksonJson companion object is less visible than the JacksonJson class
     // so we need to use the constructor directly here.
