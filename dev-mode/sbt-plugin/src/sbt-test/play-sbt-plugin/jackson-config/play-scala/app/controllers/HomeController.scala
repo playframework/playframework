@@ -19,6 +19,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents, v
   def index(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_injected-mapper.json"), ObjectMapperConfigUtil.toConfigJson(mapper))
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_play-libs-mapper.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.Json.mapper()))
+    mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_play-libs-newDefaultMapper.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.Json.newDefaultMapper()));
     Results.Ok
   }
 }
