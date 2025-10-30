@@ -181,6 +181,17 @@
       "WRITE_NUMBERS_AS_STRINGS" : false,
       "ESCAPE_FORWARD_SLASHES" : false,
       "COMBINE_UNICODE_SURROGATES_IN_UTF8" : false
+    },
+    "streamReadConstraints" : {
+      "maxStringLength" : 20000000,
+      "maxNumberLength" : 1000,
+      "maxNestingDepth" : 1000,
+      "maxNameLength" : 50000,
+      "maxDocumentLength" : -1,
+      "maxTokenCount" : -1
+    },
+    "streamWriteConstraints" : {
+      "maxNestingDepth" : 1000
     }
   },
   "annotationIntrospectors" : {

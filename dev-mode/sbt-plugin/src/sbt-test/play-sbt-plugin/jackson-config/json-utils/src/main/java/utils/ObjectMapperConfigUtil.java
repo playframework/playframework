@@ -6,6 +6,8 @@ package utils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.StreamReadConstraints;
+import com.fasterxml.jackson.core.StreamWriteConstraints;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -72,6 +74,21 @@ public final class ObjectMapperConfigUtil {
                 f -> mapper.getFactory().isEnabled(f.mappedFeature())));
         core.set("jsonWriteFeatures", enumFlagsToObject(mapper, JsonWriteFeature.values(),
                 f -> mapper.getFactory().isEnabled(f.mappedFeature())));
+
+        // Stream constraints (read)
+        StreamReadConstraints rc = mapper.getFactory().streamReadConstraints();
+        ObjectNode readC = core.putObject("streamReadConstraints");
+        readC.put("maxStringLength", rc.getMaxStringLength());
+        readC.put("maxNumberLength", rc.getMaxNumberLength());
+        readC.put("maxNestingDepth", rc.getMaxNestingDepth());
+        readC.put("maxNameLength", rc.getMaxNameLength());
+        readC.put("maxDocumentLength", rc.getMaxDocumentLength());
+        readC.put("maxTokenCount", rc.getMaxTokenCount());
+
+        // Stream constraints (write)
+        StreamWriteConstraints wc = mapper.getFactory().streamWriteConstraints();
+        ObjectNode writeC = core.putObject("streamWriteConstraints");
+        writeC.put("maxNestingDepth", wc.getMaxNestingDepth());
 
         // Annotation introspectors (names only)
         ObjectNode ai = root.putObject("annotationIntrospectors");
