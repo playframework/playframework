@@ -25,6 +25,7 @@ lazy val `play-scala` = (project in file("play-scala"))
   .dependsOn(`json-utils`)
   .settings(
     libraryDependencies += guice,
+    libraryDependencies += ws,
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   )
@@ -34,6 +35,7 @@ lazy val `play-java` = (project in file("play-java"))
   .dependsOn(`json-utils`)
   .settings(
     libraryDependencies += guice,
+    libraryDependencies += javaWs,
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   )

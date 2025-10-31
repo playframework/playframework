@@ -3,10 +3,12 @@
 -$ exists play-java_play-libs-mapper.json
 -$ exists play-java_play-libs-newDefaultMapper.json
 -$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
 -$ exists play-scala_injected-mapper.json
 -$ exists play-scala_play-libs-mapper.json
 -$ exists play-scala_play-libs-newDefaultMapper.json
 -$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
 ###
 > play-java/run
 > makeRequest / 200
@@ -15,10 +17,12 @@ $ exists play-java_injected-mapper.json
 $ exists play-java_play-libs-mapper.json
 $ exists play-java_play-libs-newDefaultMapper.json
 $ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
 > equals expected.json play-java_injected-mapper.json
 > equals expected.json play-java_play-libs-mapper.json
 > equals expected.json play-java_play-libs-newDefaultMapper.json
 > equals expected.json play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals expected.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
 ###
 > play-scala/run
 > makeRequest / 200
@@ -27,7 +31,9 @@ $ exists play-scala_injected-mapper.json
 $ exists play-scala_play-libs-mapper.json
 $ exists play-scala_play-libs-newDefaultMapper.json
 $ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
 > equals expected.json play-scala_injected-mapper.json
 > equals expected.json play-scala_play-libs-mapper.json
 > equals expected.json play-scala_play-libs-newDefaultMapper.json
 > equals expected.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals expected.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
