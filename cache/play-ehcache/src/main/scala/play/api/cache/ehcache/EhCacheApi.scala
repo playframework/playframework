@@ -187,19 +187,24 @@ private[play] case class EhCacheExistsException(msg: String, cause: Throwable) e
 class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Unit = {
     val element = new Element(key, value)
+    var doCache = true
     expiration match {
       case infinite: Duration.Infinite => element.setEternal(true)
       case finite: FiniteDuration      =>
         val seconds = finite.toSeconds
         if (seconds <= 0) {
-          element.setTimeToLive(1)
+          // We don't even put the element in the cache, why should we?
+          // Obviously someone wants to put something in the cache for 0 (or less) seconds...
+          doCache = false
         } else if (seconds > Int.MaxValue) {
           element.setTimeToLive(Int.MaxValue)
         } else {
           element.setTimeToLive(seconds.toInt)
         }
     }
-    cache.put(element)
+    if (doCache) {
+      cache.put(element)
+    }
     Done
   }
 
