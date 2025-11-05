@@ -11,6 +11,7 @@ import java.util.OptionalInt
 
 import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -37,6 +38,11 @@ class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
     "respect the custom configuration" in new JsonScope {
       Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beTrue
     }
+    "respect defaults" in new JsonScope {
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
+    }
   }
 }
 
@@ -49,12 +55,25 @@ class ApplicationJavaJsonSpec extends JavaJsonSpec {
       Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
       Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
     }
+    "respect defaults" in new JsonScope {
+      Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
+    }
   }
 }
 
 // Classic static `ObjectMapper` from play.libs.Json
 class StaticJavaJsonSpec extends JavaJsonSpec {
   override val createObjectMapper: ObjectMapper = Json.mapper()
+
+  "ObjectMapper" should {
+    "respect defaults" in new JsonScope {
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
+    }
+  }
 }
 
 trait JavaJsonSpec extends Specification {
