@@ -9,9 +9,9 @@ lazy val root = (project in file("."))
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     InputKey[Unit]("makeRequest") := {
-      val args                = Def.spaceDelimited("<path> <status> ...").parsed
-      val path :: status :: _ = args
-      ScriptedTools.verifyResourceContains(path, status.toInt, Seq.empty)
+      val args                          = Def.spaceDelimited("<path> <status> <words> ...").parsed
+      val path :: status :: assertions = args
+      ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     },
     InputKey[Unit]("equals") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed

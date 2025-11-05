@@ -9,7 +9,7 @@
 -$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
 ###
 > play-java/run
-> makeRequest / 200
+> makeRequest / 200 same-mapper-reference=true
 > play-java/playStop
 $ exists play-java_injected-mapper.json
 $ exists play-java_play-libs-mapper.json
@@ -21,7 +21,7 @@ $ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
 > equals expected.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
 ###
 > play-scala/run
-> makeRequest / 200
+> makeRequest / 200 same-mapper-reference=true
 > play-scala/playStop
 $ exists play-scala_injected-mapper.json
 $ exists play-scala_play-libs-mapper.json
