@@ -15,7 +15,6 @@ import java.io.IOException;
 
 /** Helper functions to handle JsonNode values. */
 public class Json {
-  private static volatile ObjectMapper objectMapper = null;
 
   /**
    * Gets the ObjectMapper used to serialize and deserialize objects to and from JSON values.
@@ -25,11 +24,7 @@ public class Json {
    * @return the ObjectMapper currently being used
    */
   public static ObjectMapper mapper() {
-    if (objectMapper == null) {
-      return play.api.libs.json.jackson.JacksonJson$.MODULE$.get().mapper();
-    } else {
-      return objectMapper;
-    }
+    return play.api.libs.json.jackson.JacksonJson$.MODULE$.get().mapper();
   }
 
   private static String generateJson(Object o, boolean prettyPrint, boolean escapeNonASCII) {
@@ -176,6 +171,6 @@ public class Json {
    * @param mapper the object mapper.
    */
   public static void setObjectMapper(ObjectMapper mapper) {
-    objectMapper = mapper;
+    play.api.libs.json.jackson.JacksonJson$.MODULE$.get().setObjectMapper(mapper);
   }
 }
