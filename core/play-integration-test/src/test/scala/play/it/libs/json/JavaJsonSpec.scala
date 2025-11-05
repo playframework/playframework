@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import org.specs2.mutable.Specification
+import org.specs2.specification.BeforeAfterAll
 import org.specs2.specification.Scope
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Request
@@ -26,12 +27,12 @@ import play.mvc.Http.RequestBody
 
 // Use an `ObjectMapper` which overrides some defaults
 class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
-  override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder()
+  lazy val app = GuiceApplicationBuilder()
     // should be able to use `.play.` namespace to override configurations
     // for this `ObjectMapper`.
     .configure("pekko.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
     .build()
-    .injector
+  override val createObjectMapper: ObjectMapper = app.injector
     .instanceOf[ObjectMapper]
 
   "ObjectMapper" should {
@@ -43,6 +44,10 @@ class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
       Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
       Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
     }
+  }
+
+  override def afterAll(): Unit = {
+    app.stop()
   }
 }
 
@@ -76,8 +81,12 @@ class StaticJavaJsonSpec extends JavaJsonSpec {
   }
 }
 
-trait JavaJsonSpec extends Specification {
+trait JavaJsonSpec extends Specification with BeforeAfterAll {
   sequential
+
+  override def beforeAll(): Unit = ()
+
+  override def afterAll(): Unit = ()
 
   def createObjectMapper: ObjectMapper
 
