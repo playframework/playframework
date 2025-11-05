@@ -29,7 +29,6 @@ import org.apache.pekko.util.ByteString;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import play.api.http.HttpConfiguration;
-import play.api.libs.Json$;
 import play.api.libs.json.JsValue;
 import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
@@ -922,7 +921,7 @@ public class Http {
      * @return the modified builder
      */
     public RequestBuilder bodyJson(JsValue json) {
-      return bodyJson(Json.parse(Json$.MODULE$.stringify(json)));
+      return bodyJson(Json.parse(play.api.libs.json.Json.stringify(json)));
     }
 
     /**

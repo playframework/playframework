@@ -56,7 +56,6 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
-import play.api.libs.Json$;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
@@ -598,7 +597,7 @@ public class Form<T> {
       jsonData =
           play.libs.Scala.asJava(
               play.api.data.FormUtils.fromJson(
-                  Json$.MODULE$.parse(play.libs.Json.stringify(request.body().asJson())),
+                  play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
                   maxJsonChars(),
                   maxJsonDepth()));
     }
@@ -781,7 +780,9 @@ public class Form<T> {
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                Json$.MODULE$.parse(play.libs.Json.stringify(data)), maxChars, maxJsonDepth())),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
+                maxChars,
+                maxJsonDepth())),
         allowedFields);
   }
 
@@ -813,7 +814,7 @@ public class Form<T> {
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                Json$.MODULE$.parse(play.libs.Json.stringify(data)), maxChars, maxDepth)),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars, maxDepth)),
         allowedFields);
   }
 
