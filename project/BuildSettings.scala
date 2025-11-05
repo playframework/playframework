@@ -465,6 +465,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperModule"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperProvider"),
       ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperProvider$"),
+      // Remove deprecated Json.newDefaultMapper() method
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.Json.newDefaultMapper"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

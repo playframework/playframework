@@ -54,7 +54,7 @@ class ApplicationJavaJsonSpec extends JavaJsonSpec {
 
 // Classic static `ObjectMapper` from play.libs.Json
 class StaticJavaJsonSpec extends JavaJsonSpec {
-  override val createObjectMapper: ObjectMapper = Json.newDefaultMapper()
+  override val createObjectMapper: ObjectMapper = Json.mapper()
 }
 
 trait JavaJsonSpec extends Specification {
