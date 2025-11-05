@@ -11,7 +11,7 @@ object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.2.1")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.3.0")
 
-  val playJsonVersion = "3.1.0-M5"
+  val playJsonVersion = "3.1.0-M7"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.20"
 
@@ -298,7 +298,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M9"
+  val playWsStandaloneVersion = "3.1.0-M11"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
