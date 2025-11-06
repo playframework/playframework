@@ -31,3 +31,59 @@ $ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
 > equals expected.json play-scala_play-libs-mapper.json
 > equals expected.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
 > equals expected.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+# Cleanup
+$ delete play-java_injected-mapper.json
+$ delete play-java_play-libs-mapper.json
+$ delete play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-scala_injected-mapper.json
+$ delete play-scala_play-libs-mapper.json
+$ delete play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+################################################
+######## Now we test custom json config ########
+################################################
+$ copy-file custom-json-application.conf play-java/conf/application.conf
+$ copy-file custom-json-application.conf play-scala/conf/application.conf
+# Make sure the files do not exist yet
+-$ exists play-java_injected-mapper.json
+-$ exists play-java_play-libs-mapper.json
+-$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-scala_injected-mapper.json
+-$ exists play-scala_play-libs-mapper.json
+-$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+###
+> play-java/run
+> makeRequest / 200 same-mapper-reference=true
+> play-java/playStop
+$ exists play-java_injected-mapper.json
+$ exists play-java_play-libs-mapper.json
+$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+> equals custom-json-expected.json play-java_injected-mapper.json
+> equals custom-json-expected.json play-java_play-libs-mapper.json
+> equals custom-json-expected.json play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals custom-json-expected.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
+###
+> play-scala/run
+> makeRequest / 200 same-mapper-reference=true
+> play-scala/playStop
+$ exists play-scala_injected-mapper.json
+$ exists play-scala_play-libs-mapper.json
+$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+> equals custom-json-expected.json play-scala_injected-mapper.json
+> equals custom-json-expected.json play-scala_play-libs-mapper.json
+> equals custom-json-expected.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals custom-json-expected.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+# Cleanup
+$ delete play-java_injected-mapper.json
+$ delete play-java_play-libs-mapper.json
+$ delete play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-scala_injected-mapper.json
+$ delete play-scala_play-libs-mapper.json
+$ delete play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-scala_play-libs-ws-DefaultObjectMapper-instance.json
