@@ -8,13 +8,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.Future
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
 import play.api.inject._
+import play.api.libs.json.jackson.PlayJsonMapperModule
+import play.api.libs.json.BigDecimalParseConfig
+import play.api.libs.json.JsonConfig
 import play.libs.Json
 
 /**
@@ -38,10 +39,26 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSyst
   private val staticObjectMapperInitialized = new AtomicBoolean(false)
 
   lazy val get: ObjectMapper = {
-    val mapper =
-      JacksonObjectMapperProvider
+    val mapper = {
+      val om = JacksonObjectMapperProvider
         .get(actorSystem)
         .getOrCreate(ObjectMapperProvider.BINDING_NAME, Option.empty)
+      if (om.getRegisteredModuleIds().contains("PlayJson")) {
+        om
+      } else {
+        val jsonConfig = JsonConfig(
+          BigDecimalParseConfig(
+            JsonConfig.settings.bigDecimalParseConfig.mathContext,
+            JsonConfig.settings.bigDecimalParseConfig.scaleLimit,
+            om.getFactory().streamReadConstraints().getMaxNumberLength() // we can override play-json's limit with ours
+          ),
+          JsonConfig.settings.bigDecimalSerializerConfig,
+          om.getFactory().streamReadConstraints(),
+          om.getFactory().streamWriteConstraints()
+        )
+        om.registerModule(new PlayJsonMapperModule(jsonConfig))
+      }
+    }
     if (staticObjectMapperInitialized.compareAndSet(false, true)) {
       Json.setObjectMapper(mapper)
 

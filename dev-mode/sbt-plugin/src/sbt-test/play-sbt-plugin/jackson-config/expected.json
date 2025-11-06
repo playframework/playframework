@@ -2,7 +2,7 @@
   "class" : "com.fasterxml.jackson.databind.json.JsonMapper",
   "jsonFactory" : "com.fasterxml.jackson.core.JsonFactory",
   "typeFactory" : "com.fasterxml.jackson.databind.type.TypeFactory",
-  "registeredModules" : [ "org.apache.pekko.serialization.jackson.PekkoJacksonModule", "org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule", "org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule", "jackson-module-parameter-names", "com.fasterxml.jackson.datatype.jdk8.Jdk8Module", "jackson-datatype-jsr310", "com.fasterxml.jackson.module.scala.DefaultScalaModule" ],
+  "registeredModules" : [ "org.apache.pekko.serialization.jackson.PekkoJacksonModule", "org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule", "org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule", "jackson-module-parameter-names", "com.fasterxml.jackson.datatype.jdk8.Jdk8Module", "jackson-datatype-jsr310", "com.fasterxml.jackson.module.scala.DefaultScalaModule", "PlayJson" ],
   "serializationConfig" : {
     "serializationInclusion" : "ALWAYS",
     "defaultPrettyPrinter" : "com.fasterxml.jackson.core.util.DefaultPrettyPrinter",
