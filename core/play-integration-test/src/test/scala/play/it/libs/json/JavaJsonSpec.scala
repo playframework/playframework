@@ -79,6 +79,30 @@ class StaticJavaJsonSpec extends JavaJsonSpec {
       Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
     }
   }
+  "Play JSON's ObjectMapper" should {
+    "have an exact list of registered modules" in {
+      import scala.jdk.CollectionConverters._
+
+      // reset the mapper, so play-json's internal defaultMapper is used
+      play.api.libs.json.jackson.JacksonJson.get.setObjectMapper(null)
+
+      // --------------------------------------------------------------------------------------------------------
+      // BE AWARE: If this test fails and the list of registered modules of the play-json defaultMapper changed,
+      //           you likely need to register the new modules in our play.core.ObjectMapperProvider.get method
+      //           (like we do with the PlayJsonMapperModule) - or ofc remove a dropped module as well.
+      // --------------------------------------------------------------------------------------------------------
+      val expectedModules: Seq[String] = List(
+        "jackson-module-parameter-names",
+        "com.fasterxml.jackson.datatype.jdk8.Jdk8Module",
+        "jackson-datatype-jsr310",
+        "com.fasterxml.jackson.module.scala.DefaultScalaModule",
+        "PlayJson"
+      )
+      play.api.libs.json.jackson.JacksonJson.get.mapper().getRegisteredModuleIds.asScala must containTheSameElementsAs(
+        expectedModules
+      )
+    }
+  }
 }
 
 trait JavaJsonSpec extends Specification with BeforeAfterAll {
