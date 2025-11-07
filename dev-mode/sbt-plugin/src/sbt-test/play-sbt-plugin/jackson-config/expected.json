@@ -37,6 +37,10 @@
       "FAIL_ON_ORDER_MAP_BY_INCOMPARABLE_KEY" : true,
       "EAGER_SERIALIZER_FETCH" : true,
       "USE_EQUALITY_FOR_OBJECT_ID" : false
+    },
+    "enumFeatures" : {
+      "READ_ENUM_KEYS_USING_INDEX" : false,
+      "WRITE_ENUMS_TO_LOWERCASE" : false
     }
   },
   "deserializationConfig" : {
@@ -74,6 +78,10 @@
       "READ_DATE_TIMESTAMPS_AS_NANOSECONDS" : true,
       "ADJUST_DATES_TO_CONTEXT_TIME_ZONE" : true,
       "EAGER_DESERIALIZER_FETCH" : true
+    },
+    "enumFeatures" : {
+      "READ_ENUM_KEYS_USING_INDEX" : false,
+      "WRITE_ENUMS_TO_LOWERCASE" : false
     }
   },
   "mapperFeatures" : {
@@ -116,6 +124,24 @@
     "APPLY_DEFAULT_VALUES" : true,
     "REQUIRE_HANDLERS_FOR_JAVA8_OPTIONALS" : true,
     "REQUIRE_HANDLERS_FOR_JAVA8_TIMES" : true
+  },
+  "streamReadFeatures" : {
+    "AUTO_CLOSE_SOURCE" : true,
+    "IGNORE_UNDEFINED" : false,
+    "STRICT_DUPLICATE_DETECTION" : false,
+    "CLEAR_CURRENT_TOKEN_ON_CLOSE" : true,
+    "INCLUDE_SOURCE_IN_LOCATION" : false,
+    "USE_FAST_BIG_NUMBER_PARSER" : false,
+    "USE_FAST_DOUBLE_PARSER" : false
+  },
+  "streamWriteFeatures" : {
+    "AUTO_CLOSE_CONTENT" : true,
+    "AUTO_CLOSE_TARGET" : true,
+    "FLUSH_PASSED_TO_STREAM" : true,
+    "WRITE_BIGDECIMAL_AS_PLAIN" : false,
+    "IGNORE_UNKNOWN" : false,
+    "STRICT_DUPLICATE_DETECTION" : false,
+    "USE_FAST_DOUBLE_WRITER" : false
   },
   "coreFactory" : {
     "jsonParserFeatures" : {
@@ -181,6 +207,24 @@
       "WRITE_NUMBERS_AS_STRINGS" : false,
       "ESCAPE_FORWARD_SLASHES" : false,
       "COMBINE_UNICODE_SURROGATES_IN_UTF8" : false
+    },
+    "streamReadFeatures" : {
+      "AUTO_CLOSE_SOURCE" : true,
+      "IGNORE_UNDEFINED" : false,
+      "STRICT_DUPLICATE_DETECTION" : false,
+      "CLEAR_CURRENT_TOKEN_ON_CLOSE" : true,
+      "INCLUDE_SOURCE_IN_LOCATION" : false,
+      "USE_FAST_BIG_NUMBER_PARSER" : false,
+      "USE_FAST_DOUBLE_PARSER" : false
+    },
+    "streamWriteFeatures" : {
+      "AUTO_CLOSE_CONTENT" : true,
+      "AUTO_CLOSE_TARGET" : true,
+      "FLUSH_PASSED_TO_STREAM" : true,
+      "WRITE_BIGDECIMAL_AS_PLAIN" : false,
+      "IGNORE_UNKNOWN" : false,
+      "STRICT_DUPLICATE_DETECTION" : false,
+      "USE_FAST_DOUBLE_WRITER" : false
     },
     "streamReadConstraints" : {
       "maxStringLength" : 20000000,

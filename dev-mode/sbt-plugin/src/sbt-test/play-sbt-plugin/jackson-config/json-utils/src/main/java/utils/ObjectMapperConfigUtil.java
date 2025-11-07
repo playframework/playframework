@@ -8,6 +8,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.core.StreamWriteConstraints;
+import com.fasterxml.jackson.core.StreamReadFeature;
+import com.fasterxml.jackson.core.StreamWriteFeature;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.DeserializationConfig;
@@ -17,6 +19,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.cfg.EnumFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -53,6 +56,7 @@ public final class ObjectMapperConfigUtil {
         ser.put("dateFormat", classOrNull(serCfg.getDateFormat()));
         ser.put("propertyNamingStrategy", classOrNull(mapper.getPropertyNamingStrategy()));
         ser.set("features", enumFlagsToObject(mapper, SerializationFeature.values(), serCfg::isEnabled));
+        ser.set("enumFeatures", enumFlagsToObject(mapper, EnumFeature.values(), serCfg::isEnabled));
 
         // Deserialization config
         ObjectNode deser = root.putObject("deserializationConfig");
@@ -60,9 +64,12 @@ public final class ObjectMapperConfigUtil {
         deser.put("timeZone", deserCfg.getTimeZone() == null ? null : deserCfg.getTimeZone().getID());
         deser.put("dateFormat", classOrNull(deserCfg.getDateFormat()));
         deser.set("features", enumFlagsToObject(mapper, DeserializationFeature.values(), deserCfg::isEnabled));
+        deser.set("enumFeatures", enumFlagsToObject(mapper, EnumFeature.values(), deserCfg::isEnabled));
 
         // Mapper features (apply to both ser+deser)
         root.set("mapperFeatures", enumFlagsToObject(mapper, MapperFeature.values(), mapper::isEnabled));
+        root.set("streamReadFeatures", enumFlagsToObject(mapper, StreamReadFeature.values(), mapper::isEnabled));
+        root.set("streamWriteFeatures", enumFlagsToObject(mapper, StreamWriteFeature.values(), mapper::isEnabled));
 
         // Core factory + features
         ObjectNode core = root.putObject("coreFactory");
@@ -73,6 +80,10 @@ public final class ObjectMapperConfigUtil {
         core.set("jsonReadFeatures", enumFlagsToObject(mapper, JsonReadFeature.values(),
                 f -> mapper.getFactory().isEnabled(f.mappedFeature())));
         core.set("jsonWriteFeatures", enumFlagsToObject(mapper, JsonWriteFeature.values(),
+                f -> mapper.getFactory().isEnabled(f.mappedFeature())));
+        core.set("streamReadFeatures", enumFlagsToObject(mapper, StreamReadFeature.values(),
+                f -> mapper.getFactory().isEnabled(f.mappedFeature())));
+        core.set("streamWriteFeatures", enumFlagsToObject(mapper, StreamWriteFeature.values(),
                 f -> mapper.getFactory().isEnabled(f.mappedFeature())));
 
         // Stream constraints (read)
