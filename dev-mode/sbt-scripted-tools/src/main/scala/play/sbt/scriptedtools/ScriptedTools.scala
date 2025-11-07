@@ -199,6 +199,20 @@ object ScriptedTools extends AutoPlugin {
     Seq(Compile, Test).flatMap(inConfig(_)(settings))
   }
 
+  def equals(source: String, target: String): Unit = {
+    val sourceContent = IO.read(new File(source))
+    val targetContent = IO.read(new File(target))
+    println("Source:")
+    println("-------")
+    println(sourceContent)
+    println("Target:")
+    println("-------")
+    println(targetContent)
+    if (sourceContent != targetContent) {
+      throw new RuntimeException(s"File $target differs from $source")
+    }
+  }
+
   def checkLines(source: String, target: String): Unit = {
     val sourceLines = IO.readLines(new File(source))
     val targetLines = IO.readLines(new File(target))
