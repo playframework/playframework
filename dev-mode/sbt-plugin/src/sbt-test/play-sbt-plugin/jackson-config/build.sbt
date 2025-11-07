@@ -13,10 +13,10 @@ lazy val root = (project in file("."))
       val path :: status :: _ = args
       ScriptedTools.verifyResourceContains(path, status.toInt, Seq.empty)
     },
-    InputKey[Unit]("checkLines") := {
+    InputKey[Unit]("equals") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
-      ScriptedTools.checkLines(source, target)
+      ScriptedTools.equals(source, target)
     },
   )
 
