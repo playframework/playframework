@@ -16,12 +16,7 @@ lazy val root = (project in file("."))
     InputKey[Unit]("checkLines") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
-      try ScriptedTools.checkLines(source, target)
-      catch {
-        case e: java.net.ConnectException =>
-          play.sbt.run.PlayRun.stop(state.value)
-          throw e
-      }
+      ScriptedTools.checkLines(source, target)
     },
   )
 
