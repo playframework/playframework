@@ -13,15 +13,10 @@ lazy val root = (project in file("."))
       val path :: status :: _ = args
       ScriptedTools.verifyResourceContains(path, status.toInt, Seq.empty)
     },
-    InputKey[Unit]("checkLines") := {
+    InputKey[Unit]("equals") := {
       val args                  = Def.spaceDelimited("<source> <target>").parsed
       val source :: target :: _ = args
-      try ScriptedTools.checkLines(source, target)
-      catch {
-        case e: java.net.ConnectException =>
-          play.sbt.run.PlayRun.stop(state.value)
-          throw e
-      }
+      ScriptedTools.equals(source, target)
     },
   )
 

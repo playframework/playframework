@@ -12,9 +12,9 @@
 $ exists play-java_injected-mapper.json
 $ exists play-java_play-libs-mapper.json
 $ exists play-java_play-libs-newDefaultMapper.json
-> checkLines expected.json play-java_injected-mapper.json
-> checkLines expected.json play-java_play-libs-mapper.json
-> checkLines expected.json play-java_play-libs-newDefaultMapper.json
+> equals expected.json play-java_injected-mapper.json
+> equals expected.json play-java_play-libs-mapper.json
+> equals expected.json play-java_play-libs-newDefaultMapper.json
 ###
 > play-scala/run
 > makeRequest / 200
@@ -22,6 +22,6 @@ $ exists play-java_play-libs-newDefaultMapper.json
 $ exists play-scala_injected-mapper.json
 $ exists play-scala_play-libs-mapper.json
 $ exists play-scala_play-libs-newDefaultMapper.json
-> checkLines expected.json play-scala_injected-mapper.json
-> checkLines expected.json play-scala_play-libs-mapper.json
-> checkLines expected.json play-scala_play-libs-newDefaultMapper.json
+> equals expected.json play-scala_injected-mapper.json
+> equals expected.json play-scala_play-libs-mapper.json
+> equals expected.json play-scala_play-libs-newDefaultMapper.json
