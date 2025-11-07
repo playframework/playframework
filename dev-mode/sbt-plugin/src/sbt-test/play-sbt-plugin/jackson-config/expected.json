@@ -228,7 +228,7 @@
     },
     "streamReadConstraints" : {
       "maxStringLength" : 20000000,
-      "maxNumberLength" : 1000,
+      "maxNumberLength" : 310,
       "maxNestingDepth" : 1000,
       "maxNameLength" : 50000,
       "maxDocumentLength" : -1,
