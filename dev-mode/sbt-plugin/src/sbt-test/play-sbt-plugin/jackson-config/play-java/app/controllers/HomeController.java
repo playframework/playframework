@@ -27,6 +27,7 @@ public class HomeController extends Controller {
         mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_play-libs-mapper.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.Json.mapper()));
         mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_play-api-libs-json-jackson-JacksonJson-mapper.json"), ObjectMapperConfigUtil.toConfigJson(play.api.libs.json.jackson.JacksonJson$.MODULE$.get().mapper()));
         mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_play-libs-ws-DefaultObjectMapper-instance.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.ws.DefaultObjectMapper.instance()));
+        mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-java_jsonconfig.json"), ObjectMapperConfigUtil.toConfigJson(mapper, play.api.libs.json.jackson.JacksonJson$.MODULE$.get().defaultMapperJsonConfig()));
         final boolean sameRef = mapper == play.libs.Json.mapper() &&
                 mapper == play.api.libs.json.jackson.JacksonJson$.MODULE$.get().mapper() &&
                 mapper == play.libs.ws.DefaultObjectMapper.instance();

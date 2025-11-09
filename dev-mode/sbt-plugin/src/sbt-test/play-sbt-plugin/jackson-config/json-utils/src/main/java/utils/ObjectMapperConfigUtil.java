@@ -26,6 +26,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker;
 import com.fasterxml.jackson.databind.introspect.VisibilityChecker.Std;
 
+import play.api.libs.json.JsonConfig;
+
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -87,19 +89,10 @@ public final class ObjectMapperConfigUtil {
                 f -> mapper.getFactory().isEnabled(f.mappedFeature())));
 
         // Stream constraints (read)
-        StreamReadConstraints rc = mapper.getFactory().streamReadConstraints();
-        ObjectNode readC = core.putObject("streamReadConstraints");
-        readC.put("maxStringLength", rc.getMaxStringLength());
-        readC.put("maxNumberLength", rc.getMaxNumberLength());
-        readC.put("maxNestingDepth", rc.getMaxNestingDepth());
-        readC.put("maxNameLength", rc.getMaxNameLength());
-        readC.put("maxDocumentLength", rc.getMaxDocumentLength());
-        readC.put("maxTokenCount", rc.getMaxTokenCount());
+        putStreamReadConstraints(core, mapper.getFactory().streamReadConstraints());
 
         // Stream constraints (write)
-        StreamWriteConstraints wc = mapper.getFactory().streamWriteConstraints();
-        ObjectNode writeC = core.putObject("streamWriteConstraints");
-        writeC.put("maxNestingDepth", wc.getMaxNestingDepth());
+        putStreamWriteConstraints(core, mapper.getFactory().streamWriteConstraints());
 
         // Annotation introspectors (names only)
         ObjectNode ai = root.putObject("annotationIntrospectors");
@@ -116,6 +109,24 @@ public final class ObjectMapperConfigUtil {
 
         root.set("visibilityDefaults", buildVisibilityDefaults(mapper));
 
+        return root;
+    }
+
+    public static ObjectNode toConfigJson(ObjectMapper mapper, JsonConfig jsonConfig) {
+        ObjectNode root = mapper.createObjectNode();
+
+        ObjectNode playJsonConfig = root.putObject("playJsonConfig");
+        ObjectNode bigDecimalParseConfig = playJsonConfig.putObject("bigDecimalParseConfig");
+        bigDecimalParseConfig.put("mathContext", jsonConfig.bigDecimalParseConfig().mathContext().toString());
+        bigDecimalParseConfig.put("scaleLimit", jsonConfig.bigDecimalParseConfig().scaleLimit());
+        bigDecimalParseConfig.put("digitsLimit", jsonConfig.bigDecimalParseConfig().digitsLimit());
+        ObjectNode bigDecimalSerializerConfig = playJsonConfig.putObject("bigDecimalSerializerConfig");
+        bigDecimalSerializerConfig.put("minPlain", jsonConfig.bigDecimalSerializerConfig().minPlain().toString());
+        bigDecimalSerializerConfig.put("maxPlain", jsonConfig.bigDecimalSerializerConfig().maxPlain().toString());
+        bigDecimalSerializerConfig.put("preserveZeroDecimal", jsonConfig.bigDecimalSerializerConfig().preserveZeroDecimal());
+
+        putStreamReadConstraints(playJsonConfig, jsonConfig.streamReadConstraints());
+        putStreamWriteConstraints(playJsonConfig, jsonConfig.streamWriteConstraints());
         return root;
     }
 
@@ -179,5 +190,20 @@ public final class ObjectMapperConfigUtil {
             // Any other reflection issue: keep trying other names
         }
         return null;
+    }
+
+    private static void putStreamReadConstraints(ObjectNode node, StreamReadConstraints rc) {
+        ObjectNode readC = node.putObject("streamReadConstraints");
+        readC.put("maxStringLength", rc.getMaxStringLength());
+        readC.put("maxNumberLength", rc.getMaxNumberLength());
+        readC.put("maxNestingDepth", rc.getMaxNestingDepth());
+        readC.put("maxNameLength", rc.getMaxNameLength());
+        readC.put("maxDocumentLength", rc.getMaxDocumentLength());
+        readC.put("maxTokenCount", rc.getMaxTokenCount());
+    }
+
+    private static void putStreamWriteConstraints(ObjectNode node, StreamWriteConstraints wc) {
+        ObjectNode writeC = node.putObject("streamWriteConstraints");
+        writeC.put("maxNestingDepth", wc.getMaxNestingDepth());
     }
 }

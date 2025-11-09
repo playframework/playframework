@@ -23,6 +23,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents, v
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_play-libs-mapper.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.Json.mapper()))
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json"), ObjectMapperConfigUtil.toConfigJson(play.api.libs.json.jackson.JacksonJson.get.mapper()));
     mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_play-libs-ws-DefaultObjectMapper-instance.json"), ObjectMapperConfigUtil.toConfigJson(play.libs.ws.DefaultObjectMapper.instance()));
+    mapper.writerWithDefaultPrettyPrinter().writeValue(new File("play-scala_jsonconfig.json"), ObjectMapperConfigUtil.toConfigJson(mapper, play.api.libs.json.jackson.JacksonJson.get.defaultMapperJsonConfig));
     val sameRef = mapper.eq(play.libs.Json.mapper()) &&
                     mapper.eq(play.api.libs.json.jackson.JacksonJson.get.mapper()) &&
                     mapper.eq(play.libs.ws.DefaultObjectMapper.instance())
