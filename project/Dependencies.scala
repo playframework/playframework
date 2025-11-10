@@ -274,7 +274,7 @@ object Dependencies {
       ExclusionRule("commons-io", "commons-io") // comes with outdated commons-io
     ),
     "commons-beanutils"       % "commons-beanutils"       % "1.11.0", // explicitly bump for fluentlenium and htmlunit to fix CVE-2025-48734
-    "commons-io"              % "commons-io"              % "2.20.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
+    "commons-io"              % "commons-io"              % "2.21.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
     "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
     "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
