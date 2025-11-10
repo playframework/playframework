@@ -4,7 +4,6 @@
 
 package play.filters.gzip
 
-import java.io.ByteArrayInputStream
 import java.io.InputStreamReader
 import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
@@ -441,7 +440,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     route(app, FakeRequest().withHeaders(ACCEPT_ENCODING -> codings)).get
 
   def gunzip(bytes: ByteString): String = {
-    val is     = new GZIPInputStream(new ByteArrayInputStream(bytes.toArray))
+    val is     = new GZIPInputStream(bytes.asInputStream)
     val reader = new InputStreamReader(is, "UTF-8")
     try CharStreams.toString(reader)
     finally reader.close()

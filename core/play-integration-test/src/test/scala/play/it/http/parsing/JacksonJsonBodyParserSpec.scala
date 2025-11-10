@@ -61,7 +61,11 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
       }
     }
 
-    "parse very deep JSON bodies" in new WithApplication() {
+    "parse very deep JSON bodies" in new WithApplication(guiceBuilder =>
+      guiceBuilder.configure(
+        "pekko.serialization.jackson.play.read.max-nesting-depth" -> "50001"
+      )
+    ) {
       override def running() = {
         val depth                              = 50000
         val either: F.Either[Result, JsonNode] = parse(s"""{"foo": ${"[" * depth} "asdf" ${"]" * depth}  }""")

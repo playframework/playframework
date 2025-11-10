@@ -4,11 +4,15 @@
 
 package play.api.data
 
+import com.fasterxml.jackson.core.StreamReadConstraints
 import org.specs2.mutable.Specification
+import play.api.libs.json.jackson.JacksonJson
 import play.api.libs.json.JsNull
 import play.api.libs.json.Json
 
 class FormUtilsSpec extends Specification {
+
+  sequential
 
   "FormUtils.fromJson" should {
     "convert a complex json structure to a map" in {
@@ -56,11 +60,32 @@ class FormUtilsSpec extends Specification {
     }
 
     "not stack overflow when converting heavily nested arrays" in {
+      def setMaxNestingDepth(maxNestingDepth: Int) = {
+        val rc = JacksonJson.get.mapper().getFactory.streamReadConstraints()
+        JacksonJson.get
+          .mapper()
+          .getFactory
+          .setStreamReadConstraints(
+            StreamReadConstraints
+              .builder()
+              .maxNestingDepth(maxNestingDepth)
+              .maxDocumentLength(rc.getMaxDocumentLength)
+              .maxNumberLength(rc.getMaxNumberLength)
+              .maxStringLength(rc.getMaxStringLength)
+              .maxNameLength(rc.getMaxNameLength)
+              .maxTokenCount(rc.getMaxTokenCount)
+              .build()
+          )
+      }
+      val maxNestingDepthOrig = JacksonJson.get.mapper().getFactory.streamReadConstraints().getMaxNestingDepth
       try {
+        setMaxNestingDepth(10001)
         FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000, 30000)
       } catch {
         case e: StackOverflowError =>
           ko("StackOverflowError thrown")
+      } finally {
+        setMaxNestingDepth(maxNestingDepthOrig)
       }
       ok
     }

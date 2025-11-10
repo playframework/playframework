@@ -8,13 +8,17 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.Future
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
 import play.api.inject._
+import play.api.libs.json.jackson.JacksonJson
+import play.api.libs.json.jackson.PlayJsonMapperModule
+import play.api.libs.json.BigDecimalParseConfig
+import play.api.libs.json.BigDecimalSerializerConfig
+import play.api.libs.json.JsonConfig
+import play.api.Configuration
 import play.libs.Json
 
 /**
@@ -32,16 +36,52 @@ object ObjectMapperProvider {
   val BINDING_NAME = "play"
 }
 @Singleton
-class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSystem: ActorSystem)
-    extends Provider[ObjectMapper] {
+class ObjectMapperProvider @Inject() (
+    lifecycle: ApplicationLifecycle,
+    actorSystem: ActorSystem,
+    configuration: Configuration
+) extends Provider[ObjectMapper] {
 
   private val staticObjectMapperInitialized = new AtomicBoolean(false)
 
   lazy val get: ObjectMapper = {
-    val mapper =
-      JacksonObjectMapperProvider
+    val mapper = {
+      val om = JacksonObjectMapperProvider
         .get(actorSystem)
         .getOrCreate(ObjectMapperProvider.BINDING_NAME, Option.empty)
+      if (om.getRegisteredModuleIds().contains("PlayJson")) {
+        om
+      } else {
+        val jsonConfig = JsonConfig(
+          BigDecimalParseConfig(
+            JsonConfig.parseMathContextValue(configuration.getOptional[String](JsonConfig.mathContextProperty)),
+            configuration.getOptional[Int](JsonConfig.scaleLimitProperty).getOrElse(JsonConfig.defaultScaleLimit),
+            om.getFactory().streamReadConstraints().getMaxNumberLength() // we can override play-json's limit with ours
+          ),
+          BigDecimalSerializerConfig(
+            configuration
+              .getOptional[String](JsonConfig.minPlainProperty)
+              .map(BigDecimal.exact(_))
+              .getOrElse(JsonConfig.defaultMinPlain),
+            configuration
+              .getOptional[String](JsonConfig.maxPlainProperty)
+              .map(BigDecimal.exact(_))
+              .getOrElse(JsonConfig.defaultMaxPlain),
+            configuration
+              .getOptional[Boolean](JsonConfig.preserveZeroDecimalProperty)
+              .getOrElse(JsonConfig.defaultPreserveZeroDecimal)
+          ),
+          om.getFactory().streamReadConstraints(),
+          om.getFactory().streamWriteConstraints()
+        )
+        if (!staticObjectMapperInitialized.get()) {
+          // Here we rely on compareAndSet(...) being called below... (a bit dirty, yes)
+          JacksonJson.setConfig(jsonConfig)
+        }
+        // Modifies the ObjectMapper, so we should not come back in this "else" again
+        om.registerModule(new PlayJsonMapperModule(jsonConfig))
+      }
+    }
     if (staticObjectMapperInitialized.compareAndSet(false, true)) {
       Json.setObjectMapper(mapper)
 
@@ -57,6 +97,7 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSyst
 trait ObjectMapperComponents {
   def actorSystem: ActorSystem
   def applicationLifecycle: ApplicationLifecycle
+  def configuration: Configuration
 
-  lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle, actorSystem).get
+  lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle, actorSystem, configuration).get
 }

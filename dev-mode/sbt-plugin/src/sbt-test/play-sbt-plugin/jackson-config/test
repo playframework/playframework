@@ -1,27 +1,250 @@
+###########################################
+######## Test injected json mapper ########
+###########################################
 # Make sure the files do not exist yet
 -$ exists play-java_injected-mapper.json
 -$ exists play-java_play-libs-mapper.json
--$ exists play-java_play-libs-newDefaultMapper.json
+-$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-java_jsonconfig.json
 -$ exists play-scala_injected-mapper.json
 -$ exists play-scala_play-libs-mapper.json
--$ exists play-scala_play-libs-newDefaultMapper.json
+-$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-scala_jsonconfig.json
 ###
 > play-java/run
-> makeRequest / 200
+> makeRequest / 200 same-mapper-reference=true
 > play-java/playStop
 $ exists play-java_injected-mapper.json
 $ exists play-java_play-libs-mapper.json
-$ exists play-java_play-libs-newDefaultMapper.json
+$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-java_jsonconfig.json
 > equals expected.json play-java_injected-mapper.json
 > equals expected.json play-java_play-libs-mapper.json
-> equals expected.json play-java_play-libs-newDefaultMapper.json
+> equals expected.json play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals expected.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
+> equals expected-jsonconfig.json play-java_jsonconfig.json
 ###
 > play-scala/run
-> makeRequest / 200
+> makeRequest / 200 same-mapper-reference=true
 > play-scala/playStop
 $ exists play-scala_injected-mapper.json
 $ exists play-scala_play-libs-mapper.json
-$ exists play-scala_play-libs-newDefaultMapper.json
+$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-scala_jsonconfig.json
 > equals expected.json play-scala_injected-mapper.json
 > equals expected.json play-scala_play-libs-mapper.json
-> equals expected.json play-scala_play-libs-newDefaultMapper.json
+> equals expected.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals expected.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+> equals expected-jsonconfig.json play-scala_jsonconfig.json
+# Cleanup
+$ delete play-java_injected-mapper.json
+$ delete play-java_play-libs-mapper.json
+$ delete play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-java_jsonconfig.json
+$ delete play-scala_injected-mapper.json
+$ delete play-scala_play-libs-mapper.json
+$ delete play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-scala_jsonconfig.json
+$ delete play-java/conf/application.conf
+$ delete play-scala/conf/application.conf
+################################################
+######## Now we test custom json config ########
+################################################
+-$ exists play-java/conf/application.conf
+-$ exists play-scala/conf/application.conf
+$ copy-file custom-json-application.conf play-java/conf/application.conf
+$ copy-file custom-json-application.conf play-scala/conf/application.conf
+# Make sure the files do not exist yet
+-$ exists play-java_injected-mapper.json
+-$ exists play-java_play-libs-mapper.json
+-$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-java_jsonconfig.json
+-$ exists play-scala_injected-mapper.json
+-$ exists play-scala_play-libs-mapper.json
+-$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-scala_jsonconfig.json
+###
+> play-java/run
+> makeRequest / 200 same-mapper-reference=true
+> play-java/playStop
+$ exists play-java_injected-mapper.json
+$ exists play-java_play-libs-mapper.json
+$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-java_jsonconfig.json
+> equals custom-json-expected.json play-java_injected-mapper.json
+> equals custom-json-expected.json play-java_play-libs-mapper.json
+> equals custom-json-expected.json play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals custom-json-expected.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
+> equals custom-json-expected-jsonconfig.json play-java_jsonconfig.json
+###
+> play-scala/run
+> makeRequest / 200 same-mapper-reference=true
+> play-scala/playStop
+$ exists play-scala_injected-mapper.json
+$ exists play-scala_play-libs-mapper.json
+$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-scala_jsonconfig.json
+> equals custom-json-expected.json play-scala_injected-mapper.json
+> equals custom-json-expected.json play-scala_play-libs-mapper.json
+> equals custom-json-expected.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals custom-json-expected.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+> equals custom-json-expected-jsonconfig.json play-scala_jsonconfig.json
+# Cleanup
+$ delete play-java_injected-mapper.json
+$ delete play-java_play-libs-mapper.json
+$ delete play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-java_jsonconfig.json
+$ delete play-scala_injected-mapper.json
+$ delete play-scala_play-libs-mapper.json
+$ delete play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-scala_jsonconfig.json
+$ delete play-java/conf/application.conf
+$ delete play-scala/conf/application.conf
+##############################################################
+######## Now we test with disabled ObjectMapperModule ########
+##############################################################
+-$ exists play-java/conf/application.conf
+-$ exists play-scala/conf/application.conf
+$ copy-file disabled-json-module-application.conf play-java/conf/application.conf
+$ copy-file disabled-json-module-application.conf play-scala/conf/application.conf
+# Make sure the files do not exist yet
+-$ exists play-java_injected-mapper.json
+-$ exists play-java_play-libs-mapper.json
+-$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-java_jsonconfig.json
+-$ exists play-scala_injected-mapper.json
+-$ exists play-scala_play-libs-mapper.json
+-$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-scala_jsonconfig.json
+###
+> play-java/run
+> makeRequest / 200 same-mapper-reference=false
+> play-java/playStop
+$ exists play-java_injected-mapper.json
+$ exists play-java_play-libs-mapper.json
+$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-java_jsonconfig.json
+> equals disabled-json-module-injected-expected.json play-java_injected-mapper.json
+> equals disabled-json-module-playjson-expected.json play-java_play-libs-mapper.json
+> equals disabled-json-module-playjson-expected.json play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals disabled-json-module-playjson-expected.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
+> equals expected-jsonconfig.json play-java_jsonconfig.json
+###
+> play-scala/run
+> makeRequest / 200 same-mapper-reference=false
+> play-scala/playStop
+$ exists play-scala_injected-mapper.json
+$ exists play-scala_play-libs-mapper.json
+$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-scala_jsonconfig.json
+> equals disabled-json-module-injected-expected.json play-scala_injected-mapper.json
+> equals disabled-json-module-playjson-expected.json play-scala_play-libs-mapper.json
+> equals disabled-json-module-playjson-expected.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals disabled-json-module-playjson-expected.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+> equals expected-jsonconfig.json play-scala_jsonconfig.json
+# Cleanup
+$ delete play-java_injected-mapper.json
+$ delete play-java_play-libs-mapper.json
+$ delete play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-java_jsonconfig.json
+$ delete play-scala_injected-mapper.json
+$ delete play-scala_play-libs-mapper.json
+$ delete play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-scala_jsonconfig.json
+$ delete play-java/conf/application.conf
+$ delete play-scala/conf/application.conf
+################################################################
+######## Now set sys properties that play-json supports ########
+################################################################
+> eval System.setProperty("play.json.parser.maxNestingDepth", "444")
+> eval System.setProperty("play.json.parser.digitsLimit", "55")
+> eval System.setProperty("play.json.parser.maxStringLength", "6666")
+> eval System.setProperty("play.json.serializer.maxNestingDepth", "77")
+> eval System.setProperty("play.json.parser.mathContext", "decimal64")
+> eval System.setProperty("play.json.parser.scaleLimit", "8888")
+> eval System.setProperty("play.json.serializer.minPlain", "109999")
+> eval System.setProperty("play.json.serializer.maxPlain", "108888")
+> eval System.setProperty("play.json.serializer.preserveZeroDecimal", "true")
+-$ exists play-java/conf/application.conf
+-$ exists play-scala/conf/application.conf
+$ touch play-java/conf/application.conf
+$ touch play-scala/conf/application.conf
+# Make sure the files do not exist yet
+-$ exists play-java_injected-mapper.json
+-$ exists play-java_play-libs-mapper.json
+-$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-java_jsonconfig.json
+-$ exists play-scala_injected-mapper.json
+-$ exists play-scala_play-libs-mapper.json
+-$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+-$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+-$ exists play-scala_jsonconfig.json
+###
+> play-java/run
+> makeRequest / 200 same-mapper-reference=true
+> play-java/playStop
+$ exists play-java_injected-mapper.json
+$ exists play-java_play-libs-mapper.json
+$ exists play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-java_jsonconfig.json
+> equals expected-playjson-sysprops.json play-java_injected-mapper.json
+> equals expected-playjson-sysprops.json play-java_play-libs-mapper.json
+> equals expected-playjson-sysprops.json play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals expected-playjson-sysprops.json play-java_play-libs-ws-DefaultObjectMapper-instance.json
+> equals expected-jsonconfig-playjson-sysprops.json play-java_jsonconfig.json
+###
+> play-scala/run
+> makeRequest / 200 same-mapper-reference=true
+> play-scala/playStop
+$ exists play-scala_injected-mapper.json
+$ exists play-scala_play-libs-mapper.json
+$ exists play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ exists play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ exists play-scala_jsonconfig.json
+> equals expected-playjson-sysprops.json play-scala_injected-mapper.json
+> equals expected-playjson-sysprops.json play-scala_play-libs-mapper.json
+> equals expected-playjson-sysprops.json play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+> equals expected-playjson-sysprops.json play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+> equals expected-jsonconfig-playjson-sysprops.json play-scala_jsonconfig.json
+# Cleanup
+$ delete play-java_injected-mapper.json
+$ delete play-java_play-libs-mapper.json
+$ delete play-java_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-java_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-java_jsonconfig.json
+$ delete play-scala_injected-mapper.json
+$ delete play-scala_play-libs-mapper.json
+$ delete play-scala_play-api-libs-json-jackson-JacksonJson-mapper.json
+$ delete play-scala_play-libs-ws-DefaultObjectMapper-instance.json
+$ delete play-scala_jsonconfig.json
+$ delete play-java/conf/application.conf
+$ delete play-scala/conf/application.conf
+> eval System.clearProperty("play.json.parser.maxNestingDepth")
+> eval System.clearProperty("play.json.parser.digitsLimit")
+> eval System.clearProperty("play.json.parser.maxStringLength")
+> eval System.clearProperty("play.json.serializer.maxNestingDepth")
+> eval System.clearProperty("play.json.parser.mathContext")
+> eval System.clearProperty("play.json.parser.scaleLimit")
+> eval System.clearProperty("play.json.serializer.minPlain")
+> eval System.clearProperty("play.json.serializer.maxPlain")
+> eval System.clearProperty("play.json.serializer.preserveZeroDecimal")

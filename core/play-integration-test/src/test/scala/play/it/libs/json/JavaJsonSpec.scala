@@ -11,10 +11,12 @@ import java.util.OptionalInt
 
 import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import org.specs2.mutable.Specification
+import org.specs2.specification.BeforeAfterAll
 import org.specs2.specification.Scope
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Request
@@ -25,18 +27,27 @@ import play.mvc.Http.RequestBody
 
 // Use an `ObjectMapper` which overrides some defaults
 class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
-  override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder()
+  lazy val app = GuiceApplicationBuilder()
     // should be able to use `.play.` namespace to override configurations
     // for this `ObjectMapper`.
     .configure("pekko.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
     .build()
-    .injector
+  override val createObjectMapper: ObjectMapper = app.injector
     .instanceOf[ObjectMapper]
 
   "ObjectMapper" should {
     "respect the custom configuration" in new JsonScope {
       Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beTrue
     }
+    "respect defaults" in new JsonScope {
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
+    }
+  }
+
+  override def afterAll(): Unit = {
+    app.stop()
   }
 }
 
@@ -49,16 +60,57 @@ class ApplicationJavaJsonSpec extends JavaJsonSpec {
       Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
       Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
     }
+    "respect defaults" in new JsonScope {
+      Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
+    }
   }
 }
 
 // Classic static `ObjectMapper` from play.libs.Json
 class StaticJavaJsonSpec extends JavaJsonSpec {
-  override val createObjectMapper: ObjectMapper = Json.newDefaultMapper()
+  override val createObjectMapper: ObjectMapper = Json.mapper()
+
+  "ObjectMapper" should {
+    "respect defaults" in new JsonScope {
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
+      Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
+    }
+  }
+  "Play JSON's ObjectMapper" should {
+    "have an exact list of registered modules" in {
+      import scala.jdk.CollectionConverters._
+
+      // reset the mapper, so play-json's internal defaultMapper is used
+      play.api.libs.json.jackson.JacksonJson.get.setObjectMapper(null)
+
+      // --------------------------------------------------------------------------------------------------------
+      // BE AWARE: If this test fails and the list of registered modules of the play-json defaultMapper changed,
+      //           you likely need to register the new modules in our play.core.ObjectMapperProvider.get method
+      //           (like we do with the PlayJsonMapperModule) - or ofc remove a dropped module as well.
+      // --------------------------------------------------------------------------------------------------------
+      val expectedModules: Seq[String] = List(
+        "jackson-module-parameter-names",
+        "com.fasterxml.jackson.datatype.jdk8.Jdk8Module",
+        "jackson-datatype-jsr310",
+        "com.fasterxml.jackson.module.scala.DefaultScalaModule",
+        "PlayJson"
+      )
+      play.api.libs.json.jackson.JacksonJson.get.mapper().getRegisteredModuleIds.asScala must containTheSameElementsAs(
+        expectedModules
+      )
+    }
+  }
 }
 
-trait JavaJsonSpec extends Specification {
+trait JavaJsonSpec extends Specification with BeforeAfterAll {
   sequential
+
+  override def beforeAll(): Unit = ()
+
+  override def afterAll(): Unit = ()
 
   def createObjectMapper: ObjectMapper
 

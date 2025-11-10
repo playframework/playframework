@@ -227,15 +227,15 @@
       "USE_FAST_DOUBLE_WRITER" : false
     },
     "streamReadConstraints" : {
-      "maxStringLength" : 20000000,
-      "maxNumberLength" : 310,
-      "maxNestingDepth" : 1000,
+      "maxStringLength" : 6666,
+      "maxNumberLength" : 55,
+      "maxNestingDepth" : 444,
       "maxNameLength" : 50000,
       "maxDocumentLength" : -1,
       "maxTokenCount" : -1
     },
     "streamWriteConstraints" : {
-      "maxNestingDepth" : 1000
+      "maxNestingDepth" : 77
     }
   },
   "annotationIntrospectors" : {

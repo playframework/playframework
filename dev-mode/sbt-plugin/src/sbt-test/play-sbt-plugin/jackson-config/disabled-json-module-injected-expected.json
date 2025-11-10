@@ -1,8 +1,8 @@
 {
-  "class" : "com.fasterxml.jackson.databind.json.JsonMapper",
-  "jsonFactory" : "com.fasterxml.jackson.core.JsonFactory",
+  "class" : "com.fasterxml.jackson.databind.ObjectMapper",
+  "jsonFactory" : "com.fasterxml.jackson.databind.MappingJsonFactory",
   "typeFactory" : "com.fasterxml.jackson.databind.type.TypeFactory",
-  "registeredModules" : [ "org.apache.pekko.serialization.jackson.PekkoJacksonModule", "org.apache.pekko.serialization.jackson.PekkoTypedJacksonModule", "org.apache.pekko.serialization.jackson.PekkoStreamJacksonModule", "jackson-module-parameter-names", "com.fasterxml.jackson.datatype.jdk8.Jdk8Module", "jackson-datatype-jsr310", "com.fasterxml.jackson.module.scala.DefaultScalaModule", "PlayJson" ],
+  "registeredModules" : [ ],
   "serializationConfig" : {
     "serializationInclusion" : "ALWAYS",
     "defaultPrettyPrinter" : "com.fasterxml.jackson.core.util.DefaultPrettyPrinter",
@@ -12,18 +12,18 @@
     "features" : {
       "WRAP_ROOT_VALUE" : false,
       "INDENT_OUTPUT" : false,
-      "FAIL_ON_EMPTY_BEANS" : false,
+      "FAIL_ON_EMPTY_BEANS" : true,
       "FAIL_ON_SELF_REFERENCES" : true,
       "WRAP_EXCEPTIONS" : true,
       "FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS" : true,
       "WRITE_SELF_REFERENCES_AS_NULL" : false,
       "CLOSE_CLOSEABLE" : false,
       "FLUSH_AFTER_WRITE_VALUE" : true,
-      "WRITE_DATES_AS_TIMESTAMPS" : false,
+      "WRITE_DATES_AS_TIMESTAMPS" : true,
       "WRITE_DATE_KEYS_AS_TIMESTAMPS" : false,
       "WRITE_DATES_WITH_ZONE_ID" : false,
       "WRITE_DATES_WITH_CONTEXT_TIME_ZONE" : true,
-      "WRITE_DURATIONS_AS_TIMESTAMPS" : false,
+      "WRITE_DURATIONS_AS_TIMESTAMPS" : true,
       "WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS" : false,
       "WRITE_ENUMS_USING_TO_STRING" : false,
       "WRITE_ENUMS_USING_INDEX" : false,
@@ -51,7 +51,7 @@
       "USE_BIG_INTEGER_FOR_INTS" : false,
       "USE_LONG_FOR_INTS" : false,
       "USE_JAVA_ARRAY_FOR_JSON_ARRAY" : false,
-      "FAIL_ON_UNKNOWN_PROPERTIES" : false,
+      "FAIL_ON_UNKNOWN_PROPERTIES" : true,
       "FAIL_ON_NULL_FOR_PRIMITIVES" : false,
       "FAIL_ON_NUMBERS_FOR_ENUMS" : false,
       "FAIL_ON_INVALID_SUBTYPE" : true,
@@ -228,7 +228,7 @@
     },
     "streamReadConstraints" : {
       "maxStringLength" : 20000000,
-      "maxNumberLength" : 310,
+      "maxNumberLength" : 1000,
       "maxNestingDepth" : 1000,
       "maxNameLength" : 50000,
       "maxDocumentLength" : -1,
@@ -239,8 +239,8 @@
     }
   },
   "annotationIntrospectors" : {
-    "serialization" : "com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair",
-    "deserialization" : "com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair"
+    "serialization" : "com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector",
+    "deserialization" : "com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector"
   },
   "mixInCountSerialization" : 0,
   "mixInCountDeserialization" : 0,

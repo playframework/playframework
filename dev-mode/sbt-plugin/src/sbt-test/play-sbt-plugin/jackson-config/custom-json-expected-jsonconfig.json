@@ -1,0 +1,25 @@
+{
+  "playJsonConfig" : {
+    "bigDecimalParseConfig" : {
+      "mathContext" : "precision=34 roundingMode=HALF_EVEN",
+      "scaleLimit" : 6178,
+      "digitsLimit" : 5678
+    },
+    "bigDecimalSerializerConfig" : {
+      "minPlain" : "1.0E-10",
+      "maxPlain" : "1.0E+20",
+      "preserveZeroDecimal" : false
+    },
+    "streamReadConstraints" : {
+      "maxStringLength" : 9876,
+      "maxNumberLength" : 5678,
+      "maxNestingDepth" : 1234,
+      "maxNameLength" : 5432,
+      "maxDocumentLength" : 55,
+      "maxTokenCount" : 66
+    },
+    "streamWriteConstraints" : {
+      "maxNestingDepth" : 7654
+    }
+  }
+}
