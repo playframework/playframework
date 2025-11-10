@@ -13,6 +13,7 @@ import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
 import play.api.inject._
+import play.api.libs.json.jackson.JacksonJson
 import play.api.libs.json.jackson.PlayJsonMapperModule
 import play.api.libs.json.BigDecimalParseConfig
 import play.api.libs.json.JsonConfig
@@ -56,6 +57,11 @@ class ObjectMapperProvider @Inject() (lifecycle: ApplicationLifecycle, actorSyst
           om.getFactory().streamReadConstraints(),
           om.getFactory().streamWriteConstraints()
         )
+        if (!staticObjectMapperInitialized.get()) {
+          // Here we rely on compareAndSet(...) being called below... (a bit dirty, yes)
+          JacksonJson.setConfig(jsonConfig)
+        }
+        // Modifies the ObjectMapper, so we should not come back in this "else" again
         om.registerModule(new PlayJsonMapperModule(jsonConfig))
       }
     }
