@@ -41,7 +41,7 @@ jobs:
 
   prefetch-for-caching:
     name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
@@ -59,7 +59,7 @@ jobs:
     needs:
       - "extra-vars"
       - "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
 
@@ -71,7 +71,7 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
         cd documentation
@@ -84,7 +84,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       java: 21, 17, 11
       exclude: >-
@@ -106,7 +106,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       java: 21, 17, 11
       scala: 2.13.x, 3.x
@@ -141,7 +141,7 @@ jobs:
       - "check-code-style"
       - "check-binary-compatibility"
       - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       java: 21, 17, 11
       scala: 2.13.x, 3.x
@@ -162,7 +162,7 @@ jobs:
     needs:
       - "extra-vars"
       - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v3
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       java: 21, 17, 11
       scala: 2.13.x, 3.x
