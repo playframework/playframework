@@ -33,7 +33,7 @@ object Dependencies {
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.5.21"
 
-  val bytebuddyVersion = "1.17.8"
+  val bytebuddyVersion = "1.18.2"
   val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
   val bytebuddyAgent   = "net.bytebuddy" % "byte-buddy-agent" % bytebuddyVersion
 
