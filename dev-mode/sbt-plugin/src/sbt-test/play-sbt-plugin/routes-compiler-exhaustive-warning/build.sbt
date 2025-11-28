@@ -6,6 +6,6 @@ def Scala3 = "3.7.4"
 
 scalaVersion := Scala3
 
-crossScalaVersions := Seq("2.13.17", Scala3)
+crossScalaVersions := Seq("2.13.18", Scala3)
 
 scalacOptions += "-Werror"
