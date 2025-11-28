@@ -78,6 +78,7 @@ object WebSocketFlowHandler {
         var pingToSend: Message    = null
         var pongToSend: Message    = null
         var messageToSend: Message = null
+        var closePushedToAppOut    = false
 
         var currentPartialMessage: RawMessage = null
 
@@ -100,20 +101,20 @@ object WebSocketFlowHandler {
         // cancel appIn. So server messages cannot starve server initiated close from being sent.
         // The lowest priority is pong messages.
 
-        def serverInitiatedClose(close: CloseMessage) = {
+        def serverInitiatedClose(close: CloseMessage, connectionWasClosedByUserCode: Boolean = false) = {
           // Cancel appIn, because we must not send any more messages once we initiate a close.
           cancel(appIn)
 
           if (state == Open || state.isInstanceOf[ServerInitiatingClose]) {
             if (isAvailable(remoteOut)) {
-              state = ServerInitiatedClose
+              state = ServerInitiatedClose(close, connectionWasClosedByUserCode)
               push(remoteOut, close)
               // If appOut is closed, then we may need to do our own pull so that we can get the ack
               if (isClosed(appOut) && !isClosed(remoteIn) && !hasBeenPulled(remoteIn)) {
                 pull(remoteIn)
               }
             } else {
-              state = ServerInitiatingClose(close)
+              state = ServerInitiatingClose(close, connectionWasClosedByUserCode)
             }
           } else {
             // Initiating close when we've already sent a close message means we must have encountered an error in
@@ -186,6 +187,29 @@ object WebSocketFlowHandler {
           }
         }
 
+        def generateAndPushCloseMessageToApp() = {
+          def generateCloseMessage(message: CloseMessage) =
+            Some(
+              CloseMessage(
+                CloseCodes.ConnectionAbort,
+                s"Backend Server initiated close of WebSocket with sending client the status code ${message.statusCode.getOrElse("<not set>")}"
+              )
+            )
+          val localErrorCloseMsgToApp: Option[CloseMessage] = state match {
+            case ServerInitiatingClose(_, true) | ServerInitiatedClose(_, true) =>
+              None
+            case ServerInitiatingClose(message, false) => generateCloseMessage(message)
+            case ServerInitiatedClose(message, false)  => generateCloseMessage(message)
+            case _                                     => Some(CloseMessage(CloseCodes.ConnectionAbort)) // state is either Open or ClientInitiatedClose
+          }
+          localErrorCloseMsgToApp.foreach(closeMsg => {
+            if (!isClosed(appOut)) {
+              push(appOut, closeMsg) // Forward close down to app
+              closePushedToAppOut = true
+            }
+          })
+        }
+
         setHandler(
           appOut,
           new OutHandler {
@@ -198,8 +222,12 @@ object WebSocketFlowHandler {
             }
 
             override def onDownstreamFinish(cause: Throwable): Unit = {
+              logger.debug(s"appOut onDownstreamFinish(Throwable) with state $state")
               if (state == Open) {
-                serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
+                // We set connectionWasClosedByUserCode to true, even when user code did not explicitly send a close message.
+                // This is because when downstreams finishes it's just like the users says the connections needs to be finished.
+                // By settings it to true we avoid sending the user a 1006 status code which would indicated a problem, which there was not.
+                serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)), true)
               }
             }
           }
@@ -208,19 +236,32 @@ object WebSocketFlowHandler {
         setHandler(
           remoteIn,
           new InHandler {
+            override def onUpstreamFinish(): Unit = {
+              logger.debug("remoteIn onUpstreamFinish")
+              if (!closePushedToAppOut) {
+                generateAndPushCloseMessageToApp()
+              }
+              super.onUpstreamFinish()
+            }
+
             override def onUpstreamFailure(ex: Throwable): Unit = {
               // This happens e.g. when using the Netty backend and a client sends an invalid close status code
               // that is not defined in https://tools.ietf.org/html/rfc6455#section-7.4
+              logger.debug(s"remoteIn onUpstreamFailure(Throwable) with state $state");
               if (state == Open) {
                 val statusCode = """(\d+)""".r
                 ex.getMessage match {
                   case s"Invalid close frame getStatus code: ${statusCode(code)}" => // Parse Netty error message
                     push(appOut, CloseMessage(code.toInt)) // Forward down to app
+                    closePushedToAppOut = true
                   case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
                     logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
                 }
               } else {
                 logger.debug("WebSocket communication problem after the WebSocket was closed", ex)
+              }
+              if (!closePushedToAppOut) {
+                generateAndPushCloseMessageToApp()
               }
               super.onUpstreamFailure(ex)
             }
@@ -233,11 +274,14 @@ object WebSocketFlowHandler {
                   case ClientInitiatedClose(_) =>
                     // Client illegally sent a message after sending a close, just terminate
                     completeStage()
-                  case ServerInitiatedClose | ServerInitiatingClose(_) =>
+                  case ServerInitiatedClose(_, _) | ServerInitiatingClose(_, _) =>
                     // Server has initiated the close, if this is a close ack from the client, close the connection,
                     // otherwise, forward it down to the appIn if it's still listening
                     message match {
                       case close: CloseMessage =>
+                        // so here we do not forward close to the app, why actually?
+                        // because for the app it would seem as it receive the close status code from the client as origin
+                        // which is not true, meaning the app would think the client initiated closing of the websocket
                         completeStage()
                       case other =>
                         if (!isClosed(appOut)) {
@@ -264,6 +308,7 @@ object WebSocketFlowHandler {
                       case close: CloseMessage =>
                         // Forward down to app
                         push(appOut, close)
+                        closePushedToAppOut = true
                         // And complete both app out and app in
                         complete(appOut)
                         cancel(appIn)
@@ -301,7 +346,7 @@ object WebSocketFlowHandler {
               if (state == Open) {
                 grab(appIn) match {
                   case close: CloseMessage =>
-                    serverInitiatedClose(close)
+                    serverInitiatedClose(close, true)
                     cancel(appIn)
                   case other =>
                     if (isAvailable(remoteOut)) {
@@ -316,12 +361,17 @@ object WebSocketFlowHandler {
             }
 
             override def onUpstreamFinish() = {
+              logger.debug(s"appIn onUpstreamFinish with state $state");
               if (state == Open) {
-                serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
+                // We set connectionWasClosedByUserCode to true, even when user code did not explicitly send a close message.
+                // This is because when upstream finishes it's just like the users says the connections needs to be finished.
+                // By settings it to true we avoid sending the user a 1006 status code which would indicated a problem, which there was not.
+                serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)), true)
               }
             }
 
             override def onUpstreamFailure(ex: Throwable) = {
+              logger.debug(s"appIn onUpstreamFailure(Throwable) with state $state");
               if (state == Open) {
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.UnexpectedCondition)))
                 logger.error("WebSocket flow threw exception", ex)
@@ -341,15 +391,15 @@ object WebSocketFlowHandler {
                   // Acknowledge the client close, and then complete
                   push(remoteOut, close)
                   completeStage()
-                case ServerInitiatingClose(close) =>
+                case ServerInitiatingClose(close, connectionWasClosedByUserCode) =>
                   // If there is a buffered message, send that first
                   if (messageToSend != null) {
                     push(remoteOut, messageToSend)
                     messageToSend = null
                   } else {
-                    serverInitiatedClose(close)
+                    serverInitiatedClose(close, connectionWasClosedByUserCode)
                   }
-                case ServerInitiatedClose =>
+                case ServerInitiatedClose(_, _) =>
                 // Ignore, we've sent a close message, we're not allowed to send anything else
                 case Open =>
                   if (messageToSend != null) {
@@ -372,6 +422,16 @@ object WebSocketFlowHandler {
                   }
               }
             }
+
+            override def onDownstreamFinish(): Unit = {
+              logger.debug("remoteOut onDownstreamFinish");
+              super.onDownstreamFinish()
+            }
+
+            override def onDownstreamFinish(cause: Throwable): Unit = {
+              logger.debug("remoteOut onDownstreamFinish(Throwable)");
+              super.onDownstreamFinish(cause)
+            }
           }
         )
       }
@@ -380,10 +440,10 @@ object WebSocketFlowHandler {
   }
 
   private sealed trait State
-  private case object Open                                        extends State
-  private case class ServerInitiatingClose(message: CloseMessage) extends State
-  private case object ServerInitiatedClose                        extends State
-  private case class ClientInitiatedClose(message: CloseMessage)  extends State
+  private case object Open                                                                                extends State
+  private case class ServerInitiatingClose(message: CloseMessage, connectionWasClosedByUserCode: Boolean) extends State
+  private case class ServerInitiatedClose(message: CloseMessage, connectionWasClosedByUserCode: Boolean)  extends State
+  private case class ClientInitiatedClose(message: CloseMessage)                                          extends State
 
   private val logger = Logger("play.core.server.common.WebSocketFlowHandler")
 
