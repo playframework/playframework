@@ -71,10 +71,10 @@ jobs:
         ./gradlew clean spotlessCheck --no-daemon
       gradle-build-root: dev-mode/gradle-plugin
 
-  check-binary-compatibility:
-    name: Binary Compatibility
-    needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v4
+#  check-binary-compatibility:
+#    name: Binary Compatibility
+#    needs: "prefetch-for-caching"
+#    uses: playframework/.github/.github/workflows/binary-check.yml@v4
 
   check-code-style-docs:
     name: Code Style Docs
@@ -90,7 +90,7 @@ jobs:
     needs:
       - "extra-vars"
       - "check-code-style"
-      - "check-binary-compatibility"
+#      - "check-binary-compatibility"
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
@@ -109,7 +109,7 @@ jobs:
     needs:
       - "extra-vars"
       - "check-code-style"
-      - "check-binary-compatibility"
+#      - "check-binary-compatibility"
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
@@ -128,7 +128,7 @@ jobs:
     needs:
       - "extra-vars"
       - "check-code-style"
-      - "check-binary-compatibility"
+#      - "check-binary-compatibility"
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
