@@ -467,6 +467,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperProvider$"),
       // Remove deprecated Json.newDefaultMapper() method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.Json.newDefaultMapper"),
+      // Scala 3.8.0
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Mode.<clinit>"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
