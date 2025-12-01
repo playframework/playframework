@@ -9,5 +9,9 @@ object ScalaVersions {
 }
 
 object SbtVersions {
+<<<<<<< HEAD
   val sbt1 = "1.12.11"
+=======
+  val sbt1 = "1.12.0"
+>>>>>>> 8ef718087 (sbt 1.12.0)
 }
