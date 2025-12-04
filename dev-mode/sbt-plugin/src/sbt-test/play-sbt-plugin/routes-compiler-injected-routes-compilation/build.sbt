@@ -53,7 +53,7 @@ scalacOptions ++= {
     "-language:existentials",
     "-language:higherKinds",
     "-language:implicitConversions",
-    "-Xfatal-warnings",
+    "-Werror",
   ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, _)) =>
       Seq(
