@@ -467,6 +467,15 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.core.ObjectMapperProvider$"),
       // Remove deprecated Json.newDefaultMapper() method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.libs.Json.newDefaultMapper"),
+      // Scala 3.8.0
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Mode.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.Lang.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ActionBuilder.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.BodyParser.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ControllerHelpers.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.<clinit>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerProvider.<clinit>"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
