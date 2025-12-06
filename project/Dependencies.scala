@@ -164,7 +164,8 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     slf4j ++
       Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j", "pekko-serialization-jackson")
-        .map("org.apache.pekko" %% _ % pekkoVersion) ++
+        .map("org.apache.pekko" %% _ % pekkoVersion)
+        .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq("at.yawk.lz4" % "lz4-java" % "1.8.1") ++ // CVE‐2025‐12183
       Seq("pekko-testkit", "pekko-actor-testkit-typed")
         .map("org.apache.pekko" %% _ % pekkoVersion % Test) ++
       jacksons ++
