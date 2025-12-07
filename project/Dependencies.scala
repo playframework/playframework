@@ -181,7 +181,8 @@ object Dependencies {
     slf4j ++
       Seq("akka-actor", "akka-actor-typed", "akka-slf4j", "akka-serialization-jackson")
         .map("com.typesafe.akka" %% _ % akkaVersion)
-        .map(_.forScala3TestsUse2_13()) ++
+        .map(_.forScala3TestsUse2_13())
+        .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq("at.yawk.lz4" % "lz4-java" % "1.8.1") ++ // CVE‐2025‐12183
       Seq("akka-testkit", "akka-actor-testkit-typed")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test)
         .map(_.forScala3TestsUse2_13()) ++
