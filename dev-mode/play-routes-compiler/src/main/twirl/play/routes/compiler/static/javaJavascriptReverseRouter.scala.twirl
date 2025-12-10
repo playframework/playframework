@@ -1,0 +1,64 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], packageName: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+
+@{packageName.map("package " + _ + ".").getOrElse("")}javascript;
+
+import play.api.mvc.JavascriptLiteral;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.api.routing.JavaScriptReverseRoute;
+import play.core.routing.*;
+import java.util.function.Supplier; @for(i <- imports) {
+import @i;}
+
+import java.util.*;
+
+@markLines(routes: _*)
+@@SuppressWarnings({"unchecked"})
+public class JavaScriptReverseRoutes @ob
+
+@markLines(routes: _*)
+@for((controller, routes) <- groupRoutesByController(routes)) {
+  @markLines(routes: _*)
+  public static class Reverse@(controller.replace(".", "_")) @ob
+    private final Supplier<String> _prefix;
+    public Reverse@(controller.replace(".", "_"))(Supplier<String> _prefix) @ob
+      this._prefix = _prefix;
+    @cb
+    private String _defaultPrefix() @ob
+      return _prefix.get().endsWith("/") ? "" : "/";
+    @cb
+
+  @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
+  case Seq(route: Route) => {
+    @markLines(route)
+    public JavaScriptReverseRoute @(method)() @ob
+      return new JavaScriptReverseRoute(
+        "@{packageName.map(_ + ".").getOrElse("")}@(controller).@(method)",
+        "function @(javaReverseSignatureJavaScript(routes)) @ob\n" +
+        @javaJavascriptCall(route) +
+        "\n@cb\n"
+      );
+    @cb
+  }
+  case _ => {
+    @markLines(routes: _*)
+    public JavaScriptReverseRoute @(method)() @ob
+      return new JavaScriptReverseRoute(
+      "@{packageName.map(_ + ".").getOrElse("")}@(controller).@(method)",
+      "function @(javaReverseSignatureJavaScript(routes)) @ob\n" +
+        @for((route, constraints) <- javaJavascriptCollectNonDeadRoutes(routes)) {
+          "if (@constraints) @ob\n" +
+            @javaJavascriptCall(route) +
+          "\n@cb\n" +
+        }
+      "\n@cb\n"
+      );
+    @cb
+  }}}
+  @cb
+}
+@cb

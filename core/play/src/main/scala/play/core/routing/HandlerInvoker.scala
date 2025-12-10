@@ -69,7 +69,7 @@ object HandlerInvokerFactory {
     }
   }
 
-  private def loadJavaControllerClass(handlerDef: HandlerDef): Class[?] = {
+  private[play] def loadJavaControllerClass(handlerDef: HandlerDef): Class[?] = {
     try {
       handlerDef.classLoader.loadClass(handlerDef.controller.stripPrefix("_root_."))
     } catch {
