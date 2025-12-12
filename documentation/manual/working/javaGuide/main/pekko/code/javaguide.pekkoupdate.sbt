@@ -2,7 +2,7 @@
 
 //#pekko-update
 // The newer Pekko version you want to use.
-val pekkoVersion = "1.3.0"
+val pekkoVersion = "1.4.0"
 
 // Pekko dependencies used by Play
 libraryDependencies ++= Seq(
