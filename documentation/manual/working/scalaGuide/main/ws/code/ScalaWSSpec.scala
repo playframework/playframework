@@ -162,7 +162,7 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
 
     "allow setting the content type" in withSimpleServer { ws =>
       val xmlString = "<foo></foo>"
-      val response =
+      val response  =
         // #content-type
         ws.url(url)
           .addHttpHeaders("Content-Type" -> "application/xml")
