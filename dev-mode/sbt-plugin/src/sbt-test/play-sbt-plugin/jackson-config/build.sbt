@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     InputKey[Unit]("makeRequest") := {
-      val args                          = Def.spaceDelimited("<path> <status> <words> ...").parsed
+      val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed
       val path :: status :: assertions = args
       ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     },
@@ -26,7 +26,7 @@ lazy val `play-scala` = (project in file("play-scala"))
   .settings(
     libraryDependencies += guice,
     libraryDependencies += ws,
-    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   )
 
@@ -36,12 +36,12 @@ lazy val `play-java` = (project in file("play-java"))
   .settings(
     libraryDependencies += guice,
     libraryDependencies += javaWs,
-    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   )
 
 lazy val `json-utils` = (project in file("json-utils"))
   .enablePlugins(PlayService) // enabled just because it pulls in jackson dependencies needed
   .settings(
-    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
+    scalaVersion := ScriptedTools.scalaVersionFromJavaProperties()
   )

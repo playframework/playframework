@@ -13,7 +13,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M9"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.20"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.22"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -102,7 +102,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "6.2.12"
+  val springFrameworkVersion = "6.2.15"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -188,7 +188,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.3.1"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.3.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.3.2"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
