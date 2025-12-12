@@ -52,7 +52,7 @@ object Dependencies {
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
   val guava      = "com.google.guava" % "guava"        % "33.5.0-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.20.0"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.21.0"
 
   val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
