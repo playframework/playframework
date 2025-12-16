@@ -183,7 +183,7 @@ object Dependencies {
         .map("com.typesafe.akka" %% _ % akkaVersion)
         .map(_.forScala3TestsUse2_13())
         .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq(
-        "at.yawk.lz4" % "lz4-java" % "1.10.1" // CVE‐2025‐12183 + CVE-2025-66566
+        "at.yawk.lz4" % "lz4-java" % "1.10.2" // CVE‐2025‐12183 + CVE-2025-66566
       ) ++
       Seq("akka-testkit", "akka-actor-testkit-typed")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test)
