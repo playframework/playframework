@@ -143,7 +143,7 @@ object Docs {
     )
 
     val cache  = apiDocsCache("scalaapidocs.cache").value
-    val scalac = compilers.value.scalac().asInstanceOf[AnalyzingCompiler]
+    val scalac = (Compile / doc / compilers).value.scalac().asInstanceOf[AnalyzingCompiler]
 
     val scaladoc = Doc.scaladoc(label, cache, scalac)
 
