@@ -16,7 +16,7 @@ object PlaySbtBuildBase extends AutoPlugin {
     pluginCrossBuild / sbtVersion := {
       scalaBinaryVersion.value match {
         case "2.12" =>
-          SbtVersions.sbt111
+          SbtVersions.sbt1
         case _ =>
           SbtVersions.sbt2
       }
