@@ -255,11 +255,17 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   private val httpsServerBinding = context.config.sslPort.map { port =>
     val connectionContext =
       try {
-        val clientAuth: Option[TLSClientAuth] = createClientAuth()
-        ConnectionContext.https(
-          sslContext = sslContext,
-          clientAuth = clientAuth
-        )
+        ConnectionContext.httpsServer(() => {
+          val engine = sslContext.createSSLEngine()
+          createClientAuth() match {
+            case Some(auth) if auth == TLSClientAuth.need =>
+              engine.setNeedClientAuth(true)
+            case Some(auth) if auth == TLSClientAuth.want =>
+              engine.setWantClientAuth(true)
+            case _ => engine.setUseClientMode(false)
+          }
+          engine
+        })
       } catch {
         case NonFatal(e) =>
           logger.error(s"Cannot load SSL context", e)
