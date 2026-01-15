@@ -163,7 +163,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       )
       // Play needs these headers to fill in fields in its request model
       .withRawRequestUriHeader(true)
-      .withRemoteAddressHeader(true)
+      .withRemoteAddressAttribute(true)
       .withTransparentHeadRequests(transparentHeadRequests)
       .withServerHeader(serverHeader)
       .withDefaultHostHeader(defaultHostHeader)
@@ -366,10 +366,14 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   }
 
   def remoteAddressOfRequest(req: HttpRequest): InetSocketAddress = {
-    req.header[headers.`Remote-Address`] match {
-      case Some(headers.`Remote-Address`(RemoteAddress.IP(ip, Some(port)))) =>
-        new InetSocketAddress(ip, port)
-      case _ => throw new IllegalStateException("`Remote-Address` header was missing")
+    req.attribute(AttributeKeys.remoteAddress) match {
+      case Some(attr) =>
+        attr.toIP match {
+          case Some(address) if address.port.isDefined =>
+            new InetSocketAddress(address.ip, address.getPort())
+          case _ => throw new IllegalStateException(s"`Remote-Address` attribute address is not valid: $attr")
+        }
+      case _ => throw new IllegalStateException("`Remote-Address` attribute was missing")
     }
   }
 
