@@ -128,7 +128,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
    * configuration, with an additional setting patched in to enable or disable HTTP/2.
    */
   protected def createPekkoHttpConfig(): Config =
-    Configuration("pekko.http.server.preview.enable-http2" -> http2Enabled)
+    Configuration("pekko.http.server.enable-http2" -> http2Enabled)
       .withFallback(Configuration(context.actorSystem.settings.config))
       .underlying
 
