@@ -508,6 +508,14 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerProvider.<clinit>"),
+      // Pekko 2
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.apache.pekko.stream.testkit.NoMaterializer.schedulePeriodically"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.pekko.http.play.WebSocketHandler.handleWebSocket"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.apache.pekko.http.play.WebSocketHandler.handleWebSocket"
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
