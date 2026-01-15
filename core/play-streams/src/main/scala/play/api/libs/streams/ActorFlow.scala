@@ -9,6 +9,7 @@ import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.stream.scaladsl.Keep
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.CompletionStrategy
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.OverflowStrategy
 
@@ -40,7 +41,16 @@ object ActorFlow {
       overflowStrategy: OverflowStrategy = OverflowStrategy.fail
   )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, ?] = {
     val (outActor, publisher) = Source
-      .actorRef[Out](bufferSize, overflowStrategy)
+      .actorRef[Out](
+        {
+          case Status.Success(s: CompletionStrategy) => s
+          case Status.Success(_)                     => CompletionStrategy.draining
+          case Status.Success                        => CompletionStrategy.draining
+        },
+        { case Status.Failure(cause) => cause },
+        bufferSize,
+        overflowStrategy
+      )
       .toMat(Sink.asPublisher(false))(Keep.both)
       .run()
 
@@ -60,7 +70,8 @@ object ActorFlow {
             case _ => SupervisorStrategy.Stop
           }
         })),
-        Status.Success(())
+        Status.Success(()),
+        t => Status.Failure(t)
       ),
       Source.fromPublisher(publisher)
     )
