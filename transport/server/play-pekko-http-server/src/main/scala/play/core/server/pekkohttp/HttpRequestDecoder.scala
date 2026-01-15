@@ -36,7 +36,7 @@ private[server] object HttpRequestDecoder {
    */
   def decodeRequest(request: HttpRequest): HttpRequest = {
     request.encoding match {
-      case HttpEncodings.gzip    => decodeRequestWith(Compression.gunzip(), request)
+      case HttpEncodings.gzip    => decodeRequestWith(Compression.gzipDecompress(), request)
       case HttpEncodings.deflate => decodeRequestWith(Compression.inflate(), request)
       // Handle every undefined decoding as is
       case _ => request
