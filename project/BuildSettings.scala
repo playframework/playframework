@@ -553,6 +553,14 @@ object BuildSettings {
       // Make Java's Formatters.print(TypeDescriptor desc, ...) package private to hide spring implementation
       // (It leaks the now internal play.data.internal.binding.core.convert.TypeDescriptor)
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.format.Formatters.print"),
+      // Pekko 2
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.apache.pekko.stream.testkit.NoMaterializer.schedulePeriodically"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.pekko.http.play.WebSocketHandler.handleWebSocket"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "org.apache.pekko.http.play.WebSocketHandler.handleWebSocket"
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
