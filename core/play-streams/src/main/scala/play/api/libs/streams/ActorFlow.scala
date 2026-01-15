@@ -20,6 +20,16 @@ import org.apache.pekko.stream.OverflowStrategy
  */
 object ActorFlow {
 
+  private val completionMatcher: PartialFunction[Any, CompletionStrategy] = {
+    case Status.Success(s: CompletionStrategy) => s
+    case Status.Success(_)                     => CompletionStrategy.draining
+    case Status.Success                        => CompletionStrategy.draining
+  }
+
+  private val failureMatcher: PartialFunction[Any, Throwable] = {
+    case Status.Failure(cause) => cause
+  }
+
   /**
    * Create a flow that is handled by an actor.
    *
@@ -42,12 +52,8 @@ object ActorFlow {
   )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, ?] = {
     val (outActor, publisher) = Source
       .actorRef[Out](
-        {
-          case Status.Success(s: CompletionStrategy) => s
-          case Status.Success(_)                     => CompletionStrategy.draining
-          case Status.Success                        => CompletionStrategy.draining
-        },
-        { case Status.Failure(cause) => cause },
+        completionMatcher,
+        failureMatcher,
         bufferSize,
         overflowStrategy
       )
