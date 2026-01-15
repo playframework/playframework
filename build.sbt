@@ -36,6 +36,7 @@ ThisBuild / dynver := {
 // Makes sbt-java-formatter keep using google-java-format 1.28.0 to not require Java 21 for formatting (yet)
 ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
 
+ThisBuild / evictionErrorLevel := Level.Info
 ThisBuild / resolvers += Resolver.ApacheMavenStagingRepo
 
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
