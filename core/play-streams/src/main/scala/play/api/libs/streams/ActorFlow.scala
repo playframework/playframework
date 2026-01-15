@@ -9,6 +9,7 @@ import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.stream.scaladsl.Keep
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.stream.CompletionStrategy
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.OverflowStrategy
 
@@ -18,6 +19,16 @@ import org.apache.pekko.stream.OverflowStrategy
  * See https://github.com/akka/akka/issues/16985.
  */
 object ActorFlow {
+
+  private val completionMatcher: PartialFunction[Any, CompletionStrategy] = {
+    case Status.Success(s: CompletionStrategy) => s
+    case Status.Success(_)                     => CompletionStrategy.draining
+    case Status.Success                        => CompletionStrategy.draining
+  }
+
+  private val failureMatcher: PartialFunction[Any, Throwable] = {
+    case Status.Failure(cause) => cause
+  }
 
   /**
    * Create a flow that is handled by an actor.
@@ -40,7 +51,12 @@ object ActorFlow {
       overflowStrategy: OverflowStrategy = OverflowStrategy.fail
   )(implicit factory: ActorRefFactory, mat: Materializer): Flow[In, Out, ?] = {
     val (outActor, publisher) = Source
-      .actorRef[Out](bufferSize, overflowStrategy)
+      .actorRef[Out](
+        completionMatcher,
+        failureMatcher,
+        bufferSize,
+        overflowStrategy
+      )
       .toMat(Sink.asPublisher(false))(Keep.both)
       .run()
 
@@ -60,7 +76,8 @@ object ActorFlow {
             case _ => SupervisorStrategy.Stop
           }
         })),
-        Status.Success(())
+        Status.Success(()),
+        t => Status.Failure(t)
       ),
       Source.fromPublisher(publisher)
     )
