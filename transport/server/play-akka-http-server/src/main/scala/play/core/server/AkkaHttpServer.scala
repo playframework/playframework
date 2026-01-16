@@ -138,7 +138,8 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
 
   /** Called by Play when creating its Akka HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
-    ParserSettings(akkaHttpConfig)
+    ParserSettings
+      .forServer(context.actorSystem)
       .withMaxContentLength(maxContentLength)
       .withMaxHeaderValueLength(maxHeaderValueLength)
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
