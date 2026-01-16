@@ -137,7 +137,8 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
 
   /** Called by Play when creating its Pekko HTTP parser settings. Result stored in [[parserSettings]]. */
   protected def createParserSettings(): ParserSettings =
-    ParserSettings(pekkoHttpConfig)
+    ParserSettings
+      .forServer(context.actorSystem)
       .withMaxContentLength(maxContentLength)
       .withMaxHeaderValueLength(maxHeaderValueLength)
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
