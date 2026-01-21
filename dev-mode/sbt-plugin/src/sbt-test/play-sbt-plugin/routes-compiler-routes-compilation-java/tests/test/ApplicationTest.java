@@ -40,6 +40,13 @@ public class ApplicationTest extends AbstractRoutesTest {
   }
 
   @Test
+  public void checkSameEscapedJavaIdentifier() {
+    var result = route(app, fakeRequest(GET, "/same-escaped-java-identifier?%5B%5D=a&%25%25=b"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("ab");
+  }
+
+  @Test
   public void checkWebSocket() {
     var server = testServer();
     running(
