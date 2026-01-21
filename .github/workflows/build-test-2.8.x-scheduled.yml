@@ -1,0 +1,174 @@
+name: Check
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # Nightly build (@daily)
+
+concurrency:
+  # Only run once for latest commit per ref and cancel other (previous) runs.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  extra-vars:
+    name: Extra variables
+    runs-on: ubuntu-20.04
+    outputs:
+      akka_version_opts: ${{ steps.akka-snapshots.outputs.akka_opts }}
+      akka_http_version_opts: ${{ steps.akka-snapshots.outputs.akka_http_opts }}
+    steps:
+      - id: akka-snapshots
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            AKKA_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-actor_2.13/ | grep -oEi '2\.6\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
+            AKKA_HTTP_VERSION=$(curl -s https://oss.sonatype.org/content/repositories/snapshots/com/typesafe/akka/akka-http-core_2.13/ | grep -oEi '10\.1\.[0-9]+\+[RCM0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
+            echo "::set-output name=akka_opts::-Dakka.version=$AKKA_VERSION"
+            echo "::set-output name=akka_http_opts::-Dakka.http.version=$AKKA_HTTP_VERSION"
+          else
+            echo "::set-output name=akka_opts::"
+            echo "::set-output name=akka_http_opts::"
+          fi
+
+  prefetch-for-caching:
+    name: Prefetch dependencies and JVMs for caching
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      cmd: |
+        if [ "$CACHE_HIT_COURSIER" = "false" ]; then
+          sbt +update                                             # Runs with adoptium:8 (default)
+          # sbt --sbt-version 1.6.2 +update                       # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
+          sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
+          cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
+          sbt -java-home `cs java-home --jvm adoptium:11` exit    # Init sbt with new JVM that will be downloaded
+          sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
+        fi
+
+  check-code-style:
+    name: Code Style # scalafmt, javafmt, file headers, akka version check
+    needs:
+      - "extra-vars"
+      - "prefetch-for-caching"
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" validateCode
+
+  check-binary-compatibility:
+    name: Binary Compatibility
+    needs: "prefetch-for-caching"
+    uses: playframework/.github/.github/workflows/binary-check.yml@v2
+    with:
+      ref: '2.8.x'
+
+  check-code-style-docs:
+    name: Code Style Docs
+    needs: "prefetch-for-caching"
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      cmd: |
+        cd documentation
+        sbt validateCode
+
+  publish-local:
+    name: Publish Local
+    needs:
+      - "extra-vars"
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      java: 11, 8
+      cmd: |
+        rm -rf ~/.ivy2/local
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal
+      cache-path: ~/.ivy2/local/com.typesafe.play
+      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+
+  tests:
+    name: Tests
+    needs:
+      - "extra-vars"
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      java: 11, 8
+      scala: 2.12.15, 2.13.8
+      add-dimensions: >-
+        {
+          "sbt_test_task": [ "test", "Play-Integration-Test/It/test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true" ]
+        }
+      exclude: >-
+        [
+          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
+          { "scala": "${{ github.event_name == 'schedule' || '2.12.15' }}" },
+          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 -foe=true' }}" }
+        ]
+      cmd: sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA "$MATRIX_SBT_TEST_TASK"
+
+  docs-tests:
+    name: Docs Tests
+    needs:
+      - "extra-vars"
+      - "check-code-style"
+      - "check-binary-compatibility"
+      - "check-code-style-docs"
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      java: 11, 8
+      scala: 2.12.15, 2.13.8
+      exclude: >-
+        [
+          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
+          { "scala": "${{ github.event_name == 'schedule' || '2.12.15' }}" }
+        ]
+      cmd: cd documentation && sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" ++$MATRIX_SCALA test
+
+  scripted-tests:
+    name: Scripted Tests
+    needs:
+      - "extra-vars"
+      - "publish-local"
+    uses: playframework/.github/.github/workflows/cmd.yml@v2
+    with:
+      ref: '2.8.x'
+      java: 11, 8
+      scala: 2.12.15, 2.13.8
+      add-dimensions: >-
+        {
+          "sbt": [ "1.3.13", "1.6.2" ],
+          "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
+        }
+      exclude: >-
+        [
+          { "java": "${{ github.event_name == 'schedule' || '11' }}" },
+          { "scala": "${{ github.event_name == 'schedule' || '2.12.15' }}" },
+          { "sbt": "${{ github.event_name == 'schedule' || '1.3.13' }}" }
+        ]
+      cmd: >-
+        sbt "${{needs.extra-vars.outputs.akka_version_opts}}" "${{needs.extra-vars.outputs.akka_http_version_opts}}" "
+          project Sbt-Plugin;
+          set scriptedSbt := \"$MATRIX_SBT\";
+          set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
+          show scriptedSbt;
+          show scriptedLaunchOpts;
+          scripted play-sbt-plugin/$MATRIX_SBT_STEPS
+        "
+      cache-path: ~/.ivy2/local/com.typesafe.play
+      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
+
+  finish:
+    name: Finish
+    if: github.event_name == 'pull_request'
+    needs: # Should be last
+      - "tests"
+      - "docs-tests"
+      - "scripted-tests"
+    uses: playframework/.github/.github/workflows/rtm.yml@v2
