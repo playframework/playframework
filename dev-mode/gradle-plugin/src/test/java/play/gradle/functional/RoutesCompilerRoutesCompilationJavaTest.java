@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import org.apache.commons.io.file.PathUtils;
 import org.apache.groovy.util.Maps;
+import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
@@ -32,7 +33,8 @@ public class RoutesCompilerRoutesCompilationJavaTest extends AbstractFunctionalT
         "build.gradle.kts.ftlh",
         Maps.of(
             "scalaVersion", getScalaVersion(),
-            "playVersion", getPlayVersion()));
+            "playVersion", getPlayVersion(),
+            "javaVersion", JavaVersion.current()));
   }
 
   @Override
