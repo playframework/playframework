@@ -166,7 +166,7 @@ object Dependencies {
       Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j", "pekko-serialization-jackson")
         .map("org.apache.pekko" %% _ % pekkoVersion)
         .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq(
-        "at.yawk.lz4" % "lz4-java" % "1.10.2" // CVE‐2025‐12183 + CVE-2025-66566
+        "at.yawk.lz4" % "lz4-java" % "1.10.3" // CVE‐2025‐12183 + CVE-2025-66566
       ) ++
       Seq("pekko-testkit", "pekko-actor-testkit-typed")
         .map("org.apache.pekko" %% _ % pekkoVersion % Test) ++
