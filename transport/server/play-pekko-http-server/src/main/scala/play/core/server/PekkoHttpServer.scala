@@ -220,12 +220,13 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] =
       try {
-        val serverBuilder = Http()(using context.actorSystem)
+        var serverBuilder = Http()(using context.actorSystem)
           .newServerAt(context.config.address, port)
           .withSettings(createServerSettings(port, connectionContext, secure))
         connectionContext match {
-          case httpsContext: HttpsConnectionContext => serverBuilder.enableHttps(httpsContext)
-          case _                                    =>
+          case httpsContext: HttpsConnectionContext =>
+            serverBuilder = serverBuilder.enableHttps(httpsContext)
+          case _ =>
         }
 
         serverBuilder.bind(handleRequest(_, connectionContext.isSecure))
