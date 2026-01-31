@@ -493,6 +493,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.style.format"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.textarea.format"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.play20.manual.format"),
+      // Pekko 2
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "org.apache.pekko.stream.testkit.NoMaterializer.schedulePeriodically"
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
