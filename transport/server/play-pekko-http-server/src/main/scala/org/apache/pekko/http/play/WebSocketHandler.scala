@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 
 import org.apache.pekko.http.impl.engine.ws._
 import org.apache.pekko.http.scaladsl.model.ws.UpgradeToWebSocket
+import org.apache.pekko.http.scaladsl.model.ws.WebSocketUpgrade
 import org.apache.pekko.http.scaladsl.model.HttpResponse
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.stage._
@@ -23,6 +24,27 @@ import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 object WebSocketHandler {
+
+  /**
+   * Handle a WebSocket using the new WebSocketUpgrade API
+   *
+   * This method uses the maintained pekko-http WebSocketUpgrade API instead of the deprecated UpgradeToWebSocket.
+   *
+   * @since 3.1.0
+   */
+  def handleWebSocket(
+      upgrade: WebSocketUpgrade,
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      subprotocol: Option[String],
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+  ): HttpResponse = upgrade match {
+    case lowLevel: UpgradeToWebSocketLowLevel =>
+      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle), subprotocol)
+    case other =>
+      throw new IllegalArgumentException("WebSocketUpgrade is not an Pekko HTTP UpgradeToWebsocketLowLevel")
+  }
 
   /**
    * Handle a WebSocket without selecting a subprotocol
@@ -46,8 +68,9 @@ object WebSocketHandler {
     handleWebSocket(upgrade, flow, bufferLimit, subprotocol, "ping", Duration.Inf)
 
   /**
-   * Handle a WebSocket
+   * Handle a WebSocket using the deprecated UpgradeToWebSocket API
    */
+  @deprecated("Use the WebSocketUpgrade API instead of UpgradeToWebSocket", "3.1.0")
   def handleWebSocket(
       upgrade: UpgradeToWebSocket,
       flow: Flow[Message, Message, ?],
