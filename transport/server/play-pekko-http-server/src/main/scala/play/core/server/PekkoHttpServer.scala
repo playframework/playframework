@@ -31,6 +31,7 @@ import org.apache.pekko.http.scaladsl.util.FastFuture._
 import org.apache.pekko.http.scaladsl.ConnectionContext
 import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.HttpConnectionContext
+import org.apache.pekko.http.scaladsl.HttpsConnectionContext
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.TLSClientAuth
@@ -219,14 +220,16 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
     val bindingFuture: Future[Http.ServerBinding] =
       try {
-        Http()(using context.actorSystem)
-          .bindAndHandleAsync(
-            handler = handleRequest(_, connectionContext.isSecure),
-            interface = context.config.address,
-            port = port,
-            connectionContext = connectionContext,
-            settings = createServerSettings(port, connectionContext, secure)
-          )(using context.materializer)
+        var serverBuilder = Http()(using context.actorSystem)
+          .newServerAt(context.config.address, port)
+          .withSettings(createServerSettings(port, connectionContext, secure))
+        connectionContext match {
+          case httpsContext: HttpsConnectionContext =>
+            serverBuilder = serverBuilder.enableHttps(httpsContext)
+          case _ =>
+        }
+
+        serverBuilder.bind(handleRequest(_, connectionContext.isSecure))
       } catch {
         // Http2SupportNotPresentException is private[pekko] so we need to match the name
         case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
