@@ -274,7 +274,7 @@ object HttpConfiguration {
 
     val secret =
       config.get[Option[String]]("play.http.secret.key") match {
-        case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
+        case Some("changeme") | Some(Blank()) | None if environment.mode == Mode.Prod =>
           val message =
             """
               |The application secret has not been set, and we are in prod mode. Your application is not secure.
