@@ -138,7 +138,7 @@ object Messages extends MessagesImplicits {
       "Message pattern expected"
     )
     val message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
-      case (_ ~ k ~ _ ~ v) =>
+      case _ ~ k ~ _ ~ v =>
         Messages.Message(k, v.trim, messageSource, messageSourceName)
     }
     val sentence = (comment | positioned(message)) <~ newLine
