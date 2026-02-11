@@ -218,27 +218,18 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       secure: Boolean
   ): Http.ServerBinding = {
     // TODO: pass in Inet.SocketOption and LoggerAdapter params?
-    val bindingFuture: Future[Http.ServerBinding] =
-      try {
-        var serverBuilder = Http()(using context.actorSystem)
-          .newServerAt(context.config.address, port)
-          .withSettings(createServerSettings(port, connectionContext, secure))
-        connectionContext match {
-          case httpsContext: HttpsConnectionContext =>
-            serverBuilder = serverBuilder.enableHttps(httpsContext)
-          case _ =>
-        }
-
-        serverBuilder.bind(handleRequest(_, connectionContext.isSecure))
-      } catch {
-        // Http2SupportNotPresentException is private[pekko] so we need to match the name
-        case e: Throwable if e.getClass.getSimpleName == "Http2SupportNotPresentException" =>
-          throw new RuntimeException(
-            "HTTP/2 enabled but pekko-http2-support not found. " +
-              "Add .enablePlugins(PlayPekkoHttp2Support) in build.sbt",
-            e
-          )
+    val bindingFuture: Future[Http.ServerBinding] = {
+      var serverBuilder = Http()(using context.actorSystem)
+        .newServerAt(context.config.address, port)
+        .withSettings(createServerSettings(port, connectionContext, secure))
+      connectionContext match {
+        case httpsContext: HttpsConnectionContext =>
+          serverBuilder = serverBuilder.enableHttps(httpsContext)
+        case _ =>
       }
+
+      serverBuilder.bind(handleRequest(_, connectionContext.isSecure))
+    }
 
     Await.result(bindingFuture, bindTimeout)
   }
