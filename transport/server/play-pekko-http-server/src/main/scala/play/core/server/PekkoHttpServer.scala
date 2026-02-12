@@ -24,7 +24,8 @@ import org.apache.pekko.http.play.WebSocketHandler
 import org.apache.pekko.http.scaladsl.model._
 import org.apache.pekko.http.scaladsl.model.headers
 import org.apache.pekko.http.scaladsl.model.headers.Expect
-import org.apache.pekko.http.scaladsl.model.ws.UpgradeToWebSocket
+import org.apache.pekko.http.scaladsl.model.ws.WebSocketUpgrade
+import org.apache.pekko.http.scaladsl.model.AttributeKeys
 import org.apache.pekko.http.scaladsl.settings.ParserSettings
 import org.apache.pekko.http.scaladsl.settings.ServerSettings
 import org.apache.pekko.http.scaladsl.util.FastFuture._
@@ -392,7 +393,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       taggedRequestHeader: RequestHeader,
       handler: Handler
   ): Future[HttpResponse] = {
-    val upgradeToWebSocket = request.header[UpgradeToWebSocket]
+    val upgradeToWebSocket = request.attribute(AttributeKeys.webSocketUpgrade)
 
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
