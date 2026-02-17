@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
 )
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
+crossPaths    := false
 updateOptions := updateOptions.value.withLatestSnapshots(false)
 update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 

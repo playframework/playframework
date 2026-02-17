@@ -4,6 +4,8 @@
 
 package play.routing;
 
+import static play.core.routing.JavaGeneratedRouter.pathBindableFor;
+
 import jakarta.inject.Inject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -23,13 +25,10 @@ import net.jodah.typetools.TypeResolver;
 import play.BuiltInComponents;
 import play.api.mvc.BodyParser;
 import play.api.mvc.PathBindable;
-import play.api.mvc.PathBindable$;
 import play.core.j.JavaContextComponents;
 import play.core.routing.HandlerInvokerFactory$;
-import play.libs.Scala;
 import play.mvc.Http;
 import play.mvc.Result;
-import scala.reflect.ClassTag$;
 
 /**
  * A DSL for building a router.
@@ -273,25 +272,6 @@ public class RoutingDsl {
     routes.add(new Route(method, regex, params, action, actionMethod));
 
     return this;
-  }
-
-  private PathBindable<?> pathBindableFor(Class<?> clazz) {
-    PathBindable<?> builtIn = Scala.orNull(PathBindable$.MODULE$.pathBindableRegister().get(clazz));
-    if (builtIn != null) {
-      return builtIn;
-    } else if (play.mvc.PathBindable.class.isAssignableFrom(clazz)) {
-      return javaPathBindableFor(clazz);
-    } else if (clazz.equals(Object.class)) {
-      // Special case for object, treat as a string
-      return PathBindable.bindableString$.MODULE$;
-    } else {
-      throw new IllegalArgumentException("Don't know how to bind argument of type " + clazz);
-    }
-  }
-
-  private static <A extends play.mvc.PathBindable<A>> PathBindable<?> javaPathBindableFor(
-      Class<?> clazz) {
-    return PathBindable$.MODULE$.<A>javaPathBindable(ClassTag$.MODULE$.apply(clazz));
   }
 
   static class Route {
