@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     // actually it should fail on any warning so that we can check that packageBin won't include any documentation
-    Compile / scalacOptions := Seq("-Xfatal-warnings", "-deprecation"),
+    Compile / scalacOptions := Seq("-Werror", "-deprecation"),
     libraryDependencies += guice,
     play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false,
     Compile / packageDoc                                      := file(".")
