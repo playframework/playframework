@@ -22,7 +22,24 @@ jobs:
           fetch-depth: 0
           ref: ${{ inputs.ref }}
       - uses: sbt/setup-sbt@v1
+      - name: Set current timestamp (to the minute)
+        run: echo "TIMESTAMP_MINUTE=$(date +'%Y-%m-%d %H-%M')" >> $GITHUB_ENV
       - uses: scalacenter/sbt-dependency-submission@v3 # for root project
+        id: submit-root-build
+        with:
+          correlator: '${{ github.workflow }}_${{ github.job }}_${{ github.action }}-branch_${{ github.ref_name }}'
+          manifest-override: '${{ env.TIMESTAMP_MINUTE }} [${{ github.ref_name}}] build.sbt'
+          sha-override: '90f6d1fc243dfaeff4657cb8ea586f1b3d74292b'
+          ref-override: 'refs/heads/main'
+      - name: Log dependency snapshot for build.sbt
+        run: cat ${{ steps.submit-root-build.outputs.snapshot-json-path }} | jq
       - uses: scalacenter/sbt-dependency-submission@v3
+        id: submit-documentation-build
         with:
           working-directory: './documentation/'
+          correlator: '${{ github.workflow }}_${{ github.job }}_${{ github.action }}-branch_${{ github.ref_name }}'
+          manifest-override: '${{ env.TIMESTAMP_MINUTE }} [${{ github.ref_name}}] documentation/build.sbt'
+          sha-override: '90f6d1fc243dfaeff4657cb8ea586f1b3d74292b'
+          ref-override: 'refs/heads/main'
+      - name: Log dependency snapshot for documentation/build.sbt
+        run: cat ${{ steps.submit-documentation-build.outputs.snapshot-json-path }} | jq
