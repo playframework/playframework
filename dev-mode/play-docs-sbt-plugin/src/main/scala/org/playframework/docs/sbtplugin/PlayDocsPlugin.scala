@@ -166,22 +166,22 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       scalaTwirlSourceManaged.value
     ),
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    Test / sourceGenerators += Def.task {
+    Test / sourceGenerators += (Def.task {
       compileTemplates(
         javaManualSourceDirectories.value,
         javaTwirlSourceManaged.value,
-        TemplateImports.defaultJavaTemplateImports.asScala,
+        TemplateImports.defaultJavaTemplateImports.asScala.toSeq,
         streams.value.log
       )
-    }.taskValue,
-    Test / sourceGenerators += Def.task {
+    }: Def.Initialize[Task[Seq[File]]]).taskValue,
+    Test / sourceGenerators += (Def.task {
       compileTemplates(
         scalaManualSourceDirectories.value,
         scalaTwirlSourceManaged.value,
-        TemplateImports.defaultScalaTemplateImports.asScala,
+        TemplateImports.defaultScalaTemplateImports.asScala.toSeq,
         streams.value.log
       )
-    }.taskValue,
+    }: Def.Initialize[Task[Seq[File]]]).taskValue,
     Test / routesCompilerTasks := uncached {
       val javaRoutes   = (javaManualSourceDirectories.value * "*.routes").get()
       val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get()
@@ -243,12 +243,13 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     val args = Def.spaceDelimited().parsed
     val port = args.headOption.map(_.toInt).getOrElse(9000)
 
-    val classpath: Seq[Attributed[File]] = (Test / dependencyClasspath).value
+    implicit val fc: xsbti.FileConverter = fileConverter.value
+    val classpathFiles: Seq[File]        = sbt.internal.PlayDocsCompat.getClasspathFiles((Test / dependencyClasspath).value)
 
     // Get classloader
     val sbtLoader   = this.getClass.getClassLoader
     val classloader = new java.net.URLClassLoader(
-      classpath.map(_.data.toURI.toURL).toArray,
+      classpathFiles.map(_.toURI.toURL).toArray,
       null /* important here, don't depend of the sbt classLoader! */
     ) {
       override def loadClass(name: String): Class[?] = {
@@ -288,10 +289,12 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     )
 
     val translationReport = new Callable[File] {
-      def call() = Project.runTask(cachedTranslationCodeSamplesReport, state.value).get._2.toEither.right.get
+      def call() =
+        sbt.internal.PlayDocsCompat.runTask(cachedTranslationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
     val forceTranslationReport = new Callable[File] {
-      def call() = Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.right.get
+      def call() =
+        sbt.internal.PlayDocsCompat.runTask(translationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
     val docServerStart           = constructor.newInstance()
     val server: ReloadableServer = startMethod
