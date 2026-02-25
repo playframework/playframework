@@ -574,7 +574,7 @@ object PlayDocsValidation {
 
   private def getMarkdownFiles(base: File): Seq[(File, String)] = {
     import Path._
-    (base / "manual" ** "*.md").get.pair(relativeTo(base))
+    (base / "manual" ** "*.md").get().pair(relativeTo(base))
   }
 
   private def logErrorAtLocation(log: Logger, file: File, position: Int, errorMessage: String) = synchronized {
