@@ -124,7 +124,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     playDocsValidationConfig  := ValidationConfig(),
     manualPath                := baseDirectory.value,
     run                       := docsRunSetting.evaluated,
-    generateMarkdownRefReport := PlayDocsValidation.generateMarkdownRefReportTask.value,
+    generateMarkdownRefReport := uncached(PlayDocsValidation.generateMarkdownRefReportTask.value),
     validateDocs              := PlayDocsValidation.validateDocsTask.value,
     validateExternalLinks     := PlayDocsValidation.validateExternalLinksTask.value,
     docsVersion               := PlayVersion.current,
@@ -143,8 +143,8 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
   )
 
   def docsReportSettings = Seq(
-    generateMarkdownCodeSamplesReport  := PlayDocsValidation.generateMarkdownCodeSamplesTask.value,
-    generateUpstreamCodeSamplesReport  := PlayDocsValidation.generateUpstreamCodeSamplesTask.value,
+    generateMarkdownCodeSamplesReport  := uncached(PlayDocsValidation.generateMarkdownCodeSamplesTask.value),
+    generateUpstreamCodeSamplesReport  := uncached(PlayDocsValidation.generateUpstreamCodeSamplesTask.value),
     translationCodeSamplesReportFile   := target.value / "report.html",
     translationCodeSamplesReport       := uncached { PlayDocsValidation.translationCodeSamplesReportTask.value },
     cachedTranslationCodeSamplesReport := uncached { PlayDocsValidation.cachedTranslationCodeSamplesReportTask.value }
@@ -182,7 +182,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
         streams.value.log
       )
     }.taskValue,
-    Test / routesCompilerTasks := {
+    Test / routesCompilerTasks := uncached {
       val javaRoutes   = (javaManualSourceDirectories.value * "*.routes").get()
       val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get()
       val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get()
@@ -191,7 +191,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       }
     },
     routesGenerator  := InjectedRoutesGenerator,
-    evaluateSbtFiles := {
+    evaluateSbtFiles := uncached {
       val unit              = loadedBuild.value.units(thisProjectRef.value.build)
       val (eval, structure) = defaultLoad(state.value, unit.localBase)
       val sbtFiles          = ((Test / unmanagedSourceDirectories).value * "*.sbt").get()

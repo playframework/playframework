@@ -8,6 +8,8 @@ import sbt._
 import sbt.compiler.Eval
 
 trait PlayDocsPluginCompat {
+  def uncached[T](value: T): T = value
+
   def defaultLoad(state: State, localBase: java.io.File): (() => Eval, BuildStructure) = {
     Load.defaultLoad(state, localBase, state.log)
   }
