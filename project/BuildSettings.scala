@@ -499,7 +499,7 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.EventSource#Event.copy$default$1"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.EventSource#Event.data"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.EventSource#Event._1"),
-      // Scala 3.8.1
+      // Scala 3.8.2
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Mode.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.Lang.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ActionBuilder.<clinit>"),
