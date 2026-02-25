@@ -493,7 +493,7 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.style.format"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.textarea.format"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.play20.manual.format"),
-      // Scala 3.8.1
+      // Scala 3.8.2
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.Mode.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.i18n.Lang.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.ActionBuilder.<clinit>"),
