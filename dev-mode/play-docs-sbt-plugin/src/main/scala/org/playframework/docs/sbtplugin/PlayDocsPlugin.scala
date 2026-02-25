@@ -180,9 +180,9 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       )
     }.taskValue,
     Test / routesCompilerTasks := {
-      val javaRoutes   = (javaManualSourceDirectories.value * "*.routes").get
-      val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get
-      val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get
+      val javaRoutes   = (javaManualSourceDirectories.value * "*.routes").get()
+      val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get()
+      val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get()
       (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil) ++ commonRoutes.map(_ -> Nil)).map {
         case (file, imports) => RoutesCompilerTask(file, imports, true, true, true, true)
       }
@@ -191,7 +191,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     evaluateSbtFiles := {
       val unit              = loadedBuild.value.units(thisProjectRef.value.build)
       val (eval, structure) = defaultLoad(state.value, unit.localBase)
-      val sbtFiles          = ((Test / unmanagedSourceDirectories).value * "*.sbt").get
+      val sbtFiles          = ((Test / unmanagedSourceDirectories).value * "*.sbt").get()
       val log               = state.value.log
       if (sbtFiles.nonEmpty) {
         log.info("Testing .sbt files...")
