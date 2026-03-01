@@ -4,13 +4,17 @@
 
 package play.api.libs
 
+import scala.concurrent.duration._
+
 import org.apache.pekko.stream.scaladsl._
 import org.specs2.mutable.Specification
 import play.api.http.ContentTypes
 import play.api.mvc.Results
 
 class EventSourceSpec extends Specification {
+  import EventSource.AbstractEvent
   import EventSource.Event
+  import EventSource.EventBuilder
 
   "EventSource event formatter" should {
     "format an event" in {
@@ -40,12 +44,39 @@ class EventSourceSpec extends Specification {
     "support trailing newline" in {
       Event("a\n").formatted must equalTo("data: a\ndata: \n\n")
     }
+
+    "format an event builder with a comment" in {
+      Event("foo", Some("bar"), Some("baz")).toBuilder
+        .addComment("comment\nline 2")
+        .addComment("another comment")
+        .formatted must equalTo(
+        "data: foo\nid: bar\nevent: baz\n: comment\n: line 2\n: another comment\n\n"
+      )
+    }
+
+    "format an event builder with only a comment" in {
+      new EventBuilder()
+        .addComment("comment\nline 2")
+        .addComment("another comment")
+        .formatted must equalTo(
+        ": comment\n: line 2\n: another comment\n\n"
+      )
+    }
   }
 
   "EventSource.Event" should {
     "be writeable as a response body using an Pekko Source" in {
       val stringSource = Source(Vector("foo", "bar", "baz"))
       val flow         = stringSource.via(EventSource.flow)
+      val result       = Results.Ok.chunked(flow)
+      result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
+    }
+  }
+
+  "EventSource.keepAlive" should {
+    "be writeable as a response body using an Pekko Source" in {
+      val stringSource = Source(Vector("foo", "bar", "baz"))
+      val flow         = stringSource.via(EventSource.flow).via(EventSource.keepAlive(1.millis))
       val result       = Results.Ok.chunked(flow)
       result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
     }
