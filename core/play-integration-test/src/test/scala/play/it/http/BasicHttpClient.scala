@@ -237,7 +237,7 @@ class BasicHttpClient(port: Int, secure: Boolean) {
               chunk :: readChunks
             }
           }
-          (readChunks.toSeq, readHeaders.toMap)
+          (readChunks, readHeaders.toMap)
         }
         .toRight {
           headers

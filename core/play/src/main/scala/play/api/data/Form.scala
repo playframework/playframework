@@ -1146,7 +1146,7 @@ class DefaultFormBinding(maxChars: Long, maxDepth: Int) extends FormBinding {
       case HttpVerbs.POST | HttpVerbs.PUT | HttpVerbs.PATCH => Map.empty
       case _                                                => request.queryString
     }
-    (data ++ method).toMap
+    data ++ method
   }
   private def multipartFormParse(body: MultipartFormData[?]) = body.asFormUrlEncoded
 
