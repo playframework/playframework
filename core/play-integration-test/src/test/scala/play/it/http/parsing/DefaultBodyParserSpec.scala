@@ -21,7 +21,7 @@ class DefaultBodyParserSpec extends PlaySpecification {
         defaultBodyParser: BodyParser[AnyContent]
     ) = {
       val request = FakeRequest(method, "/x").withHeaders(
-        contentType.map(CONTENT_TYPE -> _).toSeq :+ (CONTENT_LENGTH -> body.length.toString): _*
+        (contentType.map(CONTENT_TYPE -> _).toSeq :+ (CONTENT_LENGTH -> body.length.toString))*
       )
       await(defaultBodyParser(request).run(Source.single(body)))
     }
