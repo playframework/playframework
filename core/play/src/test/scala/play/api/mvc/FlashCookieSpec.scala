@@ -64,7 +64,7 @@ class FlashCookieSpec extends org.specs2.mutable.Specification {
 
     "specifically exclude control chars" in {
       for (i <- 0 until 32) {
-        val s  = Character.toChars(i).toString
+        val s  = Character.toChars(i).mkString
         val es = flash.encode(Map("a" -> s))
         es must not contain s
 
