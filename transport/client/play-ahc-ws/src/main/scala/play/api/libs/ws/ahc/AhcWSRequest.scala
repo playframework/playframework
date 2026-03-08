@@ -136,7 +136,7 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
   }
 
   override def withRequestFilter(filter: WSRequestFilter): Self = toWSRequest {
-    underlying.withRequestFilter(filter.asInstanceOf[WSRequestFilter])
+    underlying.withRequestFilter(filter)
   }
 
   override def withVirtualHost(vh: String): Self = toWSRequest {
