@@ -237,7 +237,7 @@ object ActorSystemProvider {
     val name = config.get[String]("play.pekko.actor-system")
 
     val bootstrapSetup   = BootstrapSetup(Some(classLoader), Some(pekkoConfig), None)
-    val actorSystemSetup = ActorSystemSetup(bootstrapSetup +: additionalSetups: _*)
+    val actorSystemSetup = ActorSystemSetup((bootstrapSetup +: additionalSetups)*)
 
     logger.debug(s"Starting application default Pekko system: $name")
     ActorSystem(name, actorSystemSetup)

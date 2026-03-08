@@ -686,7 +686,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           ).delay(sendCloseAfterDelay).via(flow).runWith(consumeFrames)
         }
       )
-      frames must contain(exactly(expectedFrames ++ List(closeFrame()): _*))
+      frames must contain(exactly((expectedFrames ++ List(closeFrame()))*))
     }
   }
 }
