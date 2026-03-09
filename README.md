@@ -45,21 +45,21 @@ You can also individually sponsor the project by <a href="https://www.playframew
 ### Thank you to our premium sponsors!
 
 <div align="center">
-  <a href="https://theguardian.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/b15eb0f249dbc45089872e268d8ea5ad-the_guardian.png" width="250"></a>
+  <a href="https://theguardian.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/b15eb0f249dbc45089872e268d8ea5ad-the_guardian.png" width="250"></a>
   <br>
-  <a href="https://pronto.net/"><img src="https://www.playframework.com/assets/images/home/sponsors/c77b1d664f10a1c9cb19b97c6d8bd204-pronto-software.png" width="250"></a>
-  <a href="https://depop.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/483f7622215dc240d6e6fc52fe167bc0-depop.png" width="250"></a>
-  <a href="https://cedarlakeventures.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
+  <a href="https://pronto.net/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/c77b1d664f10a1c9cb19b97c6d8bd204-pronto-software.png" width="250"></a>
+  <a href="https://depop.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/483f7622215dc240d6e6fc52fe167bc0-depop.png" width="250"></a>
+  <a href="https://cedarlakeventures.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
   <br>
-  <a href="https://informaticon.com/">
+  <a href="https://informaticon.com/" target="_blank">
   <picture>
     <source width="250" media="(prefers-color-scheme: dark)" srcset="https://www.playframework.com/assets/images/home/sponsors/d180a3ad763aaf69b46bff18fb110d9e-informaticon-logo-white.png">
     <source width="250" media="(prefers-color-scheme: light)" srcset="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
     <img width="250" alt="informaticon logo fallback" src="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
   </picture>
   </a>
-  <a href="https://nulab.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
-  <a href="https://sprypoint.com/"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
+  <a href="https://nulab.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
+  <a href="https://sprypoint.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
 </div>
 
 ### Thank you to all our backers!
@@ -70,7 +70,7 @@ You can also individually sponsor the project by <a href="https://www.playframew
 ## Thank you for providing free tooling!
 
 <div align="center">
-  <img width="400" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.png" />
+  <a href="https://jetbrains.com/" target="_blank"><img width="250" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.png" /></a>
 </div>
 
 
