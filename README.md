@@ -67,6 +67,13 @@ You can also individually sponsor the project by <a href="https://www.playframew
 <a href="https://opencollective.com/playframework#section-contributors"><img src="https://opencollective.com/playframework/organizations.svg?width=890&button=false&avatarHeight=46"></a>
 <a href="https://opencollective.com/playframework#section-contributors"><img src="https://opencollective.com/playframework/individuals.svg?width=890&button=false&avatarHeight=46"></a>
 
+## Thank you for providing free tooling!
+
+<div align="center">
+  <img width="400" src="https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.png" />
+</div>
+
+
 ## License
 
 Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
