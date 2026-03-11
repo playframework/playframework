@@ -8,6 +8,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
 
+import scala.annotation.tailrec
 import scala.concurrent.Future
 
 import jakarta.inject.Inject
@@ -274,6 +275,7 @@ class CSRFAction(
      * the headers, and if the header has a name of our token name, then it extracts the body, and returns that,
      * otherwise it moves onto the next part.
      */
+    @tailrec
     def findToken(position: Int): Option[String] = {
       // Find the next boundary from position
       prefixedBody.indexOfSlice(boundaryLine, position) match {

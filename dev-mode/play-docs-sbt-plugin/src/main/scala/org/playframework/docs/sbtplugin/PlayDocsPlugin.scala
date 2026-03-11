@@ -7,6 +7,7 @@ package org.playframework.docs.sbtplugin
 import java.io.Closeable
 import java.util.concurrent.Callable
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -321,6 +322,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)
+    @tailrec
     def waitEOF(): Unit = {
       consoleReader.readCharacter() match {
         case 4  => // STOP

@@ -8,6 +8,7 @@ import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Statement
 
+import scala.annotation.tailrec
 import scala.util.control.Exception.ignoring
 
 import jakarta.inject.Inject
@@ -296,6 +297,7 @@ private object ApplicationEvolutions {
     }
   }
 
+  @tailrec
   private def lock(
       url: String,
       c: Connection,

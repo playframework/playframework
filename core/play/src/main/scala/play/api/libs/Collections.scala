@@ -4,6 +4,8 @@
 
 package play.api.libs
 
+import scala.annotation.tailrec
+
 /**
  * Utilities functions for Collections
  */
@@ -28,6 +30,7 @@ object Collections {
    */
   @deprecated(message = "use Seq.unfold", since = "2.9.0")
   def unfoldLeft[A, B](seed: B)(f: B => Option[(B, A)]): Seq[A] = {
+    @tailrec
     def loop(seed: B)(ls: List[A]): List[A] = f(seed) match {
       case Some((b, a)) => loop(b)(a :: ls)
       case None         => ls
