@@ -24,11 +24,11 @@ class WSMock extends WSClient {
   when(response.header(HeaderNames.CONTENT_TYPE)).thenReturn(Some("text/html;charset=UTF-8"))
   when(response.body).thenReturn("")
 
-  when(request.get()).thenReturn(Future.successful(response.asInstanceOf[request.Response]))
+  when(request.get()).thenReturn(Future.successful(response))
   when(request.post(anyString)(using any[BodyWritable[String]]))
-    .thenReturn(Future.successful(response.asInstanceOf[request.Response]))
+    .thenReturn(Future.successful(response))
   when(request.post(any[Map[String, Seq[String]]])(using any[BodyWritable[Map[String, Seq[String]]]]))
-    .thenReturn(Future.successful(response.asInstanceOf[request.Response]))
+    .thenReturn(Future.successful(response))
 
   def url(url: String): WSRequest = {
     urls += url
