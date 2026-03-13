@@ -22,8 +22,11 @@ import play.api.mvc.Results.NotModified
 
 /**
  * A helper to add caching to an Action.
+ * @param hashResponse If true `Etag` is calculated based on response content, otherwise it uses expiration date
  */
-class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materializer) {
+class Cached(cache: AsyncCacheApi, hashResponse: Boolean)(implicit materializer: Materializer) {
+
+  @Inject() def this(cache: AsyncCacheApi)(implicit materializer: Materializer) = this(cache, false)
 
   /**
    * Cache an action.
@@ -32,7 +35,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param caching Compute a cache duration from the resource header
    */
   def apply(key: RequestHeader => String, caching: PartialFunction[ResponseHeader, Duration]): CachedBuilder = {
-    new CachedBuilder(cache, key, caching)
+    new CachedBuilder(cache, key, caching, hashResponse)
   }
 
   /**
@@ -60,7 +63,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param duration Cache duration (in seconds)
    */
   def apply(key: RequestHeader => String, duration: Int): CachedBuilder = {
-    new CachedBuilder(cache, key, { case (_: ResponseHeader) => Duration(duration, SECONDS) })
+    new CachedBuilder(cache, key, { case (_: ResponseHeader) => Duration(duration, SECONDS) }, hashResponse)
   }
 
   /**
@@ -70,7 +73,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param duration Cache duration
    */
   def apply(key: RequestHeader => String, duration: Duration): CachedBuilder = {
-    new CachedBuilder(cache, key, { case (_: ResponseHeader) => duration })
+    new CachedBuilder(cache, key, { case (_: ResponseHeader) => duration }, hashResponse)
   }
 
   /**
@@ -78,7 +81,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * Useful for composition
    */
   def empty(key: RequestHeader => String): CachedBuilder =
-    new CachedBuilder(cache, key, PartialFunction.empty)
+    new CachedBuilder(cache, key, PartialFunction.empty, hashResponse)
 
   /**
    * Caches everything, forever
@@ -128,17 +131,27 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
  * @param cache The cache used for caching results
  * @param key Compute a key from the request header
  * @param caching A callback to get the number of seconds to cache results for
+ * @param hashResponse If true `Etag` is calculated based on response content, otherwise it uses expiration date
  */
 final class CachedBuilder(
     cache: AsyncCacheApi,
     key: RequestHeader => String,
-    caching: PartialFunction[ResponseHeader, Duration]
+    caching: PartialFunction[ResponseHeader, Duration],
+    hashResponse: Boolean
 )(implicit materializer: Materializer) {
+
+  def this(cache: AsyncCacheApi, key: RequestHeader => String, caching: PartialFunction[ResponseHeader, Duration])(
+      implicit materializer: Materializer
+  ) = this(cache, key, caching, false)
+
+  def withHashedResponse: CachedBuilder = new CachedBuilder(cache, key, caching, true)
 
   /**
    * Compose the cache with an action
    */
   def apply(action: EssentialAction): EssentialAction = build(action)
+
+  private val Etag = """(?:W/)?("[^"]*")""".r
 
   /**
    * Compose the cache with an action
@@ -146,51 +159,42 @@ final class CachedBuilder(
   def build(action: EssentialAction): EssentialAction = EssentialAction { request =>
     import play.core.Execution.Implicits.trampoline
 
-    val resultKey = key(request)
-    val etagKey   = s"$resultKey-etag"
+    val resultKey  = key(request)
+    val headersKey = s"$resultKey-headers"
 
-    def parseEtag(etag: String) = {
-      val Etag = """(?:W/)?("[^"]*")""".r
-      Etag.findAllMatchIn(etag).map(m => m.group(1)).toList
+    def parseEtag(etag: String) =
+      if (etag == "*") List(etag)
+      else Etag.findAllMatchIn(etag).map(_.group(1)).toList
+
+    val etags = request.headers.get(IF_NONE_MATCH).toList.flatMap(parseEtag)
+
+    def requestMatches(resultHeaders: Map[String, String]) = {
+      val etag = resultHeaders.get(ETAG)
+      etags.exists(t => t == "*" || etag.contains(t))
     }
 
-    // Check if the client has a version as new as ours
-    Accumulator.flatten(
-      Future
-        .successful(request.headers.get(IF_NONE_MATCH))
-        .flatMap {
-          case Some(requestEtag) =>
-            cache.get[String](etagKey).map {
-              case Some(etag) if requestEtag == "*" || parseEtag(requestEtag).contains(etag) =>
-                Some(Accumulator.done(NotModified))
-              case _ => None
-            }
-          case None => Future.successful(None)
-        }
-        .flatMap {
-          case Some(result) =>
-            // The client has the most recent version
-            Future.successful(result)
-          case None =>
-            // Otherwise try to serve the resource from the cache, if it has not yet expired
-            cache
-              .get[SerializableResult](resultKey)
-              .map { result =>
-                result.collect {
-                  case sr: SerializableResult => Accumulator.done(sr.result)
-                }
-              }
-              .map {
-                case Some(cachedResource) => cachedResource
-                case None                 =>
-                  // The resource was not in the cache, so we have to run the underlying action
-                  val accumulatorResult = action(request)
+    def notModifiedResult(headers: Map[String, String]) = NotModified.withHeaders(headers.toSeq*)
 
-                  // Add cache information to the response, so clients can cache its content
-                  accumulatorResult.mapFuture(handleResult(_, etagKey, resultKey))
-              }
+    Accumulator.flatten {
+      for {
+        // Check if the client has a version as new as ours
+        resultHeaders <- cache.get[Map[String, String]](headersKey)
+        result        <- resultHeaders match {
+          case Some(resultHeaders) if requestMatches(resultHeaders) =>
+            // The client has the most recent version
+            Future.successful(Accumulator.done(notModifiedResult(resultHeaders)))
+          case _ =>
+            // Otherwise try to serve the resource from the cache, if it has not yet expired
+            cache.get[SerializableResult](resultKey).map {
+              case Some(sr) =>
+                Accumulator.done(sr.result)
+              case None =>
+                // The resource was not in the cache, so we have to run the underlying action
+                action(request).mapFuture(handleResult(_, headersKey, resultKey))
+            }
         }
-    )
+      } yield result
+    }
   }
 
   /**
@@ -206,23 +210,29 @@ final class CachedBuilder(
     }
   }
 
-  private def handleResult(result: Result, etagKey: String, resultKey: String): Future[Result] = {
+  private def handleResult(result: Result, headersKey: String, resultKey: String): Future[Result] = {
     import play.core.Execution.Implicits.trampoline
 
     cachingWithEternity
       .andThen { duration =>
-        // Format expiration date according to http standard
         val expirationDate =
           http.dateFormat.format(Instant.ofEpochMilli(System.currentTimeMillis() + duration.toMillis))
-        // Generate a fresh ETAG for it
-        // Use quoted sha1 hash of expiration date as ETAG
-        val etag = s""""${Codecs.sha1(expirationDate)}""""
-
+        val etagString = if (hashResponse) {
+          val stream = new java.security.DigestOutputStream(_ => (), java.security.MessageDigest.getInstance("SHA-1"))
+          val oos    = new java.io.ObjectOutputStream(stream)
+          new SerializableResult(result).writeExternal(oos)
+          oos.close()
+          stream.close()
+          Codecs.toHexString(stream.getMessageDigest.digest())
+        } else {
+          Codecs.sha1(expirationDate)
+        }
+        val etag              = s""""$etagString""""
         val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
-
+        // store headers and result separately to avoid retrieving result from potentially remote cache
         for {
-          // Cache the new ETAG of the resource
-          _ <- cache.set(etagKey, etag, duration)
+          // Cache the headers of the resource
+          _ <- cache.set(headersKey, resultWithHeaders.header.headers, duration)
           // Cache the new Result of the resource
           _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
         } yield resultWithHeaders
@@ -278,6 +288,7 @@ final class CachedBuilder(
   def compose(alternative: PartialFunction[ResponseHeader, Duration]): CachedBuilder = new CachedBuilder(
     cache = cache,
     key = key,
-    caching = caching.orElse(alternative)
+    caching = caching.orElse(alternative),
+    hashResponse = hashResponse
   )
 }
