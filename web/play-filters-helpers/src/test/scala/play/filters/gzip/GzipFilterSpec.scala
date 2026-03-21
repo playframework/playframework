@@ -258,7 +258,7 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
     }
 
     "remove invalid ETag header when gzipping a response" in withApplication(
-      Ok("hello").withHeaders(ETAG -> "abc123") // unquoted ETag value; a common violation of RFC 7232
+      Ok("hello").withHeaders(ETAG -> "abc123") // unquoted ETag value; a common violation of RFC 9110
     ) { implicit app =>
       val result = makeGzipRequest(app)
       checkGzippedBody(result, "hello")(using app.materializer)
