@@ -208,7 +208,6 @@ object EventSource {
     }
   }
 
-
   // ------------------
   // Event Data Extractor
   // ------------------
