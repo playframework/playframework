@@ -76,67 +76,76 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
     GzipFlow.gzip(config.bufferSize, config.compressionLevel)
 
   private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
-    implicit val ec = mat.executionContext
     if (shouldCompress(result) && config.shouldGzip(request, result)) {
-      val header = result.header.copy(headers = setupHeader(result.header))
-
-      result.body match {
-        case HttpEntity.Strict(data, contentType) =>
-          compressStrictEntity(Source.single(data), contentType)
-            .map(entity => result.copy(header = header, body = entity))
-
-        case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType)
-            if contentLength <= config.chunkedThreshold =>
-          // It's below the chunked threshold, so buffer then compress and send
-          compressStrictEntity(entity.data, contentType)
-            .map(strictEntity => result.copy(header = header, body = strictEntity))
-
-        case HttpEntity.Streamed(data, _, contentType) if request.version == HttpProtocol.HTTP_1_0 =>
-          // It's above the chunked threshold, but we can't chunk it because we're using HTTP 1.0.
-          // Instead, we use a close delimited body (ie, regular body with no content length)
-          val gzipped = data.via(createGzipFlow)
-          Future.successful(
-            result.copy(header = header, body = HttpEntity.Streamed(gzipped, None, contentType))
-          )
-
-        case HttpEntity.Streamed(data, _, contentType) =>
-          // It's above the chunked threshold, compress through the gzip flow, and send as chunked
-          val gzipped = data.via(createGzipFlow).map(d => HttpChunk.Chunk(d))
-          Future.successful(
-            result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType))
-          )
-
-        case HttpEntity.Chunked(chunks, contentType) =>
-          val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
-            import GraphDSL.Implicits._
-
-            val extractChunks   = Flow[HttpChunk].collect { case HttpChunk.Chunk(data) => data }
-            val createChunks    = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
-            val filterLastChunk = Flow[HttpChunk]
-              .filter(_.isInstanceOf[HttpChunk.LastChunk])
-              // Since we're doing a merge by concatenating, the filter last chunk won't receive demand until the gzip
-              // flow is finished. But the broadcast won't start broadcasting until both flows start demanding. So we
-              // put a buffer of one in to ensure the filter last chunk flow demands from the broadcast.
-              .buffer(1, OverflowStrategy.backpressure)
-
-            val broadcast = builder.add(Broadcast[HttpChunk](2))
-            val concat    = builder.add(Concat[HttpChunk]())
-
-            // Broadcast the stream through two separate flows, one that collects chunks and turns them into
-            // ByteStrings, sends those ByteStrings through the Gzip flow, and then turns them back into chunks,
-            // the other that just allows the last chunk through. Then concat those two flows together.
-            broadcast.out(0) ~> extractChunks ~> createGzipFlow ~> createChunks ~> concat.in(0)
-            broadcast.out(1) ~> filterLastChunk ~> concat.in(1)
-
-            new FlowShape(broadcast.in, concat.out)
-          })
-
-          Future.successful(
-            result.copy(header = header, body = HttpEntity.Chunked(chunks.via(gzipFlow), contentType))
-          )
+      val resultWithVary = result.withHeaders(result.header.varyWith(ACCEPT_ENCODING))
+      if (gzipIsAcceptedAndPreferredBy(request)) {
+        compressResult(request, resultWithVary)
+      } else {
+        Future.successful(resultWithVary)
       }
     } else {
       Future.successful(result)
+    }
+  }
+
+  private def compressResult(request: RequestHeader, result: Result): Future[Result] = {
+    implicit val ec = mat.executionContext
+    val header = result.header.copy(headers = setupHeader(result.header))
+
+    result.body match {
+      case HttpEntity.Strict(data, contentType) =>
+        compressStrictEntity(Source.single(data), contentType)
+          .map(entity => result.copy(header = header, body = entity))
+
+      case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType)
+          if contentLength <= config.chunkedThreshold =>
+        // It's below the chunked threshold, so buffer then compress and send
+        compressStrictEntity(entity.data, contentType)
+          .map(strictEntity => result.copy(header = header, body = strictEntity))
+
+      case HttpEntity.Streamed(data, _, contentType) if request.version == HttpProtocol.HTTP_1_0 =>
+        // It's above the chunked threshold, but we can't chunk it because we're using HTTP 1.0.
+        // Instead, we use a close delimited body (ie, regular body with no content length)
+        val gzipped = data.via(createGzipFlow)
+        Future.successful(
+          result.copy(header = header, body = HttpEntity.Streamed(gzipped, None, contentType))
+        )
+
+      case HttpEntity.Streamed(data, _, contentType) =>
+        // It's above the chunked threshold, compress through the gzip flow, and send as chunked
+        val gzipped = data.via(createGzipFlow).map(d => HttpChunk.Chunk(d))
+        Future.successful(
+          result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType))
+        )
+
+      case HttpEntity.Chunked(chunks, contentType) =>
+        val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
+          import GraphDSL.Implicits._
+
+          val extractChunks   = Flow[HttpChunk].collect { case HttpChunk.Chunk(data) => data }
+          val createChunks    = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
+          val filterLastChunk = Flow[HttpChunk]
+            .filter(_.isInstanceOf[HttpChunk.LastChunk])
+            // Since we're doing a merge by concatenating, the filter last chunk won't receive demand until the gzip
+            // flow is finished. But the broadcast won't start broadcasting until both flows start demanding. So we
+            // put a buffer of one in to ensure the filter last chunk flow demands from the broadcast.
+            .buffer(1, OverflowStrategy.backpressure)
+
+          val broadcast = builder.add(Broadcast[HttpChunk](2))
+          val concat    = builder.add(Concat[HttpChunk]())
+
+          // Broadcast the stream through two separate flows, one that collects chunks and turns them into
+          // ByteStrings, sends those ByteStrings through the Gzip flow, and then turns them back into chunks,
+          // the other that just allows the last chunk through. Then concat those two flows together.
+          broadcast.out(0) ~> extractChunks ~> createGzipFlow ~> createChunks ~> concat.in(0)
+          broadcast.out(1) ~> filterLastChunk ~> concat.in(1)
+
+          new FlowShape(broadcast.in, concat.out)
+        })
+
+        Future.successful(
+          result.copy(header = header, body = HttpEntity.Chunked(chunks.via(gzipFlow), contentType))
+        )
     }
   }
 
@@ -151,7 +160,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
    * Whether this request may be compressed.
    */
   private def mayCompress(request: RequestHeader) =
-    request.method != "HEAD" && gzipIsAcceptedAndPreferredBy(request)
+    request.method != "HEAD"
 
   private def gzipIsAcceptedAndPreferredBy(request: RequestHeader) = {
     val codings                        = acceptHeader(request.headers, ACCEPT_ENCODING)
