@@ -90,7 +90,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
 
   private def compressResult(request: RequestHeader, result: Result): Future[Result] = {
     implicit val ec = mat.executionContext
-    val header = result.header.copy(headers = setupHeader(result.header))
+    val header      = result.header.copy(headers = setupHeader(result.header))
 
     result.body match {
       case HttpEntity.Strict(data, contentType) =>
