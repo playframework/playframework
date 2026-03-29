@@ -11,6 +11,7 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
+import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 
 import com.google.common.io.CharStreams
@@ -211,7 +212,8 @@ class BasicHttpClient(port: Int, secure: Boolean) {
         if (length == 0) {
           ""
         } else {
-          val buf                               = new Array[Char](length)
+          val buf = new Array[Char](length)
+          @tailrec
           def readFromOffset(offset: Int): Unit = {
             val read = reader.read(buf, offset, length - offset)
             if (read + offset < length) readFromOffset(read + offset) else ()
