@@ -5,6 +5,7 @@
 package play.it.http
 
 import java.io.ByteArrayInputStream
+import java.time.Duration
 import java.util
 import java.util.Locale
 import java.util.Optional
@@ -619,7 +620,7 @@ trait JavaResultsHandlingSpec
         val dataSource =
           org.apache.pekko.stream.javadsl.Source.from(List("a", "b").asJava).map { t => EventSource.Event.event(t) }
         val eventSource = dataSource.via(EventSource.flow())
-        Results.ok().chunked(eventSource).as("text/event-stream")
+        Results.ok().chunked(eventSource).as(Http.MimeTypes.EVENT_STREAM)
       }
     }) { response =>
       response.header(CONTENT_TYPE) must beSome[String].like {
@@ -636,7 +637,7 @@ trait JavaResultsHandlingSpec
           EventSource.Event.event("a").withId("42").withName("message").withComment("comment\nline 2")
         )
         val eventSource = dataSource.via(EventSource.flow())
-        Results.ok().chunked(eventSource).as("text/event-stream")
+        Results.ok().chunked(eventSource).as(Http.MimeTypes.EVENT_STREAM)
       }
     }) { response =>
       response.header(CONTENT_TYPE) must beSome[String].like {
@@ -645,6 +646,24 @@ trait JavaResultsHandlingSpec
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body[String] must_== "event: message\nid: 42\ndata: a\n: comment\n: line 2\n\n"
+    }
+
+    "chunk event source keep alive results" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
+        val keepAliveSource = org.apache.pekko.stream.javadsl.Source
+          .maybe[EventSource.Event]
+          .via(EventSource.keepAlive(Duration.ofMillis(1)))
+          .via(EventSource.flow())
+          .take(1)
+        Results.ok().chunked(keepAliveSource).as(Http.MimeTypes.EVENT_STREAM)
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must beSome[String].like {
+        case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
+      }
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body[String] must_== ": \n\n"
     }
 
     "stream input stream responses as chunked" in makeRequest(new MockController {

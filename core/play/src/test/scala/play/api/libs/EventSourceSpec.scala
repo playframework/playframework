@@ -5,8 +5,11 @@
 package play.api.libs
 
 import scala.concurrent.duration._
+import scala.concurrent.Await
 
+import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.Materializer
 import org.specs2.mutable.Specification
 import play.api.http.ContentTypes
 import play.api.mvc.Results
@@ -71,6 +74,24 @@ class EventSourceSpec extends Specification {
       val flow         = stringSource.via(EventSource.flow).via(EventSource.keepAlive(1.millis))
       val result       = Results.Ok.chunked(flow)
       result.body.contentType must beSome(ContentTypes.EVENT_STREAM)
+    }
+
+    "emit comment-only keep-alive events" in {
+      val actorSystem                         = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem(using actorSystem)
+      try {
+        val keepAlive = Await.result(
+          Source
+            .maybe[Event]
+            .via(EventSource.keepAlive(1.millis))
+            .take(1)
+            .runWith(Sink.head),
+          5.seconds
+        )
+        keepAlive.formatted must equalTo(": \n\n")
+      } finally {
+        Await.result(actorSystem.terminate(), 5.seconds)
+      }
     }
   }
 }
