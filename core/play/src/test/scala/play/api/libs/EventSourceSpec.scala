@@ -45,7 +45,7 @@ class EventSourceSpec extends Specification {
 
     "format an event with a comment" in {
       Event("foo", Some("bar"), Some("baz"), Some("comment\nline 2")).formatted must equalTo(
-        "event: baz\nid: bar\n: comment\n: line 2\ndata: foo\n\n"
+        "event: baz\nid: bar\ndata: foo\n: comment\n: line 2\n\n"
       )
     }
 
