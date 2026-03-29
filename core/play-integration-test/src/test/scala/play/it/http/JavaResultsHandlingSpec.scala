@@ -630,6 +630,23 @@ trait JavaResultsHandlingSpec
       response.body[String] must_== "data: a\n\ndata: b\n\n"
     }
 
+    "chunk event source results with comments" in makeRequest(new MockController {
+      def action(request: Http.Request) = {
+        val dataSource = org.apache.pekko.stream.javadsl.Source.single(
+          EventSource.Event.event("a").withId("42").withName("message").withComment("comment\nline 2")
+        )
+        val eventSource = dataSource.via(EventSource.flow())
+        Results.ok().chunked(eventSource).as("text/event-stream")
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must beSome[String].like {
+        case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream"
+      }
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body[String] must_== "event: message\nid: 42\ndata: a\n: comment\n: line 2\n\n"
+    }
+
     "stream input stream responses as chunked" in makeRequest(new MockController {
       def action(request: Http.Request) = {
         Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")))
