@@ -50,7 +50,7 @@ class EventSourceSpec extends Specification {
     }
 
     "format a comment-only event" in {
-      Event(null, None, None, Some("comment\nline 2")).formatted must equalTo(
+      Event(None, None, None, Some("comment\nline 2")).formatted must equalTo(
         ": comment\n: line 2\n\n"
       )
     }

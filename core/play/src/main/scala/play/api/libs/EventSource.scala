@@ -68,7 +68,7 @@ object EventSource {
    * }}}
    */
   def keepAlive(duration: FiniteDuration): Flow[Event, Event, ?] = {
-    val keepAliveEvent = Event(null, None, None, Some(""))
+    val keepAliveEvent = Event(None, None, None, Some(""))
     Flow[Event].keepAlive(duration, () => keepAliveEvent)
   }
 
@@ -79,7 +79,7 @@ object EventSource {
   /**
    * An event encoded with the SSE protocol..
    */
-  case class Event(data: String, id: Option[String], name: Option[String], comment: Option[String] = None) {
+  case class Event(data: Option[String], id: Option[String], name: Option[String], comment: Option[String] = None) {
 
     /**
      * This event, formatted according to the EventSource protocol.
@@ -93,8 +93,8 @@ object EventSource {
           sb.append(": ").append(line).append('\n')
         }
       }
-      if (data != null) {
-        for (line <- data.split("(\r?\n)|\r", -1)) {
+      data.foreach { value =>
+        for (line <- value.split("(\r?\n)|\r", -1)) {
           sb.append("data: ").append(line).append('\n')
         }
       }
@@ -117,7 +117,15 @@ object EventSource {
         nameExtractor: EventNameExtractor[A],
         idExtractor: EventIdExtractor[A]
     ): Event = {
-      Event(dataExtractor.eventData(a), idExtractor.eventId(a), nameExtractor.eventName(a))
+      Event(Some(dataExtractor.eventData(a)), idExtractor.eventId(a), nameExtractor.eventName(a))
+    }
+
+    def apply(data: String, id: Option[String], name: Option[String]): Event = {
+      Event(Some(data), id, name, None)
+    }
+
+    def apply(data: String, id: Option[String], name: Option[String], comment: Option[String]): Event = {
+      Event(Some(data), id, name, comment)
     }
 
     implicit def writeable(implicit codec: Codec): Writeable[Event] = {
