@@ -12,9 +12,7 @@ import play.api.http.ContentTypes
 import play.api.mvc.Results
 
 class EventSourceSpec extends Specification {
-  import EventSource.AbstractEvent
   import EventSource.Event
-  import EventSource.EventBuilder
 
   "EventSource event formatter" should {
     "format an event" in {
@@ -45,21 +43,15 @@ class EventSourceSpec extends Specification {
       Event("a\n").formatted must equalTo("data: a\ndata: \n\n")
     }
 
-    "format an event builder with a comment" in {
-      Event("foo", Some("bar"), Some("baz")).toBuilder
-        .addComment("comment\nline 2")
-        .addComment("another comment")
-        .formatted must equalTo(
-        "data: foo\nid: bar\nevent: baz\n: comment\n: line 2\n: another comment\n\n"
+    "format an event with a comment" in {
+      Event("foo", Some("bar"), Some("baz"), Some("comment\nline 2")).formatted must equalTo(
+        "event: baz\nid: bar\n: comment\n: line 2\ndata: foo\n\n"
       )
     }
 
-    "format an event builder with only a comment" in {
-      new EventBuilder()
-        .addComment("comment\nline 2")
-        .addComment("another comment")
-        .formatted must equalTo(
-        ": comment\n: line 2\n: another comment\n\n"
+    "format a comment-only event" in {
+      Event(null, None, None, Some("comment\nline 2")).formatted must equalTo(
+        ": comment\n: line 2\n\n"
       )
     }
   }

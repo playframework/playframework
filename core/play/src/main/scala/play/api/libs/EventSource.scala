@@ -67,26 +67,9 @@ object EventSource {
    *   Ok.chunked(jsonStream via EventSource.flow via EventSource.keepAlive(10.seconds))
    * }}}
    */
-  def keepAlive(duration: FiniteDuration): Flow[Event, AbstractEvent, ?] = {
-    val keepAliveEvent = new EventBuilder().addComment("")
+  def keepAlive(duration: FiniteDuration): Flow[Event, Event, ?] = {
+    val keepAliveEvent = Event(null, None, None, Some(""))
     Flow[Event].keepAlive(duration, () => keepAliveEvent)
-  }
-
-  /**
-   * Abstract trait representing an event from an EventSource.
-   */
-  sealed trait AbstractEvent {
-    def formatted: String
-  }
-
-  object AbstractEvent {
-    implicit def writeable(implicit codec: Codec): Writeable[AbstractEvent] = {
-      Writeable(event => codec.encode(event.formatted))
-    }
-
-    implicit def contentType(implicit codec: Codec): ContentTypeOf[AbstractEvent] = {
-      ContentTypeOf(Some(ContentTypes.EVENT_STREAM))
-    }
   }
 
   // ------------------
@@ -96,7 +79,7 @@ object EventSource {
   /**
    * An event encoded with the SSE protocol..
    */
-  case class Event(data: String, id: Option[String], name: Option[String]) extends AbstractEvent {
+  case class Event(data: String, id: Option[String], name: Option[String], comment: Option[String] = None) {
 
     /**
      * This event, formatted according to the EventSource protocol.
@@ -105,17 +88,18 @@ object EventSource {
       val sb = new StringBuilder
       name.foreach(sb.append("event: ").append(_).append('\n'))
       id.foreach(sb.append("id: ").append(_).append('\n'))
-      for (line <- data.split("(\r?\n)|\r", -1)) {
-        sb.append("data: ").append(line).append('\n')
+      comment.foreach { value =>
+        for (line <- value.split("(\r?\n)|\r", -1)) {
+          sb.append(": ").append(line).append('\n')
+        }
+      }
+      if (data != null) {
+        for (line <- data.split("(\r?\n)|\r", -1)) {
+          sb.append("data: ").append(line).append('\n')
+        }
       }
       sb.append('\n')
       sb.toString()
-    }
-
-    def toBuilder: EventBuilder = {
-      val withData = new EventBuilder().addData(data)
-      val withId   = id.fold(withData)(withData.addId)
-      name.fold(withId)(withId.addEvent)
     }
   }
 
@@ -136,75 +120,12 @@ object EventSource {
       Event(dataExtractor.eventData(a), idExtractor.eventId(a), nameExtractor.eventName(a))
     }
 
-    def writeable(implicit codec: Codec): Writeable[Event] = AbstractEvent.writeable
-
-    def contentType(implicit codec: Codec): ContentTypeOf[Event] = AbstractEvent.contentType
-  }
-
-  /**
-   * An AbstractEvent that can be built up one field at a time. If a field contains a line break, it will be split into multiple fields.
-   */
-  class EventBuilder private (fields: Vector[(String, String)]) extends AbstractEvent {
-    def this() = this(Vector.empty)
-
-    /**
-     * Adds additional data to the event.
-     *
-     * @param value the data to add
-     * @return an EventBuilder with the additional data
-     */
-    def addData(value: String): EventBuilder = {
-      new EventBuilder(fields :+ ("data" -> value))
+    implicit def writeable(implicit codec: Codec): Writeable[Event] = {
+      Writeable(event => codec.encode(event.formatted))
     }
 
-    /**
-     * Adds an ID to the event.
-     *
-     * @param value the ID to add
-     * @return an EventBuilder with the additional ID
-     */
-    def addId(value: String): EventBuilder = {
-      new EventBuilder(fields :+ ("id" -> value))
-    }
-
-    /**
-     * Adds an event name to the event.
-     *
-     * @param value the event name to add
-     * @return an EventBuilder with the additional event name
-     */
-    def addEvent(value: String): EventBuilder = {
-      new EventBuilder(fields :+ ("event" -> value))
-    }
-
-    /**
-     * Adds a retry time to the event.
-     *
-     * @param value the retry time to add
-     * @return an EventBuilder with the additional retry time
-     */
-    def addRetry(value: String): EventBuilder = {
-      new EventBuilder(fields :+ ("retry" -> value))
-    }
-
-    /**
-     * Adds a comment to the event.
-     *
-     * @param value the comment to add
-     * @return an EventBuilder with the additional comment
-     */
-    def addComment(value: String): EventBuilder = {
-      new EventBuilder(fields :+ ("" -> value))
-    }
-
-    def formatted: String = {
-      val sb = new StringBuilder
-      for {
-        (fieldName, value) <- fields
-        line               <- value.split("(\r?\n)|\r", -1)
-      } sb.append(fieldName).append(": ").append(line).append('\n')
-      sb.append('\n')
-      sb.toString()
+    implicit def contentType(implicit codec: Codec): ContentTypeOf[Event] = {
+      ContentTypeOf(Some(ContentTypes.EVENT_STREAM))
     }
   }
 

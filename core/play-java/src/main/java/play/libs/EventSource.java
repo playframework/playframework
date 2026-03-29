@@ -90,24 +90,9 @@ public class EventSource {
 
     /** @return This event formatted according to the EventSource protocol. */
     public String formatted() {
-      play.api.libs.EventSource.EventBuilder event = new play.api.libs.EventSource.EventBuilder();
-      if (data != null) {
-        event = event.addData(data);
-      }
-
-      if (id != null) {
-        event = event.addId(id);
-      }
-
-      if (name != null) {
-        event = event.addEvent(name);
-      }
-
-      if (comment != null) {
-        event = event.addComment(comment);
-      }
-
-      return event.formatted();
+      return new play.api.libs.EventSource.Event(
+              data, Scala.Option(id), Scala.Option(name), Scala.Option(comment))
+          .formatted();
     }
 
     /**
