@@ -493,6 +493,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.style.format"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.helper.textarea.format"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("views.html.play20.manual.format"),
+      // Support comments in EventSource
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.EventSource#Event.copy"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.EventSource#Event.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.EventSource#Event.copy$default$1"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.EventSource#Event.data"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.libs.EventSource#Event._1"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

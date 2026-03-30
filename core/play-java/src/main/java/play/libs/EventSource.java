@@ -5,6 +5,7 @@
 package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.time.Duration;
 import org.apache.pekko.NotUsed;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.util.ByteString;
@@ -38,17 +39,29 @@ public class EventSource {
     return flow.map((EventSource.Event event) -> ByteString.fromString(event.formatted()));
   }
 
+  /** @return a flow of keep-alive messages. */
+  public static Flow<EventSource.Event, EventSource.Event, ?> keepAlive(Duration duration) {
+    var keepAliveEvent = new EventSource.Event(null, null, null, "");
+    return Flow.of(Event.class).keepAlive(duration, () -> keepAliveEvent);
+  }
+
   /** Utility class to build events. */
   public static class Event {
 
     private final String name;
     private final String id;
     private final String data;
+    private final String comment;
 
-    public Event(String data, String id, String name) {
+    public Event(String data, String id, String name, String comment) {
       this.name = name;
       this.id = id;
       this.data = data;
+      this.comment = comment;
+    }
+
+    public Event(String data, String id, String name) {
+      this(data, id, name, null);
     }
 
     /**
@@ -56,7 +69,7 @@ public class EventSource {
      * @return A copy of this event, with name {@code name}
      */
     public Event withName(String name) {
-      return new Event(this.data, this.id, name);
+      return new Event(this.data, this.id, name, this.comment);
     }
 
     /**
@@ -64,12 +77,21 @@ public class EventSource {
      * @return A copy of this event, with id {@code id}.
      */
     public Event withId(String id) {
-      return new Event(this.data, id, this.name);
+      return new Event(this.data, id, this.name, this.comment);
+    }
+
+    /**
+     * @param comment Event comment
+     * @return A copy of this event, with comment {@code comment}
+     */
+    public Event withComment(String comment) {
+      return new Event(this.data, this.id, this.name, comment);
     }
 
     /** @return This event formatted according to the EventSource protocol. */
     public String formatted() {
-      return new play.api.libs.EventSource.Event(data, Scala.Option(id), Scala.Option(name))
+      return new play.api.libs.EventSource.Event(
+              Scala.Option(data), Scala.Option(id), Scala.Option(name), Scala.Option(comment))
           .formatted();
     }
 
@@ -78,7 +100,7 @@ public class EventSource {
      * @return An event with {@code data} as content
      */
     public static Event event(String data) {
-      return new Event(data, null, null);
+      return new Event(data, null, null, null);
     }
 
     /**
@@ -86,7 +108,7 @@ public class EventSource {
      * @return An event with a string representation of {@code json} as content
      */
     public static Event event(JsonNode json) {
-      return new Event(Json.stringify(json), null, null);
+      return new Event(Json.stringify(json), null, null, null);
     }
   }
 }

@@ -4,6 +4,8 @@
 
 package play.api.libs
 
+import scala.concurrent.duration.FiniteDuration
+
 import org.apache.pekko.stream.scaladsl.Flow
 import play.api.http.ContentTypeOf
 import play.api.http.ContentTypes
@@ -36,7 +38,7 @@ import play.api.mvc._
  *     val source = tickSource.map { (tick) =&gt;
  *       df.format(ZonedDateTime.now())
  *     }
- *     Ok.chunked(source via EventSource.flow).as(ContentTypes.EVENT_STREAM)
+ *     Ok.chunked(source via EventSource.flow)
  *   }
  * }}}
  */
@@ -49,11 +51,25 @@ object EventSource {
    *
    * {{{
    *   val jsonStream: Source[JsValue, Unit] = createJsonSource()
-   *   Ok.chunked(jsonStream via EventSource.flow).as(ContentTypes.EVENT_STREAM)
+   *   Ok.chunked(jsonStream via EventSource.flow)
    * }}}
    */
   def flow[E: EventDataExtractor: EventNameExtractor: EventIdExtractor]: Flow[E, Event, ?] = {
     Flow[E].map(Event(_))
+  }
+
+  /**
+   * Makes a SSE keep-alive flow.
+   *
+   * Usage example:
+   *
+   * {{{
+   *   Ok.chunked(jsonStream via EventSource.flow via EventSource.keepAlive(10.seconds))
+   * }}}
+   */
+  def keepAlive(duration: FiniteDuration): Flow[Event, Event, ?] = {
+    val keepAliveEvent = Event(None, None, None, Some(""))
+    Flow[Event].keepAlive(duration, () => keepAliveEvent)
   }
 
   // ------------------
@@ -63,7 +79,7 @@ object EventSource {
   /**
    * An event encoded with the SSE protocol..
    */
-  case class Event(data: String, id: Option[String], name: Option[String]) {
+  case class Event(data: Option[String], id: Option[String], name: Option[String], comment: Option[String] = None) {
 
     /**
      * This event, formatted according to the EventSource protocol.
@@ -72,8 +88,15 @@ object EventSource {
       val sb = new StringBuilder
       name.foreach(sb.append("event: ").append(_).append('\n'))
       id.foreach(sb.append("id: ").append(_).append('\n'))
-      for (line <- data.split("(\r?\n)|\r", -1)) {
-        sb.append("data: ").append(line).append('\n')
+      data.foreach { value =>
+        for (line <- value.split("(\r?\n)|\r", -1)) {
+          sb.append("data: ").append(line).append('\n')
+        }
+      }
+      comment.foreach { value =>
+        for (line <- value.split("(\r?\n)|\r", -1)) {
+          sb.append(": ").append(line).append('\n')
+        }
       }
       sb.append('\n')
       sb.toString()
@@ -94,7 +117,15 @@ object EventSource {
         nameExtractor: EventNameExtractor[A],
         idExtractor: EventIdExtractor[A]
     ): Event = {
-      Event(dataExtractor.eventData(a), idExtractor.eventId(a), nameExtractor.eventName(a))
+      Event(Some(dataExtractor.eventData(a)), idExtractor.eventId(a), nameExtractor.eventName(a))
+    }
+
+    def apply(data: String, id: Option[String], name: Option[String]): Event = {
+      Event(Some(data), id, name, None)
+    }
+
+    def apply(data: String, id: Option[String], name: Option[String], comment: Option[String]): Event = {
+      Event(Some(data), id, name, comment)
     }
 
     implicit def writeable(implicit codec: Codec): Writeable[Event] = {
