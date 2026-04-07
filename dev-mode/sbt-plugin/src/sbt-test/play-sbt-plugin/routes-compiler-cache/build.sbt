@@ -2,7 +2,7 @@
 
 enablePlugins(PlayScala)
 
-def Scala3 = "3.8.2"
+def Scala3 = "3.8.3"
 
 scalaVersion := Scala3
 
