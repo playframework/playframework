@@ -110,9 +110,9 @@ object RoutesCompiler extends AutoPlugin {
           }
       }.value
     },
-    Defaults.ConfigZero / watchSources ++= (routes / sources).value,
+    Defaults.ConfigZero / watchSources ++= uncached { (routes / sources).value },
     routes / target := crossTarget.value / "routes" / Defaults.nameForSrc(configuration.value.name),
-    routes          := compileRoutesFiles.value,
+    routes          := uncached { compileRoutesFiles.value },
     sourceGenerators += Def.task(routes.value).taskValue,
     managedSourceDirectories += (routes / target).value
   )

@@ -176,10 +176,10 @@ object PlayRun {
   }
 
   val playPrefixAndAssetsSetting = {
-    playPrefixAndAssets := assetsPrefix.value -> (Assets / WebKeys.public).value
+    playPrefixAndAssets := uncached { assetsPrefix.value -> (Assets / WebKeys.public).value }
   }
 
-  val playAllAssetsSetting = playAllAssets := Seq(playPrefixAndAssets.value)
+  val playAllAssetsSetting = playAllAssets := uncached { Seq(playPrefixAndAssets.value) }
 
   val playAssetsClassLoaderSetting = {
     playAssetsClassLoader := uncached {

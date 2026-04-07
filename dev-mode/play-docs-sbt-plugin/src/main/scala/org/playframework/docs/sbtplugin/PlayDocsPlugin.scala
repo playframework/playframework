@@ -129,9 +129,11 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     validateExternalLinks     := PlayDocsValidation.validateExternalLinksTask.value,
     docsVersion               := PlayVersion.current,
     docsName                  := "play-docs",
-    docsJarFile               := docsJarFileSetting.value,
-    PlayDocsKeys.resources    := Seq(PlayDocsDirectoryResource(manualPath.value)) ++
-      docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq,
+    docsJarFile               := uncached { docsJarFileSetting.value },
+    PlayDocsKeys.resources    := uncached(
+      Seq(PlayDocsDirectoryResource(manualPath.value)) ++
+        docsJarFile.value.map(jar => PlayDocsJarFileResource(jar, Some("play/docs/content"))).toSeq
+    ),
     docsJarScalaBinaryVersion := scalaBinaryVersion.value,
     libraryDependencies ++= Seq(
       "org.playframework" %% docsName.value                                          % PlayVersion.current,
@@ -144,8 +146,8 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
     generateMarkdownCodeSamplesReport  := PlayDocsValidation.generateMarkdownCodeSamplesTask.value,
     generateUpstreamCodeSamplesReport  := PlayDocsValidation.generateUpstreamCodeSamplesTask.value,
     translationCodeSamplesReportFile   := target.value / "report.html",
-    translationCodeSamplesReport       := PlayDocsValidation.translationCodeSamplesReportTask.value,
-    cachedTranslationCodeSamplesReport := PlayDocsValidation.cachedTranslationCodeSamplesReportTask.value
+    translationCodeSamplesReport       := uncached { PlayDocsValidation.translationCodeSamplesReportTask.value },
+    cachedTranslationCodeSamplesReport := uncached { PlayDocsValidation.cachedTranslationCodeSamplesReportTask.value }
   )
 
   def docsTestSettings = Seq(
