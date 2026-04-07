@@ -99,7 +99,7 @@ object PlaySettings {
     Test / testOptions += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
     // Adds app directory's source files to continuous hot reloading
-    watchSources ++= {
+    watchSources ++= uncached {
       ((Compile / sourceDirectory).value ** "*" --- (Assets / sourceDirectory).value ** "*").get()
     },
     commands ++= {
@@ -108,7 +108,7 @@ object PlaySettings {
       Seq(playStartCommand, playRunProdCommand, playTestProdCommand, playStopProdCommand, h2Command)
     },
     // Assets classloader (used by PlayRun.playDefaultRunTask)
-    PlayInternalKeys.playAllAssets := Seq.empty,
+    PlayInternalKeys.playAllAssets := uncached { Seq.empty },
     PlayRun.playAssetsClassLoaderSetting,
     // THE `in Compile` IS IMPORTANT!
     Compile / Keys.run             := PlayRun.playDefaultRunTask.evaluated,
@@ -135,7 +135,7 @@ object PlaySettings {
     playCompileEverything := uncached { PlayCommands.playCompileEverythingTask.value.asInstanceOf[Seq[Analysis]] },
     playReload            := uncached { PlayCommands.playReloadTask.value },
     ivyLoggingLevel       := UpdateLogging.DownloadOnly,
-    playMonitoredFiles    := PlayCommands.playMonitoredFilesTask.value,
+    playMonitoredFiles    := uncached { PlayCommands.playMonitoredFilesTask.value },
     fileWatchService      := {
       FileWatchService.detect(pollInterval.value.toMillis.toInt, sLog.value)
     },
@@ -211,7 +211,7 @@ object PlaySettings {
     // Adds the Play application directory to the command line args passed to Play
     bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
     generateSecret := ApplicationSecretGenerator.generateSecretTask.value,
-    updateSecret   := ApplicationSecretGenerator.updateSecretTask.value,
+    updateSecret   := uncached { ApplicationSecretGenerator.updateSecretTask.value },
     // by default, compile any routes files in the root named "routes" or "*.routes"
     Compile / RoutesKeys.routes / sources ++= {
       val dirs = (Compile / unmanagedResourceDirectories).value
@@ -232,7 +232,7 @@ object PlaySettings {
 
   lazy val webSettings = Seq[Setting[?]](
     constructorAnnotations += "@jakarta.inject.Inject()",
-    playMonitoredFiles ++= (Compile / compileTemplates / sourceDirectories).value,
+    playMonitoredFiles ++= uncached { (Compile / compileTemplates / sourceDirectories).value },
     routesImport ++= Seq("controllers.Assets.Asset"),
     // The default packageOptions get set here (and do set the main class by default which we want to avoid):
     // https://github.com/sbt/sbt/blob/v1.10.0/main/src/main/scala/sbt/Defaults.scala#L1725-L1740

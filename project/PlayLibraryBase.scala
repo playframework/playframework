@@ -29,8 +29,8 @@ object PlayLibraryBase extends AutoPlugin {
     omnidocTagPrefix  := "",
     compile / javacOptions ++= Seq("--release", "17"),
     doc / javacOptions := Seq("-source", "17"),
-    crossScalaVersions := Seq(scalaVersion.value, ScalaVersions.scala3),
-    scalaVersion       := (Seq(ScalaVersions.scala213, ScalaVersions.scala3)
+    crossScalaVersions := Seq(scalaVersion.value, ScalaVersions.scala38),
+    scalaVersion       := (Seq(ScalaVersions.scala213, ScalaVersions.scala38)
       .filter(v =>
         SemanticSelector(sys.props.get("scala.version").getOrElse(ScalaVersions.scala213)).matches(VersionNumber(v))
       ) match {

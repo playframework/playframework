@@ -15,6 +15,12 @@ sourceSets {
   }
 }
 
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(${javaVersion}))
+  }
+}
+
 dependencies {
   implementation("org.playframework:play-pekko-http-server_${scalaVersion}:${playVersion}")
   implementation("org.playframework:play-guice_${scalaVersion}:${playVersion}")
