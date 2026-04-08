@@ -11,9 +11,9 @@ lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.3.1")
 
 // Add headers to example sources
-addSbtPlugin("com.github.sbt"    % "sbt-header"         % "5.11.0")
-addSbtPlugin("com.lightbend.sbt" % "sbt-java-formatter" % "0.8.0")
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"       % "2.5.6")
+addSbtPlugin("com.github.sbt" % "sbt-header"         % "5.11.0")
+addSbtPlugin("com.github.sbt" % "sbt-java-formatter" % "0.11.0")
+addSbtPlugin("org.scalameta"  % "sbt-scalafmt"       % "2.5.6")
 
 // Required for Tutorial
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.1.0-M9") // sync with project/plugins.sbt
