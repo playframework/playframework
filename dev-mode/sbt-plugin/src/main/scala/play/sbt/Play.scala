@@ -27,13 +27,6 @@ object PlayService extends AutoPlugin {
   override def projectSettings = PlaySettings.serviceSettings
 }
 
-@deprecated("Use PlayWeb instead for a web project.", "2.7.0")
-object Play extends AutoPlugin {
-  override def requires        = JavaServerAppPackaging && SbtTwirl && SbtJsTask && RoutesCompiler
-  val autoImport               = PlayImport
-  override def projectSettings = PlaySettings.defaultSettings
-}
-
 /**
  * Base plugin for Play web projects.
  *
