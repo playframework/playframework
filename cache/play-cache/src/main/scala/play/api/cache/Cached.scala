@@ -60,7 +60,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param duration Cache duration (in seconds)
    */
   def apply(key: RequestHeader => String, duration: Int): CachedBuilder = {
-    new CachedBuilder(cache, key, { case (_: ResponseHeader) => Duration(duration, SECONDS) })
+    new CachedBuilder(cache, key, { case _: ResponseHeader => Duration(duration, SECONDS) })
   }
 
   /**
@@ -70,7 +70,7 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
    * @param duration Cache duration
    */
   def apply(key: RequestHeader => String, duration: Duration): CachedBuilder = {
-    new CachedBuilder(cache, key, { case (_: ResponseHeader) => duration })
+    new CachedBuilder(cache, key, { case _: ResponseHeader => duration })
   }
 
   /**

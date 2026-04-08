@@ -13,7 +13,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M9"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.22"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.32"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -29,7 +29,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.19.0"      % Test
   )
 
-  val jacksonVersion  = "2.20.1"
+  val jacksonVersion  = "2.20.2"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -64,7 +64,7 @@ object Dependencies {
     "org.apache.derby" % "derbytools"
   ).map(_ % derbyVersion)
 
-  val acolyteVersion = "1.2.10"
+  val acolyteVersion = "1.2.11"
   val acolyte        = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jjwtVersion = "0.13.0"
@@ -102,7 +102,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "7.0.2"
+  val springFrameworkVersion = "7.0.6"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -110,7 +110,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.14.0",
+    "joda-time" % "joda-time"    % "2.14.1",
     "org.joda"  % "joda-convert" % "3.0.1"
   )
 
@@ -131,7 +131,7 @@ object Dependencies {
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
   val junit          = "junit"          % "junit"           % "4.13.2"
 
-  val assertj = "org.assertj" % "assertj-core" % "3.27.6"
+  val assertj = "org.assertj" % "assertj-core" % "3.27.7"
 
   val javaTestDeps = Seq(
     junit,
@@ -208,7 +208,7 @@ object Dependencies {
 
   val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.5"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.6"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
