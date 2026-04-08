@@ -22,7 +22,13 @@ object PlayLayoutPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings = Seq(
-    target                                                   := baseDirectory.value / "target",
+    target := {
+      if (sbtBinaryVersion.value == "1.0") {
+        baseDirectory.value / "target"
+      } else {
+        target.value
+      }
+    },
     Compile / sourceDirectory                                := baseDirectory.value / "app",
     Test / sourceDirectory                                   := baseDirectory.value / "test",
     Compile / resourceDirectory                              := baseDirectory.value / "conf",
