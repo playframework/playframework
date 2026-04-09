@@ -271,10 +271,13 @@ object PlaySettings {
     }.value,
     // Assets for testing
     TestAssets / public := (TestAssets / public).value / assetsPrefix.value,
-    Test / fullClasspath += uncached {
+    Test / fullClasspath ++= uncached {
       Def.taskDyn {
         implicit val fc: FileConverter = fileConverter.value
-        Def.task(Attributed.blank(toFileRef((TestAssets / assets).value.getParentFile)))
+        val testAssetsDir              = (TestAssets / assets).value.getParentFile
+        Def.task {
+          if (testAssetsDir.exists()) Seq(Attributed.blank(toFileRef(testAssetsDir))) else Nil
+        }
       }.value
     }
   )
