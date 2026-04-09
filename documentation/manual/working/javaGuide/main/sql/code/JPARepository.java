@@ -12,8 +12,8 @@ import play.db.jpa.JPAApi;
 
 @Singleton
 public class JPARepository {
-  private JPAApi jpaApi;
-  private DatabaseExecutionContext executionContext;
+  private final JPAApi jpaApi;
+  private final DatabaseExecutionContext executionContext;
 
   @Inject
   public JPARepository(JPAApi api, DatabaseExecutionContext executionContext) {
@@ -24,8 +24,8 @@ public class JPARepository {
 // #jpa-repository-api-inject
 
 class JPARepositoryMethods {
-  private JPAApi jpaApi;
-  private DatabaseExecutionContext executionContext;
+  private final JPAApi jpaApi;
+  private final DatabaseExecutionContext executionContext;
 
   @Inject
   public JPARepositoryMethods(JPAApi api, DatabaseExecutionContext executionContext) {

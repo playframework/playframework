@@ -10,6 +10,11 @@ There is no built-in JPA implementation in Play; you can choose any available im
 
 @[jpa-sbt-dependencies](code/jpa.sbt)
 
+When using Hibernate ORM 7 or newer, keep these changes in mind:
+
+- Prefer listing your entities explicitly with `<class>...</class>` entries in `persistence.xml`. Automatic classpath scanning is no longer the old default. If you prefer automatic discovery, add Hibernate's `hibernate-scan-jandex` module. See the Hibernate ORM 7 migration guide section on [Jandex scanning](https://docs.hibernate.org/orm/7.0/migration-guide/#jandex-scanning).
+- If you are not intentionally using JPA bean validation, set `<validation-mode>NONE</validation-mode>` in `persistence.xml`. Hibernate ORM 7 now propagates validator bootstrap failures that older versions often ignored. See the Hibernate ORM 7 migration guide section on [validator integration with `AUTO`](https://docs.hibernate.org/orm/7.0/migration-guide/#validator-integration-auto).
+
 ## Exposing the datasource through JNDI
 
 JPA requires the datasource to be accessible via [JNDI](https://www.oracle.com/technetwork/java/jndi/index.html). You can expose any Play-managed datasource via JNDI by adding this configuration in `conf/application.conf`:
@@ -36,6 +41,8 @@ Here is a sample configuration file to use with Hibernate:
     <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <non-jta-data-source>DefaultDS</non-jta-data-source>
+        <validation-mode>NONE</validation-mode>
+        <class>models.MyEntity</class>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
         </properties>
@@ -43,6 +50,8 @@ Here is a sample configuration file to use with Hibernate:
 
 </persistence>
 ```
+
+If you do want Hibernate Validator integration, add a Jakarta Expression Language implementation to your classpath as well, or configure Hibernate Validator to use a non-EL message interpolator.
 
 Finally you have to tell Play, which persistent unit should be used by your JPA provider. This is done by setting the `jpa.default` property in your `conf/application.conf`.
 
