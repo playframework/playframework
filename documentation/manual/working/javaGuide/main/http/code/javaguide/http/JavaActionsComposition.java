@@ -35,6 +35,7 @@ public class JavaActionsComposition extends Controller {
       return delegate.call(req);
     }
   }
+
   // #verbose-action
 
   // #verbose-index
@@ -42,6 +43,7 @@ public class JavaActionsComposition extends Controller {
   public Result verboseIndex() {
     return ok("It works!");
   }
+
   // #verbose-index
 
   // #authenticated-cached-index
@@ -50,6 +52,7 @@ public class JavaActionsComposition extends Controller {
   public Result authenticatedCachedIndex() {
     return ok("It works!");
   }
+
   // #authenticated-cached-index
 
   // #verbose-annotation
@@ -59,6 +62,7 @@ public class JavaActionsComposition extends Controller {
   public @interface VerboseAnnotation {
     boolean value() default true;
   }
+
   // #verbose-annotation
 
   // #verbose-annotation-index
@@ -66,6 +70,7 @@ public class JavaActionsComposition extends Controller {
   public Result verboseAnnotationIndex() {
     return ok("It works!");
   }
+
   // #verbose-annotation-index
 
   // #verbose-annotation-action
@@ -77,6 +82,7 @@ public class JavaActionsComposition extends Controller {
       return delegate.call(req);
     }
   }
+
   // #verbose-annotation-action
 
   static class User {
@@ -96,6 +102,7 @@ public class JavaActionsComposition extends Controller {
       return delegate.call(req.addAttr(Attrs.USER, User.findById(1234)));
     }
   }
+
   // #pass-arg-action
 
   // #pass-arg-action-index
@@ -104,6 +111,7 @@ public class JavaActionsComposition extends Controller {
     User user = request.attrs().get(Attrs.USER);
     return ok(Json.toJson(user));
   }
+
   // #pass-arg-action-index
 
   // #annotated-controller
@@ -112,6 +120,7 @@ public class JavaActionsComposition extends Controller {
     /// ###insert: ...
 
   }
+
   // #annotated-controller
 
   // #action-composition-dependency-injection-annotation
@@ -121,6 +130,7 @@ public class JavaActionsComposition extends Controller {
   public @interface WithCache {
     String key();
   }
+
   // #action-composition-dependency-injection-annotation
 
   // #action-composition-dependency-injection
@@ -138,6 +148,7 @@ public class JavaActionsComposition extends Controller {
       return cacheApi.getOrElseUpdate(configuration.key(), () -> delegate.call(req));
     }
   }
+
   // #action-composition-dependency-injection
 
   // #action-composition-compile-time-di

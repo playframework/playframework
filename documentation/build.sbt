@@ -104,6 +104,10 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / headerSources ++= (baseDirectory.value ** "*.md").get,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
+    commands += DocumentationCommands.javafmt,
+    commands += DocumentationCommands.javafmtCheck,
+    commands += DocumentationCommands.javafmtAll,
+    commands += DocumentationCommands.javafmtCheckAll,
     // No need to show eviction warnings for Play documentation.
     update / evictionWarningOptions := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)

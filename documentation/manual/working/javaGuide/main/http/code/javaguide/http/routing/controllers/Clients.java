@@ -14,6 +14,7 @@ public class Clients extends Controller {
     Client client = clientService.findById(id);
     return ok(views.html.Client.show(client));
   }
+
   // #clients-show-action
 
   public Result list() {

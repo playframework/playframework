@@ -93,7 +93,9 @@ public class RoutingDsl {
     this.bodyParser = HandlerInvokerFactory$.MODULE$.javaBodyParserToScala(bodyParser);
   }
 
-  /** @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents */
+  /**
+   * @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents
+   */
   @Deprecated
   public RoutingDsl(
       play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {

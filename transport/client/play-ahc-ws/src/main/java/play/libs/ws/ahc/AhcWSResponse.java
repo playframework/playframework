@@ -105,28 +105,36 @@ public class AhcWSResponse implements WSResponse {
     return underlying.getHeaders();
   }
 
-  /** @deprecated Use {@code response.getBody(xml())} */
+  /**
+   * @deprecated Use {@code response.getBody(xml())}
+   */
   @Override
   @Deprecated
   public Document asXml() {
     return underlying.getBody(readables.xml());
   }
 
-  /** @deprecated Use {@code response.getBody(json())} */
+  /**
+   * @deprecated Use {@code response.getBody(json())}
+   */
   @Override
   @Deprecated
   public JsonNode asJson() {
     return underlying.getBody(readables.json());
   }
 
-  /** @deprecated Use {@code response.getBody(inputStream())} */
+  /**
+   * @deprecated Use {@code response.getBody(inputStream())}
+   */
   @Override
   @Deprecated
   public InputStream getBodyAsStream() {
     return underlying.getBody(readables.inputStream());
   }
 
-  /** @deprecated Use {@code response.getBodyAsBytes().toArray()} */
+  /**
+   * @deprecated Use {@code response.getBodyAsBytes().toArray()}
+   */
   @Override
   @Deprecated
   public byte[] asByteArray() {

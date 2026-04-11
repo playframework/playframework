@@ -33,13 +33,17 @@ import org.apache.pekko.util.ByteString;
  */
 public class EventSource {
 
-  /** @return a flow of EventSource.Event to ByteString. */
+  /**
+   * @return a flow of EventSource.Event to ByteString.
+   */
   public static Flow<EventSource.Event, ByteString, ?> flow() {
     Flow<Event, Event, NotUsed> flow = Flow.of(Event.class);
     return flow.map((EventSource.Event event) -> ByteString.fromString(event.formatted()));
   }
 
-  /** @return a flow of keep-alive messages. */
+  /**
+   * @return a flow of keep-alive messages.
+   */
   public static Flow<EventSource.Event, EventSource.Event, ?> keepAlive(Duration duration) {
     var keepAliveEvent = new EventSource.Event(null, null, null, "");
     return Flow.of(Event.class).keepAlive(duration, () -> keepAliveEvent);
@@ -88,7 +92,9 @@ public class EventSource {
       return new Event(this.data, this.id, this.name, comment);
     }
 
-    /** @return This event formatted according to the EventSource protocol. */
+    /**
+     * @return This event formatted according to the EventSource protocol.
+     */
     public String formatted() {
       return new play.api.libs.EventSource.Event(
               Scala.Option(data), Scala.Option(id), Scala.Option(name), Scala.Option(comment))

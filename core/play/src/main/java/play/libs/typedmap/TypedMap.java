@@ -30,7 +30,9 @@ public final class TypedMap {
     this.underlying = underlying;
   }
 
-  /** @return the underlying Scala TypedMap which this instance wraps. */
+  /**
+   * @return the underlying Scala TypedMap which this instance wraps.
+   */
   public play.api.libs.typedmap.TypedMap asScala() {
     return underlying;
   }
@@ -191,7 +193,9 @@ public final class TypedMap {
 
   private static final TypedMap empty = new TypedMap(TypedMap$.MODULE$.empty());
 
-  /** @return the empty <code>TypedMap</code> instance. */
+  /**
+   * @return the empty <code>TypedMap</code> instance.
+   */
   public static TypedMap empty() {
     return empty;
   }

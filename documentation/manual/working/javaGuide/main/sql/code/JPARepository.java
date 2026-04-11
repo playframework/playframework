@@ -21,6 +21,7 @@ public class JPARepository {
     this.executionContext = executionContext;
   }
 }
+
 // #jpa-repository-api-inject
 
 class JPARepositoryMethods {
@@ -46,6 +47,7 @@ class JPARepositoryMethods {
         },
         executionContext);
   }
+
   // #jpa-withTransaction-function
 
   // #jpa-withTransaction-consumer

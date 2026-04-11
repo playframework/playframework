@@ -56,7 +56,9 @@ public class Langs {
     return new Lang(langs.preferred(Scala.asScala(candidates)));
   }
 
-  /** @return the Scala version for this Langs. */
+  /**
+   * @return the Scala version for this Langs.
+   */
   public play.api.i18n.Langs asScala() {
     return langs;
   }

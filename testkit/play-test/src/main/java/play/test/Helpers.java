@@ -233,7 +233,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
       return ((HttpEntity.Strict) result.body()).data();
     } else {
       throw new UnsupportedOperationException(
-          "Tried to extract body from a non strict HTTP entity without a materializer, use the version of this method that accepts a materializer instead");
+          "Tried to extract body from a non strict HTTP entity without a materializer, use the"
+              + " version of this method that accepts a materializer instead");
     }
   }
 

@@ -8,13 +8,17 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.concurrent.Executor;
 
-/** @deprecated Deprecated as of 2.9.0. Renamed to {@link ClassLoaderExecutionContext}. */
+/**
+ * @deprecated Deprecated as of 2.9.0. Renamed to {@link ClassLoaderExecutionContext}.
+ */
 @Singleton
 public class HttpExecutionContext {
 
   private final Executor delegate;
 
-  /** @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecutionContext} instead. */
+  /**
+   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecutionContext} instead.
+   */
   @Deprecated
   @Inject
   public HttpExecutionContext(Executor delegate) {

@@ -12,7 +12,9 @@ public interface HttpConfigurationComponents {
 
   HttpConfiguration httpConfiguration();
 
-  /** @return the session configuration from the {@link #httpConfiguration()}. */
+  /**
+   * @return the session configuration from the {@link #httpConfiguration()}.
+   */
   default SessionConfiguration sessionConfiguration() {
     return httpConfiguration().session();
   }

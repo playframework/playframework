@@ -15,6 +15,7 @@ public class BinderApplication extends Controller {
   public Result user(User user) {
     return ok(user.name);
   }
+
   // #path
 
   // #query

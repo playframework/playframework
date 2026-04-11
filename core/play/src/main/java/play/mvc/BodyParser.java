@@ -345,7 +345,8 @@ public interface BodyParser<A> {
       } catch (CharacterCodingException e) {
         String msg =
             String.format(
-                "Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!",
+                "Parser tried to parse request %s as text body with charset %s, but it contains"
+                    + " invalid characters!",
                 request.id(), charset);
         logger.warn(msg);
         return bytes.decodeString(charset); // parse and return with unmappable characters.
@@ -386,7 +387,8 @@ public interface BodyParser<A> {
             } catch (CharacterCodingException e) {
               String msg =
                   String.format(
-                      "Parser tried to parse request %s as text body with charset %s, but it contains invalid characters!",
+                      "Parser tried to parse request %s as text body with charset %s, but it"
+                          + " contains invalid characters!",
                       request.id(), encodingToTry);
               logger.warn(msg);
               return F.Either.Left(e);

@@ -70,7 +70,9 @@ public class Http {
       return headers;
     }
 
-    /** @return all the headers as an unmodifiable map. */
+    /**
+     * @return all the headers as an unmodifiable map.
+     */
     public Map<String, List<String>> asMap() {
       return Collections.unmodifiableMap(headers);
     }
@@ -107,7 +109,9 @@ public class Http {
       return headers.getOrDefault(name, Collections.emptyList());
     }
 
-    /** @return the scala version of this headers. */
+    /**
+     * @return the scala version of this headers.
+     */
     public play.api.mvc.Headers asScala() {
       return new play.api.mvc.Headers(
           JavaHelpers$.MODULE$.javaMapOfListToScalaSeqOfPairs(this.headers));
@@ -203,13 +207,19 @@ public class Http {
       return (Long) attrs().get(RequestAttrKey.Id().asJava());
     }
 
-    /** @return The complete request URI, containing both path and query string */
+    /**
+     * @return The complete request URI, containing both path and query string
+     */
     String uri();
 
-    /** @return the HTTP Method */
+    /**
+     * @return the HTTP Method
+     */
     String method();
 
-    /** @return the HTTP version */
+    /**
+     * @return the HTTP version
+     */
     String version();
 
     /**
@@ -222,10 +232,14 @@ public class Http {
      */
     String remoteAddress();
 
-    /** @return true if the client is using SSL */
+    /**
+     * @return true if the client is using SSL
+     */
     boolean secure();
 
-    /** @return a map of typed attributes associated with the request. */
+    /**
+     * @return a map of typed attributes associated with the request.
+     */
     TypedMap attrs();
 
     /**
@@ -297,10 +311,14 @@ public class Http {
      */
     Request withBody(RequestBody body);
 
-    /** @return the request host */
+    /**
+     * @return the request host
+     */
     String host();
 
-    /** @return the URI path */
+    /**
+     * @return the URI path
+     */
     String path();
 
     /**
@@ -350,7 +368,9 @@ public class Http {
      */
     Optional<String> queryString(String key);
 
-    /** @return the request cookies */
+    /**
+     * @return the request cookies
+     */
     Cookies cookies();
 
     /**
@@ -426,13 +446,19 @@ public class Http {
       return headers().contains(headerName);
     }
 
-    /** @return true if request has a body, false otherwise. */
+    /**
+     * @return true if request has a body, false otherwise.
+     */
     boolean hasBody();
 
-    /** @return The request content type excluding the charset, if it exists. */
+    /**
+     * @return The request content type excluding the charset, if it exists.
+     */
     Optional<String> contentType();
 
-    /** @return The request charset, which comes from the content type header, if it exists. */
+    /**
+     * @return The request charset, which comes from the content type header, if it exists.
+     */
     Optional<String> charset();
 
     /**
@@ -510,7 +536,9 @@ public class Http {
   /** An HTTP request. */
   public interface Request extends RequestHeader {
 
-    /** @return the request body */
+    /**
+     * @return the request body
+     */
     RequestBody body();
 
     Request withBody(RequestBody body);
@@ -557,7 +585,9 @@ public class Http {
       return removeAttr(Messages.Attrs.CurrentLang);
     }
 
-    /** @return the underlying (Scala API) request. */
+    /**
+     * @return the underlying (Scala API) request.
+     */
     play.api.mvc.Request<RequestBody> asScala();
   }
 
@@ -613,7 +643,9 @@ public class Http {
               new RequestBody(null));
     }
 
-    /** @return the request body, if a previously the body has been set */
+    /**
+     * @return the request body, if a previously the body has been set
+     */
     public RequestBody body() {
       return req.body();
     }
@@ -984,7 +1016,9 @@ public class Http {
     // -------------------
     // REQUEST HEADER CODE
 
-    /** @return the id of the request */
+    /**
+     * @return the id of the request
+     */
     public Long id() {
       return req.id();
     }
@@ -1022,12 +1056,16 @@ public class Http {
       return this;
     }
 
-    /** @return the request builder's request attributes. */
+    /**
+     * @return the request builder's request attributes.
+     */
     public TypedMap attrs() {
       return new TypedMap(req.attrs());
     }
 
-    /** @return the builder instance. */
+    /**
+     * @return the builder instance.
+     */
     public String method() {
       return req.method();
     }
@@ -1041,7 +1079,9 @@ public class Http {
       return this;
     }
 
-    /** @return gives the uri of the request */
+    /**
+     * @return gives the uri of the request
+     */
     public String uri() {
       return req.uri();
     }
@@ -1080,12 +1120,16 @@ public class Http {
       return this;
     }
 
-    /** @return the status if the request is secure */
+    /**
+     * @return the status if the request is secure
+     */
     public boolean secure() {
       return req.connection().secure();
     }
 
-    /** @return the host name from the header */
+    /**
+     * @return the host name from the header
+     */
     public String host() {
       return headers().get(HeaderNames.HOST).orElse(null);
     }
@@ -1099,7 +1143,9 @@ public class Http {
       return this;
     }
 
-    /** @return the raw path of the uri */
+    /**
+     * @return the raw path of the uri
+     */
     public String path() {
       return req.target().path();
     }
@@ -1131,7 +1177,9 @@ public class Http {
       return this;
     }
 
-    /** @return the version */
+    /**
+     * @return the version
+     */
     public String version() {
       return req.version();
     }
@@ -1153,7 +1201,9 @@ public class Http {
       return headers();
     }
 
-    /** @return the headers for this request builder */
+    /**
+     * @return the headers for this request builder
+     */
     public Headers headers() {
       return req.headers().asJava();
     }
@@ -1187,7 +1237,9 @@ public class Http {
       return this.headers(headers().adding(key, value));
     }
 
-    /** @return the cookies in Java instances */
+    /**
+     * @return the cookies in Java instances
+     */
     public Cookies cookies() {
       return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(req.cookies());
     }
@@ -1205,7 +1257,9 @@ public class Http {
       return this;
     }
 
-    /** @return the cookies in a Java map */
+    /**
+     * @return the cookies in a Java map
+     */
     public Map<String, String> flash() {
       return Scala.asJava(req.flash().data());
     }
@@ -1237,7 +1291,9 @@ public class Http {
       return this;
     }
 
-    /** @return the sessions in the request */
+    /**
+     * @return the sessions in the request
+     */
     public Map<String, String> session() {
       return Scala.asJava(req.session().data());
     }
@@ -1269,7 +1325,9 @@ public class Http {
       return this;
     }
 
-    /** @return the remote address */
+    /**
+     * @return the remote address
+     */
     public String remoteAddress() {
       return req.connection().remoteAddressString();
     }
@@ -1288,7 +1346,9 @@ public class Http {
       return this;
     }
 
-    /** @return the client X509Certificates if they have been set */
+    /**
+     * @return the client X509Certificates if they have been set
+     */
     public Optional<List<X509Certificate>> clientCertificateChain() {
       return OptionConverters.toJava(req.connection().clientCertificateChain())
           .map(list -> new ArrayList<>(Scala.asJava(list)));
@@ -1378,7 +1438,9 @@ public class Http {
       return this;
     }
 
-    /** @return The current transient language of this builder instance. */
+    /**
+     * @return The current transient language of this builder instance.
+     */
     Optional<Lang> transientLang() {
       return OptionConverters.toJava(req.transientLang()).map(play.api.i18n.Lang::asJava);
     }
@@ -1387,7 +1449,9 @@ public class Http {
   /** Handle the request body a raw bytes data. */
   public abstract static class RawBuffer {
 
-    /** @return the buffer size */
+    /**
+     * @return the buffer size
+     */
     public abstract Long size();
 
     /**
@@ -1398,10 +1462,14 @@ public class Http {
      */
     public abstract ByteString asBytes(int maxLength);
 
-    /** @return the buffer content as a bytes array */
+    /**
+     * @return the buffer content as a bytes array
+     */
     public abstract ByteString asBytes();
 
-    /** @return the buffer content as a file */
+    /**
+     * @return the buffer content as a file
+     */
     public abstract File asFile();
   }
 
@@ -1500,17 +1568,23 @@ public class Http {
         this.refToBytes = refToBytes;
       }
 
-      /** @return the part name */
+      /**
+       * @return the part name
+       */
       public String getKey() {
         return key;
       }
 
-      /** @return the file name */
+      /**
+       * @return the file name
+       */
       public String getFilename() {
         return filename;
       }
 
-      /** @return the file content type */
+      /**
+       * @return the file content type
+       */
       public String getContentType() {
         return contentType;
       }
@@ -1524,12 +1598,16 @@ public class Http {
         return ref;
       }
 
-      /** @return the disposition type */
+      /**
+       * @return the disposition type
+       */
       public String getDispositionType() {
         return dispositionType;
       }
 
-      /** @return the size of the file in bytes */
+      /**
+       * @return the size of the file in bytes
+       */
       public long getFileSize() {
         return fileSize;
       }
@@ -1569,7 +1647,8 @@ public class Http {
             .orElseThrow(
                 () ->
                     new RuntimeException(
-                        "To be able to convert this FilePart's ref to bytes you need to define refToBytes of FilePart["
+                        "To be able to convert this FilePart's ref to bytes you need to define"
+                            + " refToBytes of FilePart["
                             + ref.getClass().getName()
                             + "]"));
       }
@@ -1595,12 +1674,16 @@ public class Http {
         this.value = value;
       }
 
-      /** @return the part name */
+      /**
+       * @return the part name
+       */
       public String getKey() {
         return key;
       }
 
-      /** @return the part value */
+      /**
+       * @return the part value
+       */
       public String getValue() {
         return value;
       }
@@ -1682,22 +1765,30 @@ public class Http {
       return null;
     }
 
-    /** @return The request content as Array bytes. */
+    /**
+     * @return The request content as Array bytes.
+     */
     public RawBuffer asRaw() {
       return as(RawBuffer.class);
     }
 
-    /** @return The request content as text. */
+    /**
+     * @return The request content as text.
+     */
     public String asText() {
       return as(String.class);
     }
 
-    /** @return The request content as XML. */
+    /**
+     * @return The request content as XML.
+     */
     public Document asXml() {
       return as(Document.class);
     }
 
-    /** @return The request content as Json. */
+    /**
+     * @return The request content as Json.
+     */
     public JsonNode asJson() {
       return as(JsonNode.class);
     }
@@ -2034,12 +2125,16 @@ public class Http {
       return new CookieBuilder(name, value);
     }
 
-    /** @return the cookie name */
+    /**
+     * @return the cookie name
+     */
     public String name() {
       return name;
     }
 
-    /** @return the cookie value */
+    /**
+     * @return the cookie value
+     */
     public String value() {
       return value;
     }
@@ -2052,17 +2147,23 @@ public class Http {
       return maxAge;
     }
 
-    /** @return the cookie path */
+    /**
+     * @return the cookie path
+     */
     public String path() {
       return path;
     }
 
-    /** @return the cookie domain, or null if not defined */
+    /**
+     * @return the cookie domain, or null if not defined
+     */
     public String domain() {
       return domain;
     }
 
-    /** @return wether the cookie is secured, sent only for HTTPS requests */
+    /**
+     * @return wether the cookie is secured, sent only for HTTPS requests
+     */
     public boolean secure() {
       return secure;
     }
@@ -2074,7 +2175,9 @@ public class Http {
       return httpOnly;
     }
 
-    /** @return the SameSite attribute for this cookie */
+    /**
+     * @return the SameSite attribute for this cookie
+     */
     public Optional<SameSite> sameSite() {
       return Optional.ofNullable(sameSite);
     }
@@ -2246,7 +2349,9 @@ public class Http {
       return this;
     }
 
-    /** @return a new cookie with the current builder parameters */
+    /**
+     * @return a new cookie with the current builder parameters
+     */
     public Cookie build() {
       return new Cookie(
           this.name,

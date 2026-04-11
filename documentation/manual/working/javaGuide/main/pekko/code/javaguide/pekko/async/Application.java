@@ -14,6 +14,7 @@ public class Application extends Controller {
     return CompletableFuture.supplyAsync(this::longComputation)
         .thenApply((Integer i) -> ok("Got " + i));
   }
+
   // ###skip: 3
   public int longComputation() {
     return 2;

@@ -216,6 +216,7 @@ public class JavaResponse extends WithApplication {
                 InputStream input = getInputStream(content);
                 return RangeResults.ofStream(request, input, content.length());
               }
+
               // #range-result-input-stream
 
               private InputStream getInputStream(String content) {
@@ -241,6 +242,7 @@ public class JavaResponse extends WithApplication {
                 return RangeResults.ofSource(
                     request, (long) content.length(), source, "file.txt", MimeTypes.TEXT);
               }
+
               // #range-result-source
 
               private Source<ByteString, NotUsed> sourceFrom(String content) {
@@ -276,6 +278,7 @@ public class JavaResponse extends WithApplication {
                     "file.txt",
                     MimeTypes.TEXT);
               }
+
               // #range-result-source-with-offset
 
               private Source<ByteString, NotUsed> sourceFrom(String content) {

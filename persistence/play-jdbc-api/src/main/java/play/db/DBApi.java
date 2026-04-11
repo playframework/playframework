@@ -9,7 +9,9 @@ import java.util.List;
 /** DB API for managing application databases. */
 public interface DBApi {
 
-  /** @return all configured databases. */
+  /**
+   * @return all configured databases.
+   */
   List<Database> getDatabases();
 
   /**

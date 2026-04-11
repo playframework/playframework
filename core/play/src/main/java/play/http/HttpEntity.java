@@ -21,16 +21,24 @@ public abstract class HttpEntity {
   // sealed
   private HttpEntity() {}
 
-  /** @return The content type, if defined */
+  /**
+   * @return The content type, if defined
+   */
   public abstract Optional<String> contentType();
 
-  /** @return Whether the entity is known to be empty or not. */
+  /**
+   * @return Whether the entity is known to be empty or not.
+   */
   public abstract boolean isKnownEmpty();
 
-  /** @return The content length, if known */
+  /**
+   * @return The content length, if known
+   */
   public abstract Optional<Long> contentLength();
 
-  /** @return The stream of data. */
+  /**
+   * @return The stream of data.
+   */
   public abstract Source<ByteString, ?> dataStream();
 
   /**

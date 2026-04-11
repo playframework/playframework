@@ -21,7 +21,9 @@ public interface ValidatorsComponents {
     return new MappedConstraintValidatorFactory();
   }
 
-  /** @deprecated Deprecated since 2.7.0. Use {@link #validatorFactory()} instead. */
+  /**
+   * @deprecated Deprecated since 2.7.0. Use {@link #validatorFactory()} instead.
+   */
   @Deprecated
   default Validator validator() {
     return new ValidatorProvider(constraintValidatorFactory(), applicationLifecycle()).get();

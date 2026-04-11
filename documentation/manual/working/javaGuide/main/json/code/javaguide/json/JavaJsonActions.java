@@ -32,6 +32,7 @@ public class JavaJsonActions extends WithApplication {
     public String lastName;
     public int age;
   }
+
   // #person-class
 
   @Test
