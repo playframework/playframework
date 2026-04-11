@@ -510,9 +510,9 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
         --- (baseDirectory.value ** "target" ** "*")
         --- (baseDirectory.value ** "gradle-plugin" ** "*") // Gradle Spotless plugin is used
         --- (baseDirectory.value / "version.properties")
-        --- (baseDirectory.value / "documentation" ** "*")).get ++
-        (baseDirectory.value / "web" / "play-openid" ** "*.html" --- (baseDirectory.value ** "target" ** "*")).get ++
-        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get
+        --- (baseDirectory.value / "documentation" ** "*")).get() ++
+        (baseDirectory.value / "web" / "play-openid" ** "*.html" --- (baseDirectory.value ** "target" ** "*")).get() ++
+        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get()
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
