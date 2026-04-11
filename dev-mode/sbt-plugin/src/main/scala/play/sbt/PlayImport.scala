@@ -105,7 +105,7 @@ object PlayImport {
     )
     val playExternalizedResources =
       TaskKey[Seq[(FileRef, String)]]("playExternalizedResources", "The resources to externalize")
-    val externalizeResourcesExcludes = SettingKey[Seq[FileRef]](
+    val externalizeResourcesExcludes = SettingKey[Seq[File]](
       "externalizeResourcesExcludes",
       "Resources that should not be externalized but stay in the generated jar"
     )
