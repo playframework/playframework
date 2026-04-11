@@ -175,7 +175,7 @@ jobs:
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
-          "sbt": [ "1.12.12" ],
+          "sbt": [ "1.12.12", "2.0.0" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       exclude: >-
@@ -186,6 +186,7 @@ jobs:
         export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
+          ++ $MATRIX_SBT;
           set scriptedSbt := \"$MATRIX_SBT\";
           set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
           set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
