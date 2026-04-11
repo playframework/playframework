@@ -290,7 +290,7 @@ object PlaySettings {
     playExternalizedResources := uncached {
       implicit val fc: FileConverter = fileConverter.value
       val rdirs                      = unmanagedResourceDirectories.value
-      (unmanagedResources.value --- rdirs --- toFinder(externalizeResourcesExcludes.value))
+      (unmanagedResources.value --- rdirs --- PathFinder(externalizeResourcesExcludes.value))
         .pair(relativeTo(rdirs) | flat)
         .map(mapping => (toFileRef(mapping._1), mapping._2))
     },
