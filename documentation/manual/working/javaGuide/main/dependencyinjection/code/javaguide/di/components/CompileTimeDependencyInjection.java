@@ -4,6 +4,9 @@
 
 package javaguide.di.components;
 
+import javaguide.dependencyinjection.controllers.Assets;
+import javaguide.dependencyinjection.controllers.HomeController;
+
 // #basic-imports
 import play.Application;
 import play.ApplicationLoader;
@@ -16,10 +19,8 @@ import play.filters.components.HttpFiltersComponents;
 import play.mvc.Results;
 import play.routing.Router;
 import play.routing.RoutingDslComponentsFromContext;
-// #basic-imports
 
-import javaguide.dependencyinjection.controllers.Assets;
-import javaguide.dependencyinjection.controllers.HomeController;
+// #basic-imports
 
 public class CompileTimeDependencyInjection {
 
@@ -31,6 +32,7 @@ public class CompileTimeDependencyInjection {
       return new MyComponents(context).application();
     }
   }
+
   // #basic-app-loader
 
   // #basic-my-components
@@ -45,6 +47,7 @@ public class CompileTimeDependencyInjection {
       return Router.empty();
     }
   }
+
   // #basic-my-components
 
   // #basic-logger-configurator
@@ -61,6 +64,7 @@ public class CompileTimeDependencyInjection {
       return new MyComponents(context).application();
     }
   }
+
   // #basic-logger-configurator
 
   // #connection-pool
@@ -81,6 +85,7 @@ public class CompileTimeDependencyInjection {
       return new SomeComponent(connectionPool());
     }
   }
+
   // #connection-pool
 
   static class SomeComponent {
@@ -103,6 +108,7 @@ public class CompileTimeDependencyInjection {
       return routingDsl().GET("/path").routingTo(request -> Results.ok("The content")).build();
     }
   }
+
   // #with-routing-dsl
 
   // #with-generated-router

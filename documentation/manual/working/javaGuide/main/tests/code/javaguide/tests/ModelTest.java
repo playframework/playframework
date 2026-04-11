@@ -34,6 +34,7 @@ public class ModelTest {
       this.name = name;
     }
   }
+
   // #test-model
 
   // #test-model-repository
@@ -49,6 +50,7 @@ public class ModelTest {
       return null;
     }
   }
+
   // #test-model-repository
 
   // #test-model-service
@@ -67,6 +69,7 @@ public class ModelTest {
       return false;
     }
   }
+
   // #test-model-service
 
   // #test-model-test

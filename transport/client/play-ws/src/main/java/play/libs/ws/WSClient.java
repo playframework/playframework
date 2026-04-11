@@ -36,7 +36,9 @@ public interface WSClient extends java.io.Closeable {
    */
   Object getUnderlying();
 
-  /** @return the Scala version for this WSClient. */
+  /**
+   * @return the Scala version for this WSClient.
+   */
   play.api.libs.ws.WSClient asScala();
 
   /**

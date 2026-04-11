@@ -14,6 +14,7 @@ public class JavaRangeRequestController extends Controller {
     File videoFile = getVideoFile(videoId);
     return RangeResults.ofFile(request, videoFile);
   }
+
   // #range-request
 
   private File getVideoFile(Long videoId) {

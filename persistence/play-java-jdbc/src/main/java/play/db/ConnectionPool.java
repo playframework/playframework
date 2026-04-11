@@ -28,6 +28,8 @@ public interface ConnectionPool {
    */
   void close(DataSource dataSource);
 
-  /** @return the Scala version for this connection pool. */
+  /**
+   * @return the Scala version for this connection pool.
+   */
   play.api.db.ConnectionPool asScala();
 }

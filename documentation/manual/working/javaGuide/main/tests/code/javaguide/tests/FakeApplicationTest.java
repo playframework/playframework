@@ -4,15 +4,15 @@
 
 package javaguide.tests;
 
-// #test-imports
-import play.test.*;
-import static play.test.Helpers.*;
-// #test-imports
-
-import org.junit.Test;
 import static org.junit.Assert.*;
+// #test-imports
+import static play.test.Helpers.*;
 
+// ###skip: 2
+import org.junit.Test;
 import play.Application;
+import play.test.*;
+// #test-imports
 
 public class FakeApplicationTest {
 
@@ -40,6 +40,7 @@ public class FakeApplicationTest {
           assertEquals("1984-01-24", formatted(macintosh.introduced));
         });
   }
+
   // #test-running-fakeapp
 
   private void fakeApps() {

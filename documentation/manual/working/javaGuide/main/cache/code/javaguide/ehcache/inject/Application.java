@@ -3,6 +3,7 @@
  */
 
 package javaguide.ehcache.inject;
+
 // #inject
 import jakarta.inject.Inject;
 import play.cache.*;

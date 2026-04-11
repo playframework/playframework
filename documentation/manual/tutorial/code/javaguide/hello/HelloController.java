@@ -17,6 +17,7 @@ public class HelloController extends Controller {
     // ###replace: return ok(views.html.index.render("Your app is ready."));
     return ok(javaguide.hello.html.index.render("Your app is ready."));
   }
+
   // #hello-world-index-action
 
   // #hello-world-hello-action
@@ -24,6 +25,7 @@ public class HelloController extends Controller {
     // ###replace:     return ok(views.html.hello.render());
     return ok(javaguide.hello.html.hello.render());
   }
+
   // #hello-world-hello-action
 
   /*

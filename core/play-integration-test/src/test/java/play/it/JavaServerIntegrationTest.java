@@ -34,7 +34,8 @@ public class JavaServerIntegrationTest {
           try {
             server.httpsPort();
             fail(
-                "Exception should be thrown on accessing https port of server that is not serving that protocol");
+                "Exception should be thrown on accessing https port of server that is not serving"
+                    + " that protocol");
           } catch (IllegalStateException e) {
           }
         });
@@ -53,7 +54,8 @@ public class JavaServerIntegrationTest {
           try {
             server.httpPort();
             fail(
-                "Exception should be thrown on accessing http port of server that is not serving that protocol");
+                "Exception should be thrown on accessing http port of server that is not serving"
+                    + " that protocol");
           } catch (IllegalStateException e) {
           }
         });

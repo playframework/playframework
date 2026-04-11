@@ -26,12 +26,16 @@ public class MessagesImpl implements Messages {
     this.messagesApi = messagesApi;
   }
 
-  /** @return the selected language for the messages. */
+  /**
+   * @return the selected language for the messages.
+   */
   public Lang lang() {
     return lang;
   }
 
-  /** @return The underlying API */
+  /**
+   * @return The underlying API
+   */
   public MessagesApi messagesApi() {
     return messagesApi;
   }

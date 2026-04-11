@@ -25,7 +25,9 @@ public class Server {
     this.server = server;
   }
 
-  /** @return the underlying server. */
+  /**
+   * @return the underlying server.
+   */
   public play.core.server.Server underlying() {
     return this.server;
   }
@@ -46,7 +48,8 @@ public class Server {
       return (Integer) server.httpPort().get();
     } else {
       throw new IllegalStateException(
-          "Server has no HTTP port. Try starting it with \"new Server.Builder().http(<port num>)\"?");
+          "Server has no HTTP port. Try starting it with \"new Server.Builder().http(<port"
+              + " num>)\"?");
     }
   }
 
@@ -61,7 +64,8 @@ public class Server {
       return (Integer) server.httpsPort().get();
     } else {
       throw new IllegalStateException(
-          "Server has no HTTPS port. Try starting it with \"new Server.Builder.https(<port num>)\"?");
+          "Server has no HTTPS port. Try starting it with \"new Server.Builder.https(<port"
+              + " num>)\"?");
     }
   }
 

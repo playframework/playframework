@@ -26,6 +26,7 @@ public class JavaXmlRequests extends Controller {
       }
     }
   }
+
   // #xml-hello
 
   // #xml-hello-bodyparser
@@ -43,6 +44,7 @@ public class JavaXmlRequests extends Controller {
       }
     }
   }
+
   // #xml-hello-bodyparser
 
   // #xml-reply
