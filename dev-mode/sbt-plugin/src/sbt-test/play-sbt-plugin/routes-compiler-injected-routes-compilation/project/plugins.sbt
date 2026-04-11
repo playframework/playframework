@@ -3,4 +3,4 @@
 updateOptions         := updateOptions.value.withLatestSnapshots(false)
 addSbtPlugin("org.playframework" % "sbt-plugin"         % sys.props("project.version"))
 addSbtPlugin("org.playframework" % "sbt-scripted-tools" % sys.props("project.version"))
-addSbtPlugin("com.github.sbt"    % "sbt-mocha"          % "2.2.0-M2")
+addSbtPlugin("com.github.sbt"    % "sbt-mocha"          % "2.2.0-M3")
