@@ -17,7 +17,7 @@ jobs:
       - uses: release-drafter/release-drafter@v7
         with:
           name: "Play $RESOLVED_VERSION"
-          config-name: release-drafts/increasing-minor-version.yml # located in .github/ in the default branch in the repo
+          config-name: release-drafts/increasing-minor-version.yml # located in .github/ in the default branch within this or the .github repo
           commitish: ${{ env.GITHUB_REF_NAME }}
         env:
           token: ${{ secrets.GITHUB_TOKEN }}
