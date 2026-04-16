@@ -67,6 +67,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
+        export SBT_JAVAFMT_JAVA_HOME=`cs java-home --jvm adoptium:25`
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
         cd dev-mode/gradle-plugin
         ./gradlew clean spotlessCheck --no-daemon
@@ -83,6 +84,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
+        export SBT_JAVAFMT_JAVA_HOME=`cs java-home --jvm adoptium:25`
         cd documentation
         sbt validateCode
 
