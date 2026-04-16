@@ -13,6 +13,7 @@ import org.junit.Test;
 // #logging-import
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 // #logging-import
 
 public class JavaLogging {

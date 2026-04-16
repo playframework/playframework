@@ -7,7 +7,6 @@ package javaguide.async;
 import org.apache.pekko.actor.*;
 import org.apache.pekko.stream.Materializer;
 import play.libs.streams.ActorFlow;
-import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.WebSocket;
 import play.libs.F;
@@ -78,6 +77,7 @@ public class JavaWebSockets {
                                       MyWebSocketActor::props, actorSystem, materializer)))
                       .orElseGet(() -> F.Either.Left(forbidden()))));
     }
+
     // #actor-reject
 
     // #accept-asynchronously

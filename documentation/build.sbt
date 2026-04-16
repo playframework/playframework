@@ -102,6 +102,7 @@ lazy val main = Project("Play-Documentation", file("."))
         --- (baseDirectory.value ** "target" ** "*")).get ++
         (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get,
     Test / headerSources ++= (baseDirectory.value ** "*.md").get,
+    javafmtSortImports := false,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
     // No need to show eviction warnings for Play documentation.
