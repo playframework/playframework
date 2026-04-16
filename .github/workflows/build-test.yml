@@ -64,10 +64,9 @@ jobs:
       - "extra-vars"
       - "prefetch-for-caching"
       - "gradle-validation"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@javafmt-java25
     with:
       cmd: |
-        export SBT_JAVAFMT_JAVA_HOME=`cs java-home --jvm adoptium:25`
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
         cd dev-mode/gradle-plugin
         ./gradlew clean spotlessCheck --no-daemon
@@ -81,10 +80,9 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
+    uses: playframework/.github/.github/workflows/cmd.yml@javafmt-java25
     with:
       cmd: |
-        export SBT_JAVAFMT_JAVA_HOME=`cs java-home --jvm adoptium:25`
         cd documentation
         sbt validateCode
 
