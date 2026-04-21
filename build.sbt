@@ -30,6 +30,8 @@ ThisBuild / dynver := {
     .mkVersion(out => versionFmt(out, dynverSonatypeSnapshots.value), fallbackVersion(d))
 }
 
+ThisBuild / javafmtFormatterCompatibleJavaVersion := 11
+
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
   .dependsOn(PlayExceptionsProject)
 
