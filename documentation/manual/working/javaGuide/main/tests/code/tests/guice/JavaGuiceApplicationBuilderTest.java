@@ -16,7 +16,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.Test;
 import play.Environment;
 import play.Mode;
-import play.api.Configuration;
 import play.mvc.Result;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -41,6 +40,7 @@ import play.inject.guice.Guiceable;
 // #injector-imports
 import play.inject.Injector;
 import play.inject.guice.GuiceInjectorBuilder;
+
 // #injector-imports
 
 public class JavaGuiceApplicationBuilderTest {
@@ -225,6 +225,7 @@ public class JavaGuiceApplicationBuilderTest {
           assertEquals("1984-01-24", macintosh.introduced);
         });
   }
+
   // #test-guiceapp
 
   private ClassLoader classLoader() {

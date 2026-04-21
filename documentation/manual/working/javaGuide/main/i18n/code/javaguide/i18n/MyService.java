@@ -24,6 +24,7 @@ public class MyService {
     this.langs = langs;
   }
 }
+
 // #inject-lang
 
 class LangOps {
@@ -57,6 +58,7 @@ class SomeService {
     String message = messages.at("home.title");
   }
 }
+
 // #current-lang-render
 
 // #inject-messages-api

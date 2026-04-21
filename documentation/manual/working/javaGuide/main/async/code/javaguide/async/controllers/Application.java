@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.CompletionStage;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
+
 // #async-explicit-cl-imports
 
 // #async-explicit-ec

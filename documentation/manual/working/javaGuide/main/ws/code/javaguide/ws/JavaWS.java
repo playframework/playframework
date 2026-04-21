@@ -51,6 +51,7 @@ import akka.stream.Materializer;
 import akka.stream.javadsl.*;
 import akka.util.ByteString;
 import play.mvc.Results;
+
 // #ws-client-imports
 
 public class JavaWS {
@@ -446,6 +447,7 @@ public class JavaWS {
       };
     }
   }
+
   // #ws-custom-body-readable
 
   // #ws-custom-body-writable
@@ -460,6 +462,7 @@ public class JavaWS {
       }
     }
   }
+
   // #ws-custom-body-writable
 
   public static class Controller4 extends MockJavaAction {
