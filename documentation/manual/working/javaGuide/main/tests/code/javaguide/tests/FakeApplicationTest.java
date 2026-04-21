@@ -12,6 +12,7 @@ import static play.test.Helpers.*;
 import org.junit.Test;
 import play.Application;
 import play.test.*;
+
 // #test-imports
 
 public class FakeApplicationTest {

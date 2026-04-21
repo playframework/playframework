@@ -10,9 +10,6 @@ import org.junit.Test;
 // #imports
 import jakarta.inject.Inject;
 
-import play.api.mvc.AnyContent;
-import play.api.mvc.BodyParser;
-import play.api.mvc.PlayBodyParsers;
 import play.mvc.Http;
 import play.routing.Router;
 import play.routing.RoutingDsl;
@@ -117,6 +114,7 @@ public class JavaRoutingDsl extends WithApplication {
       this.routingDsl = routing;
     }
   }
+
   // #inject
 
   @Test

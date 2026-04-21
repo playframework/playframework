@@ -33,6 +33,9 @@ ThisBuild / dynver := {
     .mkVersion(out => versionFmt(out, dynverSonatypeSnapshots.value), fallbackVersion(d))
 }
 
+// Makes sbt-java-formatter keep using google-java-format 1.28.0 to not require Java 21 for formatting (yet)
+ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
+
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
   .dependsOn(PlayExceptionsProject)
 
@@ -502,10 +505,6 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     Docs.apiDocsInclude        := false,
     Docs.apiDocsIncludeManaged := false,
     mimaReportBinaryIssues     := (()),
-    commands += Commands.javafmt,
-    commands += Commands.javafmtCheck,
-    commands += Commands.javafmtAll,
-    commands += Commands.javafmtCheckAll,
     commands += Commands.quickPublish,
     publish / skip := true,
     (Compile / headerSources) ++=

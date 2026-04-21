@@ -8,6 +8,9 @@ import sbtheader.FileType
 import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import sbtheader.LineCommentCreator
 
+// Makes sbt-java-formatter keep using google-java-format 1.28.0 to not require Java 21 for formatting (yet)
+ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
+
 val DocsApplication = config("docs").hide
 
 lazy val main = Project("Play-Documentation", file("."))
@@ -102,12 +105,9 @@ lazy val main = Project("Play-Documentation", file("."))
         --- (baseDirectory.value ** "target" ** "*")).get ++
         (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get,
     Test / headerSources ++= (baseDirectory.value ** "*.md").get,
+    javafmtSortImports := false,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
-    commands += DocumentationCommands.javafmt,
-    commands += DocumentationCommands.javafmtCheck,
-    commands += DocumentationCommands.javafmtAll,
-    commands += DocumentationCommands.javafmtCheckAll,
     // No need to show eviction warnings for Play documentation.
     update / evictionWarningOptions := EvictionWarningOptions.default
       .withWarnTransitiveEvictions(false)
