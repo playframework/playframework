@@ -64,7 +64,7 @@ jobs:
       - "extra-vars"
       - "prefetch-for-caching"
       - "gradle-validation"
-    uses: playframework/.github/.github/workflows/cmd.yml@javafmt-java25
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
@@ -80,7 +80,7 @@ jobs:
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@javafmt-java25
+    uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
         cd documentation
