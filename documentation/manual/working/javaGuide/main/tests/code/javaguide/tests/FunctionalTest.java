@@ -35,6 +35,7 @@ public class FunctionalTest extends WithApplication {
     Result result = route(app, request);
     assertEquals(NOT_FOUND, result.status());
   }
+
   // #bad-route
 
   // #good-route
@@ -46,6 +47,7 @@ public class FunctionalTest extends WithApplication {
     // ###replace:    assertEquals(OK, result.status());
     assertEquals(NOT_FOUND, result.status()); // NOT_FOUND since the routes files aren't used
   }
+
   // #good-route
 
   int timeout = 5000;
@@ -80,6 +82,7 @@ public class FunctionalTest extends WithApplication {
           }
         });
   }
+
   // #test-server
 
   // #test-browser
