@@ -1,5 +1,6 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+import com.github.sbt.JavaFormatterPlugin.autoImport.javafmtSortImports
 import org.playframework.docs.sbtplugin._
 import org.playframework.docs.sbtplugin.Imports._
 import play.core.PlayVersion
@@ -9,6 +10,8 @@ import sbtheader.CommentStyle
 import sbtheader.FileType
 import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import sbtheader.LineCommentCreator
+
+ThisBuild / javafmtFormatterCompatibleJavaVersion := 11
 
 val DocsApplication = config("docs").hide
 
@@ -30,6 +33,7 @@ lazy val main = Project("Play-Documentation", file("."))
       "--release",
       "11",
     ),
+    javafmtSortImports := false,
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
