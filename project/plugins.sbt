@@ -8,7 +8,7 @@ addDependencyTreePlugin
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.11.7"
 val mima               = "1.1.5"
-val sbtJavaFormatter   = "0.12.0-M1"
+val sbtJavaFormatter   = "0.12.0"
 val sbtJmh             = "0.4.8"
 val webjarsLocatorCore = "0.59"
 val sbtHeader          = "5.11.0"
