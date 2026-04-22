@@ -30,7 +30,7 @@ public class WebSocketSpecJavaActions {
   }
 
   private static <A> Source<A, ?> emptySource() {
-    return Source.fromFuture(new CompletableFuture<>());
+    return Source.completionStage(new CompletableFuture<>());
   }
 
   public static WebSocket allowConsumingMessages(Promise<List<String>> messages) {
