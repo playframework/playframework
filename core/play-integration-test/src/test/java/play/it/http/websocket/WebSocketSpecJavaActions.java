@@ -15,7 +15,6 @@ import play.libs.F;
 import play.mvc.Results;
 import play.mvc.WebSocket;
 import scala.concurrent.Promise;
-import scala.jdk.javaapi.FutureConverters;
 
 /** Java actions for WebSocket spec */
 public class WebSocketSpecJavaActions {
@@ -31,7 +30,7 @@ public class WebSocketSpecJavaActions {
   }
 
   private static <A> Source<A, ?> emptySource() {
-    return Source.fromFuture(FutureConverters.asScala(new CompletableFuture<>()));
+    return Source.fromFuture(new CompletableFuture<>());
   }
 
   public static WebSocket allowConsumingMessages(Promise<List<String>> messages) {
