@@ -13,8 +13,8 @@ class PekkoHeadersWrapperTest extends Specification {
   val emptyRequest: HttpRequest = HttpRequest()
 
   "PekkoHeadersWrapper" should {
-    "return no Content-Type Header when there's not entity (therefore no content type ) in the request" in {
-      val request        = emptyRequest.copy()
+    "return no Content-Type Header when there's no entity (therefore no content type ) in the request" in {
+      val request        = HttpRequest()
       val headersWrapper = PekkoHeadersWrapper(request, None, request.headers, None, "some-uri")
 
       headersWrapper.headers.find { case (k, _) => k == HeaderNames.CONTENT_TYPE } must be(None)
