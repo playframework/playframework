@@ -37,7 +37,6 @@ ThisBuild / dynver := {
 ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
 
 ThisBuild / evictionErrorLevel := Level.Info
-ThisBuild / resolvers += Resolver.ApacheMavenStagingRepo
 
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
   .dependsOn(PlayExceptionsProject)
