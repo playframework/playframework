@@ -31,7 +31,7 @@ class CustomPekkoHttpServer(context: PekkoHttpServer.Context) extends PekkoHttpS
     val defaultSettings: ServerSettings =
       super.createServerSettings(port, connectionContext, secure)
     val defaultWebsocketSettings = defaultSettings.websocketSettings()
-    defaultSettings.withWebsocketSettings(defaultWebsocketSettings.withRandomFactoryFactory(() => new Random())
+    defaultSettings.withWebsocketSettings(defaultWebsocketSettings.withRandomFactoryFactory(() => new Random()))
   }
 }
 
