@@ -14,8 +14,6 @@ import java.util.Collections;
 import java.util.Optional;
 import javaguide.testhelpers.MockJavaAction;
 import org.apache.pekko.NotUsed;
-import org.apache.pekko.actor.Status;
-import org.apache.pekko.stream.OverflowStrategy;
 import org.apache.pekko.stream.javadsl.FileIO;
 import org.apache.pekko.stream.javadsl.Source;
 import org.apache.pekko.util.ByteString;
@@ -233,11 +231,11 @@ public class JavaStream extends WithApplication {
           Source.<ByteString>queue(256)
               .mapMaterializedValue(
                   queue -> {
-                      queue.offer(ByteString.fromString("kiki"));
-                      queue.offer(ByteString.fromString("foo"));
-                      queue.offer(ByteString.fromString("bar"));
-                      queue.complete();
-                      return NotUsed.getInstance();
+                    queue.offer(ByteString.fromString("kiki"));
+                    queue.offer(ByteString.fromString("foo"));
+                    queue.offer(ByteString.fromString("bar"));
+                    queue.complete();
+                    return NotUsed.getInstance();
                   });
       // Serves this stream with 200 OK
       return ok().chunked(source);
