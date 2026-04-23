@@ -332,22 +332,23 @@ If you want to replace your `*.Out` with a simple object that you can write mess
 Java:
 
 ```java
-Source<ByteString, ?> source = Source.<ByteString>actorRef(256, OverflowStrategy.dropNew())
-  .mapMaterializedValue(sourceActor -> {
-    sourceActor.tell(ByteString.fromString("hello"), null);
-    sourceActor.tell(ByteString.fromString("world"), null);
-    sourceActor.tell(new Status.Success(NotUsed.getInstance()), null);
-    return null;
+Source<ByteString, ?> source = Source.<ByteString>queue(256)
+  .mapMaterializedValue(queue -> {
+    queue.offer(ByteString.fromString("hello"));
+    queue.offer(ByteString.fromString("world"));
+    queue.complete();
+    return NotUsed.getInstance();
   });
 ```
 
 Scala:
 
 ```scala
-val source = Source.actorRef[ByteString](256, OverflowStrategy.dropNew).mapMaterializedValue { sourceActor =>
-  sourceActor ! ByteString("hello")
-  sourceActor ! ByteString("world")
-  sourceActor ! Status.Success(()) // close the source
+val source = Source.queue[ByteString](256).mapMaterializedValue { queue =>
+  queue.offer(ByteString.fromString("hello"))
+  queue.offer(ByteString.fromString("world"))
+  queue.complete()
+  NotUsed.getInstance()
 }
 ```
 

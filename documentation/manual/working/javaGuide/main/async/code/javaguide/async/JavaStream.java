@@ -230,14 +230,14 @@ public class JavaStream extends WithApplication {
     public Result index() {
       // Prepare a chunked text stream
       Source<ByteString, ?> source =
-          Source.<ByteString>actorRef(256, OverflowStrategy.dropNew())
+          Source.<ByteString>queue(256)
               .mapMaterializedValue(
-                  sourceActor -> {
-                    sourceActor.tell(ByteString.fromString("kiki"), null);
-                    sourceActor.tell(ByteString.fromString("foo"), null);
-                    sourceActor.tell(ByteString.fromString("bar"), null);
-                    sourceActor.tell(new Status.Success(NotUsed.getInstance()), null);
-                    return NotUsed.getInstance();
+                  queue -> {
+                      queue.offer(ByteString.fromString("kiki"));
+                      queue.offer(ByteString.fromString("foo"));
+                      queue.offer(ByteString.fromString("bar"));
+                      queue.complete();
+                      return NotUsed.getInstance();
                   });
       // Serves this stream with 200 OK
       return ok().chunked(source);
