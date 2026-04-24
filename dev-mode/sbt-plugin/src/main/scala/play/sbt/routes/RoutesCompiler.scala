@@ -194,11 +194,15 @@ object RoutesCompiler extends AutoPlugin {
   ): Seq[File] = {
     val ops                = tasks.map(task => RoutesCompilerOp(task, generator.id, PlayVersion.current))
     val (products, errors) = syncIncremental(cacheDirectory, ops) { (opsToRun: Seq[RoutesCompilerOp]) =>
-      val errs = Seq.newBuilder[RoutesCompilationError]
+      val errs    = Seq.newBuilder[RoutesCompilationError]
+      val results = Seq.newBuilder[(File, File)]
 
       val opResults: Map[RoutesCompilerOp, OpResult] = opsToRun.map { op =>
         play.routes.compiler.RoutesCompiler.compile(op.task, generator, generatedDir) match {
           case Right(inputs) =>
+            inputs.foreach { i =>
+              results += (i -> op.task.file)
+            }
             op -> OpSuccess(Set(op.task.file), inputs.toSet)
 
           case Left(details) =>
@@ -206,6 +210,21 @@ object RoutesCompiler extends AutoPlugin {
             op -> OpFailure
         }
       }.toMap
+
+      results.result.groupBy(_._1).filter(_._2.size > 1).toList.flatMap(_._2) match {
+        case x if x.isEmpty => // success
+        case duplicate =>
+          errs ++= duplicate.map {
+            case (output, input) =>
+              RoutesCompilationError(
+                source = input,
+                message =
+                  s"found duplicate generated routes files ${input} ${output} https://github.com/playframework/playframework/issues/8423",
+                line = None,
+                column = None
+              )
+          }
+      }
 
       opResults -> errs.result()
     }
