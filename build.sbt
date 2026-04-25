@@ -267,6 +267,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
        */
     },
     (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
+    scriptedLaunchOpts ++= Seq("-Dsbt.eviction.error.level=info")
   )
   .dependsOn(SbtRoutesCompilerProject, PlayRunSupportProject)
 
