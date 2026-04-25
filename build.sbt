@@ -36,6 +36,8 @@ ThisBuild / dynver := {
 // Makes sbt-java-formatter keep using google-java-format 1.28.0 to not require Java 21 for formatting (yet)
 ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
 
+ThisBuild / evictionErrorLevel := Level.Info
+
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
   .dependsOn(PlayExceptionsProject)
 
@@ -265,6 +267,7 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
        */
     },
     (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
+    scriptedLaunchOpts ++= Seq("-Dsbt.eviction.error.level=info")
   )
   .dependsOn(SbtRoutesCompilerProject, PlayRunSupportProject)
 
