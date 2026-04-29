@@ -318,7 +318,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   def absoluteMethod: Parser[List[String]] =
     namedError(
       ident ~ "." ~ rep1sep(ident, ".") ~ opt(".`" ~> ident <~ "`") ^^ {
-        case first ~ _ ~ rest ~ None => first :: rest
+        case first ~ _ ~ rest ~ None               => first :: rest
         case first ~ _ ~ rest ~ Some(tickedMethod) =>
           val packageAndClass = first :: rest
           packageAndClass :+ tickedMethod
