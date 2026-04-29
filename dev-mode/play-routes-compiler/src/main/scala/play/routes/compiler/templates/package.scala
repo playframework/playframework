@@ -55,7 +55,7 @@ package object templates {
    * Generate a controller method call for the given injected route
    */
   def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String): String = {
-    val method = safeMethod(r.call.method)
+    val method     = safeMethod(r.call.method)
     val methodPart = if (r.call.instantiate) {
       s"$ident.get.${method}"
     } else {
