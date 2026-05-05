@@ -52,14 +52,13 @@ You can also individually sponsor the project by <a href="https://www.playframew
   <a href="https://cedarlakeventures.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/bec2b526c9ce52c051f9089a10044867-cedar-lake-ventures.png" width="250"></a>
   <br>
   <a href="https://informaticon.com/" target="_blank">
-  <picture>
-    <source width="250" media="(prefers-color-scheme: dark)" srcset="https://www.playframework.com/assets/images/home/sponsors/d180a3ad763aaf69b46bff18fb110d9e-informaticon-logo-white.png">
-    <source width="250" media="(prefers-color-scheme: light)" srcset="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
-    <img width="250" alt="informaticon logo fallback" src="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
-  </picture>
-  </a>
+    <picture>
+      <source width="250" media="(prefers-color-scheme: dark)" srcset="https://www.playframework.com/assets/images/home/sponsors/d180a3ad763aaf69b46bff18fb110d9e-informaticon-logo-white.png">
+      <source width="250" media="(prefers-color-scheme: light)" srcset="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png">
+      <img width="250" alt="informaticon logo fallback" src="https://www.playframework.com/assets/images/home/sponsors/ad86c68a917e70a42440b4feb413c68d-informaticon-logo-black.png"></picture></a>
   <a href="https://nulab.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
   <a href="https://sprypoint.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
+  <br>
   <a href="https://evertrust.io/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/3d198900af6e5f44f342ee2d0effed4e-evertrust.png" width="250"></a>
 </div>
 
