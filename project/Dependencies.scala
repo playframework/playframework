@@ -223,7 +223,7 @@ object Dependencies {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.7"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.8"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
