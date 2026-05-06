@@ -128,9 +128,10 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
    * configuration, with an additional setting patched in to enable or disable HTTP/2.
    */
   protected def createAkkaHttpConfig(): Config =
-    Configuration("akka.http.server.preview.enable-http2" -> http2Enabled)
-      .withFallback(Configuration(context.actorSystem.settings.config))
-      .underlying
+    Configuration(
+      "akka.http.server.enable-http2"         -> http2Enabled,
+      "akka.http.server.preview.enable-http2" -> http2Enabled,
+    ).withFallback(Configuration(context.actorSystem.settings.config)).underlying
 
   /** Play's parser settings for Akka HTTP. Initialized by a call to [[createParserSettings()]]. */
   protected val parserSettings: ParserSettings = createParserSettings()
