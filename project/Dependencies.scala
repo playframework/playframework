@@ -29,7 +29,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.19.0"      % Test
   )
 
-  val jacksonVersion  = "2.21.2"
+  val jacksonVersion  = "2.21.3"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -102,7 +102,7 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "7.0.6"
+  val springFrameworkVersion = "7.0.7"
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
@@ -110,7 +110,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.14.1",
+    "joda-time" % "joda-time"    % "2.14.2",
     "org.joda"  % "joda-convert" % "3.0.1"
   )
 
@@ -208,7 +208,7 @@ object Dependencies {
 
   val runSupportDeps: Seq[ModuleID] = Seq(playFileWatch) ++ javaTestDeps
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.6"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.8"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
@@ -292,7 +292,7 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion  = "3.2.3"
+  val caffeineVersion  = "3.2.4"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
