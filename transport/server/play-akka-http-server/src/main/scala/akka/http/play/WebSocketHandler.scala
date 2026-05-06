@@ -8,6 +8,7 @@ import scala.concurrent.duration.Duration
 
 import akka.http.impl.engine.ws._
 import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.model.ws.WebSocketUpgrade
 import akka.http.scaladsl.model.HttpResponse
 import akka.stream.scaladsl._
 import akka.stream.stage._
@@ -23,6 +24,27 @@ import play.core.server.common.WebSocketFlowHandler.MessageType
 import play.core.server.common.WebSocketFlowHandler.RawMessage
 
 object WebSocketHandler {
+
+  /**
+   * Handle a WebSocket using the new WebSocketUpgrade API
+   *
+   * This method uses the maintained akka-http WebSocketUpgrade API instead of the deprecated UpgradeToWebSocket.
+   *
+   * @since 2.9.11
+   */
+  def handleWebSocket(
+      upgrade: WebSocketUpgrade,
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      subprotocol: Option[String],
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+  ): HttpResponse = upgrade match {
+    case lowLevel: UpgradeToWebSocketLowLevel =>
+      lowLevel.handleFrames(messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle), subprotocol)
+    case other =>
+      throw new IllegalArgumentException("WebSocketUpgrade is not an Akka HTTP UpgradeToWebsocketLowLevel")
+  }
 
   /**
    * Handle a WebSocket without selecting a subprotocol
@@ -46,8 +68,9 @@ object WebSocketHandler {
     handleWebSocket(upgrade, flow, bufferLimit, subprotocol, "ping", Duration.Inf)
 
   /**
-   * Handle a WebSocket
+   * Handle a WebSocket using the deprecated UpgradeToWebSocket API
    */
+  @deprecated("Use the WebSocketUpgrade API instead of UpgradeToWebSocket", "2.9.11")
   def handleWebSocket(
       upgrade: UpgradeToWebSocket,
       flow: Flow[Message, Message, _],

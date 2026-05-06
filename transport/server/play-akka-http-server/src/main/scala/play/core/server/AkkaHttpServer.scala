@@ -22,7 +22,8 @@ import akka.http.play.WebSocketHandler
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers
 import akka.http.scaladsl.model.headers.Expect
-import akka.http.scaladsl.model.ws.UpgradeToWebSocket
+import akka.http.scaladsl.model.ws.WebSocketUpgrade
+import akka.http.scaladsl.model.AttributeKeys
 import akka.http.scaladsl.settings.ParserSettings
 import akka.http.scaladsl.settings.ServerSettings
 import akka.http.scaladsl.util.FastFuture._
@@ -386,7 +387,7 @@ class AkkaHttpServer(context: AkkaHttpServer.Context) extends Server {
       taggedRequestHeader: RequestHeader,
       handler: Handler
   ): Future[HttpResponse] = {
-    val upgradeToWebSocket = request.header[UpgradeToWebSocket]
+    val upgradeToWebSocket = request.attribute(AttributeKeys.webSocketUpgrade)
 
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
