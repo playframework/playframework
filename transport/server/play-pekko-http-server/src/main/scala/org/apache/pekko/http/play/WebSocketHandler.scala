@@ -30,7 +30,7 @@ object WebSocketHandler {
    *
    * This method uses the maintained pekko-http WebSocketUpgrade API instead of the deprecated UpgradeToWebSocket.
    *
-   * @since 3.1.0
+   * @since 3.0.11
    */
   def handleWebSocket(
       upgrade: WebSocketUpgrade,
@@ -70,7 +70,7 @@ object WebSocketHandler {
   /**
    * Handle a WebSocket using the deprecated UpgradeToWebSocket API
    */
-  @deprecated("Use the WebSocketUpgrade API instead of UpgradeToWebSocket", "3.1.0")
+  @deprecated("Use the WebSocketUpgrade API instead of UpgradeToWebSocket", "3.0.11")
   def handleWebSocket(
       upgrade: UpgradeToWebSocket,
       flow: Flow[Message, Message, _],
