@@ -301,7 +301,7 @@ class ResultsSpec extends Specification {
 
     "allow checking content length" in withPath { (file, fileName) =>
       val content = "test"
-      Files.write(file, content.getBytes(StandardCharsets.ISO_8859_1))
+      Files.writeString(file, content, StandardCharsets.ISO_8859_1)
       val rh = Ok.sendPath(file)
 
       rh.body.contentLength must beSome(content.length)
