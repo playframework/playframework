@@ -142,7 +142,7 @@ class XmlBodyParserSpec extends PlaySpecification {
     "parse XML bodies without loading in a related schema" in new WithApplication() {
       override def running() = {
         val f = Files.createTempFile("xxe", ".txt").toFile
-        Files.write(f.toPath, "I shouldn't be there!".getBytes(StandardCharsets.UTF_8))
+        Files.writeString(f.toPath, "I shouldn't be there!")
         f.deleteOnExit()
         val xml =
           s"""<?xml version="1.0" encoding="ISO-8859-1"?>
@@ -158,14 +158,14 @@ class XmlBodyParserSpec extends PlaySpecification {
       override def running() = {
         val externalParameterEntity = Files.createTempFile("xep", ".dtd").toFile
         val externalGeneralEntity   = Files.createTempFile("xxe", ".txt").toFile
-        Files.write(
+        Files.writeString(
           externalParameterEntity.toPath,
           s"""
              |<!ENTITY % xge SYSTEM "${externalGeneralEntity.toURI}">
              |<!ENTITY % pe "<!ENTITY xxe '%xge;'>">
-        """.stripMargin.getBytes(StandardCharsets.UTF_8)
+        """.stripMargin
         )
-        Files.write(externalGeneralEntity.toPath, "I shouldnt be there!".getBytes(StandardCharsets.UTF_8))
+        Files.writeString(externalGeneralEntity.toPath, "I shouldnt be there!")
         externalGeneralEntity.deleteOnExit()
         externalParameterEntity.deleteOnExit()
         val xml =

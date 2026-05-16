@@ -40,7 +40,7 @@ object HttpBinApplication {
 
   private def requestWriter[A]: Writes[Request[A]] = new Writes[Request[A]] {
     def readFileToString(ref: Files.TemporaryFile): String = {
-      new String(java.nio.file.Files.readAllBytes(ref), StandardCharsets.UTF_8)
+      java.nio.file.Files.readString(ref)
     }
     def writes(r: Request[A]): JsValue =
       requestHeaderWriter.writes(r).as[JsObject] ++
