@@ -59,7 +59,7 @@ You can also individually sponsor the project by <a href="https://www.playframew
   <a href="https://nulab.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/6152e584aa8625eedca1c4accf8f8b63-nulab_logo_color.png" width="250"></a>
   <a href="https://sprypoint.com/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/3fdf14f6369cf9d69f4a2a29ce26c2f8-sprypoint-logo-lrg-transparent.png" width="250"></a>
   <br>
-  <a href="https://evertrust.io/" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/3d198900af6e5f44f342ee2d0effed4e-evertrust.png" width="250"></a>
+  <a href="https://evertrust.io/?utm_source[playframework]&utm_medium=partner&utm_campaign=partner_listing_[2]_[26]&utm_content=linkedin" target="_blank"><img src="https://www.playframework.com/assets/images/home/sponsors/3d198900af6e5f44f342ee2d0effed4e-evertrust.png" width="250"></a>
 </div>
 
 ### Thank you to all our backers!
