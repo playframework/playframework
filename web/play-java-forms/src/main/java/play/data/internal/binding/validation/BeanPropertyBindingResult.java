@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.validation;
 
 import java.io.Serializable;
 
-import play.data.internal.binding.beans.BeanWrapper;
+import play.data.internal.binding.beans.BeanWrapperImpl;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
-import play.data.internal.binding.beans.PropertyAccessorFactory;
 
 /**
  * Default implementation of the {@link Errors} and {@link BindingResult}
@@ -34,9 +37,7 @@ import play.data.internal.binding.beans.PropertyAccessorFactory;
  * {@link DataBinder#getBindingResult()}.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see DataBinder#getBindingResult()
- * @see DataBinder#initBeanPropertyAccess()
  * @see DirectFieldBindingResult
  */
 @SuppressWarnings("serial")
@@ -48,17 +49,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 
 	private final int autoGrowCollectionLimit;
 
-	private transient BeanWrapper beanWrapper;
-
-
-	/**
-	 * Create a new {@code BeanPropertyBindingResult} for the given target.
-	 * @param target the target bean to bind onto
-	 * @param objectName the name of the target object
-	 */
-	public BeanPropertyBindingResult(Object target, String objectName) {
-		this(target, objectName, true, Integer.MAX_VALUE);
-	}
+	private transient BeanWrapperImpl beanWrapper;
 
 	/**
 	 * Create a new {@code BeanPropertyBindingResult} for the given target.
@@ -83,7 +74,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 	}
 
 	/**
-	 * Returns the {@link BeanWrapper} that this instance uses.
+	 * Returns the {@link BeanWrapperImpl} that this instance uses.
 	 * Creates a new one if none existed before.
 	 * @see #createBeanWrapper()
 	 */
@@ -91,7 +82,6 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 	public final ConfigurablePropertyAccessor getPropertyAccessor() {
 		if (this.beanWrapper == null) {
 			this.beanWrapper = createBeanWrapper();
-			this.beanWrapper.setExtractOldValueForEditor(true);
 			this.beanWrapper.setAutoGrowNestedPaths(this.autoGrowNestedPaths);
 			this.beanWrapper.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
 		}
@@ -99,14 +89,14 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 	}
 
 	/**
-	 * Create a new {@link BeanWrapper} for the underlying target object.
+	 * Create a new {@link BeanWrapperImpl} for the underlying target object.
 	 * @see #getTarget()
 	 */
-	protected BeanWrapper createBeanWrapper() {
+	protected BeanWrapperImpl createBeanWrapper() {
 		if (this.target == null) {
 			throw new IllegalStateException("Cannot access properties on null bean instance '" + getObjectName() + "'");
 		}
-		return PropertyAccessorFactory.forBeanPropertyAccess(this.target);
+		return new BeanWrapperImpl(this.target);
 	}
 
 }

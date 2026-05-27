@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.format;
 
 import java.text.ParseException;
@@ -23,7 +27,6 @@ import java.util.Locale;
  * Parses text strings to produce instances of T.
  *
  * @author Keith Donald
- * @since 3.0
  * @param <T> the type of object this Parser produces
  */
 @FunctionalInterface

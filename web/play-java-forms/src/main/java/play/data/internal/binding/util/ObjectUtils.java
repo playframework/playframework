@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.util;
 
 import java.lang.reflect.Array;
@@ -28,8 +32,6 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.TimeZone;
 
-import play.data.internal.binding.lang.Contract;
-
 /**
  * Miscellaneous object utility methods.
  *
@@ -43,7 +45,6 @@ import play.data.internal.binding.lang.Contract;
  * @author Rob Harrop
  * @author Chris Beams
  * @author Sam Brannen
- * @since 19.03.2004
  * @see ClassUtils
  * @see CollectionUtils
  * @see StringUtils
@@ -63,45 +64,10 @@ public abstract class ObjectUtils {
 
 
 	/**
-	 * Return whether the given throwable is a checked exception:
-	 * that is, neither a RuntimeException nor an Error.
-	 * @param ex the throwable to check
-	 * @return whether the throwable is a checked exception
-	 * @see java.lang.Exception
-	 * @see java.lang.RuntimeException
-	 * @see java.lang.Error
-	 */
-	public static boolean isCheckedException(Throwable ex) {
-		return !(ex instanceof RuntimeException || ex instanceof Error);
-	}
-
-	/**
-	 * Check whether the given exception is compatible with the specified
-	 * exception types, as declared in a {@code throws} clause.
-	 * @param ex the exception to check
-	 * @param declaredExceptions the exception types declared in the throws clause
-	 * @return whether the given exception is compatible
-	 */
-	public static boolean isCompatibleWithThrowsClause(Throwable ex, Class<?> ... declaredExceptions) {
-		if (!isCheckedException(ex)) {
-			return true;
-		}
-		if (declaredExceptions != null) {
-			for (Class<?> declaredException : declaredExceptions) {
-				if (declaredException.isInstance(ex)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Determine whether the given object is an array:
 	 * either an Object array or a primitive array.
 	 * @param obj the object to check
 	 */
-	@Contract("null -> false")
 	public static boolean isArray(Object obj) {
 		return (obj != null && obj.getClass().isArray());
 	}
@@ -110,58 +76,9 @@ public abstract class ObjectUtils {
 	 * Determine whether the given array is empty:
 	 * i.e. {@code null} or of zero length.
 	 * @param array the array to check
-	 * @see #isEmpty(Object)
 	 */
-	@Contract("null -> true")
 	public static boolean isEmpty(Object [] array) {
 		return (array == null || array.length == 0);
-	}
-
-	/**
-	 * Determine whether the given object is empty.
-	 * <p>This method supports the following object types.
-	 * <ul>
-	 * <li>{@code Optional}: considered empty if not {@link Optional#isPresent()}</li>
-	 * <li>{@code Array}: considered empty if its length is zero</li>
-	 * <li>{@link CharSequence}: considered empty if its length is zero</li>
-	 * <li>{@link Collection}: delegates to {@link Collection#isEmpty()}</li>
-	 * <li>{@link Map}: delegates to {@link Map#isEmpty()}</li>
-	 * </ul>
-	 * <p>If the given object is non-null and not one of the aforementioned
-	 * supported types, this method returns {@code false}.
-	 * @param obj the object to check
-	 * @return {@code true} if the object is {@code null} or <em>empty</em>
-	 * @since 4.2
-	 * @see Optional#isPresent()
-	 * @see ObjectUtils#isEmpty(Object[])
-	 * @see StringUtils#hasLength(CharSequence)
-	 * @see CollectionUtils#isEmpty(java.util.Collection)
-	 * @see CollectionUtils#isEmpty(java.util.Map)
-	 */
-	@Contract("null -> true")
-	public static boolean isEmpty(Object obj) {
-		if (obj == null) {
-			return true;
-		}
-
-		if (obj instanceof Optional<?> optional) {
-			return optional.isEmpty();
-		}
-		if (obj instanceof CharSequence charSequence) {
-			return charSequence.isEmpty();
-		}
-		if (obj.getClass().isArray()) {
-			return Array.getLength(obj) == 0;
-		}
-		if (obj instanceof Collection<?> collection) {
-			return collection.isEmpty();
-		}
-		if (obj instanceof Map<?, ?> map) {
-			return map.isEmpty();
-		}
-
-		// else
-		return false;
 	}
 
 	/**
@@ -169,9 +86,7 @@ public abstract class ObjectUtils {
 	 * @param obj the candidate object
 	 * @return either the value held within the {@code Optional}, {@code null}
 	 * if the {@code Optional} is empty, or simply the given object as-is
-	 * @since 5.0
 	 */
-	@Contract("null -> null")
 	public static Object unwrapOptional(Object obj) {
 		if (obj instanceof Optional<?> optional) {
 			Object result = optional.orElse(null);
@@ -179,112 +94,6 @@ public abstract class ObjectUtils {
 			return result;
 		}
 		return obj;
-	}
-
-	/**
-	 * Check whether the given array contains the given element.
-	 * @param array the array to check (may be {@code null},
-	 * in which case the return value will always be {@code false})
-	 * @param element the element to check for
-	 * @return whether the element has been found in the given array
-	 */
-	@Contract("null, _ -> false")
-	public static boolean containsElement(Object [] array, Object element) {
-		if (array == null) {
-			return false;
-		}
-		for (Object arrayEle : array) {
-			if (nullSafeEquals(arrayEle, element)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Check whether the given array of enum constants contains a constant with the given name,
-	 * ignoring case when determining a match.
-	 * @param enumValues the enum values to check, typically obtained via {@code MyEnum.values()}
-	 * @param constant the constant name to find (must not be null or empty string)
-	 * @return whether the constant has been found in the given array
-	 */
-	public static boolean containsConstant(Enum<?>[] enumValues, String constant) {
-		return containsConstant(enumValues, constant, false);
-	}
-
-	/**
-	 * Check whether the given array of enum constants contains a constant with the given name.
-	 * @param enumValues the enum values to check, typically obtained via {@code MyEnum.values()}
-	 * @param constant the constant name to find (must not be null or empty string)
-	 * @param caseSensitive whether case is significant in determining a match
-	 * @return whether the constant has been found in the given array
-	 */
-	public static boolean containsConstant(Enum<?>[] enumValues, String constant, boolean caseSensitive) {
-		for (Enum<?> candidate : enumValues) {
-			if (caseSensitive ? candidate.toString().equals(constant) :
-					candidate.toString().equalsIgnoreCase(constant)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Case insensitive alternative to {@link Enum#valueOf(Class, String)}.
-	 * @param <E> the concrete Enum type
-	 * @param enumValues the array of all Enum constants in question, usually per {@code Enum.values()}
-	 * @param constant the constant to get the enum value of
-	 * @throws IllegalArgumentException if the given constant is not found in the given array
-	 * of enum values. Use {@link #containsConstant(Enum[], String)} as a guard to avoid this exception.
-	 */
-	public static <E extends Enum<?>> E caseInsensitiveValueOf(E[] enumValues, String constant) {
-		for (E candidate : enumValues) {
-			if (candidate.toString().equalsIgnoreCase(constant)) {
-				return candidate;
-			}
-		}
-		throw new IllegalArgumentException("Constant [" + constant + "] does not exist in enum type " +
-				enumValues.getClass().componentType().getName());
-	}
-
-	/**
-	 * Append the given object to the given array, returning a new array
-	 * consisting of the input array contents plus the given object.
-	 * @param array the array to append to (can be {@code null})
-	 * @param obj the object to append
-	 * @return the new array (of the same component type; never {@code null})
-	 */
-	public static <A, O extends A> A[] addObjectToArray(A [] array, O obj) {
-		return addObjectToArray(array, obj, (array != null ? array.length : 0));
-	}
-
-	/**
-	 * Add the given object to the given array at the specified position, returning
-	 * a new array consisting of the input array contents plus the given object.
-	 * @param array the array to add to (can be {@code null})
-	 * @param obj the object to append
-	 * @param position the position at which to add the object
-	 * @return the new array (of the same component type; never {@code null})
-	 * @since 6.0
-	 */
-	public static <A, O extends A> A[] addObjectToArray(A [] array, O obj, int position) {
-		Class<?> componentType = Object.class;
-		if (array != null) {
-			componentType = array.getClass().componentType();
-		}
-		// Defensive code for use cases not following the declared nullability
-		else if (obj != null) {
-			componentType = obj.getClass();
-		}
-		int newArrayLength = (array != null ? array.length + 1 : 1);
-		@SuppressWarnings("unchecked")
-		A[] newArray = (A[]) Array.newInstance(componentType, newArrayLength);
-		if (array != null) {
-			System.arraycopy(array, 0, newArray, 0, position);
-			System.arraycopy(array, position, newArray, position + 1, array.length - position);
-		}
-		newArray[position] = obj;
-		return newArray;
 	}
 
 	/**
@@ -334,7 +143,6 @@ public abstract class ObjectUtils {
 	 * @see Object#equals(Object)
 	 * @see java.util.Arrays#equals
 	 */
-	@Contract("null, null -> true; null, _ -> false; _, null -> false")
 	public static boolean nullSafeEquals(Object o1, Object o2) {
 		if (o1 == o2) {
 			return true;
@@ -400,7 +208,6 @@ public abstract class ObjectUtils {
 	 * element that is an array.
 	 * @param elements the elements to be hashed
 	 * @return a hash value of the elements
-	 * @since 6.1
 	 */
 	public static int nullSafeHash(Object ... elements) {
 		if (elements == null) {
@@ -457,96 +264,6 @@ public abstract class ObjectUtils {
 		return obj.hashCode();
 	}
 
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(Object[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(Object [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(boolean[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(boolean [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(byte[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(byte [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(char[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(char [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(double[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(double [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(float[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(float [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(int[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(int [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(long[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(long [] array) {
-		return Arrays.hashCode(array);
-	}
-
-	/**
-	 * Return a hash code based on the contents of the specified array.
-	 * If {@code array} is {@code null}, this method returns 0.
-	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(short[])}
-	 */
-	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(short [] array) {
-		return Arrays.hashCode(array);
-	}
-
 
 	//---------------------------------------------------------------------
 	// Convenience methods for toString output
@@ -572,32 +289,6 @@ public abstract class ObjectUtils {
 	 */
 	public static String getIdentityHexString(Object obj) {
 		return Integer.toHexString(System.identityHashCode(obj));
-	}
-
-	/**
-	 * Return a content-based String representation if {@code obj} is
-	 * not {@code null}; otherwise returns an empty String.
-	 * <p>Differs from {@link #nullSafeToString(Object)} in that it returns
-	 * an empty String rather than "null" for a {@code null} value.
-	 * @param obj the object to build a display String for
-	 * @return a display String representation of {@code obj}
-	 * @see #nullSafeToString(Object)
-	 */
-	public static String getDisplayString(Object obj) {
-		if (obj == null) {
-			return EMPTY_STRING;
-		}
-		return nullSafeToString(obj);
-	}
-
-	/**
-	 * Determine the class name for the given object.
-	 * <p>Returns a {@code "null"} String if {@code obj} is {@code null}.
-	 * @param obj the object to introspect (may be {@code null})
-	 * @return the corresponding class name
-	 */
-	public static String nullSafeClassName(Object obj) {
-		return (obj != null ? obj.getClass().getName() : NULL_STRING);
 	}
 
 	/**
@@ -889,7 +580,6 @@ public abstract class ObjectUtils {
 	 * {@link java.util.regex.Pattern Pattern}.
 	 * @param obj the object to build a string representation for
 	 * @return a concise string representation of the supplied object
-	 * @since 5.3.27
 	 * @see #nullSafeToString(Object)
 	 * @see StringUtils#truncate(CharSequence)
 	 * @see ClassUtils#isSimpleValueType(Class)

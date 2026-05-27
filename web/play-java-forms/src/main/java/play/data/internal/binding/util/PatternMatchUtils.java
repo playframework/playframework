@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.util;
 
-import play.data.internal.binding.lang.Contract;
-
 /**
- * Utility methods for simple pattern matching, in particular for Spring's typical
+ * Utility methods for simple pattern matching, in particular for typical
  * {@code xxx*}, {@code *xxx}, {@code *xxx*}, and {@code xxx*yyy} pattern styles.
  *
  * @author Juergen Hoeller
- * @since 2.0
  */
 public abstract class PatternMatchUtils {
 
@@ -36,18 +37,8 @@ public abstract class PatternMatchUtils {
 	 * @param str the String to match
 	 * @return whether the String matches the given pattern
 	 */
-	@Contract("null, _ -> false; _, null -> false")
 	public static boolean simpleMatch(String pattern, String str) {
 		return simpleMatch(pattern, str, false);
-	}
-
-	/**
-	 * Variant of {@link #simpleMatch(String, String)} that ignores upper/lower case.
-	 * @since 6.1.20
-	 */
-	@Contract("null, _ -> false; _, null -> false")
-	public static boolean simpleMatchIgnoreCase(String pattern, String str) {
-		return simpleMatch(pattern, str, true);
 	}
 
 	private static boolean simpleMatch(String pattern, String str, boolean ignoreCase) {
@@ -115,27 +106,10 @@ public abstract class PatternMatchUtils {
 	 * @param str the String to match
 	 * @return whether the String matches any of the given patterns
 	 */
-	@Contract("null, _ -> false; _, null -> false")
 	public static boolean simpleMatch(String [] patterns, String str) {
 		if (patterns != null) {
 			for (String pattern : patterns) {
 				if (simpleMatch(pattern, str)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Variant of {@link #simpleMatch(String[], String)} that ignores upper/lower case.
-	 * @since 6.1.20
-	 */
-	@Contract("null, _ -> false; _, null -> false")
-	public static boolean simpleMatchIgnoreCase(String [] patterns, String str) {
-		if (patterns != null) {
-			for (String pattern : patterns) {
-				if (simpleMatch(pattern, str, true)) {
 					return true;
 				}
 			}

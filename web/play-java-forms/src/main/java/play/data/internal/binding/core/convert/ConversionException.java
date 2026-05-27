@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package play.data.internal.binding.core.convert;
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
 
-import play.data.internal.binding.core.NestedRuntimeException;
+package play.data.internal.binding.core.convert;
 
 /**
  * Base class for exceptions thrown by the conversion system.
  *
  * @author Keith Donald
- * @since 3.0
  */
 @SuppressWarnings("serial")
-public abstract class ConversionException extends NestedRuntimeException {
+public abstract class ConversionException extends RuntimeException {
 
 	/**
 	 * Construct a new conversion exception.

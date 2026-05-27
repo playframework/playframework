@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.beans.PropertyChangeEvent;

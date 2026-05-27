@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.validation;
 
 import play.data.internal.binding.util.Assert;
@@ -28,7 +32,6 @@ import play.data.internal.binding.util.ObjectUtils;
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
- * @since 10.03.2003
  * @see DefaultMessageCodesResolver
  */
 @SuppressWarnings("serial")
@@ -40,16 +43,6 @@ public class FieldError extends ObjectError {
 
 	private final boolean bindingFailure;
 
-
-	/**
-	 * Create a new FieldError instance.
-	 * @param objectName the name of the affected object
-	 * @param field the affected field of the object
-	 * @param defaultMessage the default message to be used to resolve this message
-	 */
-	public FieldError(String objectName, String field, String defaultMessage) {
-		this(objectName, field, null, false, null, null, defaultMessage);
-	}
 
 	/**
 	 * Create a new FieldError instance.

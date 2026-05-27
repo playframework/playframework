@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core.convert;
 
 import java.lang.annotation.Annotation;
@@ -34,16 +38,14 @@ import play.data.internal.binding.util.StringUtils;
  * A description of a JavaBeans Property that allows us to avoid a dependency on
  * {@code java.beans.PropertyDescriptor}. The {@code java.beans} package
  * is not available in a number of environments (for example, Android, Java ME), so this is
- * desirable for portability of Spring's core conversion facility.
+ * desirable for portability of the core conversion facility.
  *
  * <p>Used to build a {@link TypeDescriptor} from a property location. The built
  * {@code TypeDescriptor} can then be used to convert from/to the property type.
  *
  * @author Keith Donald
  * @author Phillip Webb
- * @since 3.1
  * @see TypeDescriptor#TypeDescriptor(Property)
- * @see TypeDescriptor#nested(Property, int)
  */
 public final class Property {
 
@@ -61,10 +63,6 @@ public final class Property {
 
 	private Annotation [] annotations;
 
-
-	public Property(Class<?> objectType, Method readMethod, Method writeMethod) {
-		this(objectType, readMethod, writeMethod, null);
-	}
 
 	public Property(
 			Class<?> objectType, Method readMethod, Method writeMethod, String name) {

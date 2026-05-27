@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 /**
@@ -24,14 +28,6 @@ package play.data.internal.binding.beans;
  */
 @SuppressWarnings("serial")
 public class FatalBeanException extends BeansException {
-
-	/**
-	 * Create a new FatalBeanException with the specified message.
-	 * @param msg the detail message
-	 */
-	public FatalBeanException(String msg) {
-		super(msg);
-	}
 
 	/**
 	 * Create a new FatalBeanException with the specified message

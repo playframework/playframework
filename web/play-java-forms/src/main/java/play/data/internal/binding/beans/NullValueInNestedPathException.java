@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 /**
@@ -54,7 +58,6 @@ public class NullValueInNestedPathException extends InvalidPropertyException {
 	 * @param propertyName the offending property
 	 * @param msg the detail message
 	 * @param cause the root cause
-	 * @since 4.3.2
 	 */
 	public NullValueInNestedPathException(Class<?> beanClass, String propertyName, String msg, Throwable cause) {
 		super(beanClass, propertyName, msg, cause);

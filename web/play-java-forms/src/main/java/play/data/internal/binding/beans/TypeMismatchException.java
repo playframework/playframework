@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.beans.PropertyChangeEvent;
 
-import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ClassUtils;
 
 /**
@@ -40,17 +43,6 @@ public class TypeMismatchException extends PropertyAccessException {
 
 	private final transient Object value;
 
-	private final Class<?> requiredType;
-
-
-	/**
-	 * Create a new {@code TypeMismatchException}.
-	 * @param propertyChangeEvent the PropertyChangeEvent that resulted in the problem
-	 * @param requiredType the required target type
-	 */
-	public TypeMismatchException(PropertyChangeEvent propertyChangeEvent, Class<?> requiredType) {
-		this(propertyChangeEvent, requiredType, null);
-	}
 
 	/**
 	 * Create a new {@code TypeMismatchException}.
@@ -72,48 +64,8 @@ public class TypeMismatchException extends PropertyAccessException {
 				cause);
 		this.propertyName = propertyChangeEvent.getPropertyName();
 		this.value = propertyChangeEvent.getNewValue();
-		this.requiredType = requiredType;
 	}
 
-	/**
-	 * Create a new {@code TypeMismatchException} without a {@code PropertyChangeEvent}.
-	 * @param value the offending value that couldn't be converted (may be {@code null})
-	 * @param requiredType the required target type (or {@code null} if not known)
-	 * @see #initPropertyName
-	 */
-	public TypeMismatchException(Object value, Class<?> requiredType) {
-		this(value, requiredType, null);
-	}
-
-	/**
-	 * Create a new {@code TypeMismatchException} without a {@code PropertyChangeEvent}.
-	 * @param value the offending value that couldn't be converted (may be {@code null})
-	 * @param requiredType the required target type (or {@code null} if not known)
-	 * @param cause the root cause (may be {@code null})
-	 * @see #initPropertyName
-	 */
-	public TypeMismatchException(Object value, Class<?> requiredType, Throwable cause) {
-		super("Failed to convert value of type '" + ClassUtils.getDescriptiveType(value) + "'" +
-				(requiredType != null ? " to required type '" + ClassUtils.getQualifiedName(requiredType) + "'" : "") +
-				(cause != null ? "; " + cause.getMessage() : ""),
-				cause);
-		this.value = value;
-		this.requiredType = requiredType;
-	}
-
-
-	/**
-	 * Initialize this exception's property name for exposure through {@link #getPropertyName()},
-	 * as an alternative to having it initialized via a {@link PropertyChangeEvent}.
-	 * @param propertyName the property name to expose
-	 * @since 5.0.4
-	 * @see #TypeMismatchException(Object, Class)
-	 * @see #TypeMismatchException(Object, Class, Throwable)
-	 */
-	public void initPropertyName(String propertyName) {
-		Assert.state(this.propertyName == null, "Property name already initialized");
-		this.propertyName = propertyName;
-	}
 
 	/**
 	 * Return the name of the affected property, if available.
@@ -129,13 +81,6 @@ public class TypeMismatchException extends PropertyAccessException {
 	@Override
 	public Object getValue() {
 		return this.value;
-	}
-
-	/**
-	 * Return the required target type, if any.
-	 */
-	public Class<?> getRequiredType() {
-		return this.requiredType;
 	}
 
 	@Override

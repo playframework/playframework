@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.validation;
 
-import java.beans.PropertyEditor;
-
-import play.data.internal.binding.beans.BeanUtils;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.PropertyAccessorUtils;
-import play.data.internal.binding.beans.PropertyEditorRegistry;
 import play.data.internal.binding.core.convert.ConversionService;
 import play.data.internal.binding.core.convert.TypeDescriptor;
-import play.data.internal.binding.core.convert.support.ConvertingPropertyEditorAdapter;
 import play.data.internal.binding.util.Assert;
 
 /**
  * Abstract base class for {@link BindingResult} implementations that work with
- * Spring's {@link play.data.internal.binding.beans.PropertyAccessor} mechanism.
+ * the internal {@link play.data.internal.binding.beans.PropertyAccessor} mechanism.
  * Pre-implements field access through delegation to the corresponding
  * PropertyAccessor methods.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see #getPropertyAccessor()
  * @see play.data.internal.binding.beans.PropertyAccessor
  * @see play.data.internal.binding.beans.ConfigurablePropertyAccessor
@@ -61,15 +59,6 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 		if (getTarget() != null) {
 			getPropertyAccessor().setConversionService(conversionService);
 		}
-	}
-
-	/**
-	 * Returns the underlying PropertyAccessor.
-	 * @see #getPropertyAccessor()
-	 */
-	@Override
-	public PropertyEditorRegistry getPropertyEditorRegistry() {
-		return (getTarget() != null ? getPropertyAccessor() : null);
 	}
 
 	/**
@@ -100,26 +89,10 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 		return getPropertyAccessor().getPropertyValue(field);
 	}
 
-	/**
-	 * Formats the field value based on registered PropertyEditors.
-	 * @see #getCustomEditor
-	 */
 	@Override
 	protected Object formatFieldValue(String field, Object value) {
 		String fixedField = fixedField(field);
-		// Try custom editor...
-		PropertyEditor customEditor = getCustomEditor(fixedField);
-		if (customEditor != null) {
-			customEditor.setValue(value);
-			String textValue = customEditor.getAsText();
-			// If the PropertyEditor returned null, there is no appropriate
-			// text representation for this value: only use it if non-null.
-			if (textValue != null) {
-				return textValue;
-			}
-		}
 		if (this.conversionService != null) {
-			// Try custom converter...
 			TypeDescriptor fieldDesc = getPropertyAccessor().getPropertyTypeDescriptor(fixedField);
 			TypeDescriptor strDesc = TypeDescriptor.valueOf(String.class);
 			if (fieldDesc != null && this.conversionService.canConvert(fieldDesc, strDesc)) {
@@ -129,58 +102,10 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 		return value;
 	}
 
-	/**
-	 * Retrieve the custom PropertyEditor for the given field, if any.
-	 * @param fixedField the fully qualified field name
-	 * @return the custom PropertyEditor, or {@code null}
-	 */
-	protected PropertyEditor getCustomEditor(String fixedField) {
-		Class<?> targetType = getPropertyAccessor().getPropertyType(fixedField);
-		PropertyEditor editor = getPropertyAccessor().findCustomEditor(targetType, fixedField);
-		if (editor == null) {
-			editor = BeanUtils.findEditorByConvention(targetType);
-		}
-		return editor;
-	}
-
-	/**
-	 * This implementation exposes a PropertyEditor adapter for a Formatter,
-	 * if applicable.
-	 */
-	@Override
-	public PropertyEditor findEditor(String field, Class<?> valueType) {
-		Class<?> valueTypeForLookup = valueType;
-		if (valueTypeForLookup == null) {
-			valueTypeForLookup = getFieldType(field);
-		}
-		PropertyEditor editor = super.findEditor(field, valueTypeForLookup);
-		if (editor == null && this.conversionService != null) {
-			TypeDescriptor td = null;
-			if (field != null && getTarget() != null) {
-				TypeDescriptor ptd = getPropertyAccessor().getPropertyTypeDescriptor(fixedField(field));
-				if (ptd != null && (valueType == null || valueType.isAssignableFrom(ptd.getType()))) {
-					td = ptd;
-				}
-			}
-			if (td == null) {
-				td = TypeDescriptor.valueOf(valueTypeForLookup);
-			}
-			if (this.conversionService.canConvert(TypeDescriptor.valueOf(String.class), td)) {
-				editor = new ConvertingPropertyEditorAdapter(this.conversionService, td);
-			}
-		}
-		return editor;
-	}
-
 
 	/**
 	 * Provide the PropertyAccessor to work with, according to the
 	 * concrete strategy of access.
-	 * <p>Note that a PropertyAccessor used by a BindingResult should
-	 * always have its "extractOldValueForEditor" flag set to "true"
-	 * by default, since this is typically possible without side effects
-	 * for model objects that serve as data binding target.
-	 * @see ConfigurablePropertyAccessor#setExtractOldValueForEditor
 	 */
 	public abstract ConfigurablePropertyAccessor getPropertyAccessor();
 

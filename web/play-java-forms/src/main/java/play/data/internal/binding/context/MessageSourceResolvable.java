@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.context;
 
 /**
- * Interface for objects that are suitable for message resolution in a
- * {@link MessageSource}.
+ * Interface for objects that are suitable for message resolution.
  *
- * <p>Spring's own validation error classes implement this interface.
+ * <p>Validation error classes implement this interface.
  *
  * @author Juergen Hoeller
- * @see MessageSource#getMessage(MessageSourceResolvable, java.util.Locale)
  * @see play.data.internal.binding.validation.ObjectError
  * @see play.data.internal.binding.validation.FieldError
  */
@@ -52,9 +54,7 @@ public interface MessageSourceResolvable {
 	 * Return the default message to be used to resolve this message.
 	 * <p>The default implementation simply returns {@code null}.
 	 * Note that the default message may be identical to the primary
-	 * message code ({@link #getCodes()}), which effectively enforces
-	 * {@link play.data.internal.binding.context.support.AbstractMessageSource#setUseCodeAsDefaultMessage}
-	 * for this particular message.
+	 * message code ({@link #getCodes()}).
 	 * @return the default message, or {@code null} if no default
 	 */
 	default String getDefaultMessage() {

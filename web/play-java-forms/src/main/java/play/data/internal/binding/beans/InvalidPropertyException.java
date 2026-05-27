@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 /**
@@ -21,7 +25,6 @@ package play.data.internal.binding.beans;
  * Carries the offending bean class and property name.
  *
  * @author Juergen Hoeller
- * @since 1.0.2
  */
 @SuppressWarnings("serial")
 public class InvalidPropertyException extends FatalBeanException {

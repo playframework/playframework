@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.beans.PropertyChangeEvent;
@@ -42,25 +46,6 @@ public abstract class PropertyAccessException extends BeansException {
 		this.propertyChangeEvent = propertyChangeEvent;
 	}
 
-	/**
-	 * Create a new PropertyAccessException without PropertyChangeEvent.
-	 * @param msg the detail message
-	 * @param cause the root cause
-	 */
-	public PropertyAccessException(String msg, Throwable cause) {
-		super(msg, cause);
-		this.propertyChangeEvent = null;
-	}
-
-
-	/**
-	 * Return the PropertyChangeEvent that resulted in the problem.
-	 * <p>May be {@code null}; only available if an actual bean property
-	 * was affected.
-	 */
-	public PropertyChangeEvent getPropertyChangeEvent() {
-		return this.propertyChangeEvent;
-	}
 
 	/**
 	 * Return the name of the affected property, if available.

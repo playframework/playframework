@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core.convert.support;
 
 import play.data.internal.binding.core.convert.ConversionFailedException;
-import play.data.internal.binding.core.convert.ConversionService;
 import play.data.internal.binding.core.convert.TypeDescriptor;
 import play.data.internal.binding.core.convert.converter.GenericConverter;
-import play.data.internal.binding.util.Assert;
-import play.data.internal.binding.util.ClassUtils;
 
 /**
  * Internal utilities for the conversion package.
  *
  * @author Keith Donald
  * @author Stephane Nicoll
- * @since 3.0
  */
 abstract class ConversionUtils {
 
@@ -44,38 +44,6 @@ abstract class ConversionUtils {
 		catch (Throwable ex) {
 			throw new ConversionFailedException(sourceType, targetType, source, ex);
 		}
-	}
-
-	public static boolean canConvertElements(TypeDescriptor sourceElementType,
-			TypeDescriptor targetElementType, ConversionService conversionService) {
-
-		if (targetElementType == null) {
-			// yes
-			return true;
-		}
-		if (sourceElementType == null) {
-			// maybe
-			return true;
-		}
-		if (conversionService.canConvert(sourceElementType, targetElementType)) {
-			// yes
-			return true;
-		}
-		if (ClassUtils.isAssignable(sourceElementType.getType(), targetElementType.getType())) {
-			// maybe
-			return true;
-		}
-		// no
-		return false;
-	}
-
-	public static Class<?> getEnumType(Class<?> targetType) {
-		Class<?> enumType = targetType;
-		while (enumType != null && !enumType.isEnum()) {
-			enumType = enumType.getSuperclass();
-		}
-		Assert.notNull(enumType, () -> "The target type " + targetType.getName() + " does not refer to an enum");
-		return enumType;
 	}
 
 }

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,7 +48,6 @@ import play.data.internal.binding.util.ReflectionUtils;
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @author Phillip Webb
- * @since 2.0
  */
 public final class BridgeMethodResolver {
 
@@ -63,38 +65,9 @@ public final class BridgeMethodResolver {
 	 * @param bridgeMethod the method to introspect against its declaring class
 	 * @return the original method (either the bridged method or the passed-in method
 	 * if no more specific one could be found)
-	 * @see #getMostSpecificMethod(Method, Class)
 	 */
 	public static Method findBridgedMethod(Method bridgeMethod) {
 		return resolveBridgeMethod(bridgeMethod, bridgeMethod.getDeclaringClass());
-	}
-
-	/**
-	 * Determine the most specific method for the supplied {@link Method bridge Method}
-	 * in the given class hierarchy, even if not available on the local declaring class.
-	 * <p>This is effectively a combination of {@link ClassUtils#getMostSpecificMethod}
-	 * and {@link #findBridgedMethod}, resolving the original method even if no bridge
-	 * method has been generated at the same class hierarchy level (a known difference
-	 * between the Eclipse compiler and regular javac).
-	 * @param bridgeMethod the method to introspect against the given target class
-	 * @param targetClass the target class to find the most specific method on
-	 * @return the most specific method corresponding to the given bridge method
-	 * (can be the original method if no more specific one could be found)
-	 * @since 6.1.3
-	 * @see #findBridgedMethod
-	 * @see play.data.internal.binding.util.ClassUtils#getMostSpecificMethod
-	 */
-	public static Method getMostSpecificMethod(Method bridgeMethod, Class<?> targetClass) {
-		if (targetClass != null &&
-				!ClassUtils.getUserClass(bridgeMethod.getDeclaringClass()).isAssignableFrom(targetClass) &&
-				!Proxy.isProxyClass(bridgeMethod.getDeclaringClass())) {
-			// From a different class hierarchy, and not a JDK or CGLIB proxy either -> return as-is.
-			return bridgeMethod;
-		}
-
-		Method specificMethod = ClassUtils.getMostSpecificMethod(bridgeMethod, targetClass);
-		return resolveBridgeMethod(specificMethod,
-				(targetClass != null ? targetClass : specificMethod.getDeclaringClass()));
 	}
 
 	private static Method resolveBridgeMethod(Method bridgeMethod, Class<?> targetClass) {
@@ -267,29 +240,6 @@ public final class BridgeMethodResolver {
 		catch (NoSuchMethodException ex) {
 			return null;
 		}
-	}
-
-	/**
-	 * Compare the signatures of the bridge method and the method which it bridges. If
-	 * the parameter and return types are the same, it is a 'visibility' bridge method
-	 * introduced in Java 6 to fix <a href="https://bugs.openjdk.org/browse/JDK-6342411">
-	 * JDK-6342411</a>.
-	 * @return whether signatures match as described
-	 * @deprecated as of 6.2.13: not necessary anymore due to {@link #getMostSpecificMethod}
-	 */
-	@Deprecated(since = "6.2.13", forRemoval = true)
-	public static boolean isVisibilityBridgeMethodPair(Method bridgeMethod, Method bridgedMethod) {
-		if (bridgeMethod == bridgedMethod) {
-			// Same method: for common purposes, return true to proceed as if it was a visibility bridge.
-			return true;
-		}
-		if (ClassUtils.getUserClass(bridgeMethod.getDeclaringClass()) != bridgeMethod.getDeclaringClass()) {
-			// Method on generated subclass: return false to consistently ignore it for visibility purposes.
-			return false;
-		}
-		return (bridgeMethod.getReturnType().equals(bridgedMethod.getReturnType()) &&
-				bridgeMethod.getParameterCount() == bridgedMethod.getParameterCount() &&
-				Arrays.equals(bridgeMethod.getParameterTypes(), bridgedMethod.getParameterTypes()));
 	}
 
 }

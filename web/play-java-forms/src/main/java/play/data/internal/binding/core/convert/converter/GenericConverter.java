@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core.convert.converter;
 
 import java.util.Set;
@@ -31,25 +35,16 @@ import play.data.internal.binding.util.Assert;
  * process. This allows for resolving source and target field metadata such as annotations and
  * generics information, which can be used to influence the conversion logic.
  *
- * <p>This interface should generally not be used when the simpler {@link Converter} or
- * {@link ConverterFactory} interface is sufficient.
- *
- * <p>Implementations may additionally implement {@link ConditionalConverter}.
- *
  * @author Keith Donald
  * @author Juergen Hoeller
- * @since 3.0
  * @see TypeDescriptor
- * @see Converter
- * @see ConverterFactory
- * @see ConditionalConverter
  */
 public interface GenericConverter {
 
 	/**
 	 * Return the source and target types that this converter can convert between.
 	 * <p>Each entry is a convertible source-to-target type pair.
-	 * <p>For {@link ConditionalConverter conditional converters} this method may return
+	 * <p>For conditional converters this method may return
 	 * {@code null} to indicate all source-to-target pairs should be considered.
 	 */
 	Set<ConvertiblePair> getConvertibleTypes();
@@ -83,14 +78,6 @@ public interface GenericConverter {
 			Assert.notNull(targetType, "Target type must not be null");
 			this.sourceType = sourceType;
 			this.targetType = targetType;
-		}
-
-		public Class<?> getSourceType() {
-			return this.sourceType;
-		}
-
-		public Class<?> getTargetType() {
-			return this.targetType;
 		}
 
 		@Override

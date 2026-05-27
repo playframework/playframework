@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core;
 
 import java.util.ArrayList;
@@ -29,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -37,12 +40,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import play.data.internal.binding.util.Assert;
-import play.data.internal.binding.util.LinkedMultiValueMap;
-import play.data.internal.binding.util.MultiValueMap;
 import play.data.internal.binding.util.ReflectionUtils;
 
 /**
- * Factory for collections that is aware of common Java and Spring collection types.
+ * Factory for collections that is aware of common Java collection types.
  *
  * <p>Mainly for internal use within the framework.
  *
@@ -50,7 +51,6 @@ import play.data.internal.binding.util.ReflectionUtils;
  * @author Arjen Poutsma
  * @author Oliver Gierke
  * @author Sam Brannen
- * @since 1.1.1
  */
 public final class CollectionFactory {
 
@@ -72,13 +72,11 @@ public final class CollectionFactory {
 	private static final Set<Class<?>> approximableMapTypes = Set.of(
 			// Standard map interfaces
 			Map.class,
-			MultiValueMap.class,
 			SortedMap.class,
 			NavigableMap.class,
 			// Common concrete map classes
 			HashMap.class,
 			LinkedHashMap.class,
-			LinkedMultiValueMap.class,
 			TreeMap.class,
 			EnumMap.class);
 
@@ -171,7 +169,6 @@ public final class CollectionFactory {
 	 * @throws IllegalArgumentException if the supplied {@code collectionType} is
 	 * {@code null}; or if the desired {@code collectionType} is {@link EnumSet} and
 	 * the supplied {@code elementType} is not a subtype of {@link Enum}
-	 * @since 4.1.3
 	 * @see java.util.LinkedHashSet
 	 * @see java.util.ArrayList
 	 * @see java.util.TreeSet
@@ -255,9 +252,6 @@ public final class CollectionFactory {
 		else if (map instanceof SortedMap sortedMap) {
 			return new TreeMap<>(sortedMap.comparator());
 		}
-		else if (map instanceof MultiValueMap) {
-			return new LinkedMultiValueMap(capacity);
-		}
 		else {
 			return new LinkedHashMap<>(capacity);
 		}
@@ -286,7 +280,6 @@ public final class CollectionFactory {
 	 * is an enum type matching type {@code K}. As an alternative, the caller
 	 * may wish to treat the return value as a raw map or map keyed by
 	 * {@link Object}. Similarly, type safety cannot be enforced if the
-	 * desired {@code mapType} is {@link MultiValueMap}.
 	 * @param mapType the desired type of the target map (never {@code null})
 	 * @param keyType the map's key type, or {@code null} if unknown
 	 * (note: only relevant for {@link EnumMap} creation)
@@ -295,10 +288,8 @@ public final class CollectionFactory {
 	 * @throws IllegalArgumentException if the supplied {@code mapType} is
 	 * {@code null}; or if the desired {@code mapType} is {@link EnumMap} and
 	 * the supplied {@code keyType} is not a subtype of {@link Enum}
-	 * @since 4.1.3
 	 * @see java.util.LinkedHashMap
 	 * @see java.util.TreeMap
-	 * @see play.data.internal.binding.util.LinkedMultiValueMap
 	 * @see java.util.EnumMap
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
@@ -307,9 +298,6 @@ public final class CollectionFactory {
 		if (LinkedHashMap.class == mapType || Map.class == mapType ||
 				mapType.getName().equals("java.util.SequencedMap")) {
 			return new LinkedHashMap<>(capacity);
-		}
-		else if (LinkedMultiValueMap.class == mapType || MultiValueMap.class == mapType) {
-			return new LinkedMultiValueMap();
 		}
 		else if (TreeMap.class == mapType || SortedMap.class == mapType || NavigableMap.class == mapType) {
 			return new TreeMap<>();
@@ -332,68 +320,6 @@ public final class CollectionFactory {
 				throw new IllegalArgumentException("Could not instantiate Map type: " + mapType.getName(), ex);
 			}
 		}
-	}
-
-	/**
-	 * Create a variant of {@link java.util.Properties} that automatically adapts
-	 * non-String values to String representations in {@link Properties#getProperty}.
-	 * <p>In addition, the returned {@code Properties} instance sorts properties
-	 * alphanumerically based on their keys.
-	 * @return a new {@code Properties} instance
-	 * @since 4.3.4
-	 * @see #createSortedProperties(boolean)
-	 * @see #createSortedProperties(Properties, boolean)
-	 */
-	@SuppressWarnings("serial")
-	public static Properties createStringAdaptingProperties() {
-		return new SortedProperties(false) {
-			@Override
-			public String getProperty(String key) {
-				Object value = get(key);
-				return (value != null ? value.toString() : null);
-			}
-		};
-	}
-
-	/**
-	 * Create a variant of {@link java.util.Properties} that sorts properties
-	 * alphanumerically based on their keys.
-	 * <p>This can be useful when storing the {@link Properties} instance in a
-	 * properties file, since it allows such files to be generated in a repeatable
-	 * manner with consistent ordering of properties. Comments in generated
-	 * properties files can also be optionally omitted.
-	 * @param omitComments {@code true} if comments should be omitted when
-	 * storing properties in a file
-	 * @return a new {@code Properties} instance
-	 * @since 5.2
-	 * @see #createStringAdaptingProperties()
-	 * @see #createSortedProperties(Properties, boolean)
-	 */
-	public static Properties createSortedProperties(boolean omitComments) {
-		return new SortedProperties(omitComments);
-	}
-
-	/**
-	 * Create a variant of {@link java.util.Properties} that sorts properties
-	 * alphanumerically based on their keys.
-	 * <p>This can be useful when storing the {@code Properties} instance in a
-	 * properties file, since it allows such files to be generated in a repeatable
-	 * manner with consistent ordering of properties. Comments in generated
-	 * properties files can also be optionally omitted.
-	 * <p>The returned {@code Properties} instance will be populated with
-	 * properties from the supplied {@code properties} object, but default
-	 * properties from the supplied {@code properties} object will not be copied.
-	 * @param properties the {@code Properties} object from which to copy the
-	 * initial properties
-	 * @param omitComments {@code true} if comments should be omitted when
-	 * storing properties in a file
-	 * @return a new {@code Properties} instance
-	 * @since 5.2
-	 * @see #createStringAdaptingProperties()
-	 * @see #createSortedProperties(boolean)
-	 */
-	public static Properties createSortedProperties(Properties properties, boolean omitComments) {
-		return new SortedProperties(properties, omitComments);
 	}
 
 	/**

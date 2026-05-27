@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core.convert;
 
 import play.data.internal.binding.util.ObjectUtils;
@@ -23,17 +27,9 @@ import play.data.internal.binding.util.ObjectUtils;
  *
  * @author Keith Donald
  * @author Juergen Hoeller
- * @since 3.0
  */
 @SuppressWarnings("serial")
 public class ConversionFailedException extends ConversionException {
-
-	private final TypeDescriptor sourceType;
-
-	private final TypeDescriptor targetType;
-
-	private final Object value;
-
 
 	/**
 	 * Create a new conversion exception.
@@ -47,31 +43,7 @@ public class ConversionFailedException extends ConversionException {
 
 		super("Failed to convert from type [" + sourceType + "] to type [" + targetType +
 				"] for value [" + ObjectUtils.nullSafeConciseToString(value) + "]", cause);
-		this.sourceType = sourceType;
-		this.targetType = targetType;
-		this.value = value;
 	}
 
-
-	/**
-	 * Return the source type we tried to convert the value from.
-	 */
-	public TypeDescriptor getSourceType() {
-		return this.sourceType;
-	}
-
-	/**
-	 * Return the target type we tried to convert the value to.
-	 */
-	public TypeDescriptor getTargetType() {
-		return this.targetType;
-	}
-
-	/**
-	 * Return the offending value.
-	 */
-	public Object getValue() {
-		return this.value;
-	}
 
 }

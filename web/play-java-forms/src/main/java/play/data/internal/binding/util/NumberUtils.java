@@ -18,10 +18,6 @@ package play.data.internal.binding.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Set;
 
 /**
  * Miscellaneous utility methods for number conversion and parsing.
@@ -30,27 +26,12 @@ import java.util.Set;
  *
  * @author Juergen Hoeller
  * @author Rob Harrop
- * @since 1.1.2
  */
 public abstract class NumberUtils {
 
 	private static final BigInteger LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
 
 	private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
-
-	/**
-	 * Standard number types (all immutable):
-	 * Byte, Short, Integer, Long, BigInteger, Float, Double, BigDecimal.
-	 */
-	public static final Set<Class<?>> STANDARD_NUMBER_TYPES = Set.of(
-			Byte.class,
-			Short.class,
-			Integer.class,
-			Long.class,
-			BigInteger.class,
-			Float.class,
-			Double.class,
-			BigDecimal.class);
 
 	/**
 	 * Convert the given number into an instance of the given target class.
@@ -162,154 +143,4 @@ public abstract class NumberUtils {
 		throw new IllegalArgumentException("Could not convert number [" + number + "] of type [" +
 				number.getClass().getName() + "] to target class [" + targetClass.getName() + "]: overflow");
 	}
-
-	/**
-	 * Parse the given {@code text} into a {@link Number} instance of the given
-	 * target class, using the corresponding {@code decode} / {@code valueOf} method.
-	 * <p>Trims all whitespace (leading, trailing, and in between characters) from
-	 * the input {@code String} before attempting to parse the number.
-	 * <p>Supports numbers in hex format (with leading "0x", "0X", or "#") as well.
-	 * @param text the text to convert
-	 * @param targetClass the target class to parse into
-	 * @return the parsed number
-	 * @throws IllegalArgumentException if the target class is not supported
-	 * (i.e. not a standard Number subclass as included in the JDK)
-	 * @see Byte#decode
-	 * @see Short#decode
-	 * @see Integer#decode
-	 * @see Long#decode
-	 * @see #decodeBigInteger(String)
-	 * @see Float#valueOf
-	 * @see Double#valueOf
-	 * @see java.math.BigDecimal#BigDecimal(String)
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T extends Number> T parseNumber(String text, Class<T> targetClass) {
-		Assert.notNull(text, "Text must not be null");
-		Assert.notNull(targetClass, "Target class must not be null");
-		String trimmed = StringUtils.trimAllWhitespace(text);
-
-		if (Byte.class == targetClass) {
-			return (T) (isHexNumber(trimmed) ? Byte.decode(trimmed) : Byte.valueOf(trimmed));
-		}
-		else if (Short.class == targetClass) {
-			return (T) (isHexNumber(trimmed) ? Short.decode(trimmed) : Short.valueOf(trimmed));
-		}
-		else if (Integer.class == targetClass) {
-			return (T) (isHexNumber(trimmed) ? Integer.decode(trimmed) : Integer.valueOf(trimmed));
-		}
-		else if (Long.class == targetClass) {
-			return (T) (isHexNumber(trimmed) ? Long.decode(trimmed) : Long.valueOf(trimmed));
-		}
-		else if (BigInteger.class == targetClass) {
-			return (T) (isHexNumber(trimmed) ? decodeBigInteger(trimmed) : new BigInteger(trimmed));
-		}
-		else if (Float.class == targetClass) {
-			return (T) Float.valueOf(trimmed);
-		}
-		else if (Double.class == targetClass) {
-			return (T) Double.valueOf(trimmed);
-		}
-		else if (BigDecimal.class == targetClass || Number.class == targetClass) {
-			return (T) new BigDecimal(trimmed);
-		}
-		else {
-			throw new IllegalArgumentException(
-					"Cannot convert String [" + text + "] to target class [" + targetClass.getName() + "]");
-		}
-	}
-
-	/**
-	 * Parse the given {@code text} into a {@link Number} instance of the
-	 * given target class, using the supplied {@link NumberFormat}.
-	 * <p>Trims the input {@code String} before attempting to parse the number.
-	 * @param text the text to convert
-	 * @param targetClass the target class to parse into
-	 * @param numberFormat the {@code NumberFormat} to use for parsing (if
-	 * {@code null}, this method falls back to {@link #parseNumber(String, Class)})
-	 * @return the parsed number
-	 * @throws IllegalArgumentException if the target class is not supported
-	 * (i.e. not a standard Number subclass as included in the JDK)
-	 * @see java.text.NumberFormat#parse
-	 * @see #convertNumberToTargetClass
-	 * @see #parseNumber(String, Class)
-	 */
-	@SuppressWarnings("NullAway") // Dataflow analysis limitation
-	public static <T extends Number> T parseNumber(
-			String text, Class<T> targetClass, NumberFormat numberFormat) {
-
-		if (numberFormat != null) {
-			Assert.notNull(text, "Text must not be null");
-			Assert.notNull(targetClass, "Target class must not be null");
-			DecimalFormat decimalFormat = null;
-			boolean resetBigDecimal = false;
-			if (numberFormat instanceof DecimalFormat dc) {
-				decimalFormat = dc;
-				if (BigDecimal.class == targetClass && !decimalFormat.isParseBigDecimal()) {
-					decimalFormat.setParseBigDecimal(true);
-					resetBigDecimal = true;
-				}
-			}
-			try {
-				Number number = numberFormat.parse(StringUtils.trimAllWhitespace(text));
-				return convertNumberToTargetClass(number, targetClass);
-			}
-			catch (ParseException ex) {
-				throw new IllegalArgumentException("Could not parse number: " + ex.getMessage());
-			}
-			finally {
-				if (resetBigDecimal) {
-					decimalFormat.setParseBigDecimal(false);
-				}
-			}
-		}
-		else {
-			return parseNumber(text, targetClass);
-		}
-	}
-
-	/**
-	 * Determine whether the given {@code value} String indicates a hex number,
-	 * i.e. needs to be passed into {@code Integer.decode} instead of
-	 * {@code Integer.valueOf}, etc.
-	 */
-	private static boolean isHexNumber(String value) {
-		int index = (value.startsWith("-") ? 1 : 0);
-		return (value.startsWith("0x", index) || value.startsWith("0X", index) || value.startsWith("#", index));
-	}
-
-	/**
-	 * Decode a {@link java.math.BigInteger} from the supplied {@link String} value.
-	 * <p>Supports decimal, hex, and octal notation.
-	 * @see BigInteger#BigInteger(String, int)
-	 */
-	private static BigInteger decodeBigInteger(String value) {
-		int radix = 10;
-		int index = 0;
-		boolean negative = false;
-
-		// Handle minus sign, if present.
-		if (value.startsWith("-")) {
-			negative = true;
-			index++;
-		}
-
-		// Handle radix specifier, if present.
-		if (value.startsWith("0x", index) || value.startsWith("0X", index)) {
-			index += 2;
-			radix = 16;
-		}
-		else if (value.startsWith("#", index)) {
-			index++;
-			radix = 16;
-		}
-		else if (value.startsWith("0", index) && value.length() > 1 + index) {
-			index++;
-			radix = 8;
-		}
-
-		BigInteger result = new BigInteger(value.substring(index), radix);
-		return (negative ? result.negate() : result);
-	}
-
 }

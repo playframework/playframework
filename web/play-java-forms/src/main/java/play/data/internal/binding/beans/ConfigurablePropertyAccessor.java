@@ -14,46 +14,26 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import play.data.internal.binding.core.convert.ConversionService;
 
 /**
  * Interface that encapsulates configuration methods for a PropertyAccessor.
- * Also extends the PropertyEditorRegistry interface, which defines methods
- * for PropertyEditor management.
- *
- * <p>Serves as base interface for {@link BeanWrapper}.
  *
  * @author Juergen Hoeller
  * @author Stephane Nicoll
- * @since 2.0
- * @see BeanWrapper
  */
-public interface ConfigurablePropertyAccessor extends PropertyAccessor, PropertyEditorRegistry, TypeConverter {
+public interface ConfigurablePropertyAccessor extends PropertyAccessor {
 
 	/**
-	 * Specify a {@link ConversionService} to use for converting
-	 * property values, as an alternative to JavaBeans PropertyEditors.
+	 * Specify a {@link ConversionService} to use for converting property values.
 	 */
 	void setConversionService(ConversionService conversionService);
-
-	/**
-	 * Return the associated ConversionService, if any.
-	 */
-	ConversionService getConversionService();
-
-	/**
-	 * Set whether to extract the old property value when applying a
-	 * property editor to a new value for a property.
-	 */
-	void setExtractOldValueForEditor(boolean extractOldValueForEditor);
-
-	/**
-	 * Return whether to extract the old property value when applying a
-	 * property editor to a new value for a property.
-	 */
-	boolean isExtractOldValueForEditor();
 
 	/**
 	 * Set whether this instance should attempt to "auto-grow" a
@@ -61,27 +41,18 @@ public interface ConfigurablePropertyAccessor extends PropertyAccessor, Property
 	 * <p>If {@code true}, a {@code null} path location will be populated
 	 * with a default object value and traversed instead of resulting in a
 	 * {@link NullValueInNestedPathException}.
-	 * <p>Default is {@code false} on a plain accessor.
-	 * @since 4.1
+	 * <p>Default is {@code false} on a plain PropertyAccessor instance.
 	 */
 	void setAutoGrowNestedPaths(boolean autoGrowNestedPaths);
 
 	/**
-	 * Return whether "auto-growing" of nested paths has been activated.
-	 * @since 4.1
-	 */
-	boolean isAutoGrowNestedPaths();
-
-	/**
 	 * Specify a limit for array and collection auto-growing.
-	 * <p>Default is unlimited on a plain accessor.
-	 * @since 7.1
+	 * <p>Default is unlimited on a plain PropertyAccessor instance.
 	 */
 	void setAutoGrowCollectionLimit(int autoGrowCollectionLimit);
 
 	/**
 	 * Return the limit for array and collection auto-growing.
-	 * @since 7.1
 	 */
 	int getAutoGrowCollectionLimit();
 

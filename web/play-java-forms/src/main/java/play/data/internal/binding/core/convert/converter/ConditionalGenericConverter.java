@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core.convert.converter;
 
 import play.data.internal.binding.core.convert.TypeDescriptor;
@@ -22,14 +26,19 @@ import play.data.internal.binding.core.convert.TypeDescriptor;
  * A {@link GenericConverter} that may conditionally execute based on attributes
  * of the {@code source} and {@code target} {@link TypeDescriptor}.
  *
- * <p>See {@link ConditionalConverter} for details.
- *
  * @author Keith Donald
  * @author Phillip Webb
- * @since 3.0
  * @see GenericConverter
- * @see ConditionalConverter
  */
-public interface ConditionalGenericConverter extends GenericConverter, ConditionalConverter {
+public interface ConditionalGenericConverter extends GenericConverter {
+
+	/**
+	 * Should the conversion from {@code sourceType} to {@code targetType} currently under
+	 * consideration be selected?
+	 * @param sourceType the type descriptor of the field we are converting from
+	 * @param targetType the type descriptor of the field we are converting to
+	 * @return true if conversion should be performed, false otherwise
+	 */
+	boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType);
 
 }

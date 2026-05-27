@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package play.data.internal.binding.beans;
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
 
-import play.data.internal.binding.core.NestedRuntimeException;
+package play.data.internal.binding.beans;
 
 /**
  * Abstract superclass for all exceptions thrown in the beans package
@@ -29,15 +31,7 @@ import play.data.internal.binding.core.NestedRuntimeException;
  * @author Juergen Hoeller
  */
 @SuppressWarnings("serial")
-public abstract class BeansException extends NestedRuntimeException {
-
-	/**
-	 * Create a new BeansException with the specified message.
-	 * @param msg the detail message
-	 */
-	public BeansException(String msg) {
-		super(msg);
-	}
+public abstract class BeansException extends RuntimeException {
 
 	/**
 	 * Create a new BeansException with the specified message

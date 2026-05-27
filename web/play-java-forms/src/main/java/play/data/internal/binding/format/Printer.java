@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.format;
 
 import java.util.Locale;
@@ -22,7 +26,6 @@ import java.util.Locale;
  * Prints objects of type T for display.
  *
  * @author Keith Donald
- * @since 3.0
  * @param <T> the type of object this Printer prints
  */
 @FunctionalInterface

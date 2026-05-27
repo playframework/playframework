@@ -14,123 +14,35 @@
  * limitations under the License.
  */
 
-package play.data.internal.binding.validation;
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
 
-import java.io.Serializable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.NoSuchElementException;
+package play.data.internal.binding.validation;
 
 import play.data.internal.binding.util.StringUtils;
 
 /**
  * Abstract implementation of the {@link Errors} interface.
- * Provides nested path handling but does not define concrete management
- * of {@link ObjectError ObjectErrors} and {@link FieldError FieldErrors}.
  *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
- * @since 2.5.3
- * @see AbstractBindingResult
  */
-@SuppressWarnings("serial")
-public abstract class AbstractErrors implements Errors, Serializable {
+public abstract class AbstractErrors implements Errors {
 
-	private String nestedPath = "";
-
-	private final Deque<String> nestedPathStack = new ArrayDeque<>();
-
-
-	@Override
-	public void setNestedPath(String nestedPath) {
-		doSetNestedPath(nestedPath);
-		this.nestedPathStack.clear();
-	}
-
-	@Override
-	public String getNestedPath() {
-		return this.nestedPath;
-	}
-
-	@Override
-	public void pushNestedPath(String subPath) {
-		this.nestedPathStack.push(getNestedPath());
-		doSetNestedPath(getNestedPath() + subPath);
-	}
-
-	@Override
-	public void popNestedPath() throws IllegalStateException {
-		try {
-			String formerNestedPath = this.nestedPathStack.pop();
-			doSetNestedPath(formerNestedPath);
-		}
-		catch (NoSuchElementException ex) {
-			throw new IllegalStateException("Cannot pop nested path: no nested path on stack");
-		}
-	}
-
-	/**
-	 * Actually set the nested path.
-	 * Delegated to by setNestedPath and pushNestedPath.
-	 */
-	protected void doSetNestedPath(String nestedPath) {
-		if (nestedPath == null) {
-			nestedPath = "";
-		}
-		nestedPath = canonicalFieldName(nestedPath);
-		if (!nestedPath.isEmpty() && !nestedPath.endsWith(NESTED_PATH_SEPARATOR)) {
-			nestedPath += NESTED_PATH_SEPARATOR;
-		}
-		this.nestedPath = nestedPath;
-	}
-
-	/**
-	 * Transform the given field into its full path,
-	 * regarding the nested path of this instance.
-	 */
 	protected String fixedField(String field) {
 		if (StringUtils.hasLength(field)) {
-			return getNestedPath() + canonicalFieldName(field);
+			return canonicalFieldName(field);
 		}
 		else {
-			String path = getNestedPath();
-			return (path.endsWith(NESTED_PATH_SEPARATOR) ?
-					path.substring(0, path.length() - NESTED_PATH_SEPARATOR.length()) : path);
+			return "";
 		}
 	}
 
-	/**
-	 * Determine the canonical field name for the given field.
-	 * <p>The default implementation simply returns the field name as-is.
-	 * @param field the original field name
-	 * @return the canonical field name
-	 */
 	protected String canonicalFieldName(String field) {
 		return field;
 	}
 
-	@Override
-	public List<FieldError> getFieldErrors(String field) {
-		List<FieldError> fieldErrors = getFieldErrors();
-		List<FieldError> result = new ArrayList<>();
-		String fixedField = fixedField(field);
-		for (FieldError fieldError : fieldErrors) {
-			if (isMatchingFieldError(fixedField, fieldError)) {
-				result.add(fieldError);
-			}
-		}
-		return Collections.unmodifiableList(result);
-	}
-
-	/**
-	 * Check whether the given FieldError matches the given field.
-	 * @param field the field that we are looking up FieldErrors for
-	 * @param fieldError the candidate FieldError
-	 * @return whether the FieldError matches the given field
-	 */
 	protected boolean isMatchingFieldError(String field, FieldError fieldError) {
 		if (field.equals(fieldError.getField())) {
 			return true;

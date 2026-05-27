@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 /**
@@ -21,7 +25,6 @@ package play.data.internal.binding.beans;
  * that isn't readable, because there's no getter method.
  *
  * @author Juergen Hoeller
- * @since 1.0.2
  */
 @SuppressWarnings("serial")
 public class NotReadablePropertyException extends InvalidPropertyException {
@@ -35,28 +38,6 @@ public class NotReadablePropertyException extends InvalidPropertyException {
 		super(beanClass, propertyName,
 				"Bean property '" + propertyName + "' is not readable or has an invalid getter method: " +
 				"Does the return type of the getter match the parameter type of the setter?");
-	}
-
-	/**
-	 * Create a new NotReadablePropertyException.
-	 * @param beanClass the offending bean class
-	 * @param propertyName the offending property
-	 * @param msg the detail message
-	 */
-	public NotReadablePropertyException(Class<?> beanClass, String propertyName, String msg) {
-		super(beanClass, propertyName, msg);
-	}
-
-	/**
-	 * Create a new NotReadablePropertyException.
-	 * @param beanClass the offending bean class
-	 * @param propertyName the offending property
-	 * @param msg the detail message
-	 * @param cause the root cause
-	 * @since 4.0.9
-	 */
-	public NotReadablePropertyException(Class<?> beanClass, String propertyName, String msg, Throwable cause) {
-		super(beanClass, propertyName, msg, cause);
 	}
 
 }

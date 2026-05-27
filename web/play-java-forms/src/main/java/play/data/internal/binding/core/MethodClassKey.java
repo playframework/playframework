@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core;
 
 import java.lang.reflect.Method;
@@ -26,7 +30,6 @@ import play.data.internal.binding.util.ObjectUtils;
  * support (as suggested for custom {@code HashMap} keys in Java).
  *
  * @author Juergen Hoeller
- * @since 4.3
  */
 public final class MethodClassKey implements Comparable<MethodClassKey> {
 

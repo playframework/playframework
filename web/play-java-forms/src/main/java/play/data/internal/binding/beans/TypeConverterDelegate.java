@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
-import java.beans.PropertyEditor;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -28,7 +31,6 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import play.data.internal.binding.core.CollectionFactory;
 import play.data.internal.binding.core.convert.ConversionFailedException;
 import play.data.internal.binding.core.convert.ConversionService;
@@ -42,66 +44,50 @@ import play.data.internal.binding.util.StringUtils;
 /**
  * Internal helper class for converting property values to target types.
  *
- * <p>Works on a given {@link PropertyEditorRegistrySupport} instance.
- * Used as a delegate by {@link BeanWrapperImpl} and {@link SimpleTypeConverter}.
+ * <p>Works on a given {@link AbstractPropertyAccessor} instance.
+ * Used as a delegate by {@link BeanWrapperImpl}.
  *
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @author Dave Syer
  * @author Yanming Zhou
- * @since 2.0
  * @see BeanWrapperImpl
- * @see SimpleTypeConverter
  */
 class TypeConverterDelegate {
 
 	private static final Log logger = LogFactory.getLog(TypeConverterDelegate.class);
 
-	private final PropertyEditorRegistrySupport propertyEditorRegistry;
-
-	private final Object targetObject;
+	private final AbstractPropertyAccessor typeConverterSupport;
 
 
 	/**
-	 * Create a new TypeConverterDelegate for the given editor registry.
-	 * @param propertyEditorRegistry the editor registry to use
+	 * Create a new TypeConverterDelegate for the given converter support.
+	 * @param typeConverterSupport the converter support to use
 	 */
-	public TypeConverterDelegate(PropertyEditorRegistrySupport propertyEditorRegistry) {
-		this(propertyEditorRegistry, null);
-	}
-
-	/**
-	 * Create a new TypeConverterDelegate for the given editor registry and bean instance.
-	 * @param propertyEditorRegistry the editor registry to use
-	 * @param targetObject the target object to work on (as context that can be passed to editors)
-	 */
-	public TypeConverterDelegate(PropertyEditorRegistrySupport propertyEditorRegistry, Object targetObject) {
-		this.propertyEditorRegistry = propertyEditorRegistry;
-		this.targetObject = targetObject;
+	public TypeConverterDelegate(AbstractPropertyAccessor typeConverterSupport) {
+		this.typeConverterSupport = typeConverterSupport;
 	}
 
 
 	/**
 	 * Convert the value to the required type for the specified property.
 	 * @param propertyName name of the property
-	 * @param oldValue the previous value, if available (may be {@code null})
 	 * @param newValue the proposed new value
 	 * @param requiredType the type we must convert to
 	 * (or {@code null} if not known, for example in case of a collection element)
 	 * @return the new value, possibly the result of type conversion
 	 * @throws IllegalArgumentException if type conversion failed
 	 */
-	public <T> T convertIfNecessary(String propertyName, Object oldValue,
+	public <T> T convertIfNecessary(String propertyName,
 			Object newValue, Class<T> requiredType) throws IllegalArgumentException {
 
-		return convertIfNecessary(propertyName, oldValue, newValue, requiredType, TypeDescriptor.valueOf(requiredType));
+		return convertIfNecessary(propertyName, newValue, requiredType, TypeDescriptor.valueOf(requiredType));
 	}
 
 	/**
 	 * Convert the value to the required type (if necessary from a String),
 	 * for the specified property.
 	 * @param propertyName name of the property
-	 * @param oldValue the previous value, if available (may be {@code null})
 	 * @param newValue the proposed new value
 	 * @param requiredType the type we must convert to
 	 * (or {@code null} if not known, for example in case of a collection element)
@@ -110,17 +96,13 @@ class TypeConverterDelegate {
 	 * @throws IllegalArgumentException if type conversion failed
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T convertIfNecessary(String propertyName, Object oldValue, Object newValue,
+	public <T> T convertIfNecessary(String propertyName, Object newValue,
 			Class<T> requiredType, TypeDescriptor typeDescriptor) throws IllegalArgumentException {
-
-		// Custom editor for this type?
-		PropertyEditor editor = this.propertyEditorRegistry.findCustomEditor(requiredType, propertyName);
 
 		ConversionFailedException conversionAttemptEx = null;
 
-		// No custom editor but custom ConversionService specified?
-		ConversionService conversionService = this.propertyEditorRegistry.getConversionService();
-		if (editor == null && conversionService != null && newValue != null && typeDescriptor != null) {
+		ConversionService conversionService = this.typeConverterSupport.getConversionService();
+		if (conversionService != null && newValue != null && typeDescriptor != null) {
 			TypeDescriptor sourceTypeDesc = TypeDescriptor.forObject(newValue);
 			if (conversionService.canConvert(sourceTypeDesc, typeDescriptor)) {
 				try {
@@ -136,7 +118,6 @@ class TypeConverterDelegate {
 		Object convertedValue = newValue;
 
 		// Value not of required type?
-		if (editor != null || (requiredType != null && !ClassUtils.isAssignableValue(requiredType, convertedValue))) {
 			if (typeDescriptor != null && requiredType != null && Collection.class.isAssignableFrom(requiredType)) {
 				TypeDescriptor elementTypeDesc = typeDescriptor.getElementTypeDescriptor();
 				if (elementTypeDesc != null) {
@@ -145,17 +126,9 @@ class TypeConverterDelegate {
 						if (Class.class == elementType || Enum.class.isAssignableFrom(elementType)) {
 							convertedValue = StringUtils.commaDelimitedListToStringArray(text);
 						}
-						if (editor == null && String.class != elementType) {
-							editor = findDefaultEditor(elementType.arrayType());
-						}
 					}
 				}
 			}
-			if (editor == null) {
-				editor = findDefaultEditor(requiredType);
-			}
-			convertedValue = doConvertValue(oldValue, convertedValue, requiredType, editor);
-		}
 
 		boolean standardConversion = false;
 
@@ -243,8 +216,6 @@ class TypeConverterDelegate {
 					throw conversionAttemptEx;
 				}
 				else if (conversionService != null && typeDescriptor != null) {
-					// ConversionService not tried before, probably custom editor found
-					// but editor couldn't produce the required type...
 					TypeDescriptor sourceTypeDesc = TypeDescriptor.forObject(newValue);
 					if (conversionService.canConvert(sourceTypeDesc, typeDescriptor)) {
 						return (T) conversionService.convert(newValue, sourceTypeDesc, typeDescriptor);
@@ -258,25 +229,17 @@ class TypeConverterDelegate {
 				if (propertyName != null) {
 					msg.append(" for property '").append(propertyName).append('\'');
 				}
-				if (editor != null) {
-					msg.append(": PropertyEditor [").append(editor.getClass().getName()).append(
-							"] returned inappropriate value of type '").append(
-							ClassUtils.getDescriptiveType(convertedValue)).append('\'');
-					throw new IllegalArgumentException(msg.toString());
-				}
-				else {
-					msg.append(": no matching editors or conversion strategy found");
+					msg.append(": no matching conversion strategy found");
 					throw new IllegalStateException(msg.toString());
-				}
 			}
 		}
 
 		if (conversionAttemptEx != null) {
-			if (editor == null && !standardConversion && requiredType != null && Object.class != requiredType) {
+			if (!standardConversion && requiredType != null && Object.class != requiredType) {
 				throw conversionAttemptEx;
 			}
 			logger.debug("Original ConversionService attempt failed - ignored since " +
-					"PropertyEditor based conversion eventually succeeded", conversionAttemptEx);
+					"fallback conversion eventually succeeded", conversionAttemptEx);
 		}
 
 		return (T) convertedValue;
@@ -285,13 +248,13 @@ class TypeConverterDelegate {
 	private Object attemptToConvertStringToEnum(Class<?> requiredType, String trimmedValue, Object currentConvertedValue) {
 		Object convertedValue = currentConvertedValue;
 
-		if (Enum.class == requiredType && this.targetObject != null) {
+		if (Enum.class == requiredType && this.typeConverterSupport instanceof AbstractNestablePropertyAccessor accessor) {
 			// target type is declared as raw enum, treat the trimmed value as <enum.fqn>.FIELD_NAME
 			int index = trimmedValue.lastIndexOf('.');
 			if (index > - 1) {
 				String enumType = trimmedValue.substring(0, index);
 				String fieldName = trimmedValue.substring(index + 1);
-				ClassLoader cl = this.targetObject.getClass().getClassLoader();
+				ClassLoader cl = accessor.getWrappedClass().getClassLoader();
 				try {
 					Class<?> enumValueType = ClassUtils.forName(enumType, cl);
 					Field enumField = enumValueType.getField(fieldName);
@@ -328,112 +291,6 @@ class TypeConverterDelegate {
 
 		return convertedValue;
 	}
-	/**
-	 * Find a default editor for the given type.
-	 * @param requiredType the type to find an editor for
-	 * @return the corresponding editor, or {@code null} if none
-	 */
-	private PropertyEditor findDefaultEditor(Class<?> requiredType) {
-		PropertyEditor editor = null;
-		if (requiredType != null) {
-			// No custom editor -> check BeanWrapperImpl's default editors.
-			editor = this.propertyEditorRegistry.getDefaultEditor(requiredType);
-			if (editor == null && String.class != requiredType) {
-				// No BeanWrapper default editor -> check standard JavaBean editor.
-				editor = BeanUtils.findEditorByConvention(requiredType);
-			}
-		}
-		return editor;
-	}
-
-	/**
-	 * Convert the value to the required type (if necessary from a String),
-	 * using the given property editor.
-	 * @param oldValue the previous value, if available (may be {@code null})
-	 * @param newValue the proposed new value
-	 * @param requiredType the type we must convert to
-	 * (or {@code null} if not known, for example in case of a collection element)
-	 * @param editor the PropertyEditor to use
-	 * @return the new value, possibly the result of type conversion
-	 * @throws IllegalArgumentException if type conversion failed
-	 */
-	private Object doConvertValue(Object oldValue, Object newValue,
-			Class<?> requiredType, PropertyEditor editor) {
-
-		Object convertedValue = newValue;
-
-		if (editor != null && !(convertedValue instanceof String)) {
-			// Not a String -> use PropertyEditor's setValue.
-			// With standard PropertyEditors, this will return the very same object;
-			// we just want to allow special PropertyEditors to override setValue
-			// for type conversion from non-String values to the required type.
-			try {
-				editor.setValue(convertedValue);
-				Object newConvertedValue = editor.getValue();
-				if (newConvertedValue != convertedValue) {
-					convertedValue = newConvertedValue;
-					// Reset PropertyEditor: It already did a proper conversion.
-					// Don't use it again for a setAsText call.
-					editor = null;
-				}
-			}
-			catch (Exception ex) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("PropertyEditor [" + editor.getClass().getName() + "] does not support setValue call", ex);
-				}
-				// Swallow and proceed.
-			}
-		}
-
-		Object returnValue = convertedValue;
-
-		if (requiredType != null && !requiredType.isArray() && convertedValue instanceof String[] array) {
-			// Convert String array to a comma-separated String.
-			// Only applies if no PropertyEditor converted the String array before.
-			// The CSV String will be passed into a PropertyEditor's setAsText method, if any.
-			if (logger.isTraceEnabled()) {
-				logger.trace("Converting String array to comma-delimited String [" + convertedValue + "]");
-			}
-			convertedValue = StringUtils.arrayToCommaDelimitedString(array);
-		}
-
-		if (convertedValue instanceof String newTextValue) {
-			if (editor != null) {
-				// Use PropertyEditor's setAsText in case of a String value.
-				if (logger.isTraceEnabled()) {
-					logger.trace("Converting String to [" + requiredType + "] using property editor [" + editor + "]");
-				}
-				return doConvertTextValue(oldValue, newTextValue, editor);
-			}
-			else if (String.class == requiredType) {
-				returnValue = convertedValue;
-			}
-		}
-
-		return returnValue;
-	}
-
-	/**
-	 * Convert the given text value using the given property editor.
-	 * @param oldValue the previous value, if available (may be {@code null})
-	 * @param newTextValue the proposed text value
-	 * @param editor the PropertyEditor to use
-	 * @return the converted value
-	 */
-	private Object doConvertTextValue(Object oldValue, String newTextValue, PropertyEditor editor) {
-		try {
-			editor.setValue(oldValue);
-		}
-		catch (Exception ex) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("PropertyEditor [" + editor.getClass().getName() + "] does not support setValue call", ex);
-			}
-			// Swallow and proceed.
-		}
-		editor.setAsText(newTextValue);
-		return editor.getValue();
-	}
-
 	private Object convertToTypedArray(Object input, String propertyName, Class<?> componentType) {
 		if (input instanceof Collection<?> coll) {
 			// Convert Collection elements to array elements.
@@ -441,22 +298,21 @@ class TypeConverterDelegate {
 			int i = 0;
 			for (Iterator<?> it = coll.iterator(); it.hasNext(); i++) {
 				Object value = convertIfNecessary(
-						buildIndexedPropertyName(propertyName, i), null, it.next(), componentType);
+						buildIndexedPropertyName(propertyName, i), it.next(), componentType);
 				Array.set(result, i, value);
 			}
 			return result;
 		}
 		else if (input.getClass().isArray()) {
 			// Convert array elements, if necessary.
-			if (componentType.equals(input.getClass().componentType()) &&
-					!this.propertyEditorRegistry.hasCustomEditorForElement(componentType, propertyName)) {
+			if (componentType.equals(input.getClass().componentType())) {
 				return input;
 			}
 			int arrayLength = Array.getLength(input);
 			Object result = Array.newInstance(componentType, arrayLength);
 			for (int i = 0; i < arrayLength; i++) {
 				Object value = convertIfNecessary(
-						buildIndexedPropertyName(propertyName, i), null, Array.get(input, i), componentType);
+						buildIndexedPropertyName(propertyName, i), Array.get(input, i), componentType);
 				Array.set(result, i, value);
 			}
 			return result;
@@ -465,7 +321,7 @@ class TypeConverterDelegate {
 			// A plain value: convert it to an array with a single component.
 			Object result = Array.newInstance(componentType, 1);
 			Object value = convertIfNecessary(
-					buildIndexedPropertyName(propertyName, 0), null, input, componentType);
+					buildIndexedPropertyName(propertyName, 0), input, componentType);
 			Array.set(result, 0, value);
 			return result;
 		}
@@ -490,8 +346,7 @@ class TypeConverterDelegate {
 
 		boolean originalAllowed = requiredType.isInstance(original);
 		TypeDescriptor elementType = (typeDescriptor != null ? typeDescriptor.getElementTypeDescriptor() : null);
-		if (elementType == null && originalAllowed &&
-				!this.propertyEditorRegistry.hasCustomEditorForElement(null, propertyName)) {
+		if (elementType == null && originalAllowed) {
 			return original;
 		}
 
@@ -527,7 +382,7 @@ class TypeConverterDelegate {
 		for (int i = 0; it.hasNext(); i++) {
 			Object element = it.next();
 			String indexedPropertyName = buildIndexedPropertyName(propertyName, i);
-			Object convertedElement = convertIfNecessary(indexedPropertyName, null, element,
+			Object convertedElement = convertIfNecessary(indexedPropertyName, element,
 					(elementType != null ? elementType.getType() : null) , elementType);
 			try {
 				convertedCopy.add(convertedElement);
@@ -564,8 +419,7 @@ class TypeConverterDelegate {
 		boolean originalAllowed = requiredType.isInstance(original);
 		TypeDescriptor keyType = (typeDescriptor != null ? typeDescriptor.getMapKeyTypeDescriptor() : null);
 		TypeDescriptor valueType = (typeDescriptor != null ? typeDescriptor.getMapValueTypeDescriptor() : null);
-		if (keyType == null && valueType == null && originalAllowed &&
-				!this.propertyEditorRegistry.hasCustomEditorForElement(null, propertyName)) {
+		if (keyType == null && valueType == null && originalAllowed) {
 			return original;
 		}
 
@@ -603,9 +457,9 @@ class TypeConverterDelegate {
 			Object key = entry.getKey();
 			Object value = entry.getValue();
 			String keyedPropertyName = buildKeyedPropertyName(propertyName, key);
-			Object convertedKey = convertIfNecessary(keyedPropertyName, null, key,
+			Object convertedKey = convertIfNecessary(keyedPropertyName, key,
 					(keyType != null ? keyType.getType() : null), keyType);
-			Object convertedValue = convertIfNecessary(keyedPropertyName, null, value,
+			Object convertedValue = convertIfNecessary(keyedPropertyName, value,
 					(valueType!= null ? valueType.getType() : null), valueType);
 			try {
 				convertedCopy.put(convertedKey, convertedValue);

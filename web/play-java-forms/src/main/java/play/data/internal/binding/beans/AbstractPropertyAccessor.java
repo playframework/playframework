@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+
+import play.data.internal.binding.core.convert.ConversionService;
 
 /**
  * Abstract implementation of the {@link PropertyAccessor} interface.
@@ -28,29 +33,27 @@ import java.util.Map;
  *
  * @author Juergen Hoeller
  * @author Stephane Nicoll
- * @since 2.0
  * @see #getPropertyValue
  * @see #setPropertyValue
  */
-public abstract class AbstractPropertyAccessor extends TypeConverterSupport implements ConfigurablePropertyAccessor {
-
-	private boolean extractOldValueForEditor = false;
+public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAccessor {
 
 	private boolean autoGrowNestedPaths = false;
 
 	private int autoGrowCollectionLimit = Integer.MAX_VALUE;
 
-	boolean suppressNotWritablePropertyException = false;
+	private ConversionService conversionService;
+
+	TypeConverterDelegate typeConverterDelegate;
 
 
 	@Override
-	public void setExtractOldValueForEditor(boolean extractOldValueForEditor) {
-		this.extractOldValueForEditor = extractOldValueForEditor;
+	public void setConversionService(ConversionService conversionService) {
+		this.conversionService = conversionService;
 	}
 
-	@Override
-	public boolean isExtractOldValueForEditor() {
-		return this.extractOldValueForEditor;
+	public ConversionService getConversionService() {
+		return this.conversionService;
 	}
 
 	@Override
@@ -58,7 +61,6 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 		this.autoGrowNestedPaths = autoGrowNestedPaths;
 	}
 
-	@Override
 	public boolean isAutoGrowNestedPaths() {
 		return this.autoGrowNestedPaths;
 	}
@@ -74,38 +76,17 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 	}
 
 
-	@Override
 	public void setPropertyValue(PropertyValue pv) throws BeansException {
 		setPropertyValue(pv.getName(), pv.getValue());
 	}
 
 	@Override
-	public void setPropertyValues(Map<?, ?> map) throws BeansException {
-		setPropertyValues(new MutablePropertyValues(map));
-	}
-
-	@Override
 	public void setPropertyValues(PropertyValues pvs) throws BeansException {
-		setPropertyValues(pvs, false, false);
-	}
-
-	@Override
-	public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown) throws BeansException {
-		setPropertyValues(pvs, ignoreUnknown, false);
-	}
-
-	@Override
-	public void setPropertyValues(PropertyValues pvs, boolean ignoreUnknown, boolean ignoreInvalid)
-			throws BeansException {
 
 		List<PropertyAccessException> propertyAccessExceptions = null;
 		List<PropertyValue> propertyValues = (pvs instanceof MutablePropertyValues mpvs ?
 				mpvs.getPropertyValueList() : Arrays.asList(pvs.getPropertyValues()));
 
-		if (ignoreUnknown) {
-			this.suppressNotWritablePropertyException = true;
-		}
-		try {
 			for (PropertyValue pv : propertyValues) {
 				// setPropertyValue may throw any BeansException, which won't be caught
 				// here, if there is a critical failure such as no matching field.
@@ -114,16 +95,10 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 					setPropertyValue(pv);
 				}
 				catch (NotWritablePropertyException ex) {
-					if (!ignoreUnknown) {
-						throw ex;
-					}
 					// Otherwise, just ignore it and continue...
 				}
 				catch (NullValueInNestedPathException ex) {
-					if (!ignoreInvalid) {
 						throw ex;
-					}
-					// Otherwise, just ignore it and continue...
 				}
 				catch (PropertyAccessException ex) {
 					if (propertyAccessExceptions == null) {
@@ -132,12 +107,6 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 					propertyAccessExceptions.add(ex);
 				}
 			}
-		}
-		finally {
-			if (ignoreUnknown) {
-				this.suppressNotWritablePropertyException = false;
-			}
-		}
 
 		// If we encountered individual exceptions, throw the composite exception.
 		if (propertyAccessExceptions != null) {
@@ -174,7 +143,6 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed or a type mismatch occurred
 	 */
-	@Override
 	public abstract void setPropertyValue(String propertyName, Object value) throws BeansException;
 
 }

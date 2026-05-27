@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.beans.PropertyChangeEvent;
@@ -22,7 +26,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.security.PrivilegedActionException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,7 +36,6 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import play.data.internal.binding.core.CollectionFactory;
 import play.data.internal.binding.core.ResolvableType;
 import play.data.internal.binding.core.convert.ConversionException;
@@ -48,25 +50,17 @@ import play.data.internal.binding.util.StringUtils;
  * infrastructure for all typical use cases.
  *
  * <p>This accessor will convert collection and array values to the corresponding
- * target collections or arrays, if necessary. Custom property editors that deal
- * with collections or arrays can either be written via PropertyEditor's
- * {@code setValue}, or against a comma-delimited String via {@code setAsText},
- * as String arrays are converted in such a format if the array itself is not
- * assignable.
+ * target collections or arrays, if necessary.
  *
  * @author Juergen Hoeller
  * @author Stephane Nicoll
  * @author Rod Johnson
  * @author Rob Harrop
  * @author Sam Brannen
- * @since 4.2
- * @see #registerCustomEditor
  * @see #setPropertyValues
  * @see #setPropertyValue
  * @see #getPropertyValue
  * @see #getPropertyType
- * @see BeanWrapper
- * @see PropertyEditorRegistrySupport
  */
 public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyAccessor {
 
@@ -86,55 +80,11 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 
 
 	/**
-	 * Create a new empty accessor. Wrapped instance needs to be set afterwards.
-	 * Registers default editors.
-	 * @see #setWrappedInstance
-	 */
-	protected AbstractNestablePropertyAccessor() {
-		this(true);
-	}
-
-	/**
-	 * Create a new empty accessor. Wrapped instance needs to be set afterwards.
-	 * @param registerDefaultEditors whether to register default editors
-	 * (can be suppressed if the accessor won't need any type conversion)
-	 * @see #setWrappedInstance
-	 */
-	protected AbstractNestablePropertyAccessor(boolean registerDefaultEditors) {
-		if (registerDefaultEditors) {
-			registerDefaultEditors();
-		}
-		this.typeConverterDelegate = new TypeConverterDelegate(this);
-	}
-
-	/**
 	 * Create a new accessor for the given object.
 	 * @param object the object wrapped by this accessor
 	 */
 	protected AbstractNestablePropertyAccessor(Object object) {
-		registerDefaultEditors();
 		setWrappedInstance(object);
-	}
-
-	/**
-	 * Create a new accessor, wrapping a new instance of the specified class.
-	 * @param clazz class to instantiate and wrap
-	 */
-	protected AbstractNestablePropertyAccessor(Class<?> clazz) {
-		registerDefaultEditors();
-		setWrappedInstance(BeanUtils.instantiateClass(clazz));
-	}
-
-	/**
-	 * Create a new accessor for the given object,
-	 * registering a nested path that the object is in.
-	 * @param object the object wrapped by this accessor
-	 * @param nestedPath the nested path of the object
-	 * @param rootObject the root object at the top of the path
-	 */
-	protected AbstractNestablePropertyAccessor(Object object, String nestedPath, Object rootObject) {
-		registerDefaultEditors();
-		setWrappedInstance(object, nestedPath, rootObject);
 	}
 
 	/**
@@ -146,7 +96,6 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	 */
 	protected AbstractNestablePropertyAccessor(Object object, String nestedPath, AbstractNestablePropertyAccessor parent) {
 		setWrappedInstance(object, nestedPath, parent.getWrappedInstance());
-		setExtractOldValueForEditor(parent.isExtractOldValueForEditor());
 		setAutoGrowNestedPaths(parent.isAutoGrowNestedPaths());
 		setAutoGrowCollectionLimit(parent.getAutoGrowCollectionLimit());
 		setConversionService(parent.getConversionService());
@@ -175,7 +124,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		this.nestedPath = (nestedPath != null ? nestedPath : "");
 		this.rootObject = (!this.nestedPath.isEmpty() ? rootObject : this.wrappedObject);
 		this.nestedPropertyAccessors = null;
-		this.typeConverterDelegate = new TypeConverterDelegate(this, this.wrappedObject);
+		this.typeConverterDelegate = new TypeConverterDelegate(this);
 	}
 
 	public final Object getWrappedInstance() {
@@ -272,12 +221,8 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		if (propValue.getClass().isArray()) {
 			Class<?> componentType = propValue.getClass().componentType();
 			int arrayIndex = Integer.parseInt(lastKey);
-			Object oldValue = null;
 			try {
-				if (isExtractOldValueForEditor() && arrayIndex < Array.getLength(propValue)) {
-					oldValue = Array.get(propValue, arrayIndex);
-				}
-				Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
+				Object convertedValue = convertIfNecessary(tokens.canonicalName, pv.getValue(),
 						componentType, ph.nested(tokens.keys.length));
 				int length = Array.getLength(propValue);
 				if (arrayIndex >= length && arrayIndex < getAutoGrowCollectionLimit()) {
@@ -299,11 +244,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		else if (propValue instanceof List list) {
 			TypeDescriptor requiredType = ph.getCollectionType(tokens.keys.length);
 			int index = Integer.parseInt(lastKey);
-			Object oldValue = null;
-			if (isExtractOldValueForEditor() && index < list.size()) {
-				oldValue = list.get(index);
-			}
-			Object convertedValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
+			Object convertedValue = convertIfNecessary(tokens.canonicalName, pv.getValue(),
 					requiredType.getResolvableType().resolve(), requiredType);
 			int size = list.size();
 			if (index >= size && index < getAutoGrowCollectionLimit()) {
@@ -334,17 +275,10 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		else if (propValue instanceof Map map) {
 			TypeDescriptor mapKeyType = ph.getMapKeyType(tokens.keys.length);
 			TypeDescriptor mapValueType = ph.getMapValueType(tokens.keys.length);
-			// IMPORTANT: Do not pass full property name in here - property editors
-			// must not kick in for map keys but rather only for map values.
-			Object convertedMapKey = convertIfNecessary(null, null, lastKey,
+			// IMPORTANT: Do not pass full property name in here.
+			Object convertedMapKey = convertIfNecessary(null, lastKey,
 					mapKeyType.getResolvableType().resolve(), mapKeyType);
-			Object oldValue = null;
-			if (isExtractOldValueForEditor()) {
-				oldValue = map.get(convertedMapKey);
-			}
-			// Pass full property name and old value in here, since we want full
-			// conversion ability for map values.
-			Object convertedMapValue = convertIfNecessary(tokens.canonicalName, oldValue, pv.getValue(),
+			Object convertedMapValue = convertIfNecessary(tokens.canonicalName, pv.getValue(),
 					mapValueType.getResolvableType().resolve(), mapValueType);
 			map.put(convertedMapKey, convertedMapValue);
 		}
@@ -393,22 +327,9 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	private void processLocalProperty(PropertyTokenHolder tokens, PropertyValue pv) {
 		PropertyHandler ph = getLocalPropertyHandler(tokens.actualName);
 		if (ph == null || !ph.isWritable()) {
-			if (pv.isOptional()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Ignoring optional value for property '" + tokens.actualName +
-							"' - property not found on bean class [" + getRootClass().getName() + "]");
-				}
-				return;
-			}
-			if (this.suppressNotWritablePropertyException) {
-				// Optimization for common ignoreUnknown=true scenario since the
-				// exception would be caught and swallowed higher up anyway...
-				return;
-			}
 			throw createNotWritablePropertyException(tokens.canonicalName);
 		}
 
-		Object oldValue = null;
 		try {
 			Object originalValue = pv.getValue();
 			Object valueToApply = originalValue;
@@ -417,35 +338,19 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 					valueToApply = pv.getConvertedValue();
 				}
 				else {
-					if (isExtractOldValueForEditor() && ph.isReadable()) {
-						try {
-							oldValue = ph.getValue();
-						}
-						catch (Exception ex) {
-							if (ex instanceof PrivilegedActionException pae) {
-								ex = pae.getException();
-							}
-							if (logger.isDebugEnabled()) {
-								logger.debug("Could not read previous value of property '" +
-										this.nestedPath + tokens.canonicalName + "'", ex);
-							}
-						}
-					}
 					valueToApply = convertForProperty(
-							tokens.canonicalName, oldValue, originalValue, ph.toTypeDescriptor());
+							tokens.canonicalName, originalValue, ph.toTypeDescriptor());
 				}
 				pv.getOriginalPropertyValue().conversionNecessary = (valueToApply != originalValue);
 			}
 			ph.setValue(valueToApply);
 		}
 		catch (TypeMismatchException ex) {
-			if (!ph.setValueFallbackIfPossible(pv.getValue())) {
 				throw ex;
-			}
 		}
 		catch (InvocationTargetException ex) {
 			PropertyChangeEvent propertyChangeEvent = new PropertyChangeEvent(
-					getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
+					getRootInstance(), this.nestedPath + tokens.canonicalName, null, pv.getValue());
 			if (ex.getTargetException() instanceof ClassCastException) {
 				throw new TypeMismatchException(propertyChangeEvent, ph.getPropertyType(), ex.getTargetException());
 			}
@@ -460,7 +365,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		}
 		catch (Exception ex) {
 			PropertyChangeEvent pce = new PropertyChangeEvent(
-					getRootInstance(), this.nestedPath + tokens.canonicalName, oldValue, pv.getValue());
+					getRootInstance(), this.nestedPath + tokens.canonicalName, null, pv.getValue());
 			throw new MethodInvocationException(pce, ex);
 		}
 	}
@@ -480,12 +385,6 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				Object value = getPropertyValue(propertyName);
 				if (value != null) {
 					return value.getClass();
-				}
-				// Check to see if there is a custom editor,
-				// which might give an indication on the desired target type.
-				Class<?> editorType = guessPropertyTypeFromEditors(propertyName);
-				if (editorType != null) {
-					return editorType;
 				}
 			}
 		}
@@ -540,50 +439,31 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		return false;
 	}
 
-	@Override
-	public boolean isWritableProperty(String propertyName) {
-		try {
-			PropertyHandler ph = getPropertyHandler(propertyName);
-			if (ph != null) {
-				return ph.isWritable();
-			}
-			else {
-				// Maybe an indexed/mapped property...
-				getPropertyValue(propertyName);
-				return true;
-			}
-		}
-		catch (InvalidPropertyException ex) {
-			// Cannot be evaluated, so can't be writable.
-		}
-		return false;
-	}
-
-	private Object convertIfNecessary(String propertyName, Object oldValue,
+	private Object convertIfNecessary(String propertyName,
 			Object newValue, Class<?> requiredType, TypeDescriptor td)
 			throws TypeMismatchException {
 
 		Assert.state(this.typeConverterDelegate != null, "No TypeConverterDelegate");
 		try {
-			return this.typeConverterDelegate.convertIfNecessary(propertyName, oldValue, newValue, requiredType, td);
+			return this.typeConverterDelegate.convertIfNecessary(propertyName, newValue, requiredType, td);
 		}
 		catch (ConverterNotFoundException | IllegalStateException ex) {
 			PropertyChangeEvent pce =
-					new PropertyChangeEvent(getRootInstance(), this.nestedPath + propertyName, oldValue, newValue);
+					new PropertyChangeEvent(getRootInstance(), this.nestedPath + propertyName, null, newValue);
 			throw new ConversionNotSupportedException(pce, requiredType, ex);
 		}
 		catch (ConversionException | IllegalArgumentException ex) {
 			PropertyChangeEvent pce =
-					new PropertyChangeEvent(getRootInstance(), this.nestedPath + propertyName, oldValue, newValue);
+					new PropertyChangeEvent(getRootInstance(), this.nestedPath + propertyName, null, newValue);
 			throw new TypeMismatchException(pce, requiredType, ex);
 		}
 	}
 
 	protected Object convertForProperty(
-			String propertyName, Object oldValue, Object newValue, TypeDescriptor td)
+			String propertyName, Object newValue, TypeDescriptor td)
 			throws TypeMismatchException {
 
-		return convertIfNecessary(propertyName, oldValue, newValue, td.getType(), td);
+		return convertIfNecessary(propertyName, newValue, td.getType(), td);
 	}
 
 	@Override
@@ -635,10 +515,9 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 					}
 					else if (value instanceof Map map) {
 						Class<?> mapKeyType = ph.getResolvableType().getNested(i + 1).asMap().resolveGeneric(0);
-						// IMPORTANT: Do not pass full property name in here - property editors
-						// must not kick in for map keys but rather only for map values.
+						// IMPORTANT: Do not pass full property name in here.
 						TypeDescriptor typeDescriptor = TypeDescriptor.valueOf(mapKeyType);
-						Object convertedMapKey = convertIfNecessary(null, null, key, mapKeyType, typeDescriptor);
+						Object convertedMapKey = convertIfNecessary(null, key, mapKeyType, typeDescriptor);
 						value = map.get(convertedMapKey);
 					}
 					else if (value instanceof Iterable iterable) {
@@ -843,9 +722,6 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 				logger.trace("Creating new nested " + getClass().getSimpleName() + " for property '" + canonicalName + "'");
 			}
 			nestedPa = newNestedPropertyAccessor(value, this.nestedPath + canonicalName + NESTED_PROPERTY_SEPARATOR);
-			// Inherit all type-specific PropertyEditors.
-			copyDefaultEditorsTo(nestedPa);
-			copyCustomEditorsTo(nestedPa, canonicalName);
 			nestedAccessors.put(canonicalName, nestedPa);
 		}
 		else {
@@ -1044,9 +920,6 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 
 		public abstract void setValue(Object value) throws Exception;
 
-		public boolean setValueFallbackIfPossible(Object value) {
-			return false;
-		}
 	}
 
 

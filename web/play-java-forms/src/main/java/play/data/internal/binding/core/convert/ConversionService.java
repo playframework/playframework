@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.core.convert;
 
 /**
@@ -22,7 +26,6 @@ package play.data.internal.binding.core.convert;
  *
  * @author Keith Donald
  * @author Phillip Webb
- * @since 3.0
  */
 public interface ConversionService {
 
@@ -82,7 +85,6 @@ public interface ConversionService {
 	 * @return the converted value
 	 * @throws ConversionException if a conversion exception occurred
 	 * @throws IllegalArgumentException if targetType is {@code null}
-	 * @since 6.1
 	 */
 	default Object convert(Object source, TypeDescriptor targetType) {
 		return convert(source, TypeDescriptor.forObject(source), targetType);

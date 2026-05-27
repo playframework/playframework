@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.io.Serializable;
@@ -28,24 +32,21 @@ import play.data.internal.binding.util.ObjectUtils;
  * ability to handle indexed properties etc in an optimized way.
  *
  * <p>Note that the value doesn't need to be the final required type:
- * A {@link BeanWrapper} implementation should handle any necessary conversion,
+ * A {@link BeanWrapperImpl} implementation should handle any necessary conversion,
  * as this object doesn't know anything about the objects it will be applied to.
  *
  * @author Rod Johnson
  * @author Rob Harrop
  * @author Juergen Hoeller
- * @since 13 May 2001
  * @see PropertyValues
- * @see BeanWrapper
+ * @see BeanWrapperImpl
  */
 @SuppressWarnings("serial")
-public class PropertyValue extends BeanMetadataAttributeAccessor implements Serializable {
+public class PropertyValue implements Serializable {
 
 	private final String name;
 
 	private final Object value;
-
-	private boolean optional = false;
 
 	private boolean converted = false;
 
@@ -77,30 +78,10 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 		Assert.notNull(original, "Original must not be null");
 		this.name = original.getName();
 		this.value = original.getValue();
-		this.optional = original.isOptional();
 		this.converted = original.converted;
 		this.convertedValue = original.convertedValue;
 		this.conversionNecessary = original.conversionNecessary;
 		this.resolvedTokens = original.resolvedTokens;
-		setSource(original.getSource());
-		copyAttributesFrom(original);
-	}
-
-	/**
-	 * Constructor that exposes a new value for an original value holder.
-	 * The original holder will be exposed as source of the new holder.
-	 * @param original the PropertyValue to link to (never {@code null})
-	 * @param newValue the new value to apply
-	 */
-	public PropertyValue(PropertyValue original, Object newValue) {
-		Assert.notNull(original, "Original must not be null");
-		this.name = original.getName();
-		this.value = newValue;
-		this.optional = original.isOptional();
-		this.conversionNecessary = original.conversionNecessary;
-		this.resolvedTokens = original.resolvedTokens;
-		setSource(original);
-		copyAttributesFrom(original);
 	}
 
 
@@ -114,7 +95,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	/**
 	 * Return the value of the property.
 	 * <p>Note that type conversion will <i>not</i> have occurred here.
-	 * It is the responsibility of the BeanWrapper implementation to
+	 * It is the responsibility of the BeanWrapperImpl implementation to
 	 * perform type conversion.
 	 */
 	public Object getValue() {
@@ -127,31 +108,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 * value holder or this value holder itself).
 	 */
 	public PropertyValue getOriginalPropertyValue() {
-		PropertyValue original = this;
-		Object source = getSource();
-		while (source instanceof PropertyValue pv && source != original) {
-			original = pv;
-			source = original.getSource();
-		}
-		return original;
-	}
-
-	/**
-	 * Set whether this is an optional value, that is, to be ignored
-	 * when no corresponding property exists on the target class.
-	 * @since 3.0
-	 */
-	public void setOptional(boolean optional) {
-		this.optional = optional;
-	}
-
-	/**
-	 * Return whether this is an optional value, that is, to be ignored
-	 * when no corresponding property exists on the target class.
-	 * @since 3.0
-	 */
-	public boolean isOptional() {
-		return this.optional;
+		return this;
 	}
 
 	/**
@@ -160,15 +117,6 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 */
 	public synchronized boolean isConverted() {
 		return this.converted;
-	}
-
-	/**
-	 * Set the converted value of this property value,
-	 * after processed type conversion.
-	 */
-	public synchronized void setConvertedValue(Object value) {
-		this.converted = true;
-		this.convertedValue = value;
 	}
 
 	/**
@@ -184,8 +132,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	public boolean equals(Object other) {
 		return (this == other || (other instanceof PropertyValue that &&
 				this.name.equals(that.name) &&
-				ObjectUtils.nullSafeEquals(this.value, that.value) &&
-				ObjectUtils.nullSafeEquals(getSource(), that.getSource())));
+				ObjectUtils.nullSafeEquals(this.value, that.value)));
 	}
 
 	@Override

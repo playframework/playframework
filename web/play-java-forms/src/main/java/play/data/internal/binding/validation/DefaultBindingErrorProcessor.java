@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.validation;
 
 import java.io.Serializable;
@@ -25,10 +29,7 @@ import play.data.internal.binding.util.ObjectUtils;
 import play.data.internal.binding.util.StringUtils;
 
 /**
- * Default {@link BindingErrorProcessor} implementation.
- *
- * <p>Uses the "required" error code and the field name to resolve message codes
- * for a missing field error.
+ * Default binding error processor.
  *
  * <p>Creates a {@code FieldError} for each {@code PropertyAccessException}
  * given, using the {@code PropertyAccessException}'s error code ("typeMismatch",
@@ -36,34 +37,12 @@ import play.data.internal.binding.util.StringUtils;
  *
  * @author Alef Arendsen
  * @author Juergen Hoeller
- * @since 1.2
- * @see #MISSING_FIELD_ERROR_CODE
- * @see DataBinder#setBindingErrorProcessor
  * @see BeanPropertyBindingResult#addError
- * @see BeanPropertyBindingResult#resolveMessageCodes
  * @see play.data.internal.binding.beans.PropertyAccessException#getErrorCode
  * @see play.data.internal.binding.beans.TypeMismatchException#ERROR_CODE
  * @see play.data.internal.binding.beans.MethodInvocationException#ERROR_CODE
  */
 public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
-
-	/**
-	 * Error code that a missing field error (i.e. a required field not
-	 * found in the list of property values) will be registered with:
-	 * "required".
-	 */
-	public static final String MISSING_FIELD_ERROR_CODE = "required";
-
-
-	@Override
-	public void processMissingFieldError(String missingField, BindingResult bindingResult) {
-		// Create field error with code "required".
-		String fixedField = bindingResult.getNestedPath() + missingField;
-		String[] codes = bindingResult.resolveMessageCodes(MISSING_FIELD_ERROR_CODE, missingField);
-		Object[] arguments = getArgumentsForBindError(bindingResult.getObjectName(), fixedField);
-		bindingResult.addError(new BindingFieldError(
-				bindingResult.getObjectName(), fixedField, "", codes, arguments));
-	}
 
 	@Override
 	public void processPropertyAccessException(PropertyAccessException ex, BindingResult bindingResult) {
@@ -82,7 +61,7 @@ public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
 
 	/**
 	 * Return FieldError arguments for a binding error on the given field.
-	 * Invoked for each missing required field and each type mismatch.
+	 * Invoked for each type mismatch.
 	 * <p>The default implementation returns a single argument indicating the field name
 	 * (of type DefaultMessageSourceResolvable, with "objectName.field" and "field" as codes).
 	 * @param objectName the name of the target object
@@ -98,17 +77,10 @@ public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
 
 
 	/**
-	 * Subclass of {@code FieldError} with Spring-style default message rendering.
+	 * Subclass of {@code FieldError} with default message rendering matching previous behavior.
 	 */
 	@SuppressWarnings("serial")
 	private static class BindingFieldError extends FieldError implements Serializable {
-
-		public BindingFieldError(String objectName, String field, Object rejectedValue, String[] codes,
-				Object[] arguments) {
-
-			super(objectName, field, rejectedValue, true, codes, arguments,
-					"Field '" + field + "' is required");
-		}
 
 		public BindingFieldError(String objectName, String field, Object rejectedValue, String[] codes,
 				Object[] arguments, PropertyAccessException ex) {

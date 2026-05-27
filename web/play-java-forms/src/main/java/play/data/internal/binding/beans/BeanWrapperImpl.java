@@ -14,50 +14,38 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.beans;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 
-import org.apache.commons.logging.LogFactory;
-
-import play.data.internal.binding.core.MethodParameter;
 import play.data.internal.binding.core.ResolvableType;
 import play.data.internal.binding.core.convert.TypeDescriptor;
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ReflectionUtils;
 
 /**
- * Default {@link BeanWrapper} implementation that should be sufficient
+ * Bean property accessor implementation that should be sufficient
  * for all typical use cases. Caches introspection results for efficiency.
  *
- * <p>Note: Auto-registers default property editors from the
- * {@code play.data.internal.binding.beans.propertyeditors} package, which apply
- * in addition to the JDK's standard PropertyEditors. Applications can call
- * the {@link #registerCustomEditor(Class, java.beans.PropertyEditor)} method
- * to register an editor for a particular instance (i.e. they are not shared
- * across the application). See the base class
- * {@link PropertyEditorRegistrySupport} for details.
- *
- * <p><b>NOTE: As of Spring 2.5, this is - for almost all purposes - an
+ * <p><b>NOTE: This is - for almost all purposes - an
  * internal class.</b> It is just public in order to allow for access from
- * other framework packages. For standard application access purposes, use the
- * {@link PropertyAccessorFactory#forBeanPropertyAccess} factory method instead.
+ * other framework packages.
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @author Stephane Nicoll
- * @since 15 April 2001
- * @see #registerCustomEditor
  * @see #setPropertyValues
  * @see #setPropertyValue
  * @see #getPropertyValue
  * @see #getPropertyType
- * @see BeanWrapper
- * @see PropertyEditorRegistrySupport
  */
-public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements BeanWrapper {
+public class BeanWrapperImpl extends AbstractNestablePropertyAccessor {
 
 	/**
 	 * Cached introspections results for this object, to prevent encountering
@@ -67,75 +55,24 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 
 
 	/**
-	 * Create a new empty BeanWrapperImpl. Wrapped instance needs to be set afterwards.
-	 * Registers default editors.
-	 * @see #setWrappedInstance
-	 */
-	public BeanWrapperImpl() {
-		this(true);
-	}
-
-	/**
-	 * Create a new empty BeanWrapperImpl. Wrapped instance needs to be set afterwards.
-	 * @param registerDefaultEditors whether to register default editors
-	 * (can be suppressed if the BeanWrapper won't need any type conversion)
-	 * @see #setWrappedInstance
-	 */
-	public BeanWrapperImpl(boolean registerDefaultEditors) {
-		super(registerDefaultEditors);
-	}
-
-	/**
 	 * Create a new BeanWrapperImpl for the given object.
-	 * @param object the object wrapped by this BeanWrapper
+	 * @param object the object wrapped by this accessor
 	 */
 	public BeanWrapperImpl(Object object) {
 		super(object);
 	}
 
 	/**
-	 * Create a new BeanWrapperImpl, wrapping a new instance of the specified class.
-	 * @param clazz class to instantiate and wrap
-	 */
-	public BeanWrapperImpl(Class<?> clazz) {
-		super(clazz);
-	}
-
-	/**
 	 * Create a new BeanWrapperImpl for the given object,
 	 * registering a nested path that the object is in.
-	 * @param object the object wrapped by this BeanWrapper
+	 * @param object the object wrapped by this accessor
 	 * @param nestedPath the nested path of the object
-	 * @param rootObject the root object at the top of the path
-	 */
-	public BeanWrapperImpl(Object object, String nestedPath, Object rootObject) {
-		super(object, nestedPath, rootObject);
-	}
-
-	/**
-	 * Create a new BeanWrapperImpl for the given object,
-	 * registering a nested path that the object is in.
-	 * @param object the object wrapped by this BeanWrapper
-	 * @param nestedPath the nested path of the object
-	 * @param parent the containing BeanWrapper (must not be {@code null})
+	 * @param parent the containing accessor (must not be {@code null})
 	 */
 	private BeanWrapperImpl(Object object, String nestedPath, BeanWrapperImpl parent) {
 		super(object, nestedPath, parent);
 	}
 
-
-	/**
-	 * Set a bean instance to hold, without any unwrapping of {@link java.util.Optional}.
-	 * @param object the actual target object
-	 * @since 4.3
-	 * @see #setWrappedInstance(Object)
-	 */
-	public void setBeanInstance(Object object) {
-		this.wrappedObject = object;
-		this.rootObject = object;
-		this.typeConverterDelegate = new TypeConverterDelegate(this, this.wrappedObject);
-		setIntrospectionClass(object.getClass());
-	}
 
 	@Override
 	public void setWrappedInstance(Object object, String nestedPath, Object rootObject) {
@@ -166,27 +103,6 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	}
 
 
-	/**
-	 * Convert the given value for the specified property to the latter's type.
-	 * <p>This method is only intended for optimizations in a BeanFactory.
-	 * Use the {@code convertIfNecessary} methods for programmatic conversion.
-	 * @param value the value to convert
-	 * @param propertyName the target property
-	 * (note that nested or indexed properties are not supported here)
-	 * @return the new value, possibly the result of type conversion
-	 * @throws TypeMismatchException if type conversion failed
-	 */
-	public Object convertForProperty(Object value, String propertyName) throws TypeMismatchException {
-		CachedIntrospectionResults cachedIntrospectionResults = getCachedIntrospectionResults();
-		PropertyDescriptor pd = cachedIntrospectionResults.getPropertyDescriptor(propertyName);
-		if (pd == null) {
-			throw new InvalidPropertyException(getRootClass(), getNestedPath() + propertyName,
-					"No property '" + propertyName + "' found");
-		}
-		TypeDescriptor td = ((GenericTypeAwarePropertyDescriptor) pd).getTypeDescriptor();
-		return convertForProperty(propertyName, null, value, td);
-	}
-
 	@Override
 	protected PropertyHandler getLocalPropertyHandler(String propertyName) {
 		PropertyDescriptor pd = getCachedIntrospectionResults().getPropertyDescriptor(propertyName);
@@ -200,28 +116,8 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 
 	@Override
 	protected NotWritablePropertyException createNotWritablePropertyException(String propertyName) {
-		PropertyMatches matches = PropertyMatches.forProperty(propertyName, getRootClass());
-		throw new NotWritablePropertyException(getRootClass(), getNestedPath() + propertyName,
-				matches.buildErrorMessage(), matches.getPossibleMatches());
+		throw new NotWritablePropertyException(getRootClass(), getNestedPath() + propertyName);
 	}
-
-	@Override
-	public PropertyDescriptor[] getPropertyDescriptors() {
-		return getCachedIntrospectionResults().getPropertyDescriptors();
-	}
-
-	@Override
-	public PropertyDescriptor getPropertyDescriptor(String propertyName) throws InvalidPropertyException {
-		BeanWrapperImpl nestedBw = (BeanWrapperImpl) getPropertyAccessorForPropertyPath(propertyName);
-		String finalPath = getFinalPath(nestedBw, propertyName);
-		PropertyDescriptor pd = nestedBw.getCachedIntrospectionResults().getPropertyDescriptor(finalPath);
-		if (pd == null) {
-			throw new InvalidPropertyException(getRootClass(), getNestedPath() + propertyName,
-					"No property '" + propertyName + "' found");
-		}
-		return pd;
-	}
-
 
 	private class BeanPropertyHandler extends PropertyHandler {
 
@@ -274,31 +170,6 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 			Method writeMethod = this.pd.getWriteMethodForActualAccess();
 			ReflectionUtils.makeAccessible(writeMethod);
 			writeMethod.invoke(getWrappedInstance(), value);
-		}
-
-		@Override
-		public boolean setValueFallbackIfPossible(Object value) {
-			try {
-				Method writeMethod = this.pd.getWriteMethodFallback(value != null ? value.getClass() : null);
-				if (writeMethod == null) {
-					writeMethod = this.pd.getUniqueWriteMethodFallback();
-					if (writeMethod != null) {
-						// Conversion necessary as we would otherwise have received the method
-						// from the type-matching getWriteMethodFallback call above already
-						value = convertForProperty(this.pd.getName(), null, value,
-								new TypeDescriptor(new MethodParameter(writeMethod, 0)));
-					}
-				}
-				if (writeMethod != null) {
-					ReflectionUtils.makeAccessible(writeMethod);
-					writeMethod.invoke(getWrappedInstance(), value);
-					return true;
-				}
-			}
-			catch (Exception ex) {
-				LogFactory.getLog(BeanPropertyHandler.class).debug("Write method fallback failed", ex);
-			}
-			return false;
 		}
 	}
 

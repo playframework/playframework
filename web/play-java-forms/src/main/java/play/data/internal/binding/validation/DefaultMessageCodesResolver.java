@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.validation;
 
 import java.io.Serializable;
@@ -27,11 +31,9 @@ import java.util.StringJoiner;
 import play.data.internal.binding.util.StringUtils;
 
 /**
- * Default implementation of the {@link MessageCodesResolver} interface.
+ * Default message code resolver.
  *
- * <p>Will create two message codes for an object error, in the following order (when
- * using the {@link Format#PREFIX_ERROR_CODE prefixed}
- * {@link #setMessageCodeFormatter(MessageCodeFormatter) formatter}):
+ * <p>Will create two message codes for an object error, in the following order:
  * <ul>
  * <li>1.: code + "." + object name
  * <li>2.: code
@@ -74,19 +76,9 @@ import play.data.internal.binding.util.StringUtils;
  * <li>7. try "typeMismatch"
  * </ul>
  *
- * <p>By default the {@code errorCode}s will be placed at the beginning of constructed
- * message strings. The {@link #setMessageCodeFormatter(MessageCodeFormatter)
- * messageCodeFormatter} property can be used to specify an alternative concatenation
- * {@link MessageCodeFormatter format}.
- *
- * <p>In order to group all codes into a specific category within your resource bundles,
- * for example, "validation.typeMismatch.name" instead of the default "typeMismatch.name",
- * consider specifying a {@link #setPrefix prefix} to be applied.
- *
  * @author Juergen Hoeller
  * @author Phillip Webb
  * @author Chris Beams
- * @since 1.0.1
  */
 @SuppressWarnings("serial")
 public class DefaultMessageCodesResolver implements MessageCodesResolver, Serializable {
@@ -95,42 +87,6 @@ public class DefaultMessageCodesResolver implements MessageCodesResolver, Serial
 	 * The separator that this implementation uses when resolving message codes.
 	 */
 	public static final String CODE_SEPARATOR = ".";
-
-	private static final MessageCodeFormatter DEFAULT_FORMATTER = Format.PREFIX_ERROR_CODE;
-
-
-	private String prefix = "";
-
-	private MessageCodeFormatter formatter = DEFAULT_FORMATTER;
-
-
-	/**
-	 * Specify a prefix to be applied to any code built by this resolver.
-	 * <p>Default is none. Specify, for example, "validation." to get
-	 * error codes like "validation.typeMismatch.name".
-	 */
-	public void setPrefix(String prefix) {
-		this.prefix = (prefix != null ? prefix : "");
-	}
-
-	/**
-	 * Return the prefix to be applied to any code built by this resolver.
-	 * <p>Returns an empty String in case of no prefix.
-	 */
-	protected String getPrefix() {
-		return this.prefix;
-	}
-
-	/**
-	 * Specify the format for message codes built by this resolver.
-	 * <p>The default is {@link Format#PREFIX_ERROR_CODE}.
-	 * @since 3.2
-	 * @see Format
-	 */
-	public void setMessageCodeFormatter(MessageCodeFormatter formatter) {
-		this.formatter = (formatter != null ? formatter : DEFAULT_FORMATTER);
-	}
-
 
 	@Override
 	public String[] resolveMessageCodes(String errorCode, String objectName) {
@@ -171,7 +127,7 @@ public class DefaultMessageCodesResolver implements MessageCodesResolver, Serial
 	}
 
 	private void addCode(Collection<String> codeList, String errorCode, String objectName, String field) {
-		codeList.add(postProcessMessageCode(this.formatter.format(errorCode, objectName, field)));
+		codeList.add(postProcessMessageCode(toDelimitedString(errorCode, objectName, field)));
 	}
 
 	/**
@@ -195,46 +151,9 @@ public class DefaultMessageCodesResolver implements MessageCodesResolver, Serial
 		}
 	}
 
-	/**
-	 * Post-process the given message code, built by this resolver.
-	 * <p>The default implementation applies the specified prefix, if any.
-	 * @param code the message code as built by this resolver
-	 * @return the final message code to be returned
-	 * @see #setPrefix
-	 */
 	protected String postProcessMessageCode(String code) {
-		return getPrefix() + code;
+		return code;
 	}
-
-
-	/**
-	 * Common message code formats.
-	 * @see MessageCodeFormatter
-	 * @see DefaultMessageCodesResolver#setMessageCodeFormatter(MessageCodeFormatter)
-	 */
-	public enum Format implements MessageCodeFormatter {
-
-		/**
-		 * Prefix the error code at the beginning of the generated message code. for example:
-		 * {@code errorCode + "." + object name + "." + field}
-		 */
-		PREFIX_ERROR_CODE {
-			@Override
-			public String format(String errorCode, String objectName, String field) {
-				return toDelimitedString(errorCode, objectName, field);
-			}
-		},
-
-		/**
-		 * Postfix the error code at the end of the generated message code. for example:
-		 * {@code object name + "." + field + "." + errorCode}
-		 */
-		POSTFIX_ERROR_CODE {
-			@Override
-			public String format(String errorCode, String objectName, String field) {
-				return toDelimitedString(objectName, field, errorCode);
-			}
-		};
 
 		/**
 		 * Concatenate the given elements, delimiting each with
@@ -250,6 +169,5 @@ public class DefaultMessageCodesResolver implements MessageCodesResolver, Serial
 			}
 			return rtn.toString();
 		}
-	}
 
 }

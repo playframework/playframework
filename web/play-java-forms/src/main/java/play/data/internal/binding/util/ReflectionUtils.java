@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import play.data.internal.binding.lang.Contract;
 
 /**
  * Simple utility class for working with the reflection API and handling
@@ -41,38 +40,19 @@ import play.data.internal.binding.lang.Contract;
  * @author Costin Leau
  * @author Sam Brannen
  * @author Chris Beams
- * @since 1.2.2
  */
 public abstract class ReflectionUtils {
 
 	/**
 	 * Pre-built {@link MethodFilter} that matches all non-bridge non-synthetic methods
 	 * which are not declared on {@code java.lang.Object}.
-	 * @since 3.0.5
 	 */
 	public static final MethodFilter USER_DECLARED_METHODS =
 			(method -> !method.isBridge() && !method.isSynthetic() && (method.getDeclaringClass() != Object.class));
 
-	/**
-	 * Pre-built FieldFilter that matches all non-static, non-final fields.
-	 */
-	public static final FieldFilter COPYABLE_FIELDS =
-			(field -> !(Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())));
-
-
-	/**
-	 * Naming prefix for CGLIB-renamed methods.
-	 * @see #isCglibRenamedMethod
-	 */
-	private static final String CGLIB_RENAMED_METHOD_PREFIX = "CGLIB$";
-
-	private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
-
 	private static final Method[] EMPTY_METHOD_ARRAY = new Method[0];
 
 	private static final Field[] EMPTY_FIELD_ARRAY = new Field[0];
-
-	private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
 
 	/**
@@ -89,88 +69,6 @@ public abstract class ReflectionUtils {
 
 	// Exception handling
 
-	/**
-	 * Handle the given reflection exception.
-	 * <p>Should only be called if no checked exception is expected to be thrown
-	 * by a target method, or if an error occurs while accessing a method or field.
-	 * <p>Throws the underlying RuntimeException or Error in case of an
-	 * InvocationTargetException with such a root cause. Throws an
-	 * IllegalStateException with an appropriate message or
-	 * UndeclaredThrowableException otherwise.
-	 * @param ex the reflection exception to handle
-	 */
-	public static void handleReflectionException(Exception ex) {
-		if (ex instanceof NoSuchMethodException) {
-			throw new IllegalStateException("Method not found: " + ex.getMessage());
-		}
-		if (ex instanceof IllegalAccessException) {
-			throw new IllegalStateException("Could not access method or field: " + ex.getMessage());
-		}
-		if (ex instanceof InvocationTargetException invocationTargetException) {
-			handleInvocationTargetException(invocationTargetException);
-		}
-		if (ex instanceof RuntimeException runtimeException) {
-			throw runtimeException;
-		}
-		throw new UndeclaredThrowableException(ex);
-	}
-
-	/**
-	 * Handle the given invocation target exception. Should only be called if no
-	 * checked exception is expected to be thrown by the target method.
-	 * <p>Throws the underlying RuntimeException or Error in case of such a root
-	 * cause. Throws an UndeclaredThrowableException otherwise.
-	 * @param ex the invocation target exception to handle
-	 */
-	public static void handleInvocationTargetException(InvocationTargetException ex) {
-		rethrowRuntimeException(ex.getTargetException());
-	}
-
-	/**
-	 * Rethrow the given {@link Throwable exception}, which is presumably the
-	 * <em>target exception</em> of an {@link InvocationTargetException}.
-	 * Should only be called if no checked exception is expected to be thrown
-	 * by the target method.
-	 * <p>Rethrows the underlying exception cast to a {@link RuntimeException} or
-	 * {@link Error} if appropriate; otherwise, throws an
-	 * {@link UndeclaredThrowableException}.
-	 * @param ex the exception to rethrow
-	 * @throws RuntimeException the rethrown exception
-	 */
-	@Contract("_ -> fail")
-	public static void rethrowRuntimeException(Throwable ex) {
-		if (ex instanceof RuntimeException runtimeException) {
-			throw runtimeException;
-		}
-		if (ex instanceof Error error) {
-			throw error;
-		}
-		throw new UndeclaredThrowableException(ex);
-	}
-
-	/**
-	 * Rethrow the given {@link Throwable exception}, which is presumably the
-	 * <em>target exception</em> of an {@link InvocationTargetException}.
-	 * Should only be called if no checked exception is expected to be thrown
-	 * by the target method.
-	 * <p>Rethrows the underlying exception cast to an {@link Exception} or
-	 * {@link Error} if appropriate; otherwise, throws an
-	 * {@link UndeclaredThrowableException}.
-	 * @param throwable the exception to rethrow
-	 * @throws Exception the rethrown exception (in case of a checked exception)
-	 */
-	@Contract("_ -> fail")
-	public static void rethrowException(Throwable throwable) throws Exception {
-		if (throwable instanceof Exception exception) {
-			throw exception;
-		}
-		if (throwable instanceof Error error) {
-			throw error;
-		}
-		throw new UndeclaredThrowableException(throwable);
-	}
-
-
 	// Constructor handling
 
 	/**
@@ -179,7 +77,6 @@ public abstract class ReflectionUtils {
 	 * @param parameterTypes the parameter types of the desired constructor
 	 * @return the constructor reference
 	 * @throws NoSuchMethodException if no such constructor exists
-	 * @since 5.0
 	 */
 	public static <T> Constructor<T> accessibleConstructor(Class<T> clazz, Class<?>... parameterTypes)
 			throws NoSuchMethodException {
@@ -206,139 +103,6 @@ public abstract class ReflectionUtils {
 
 
 	// Method handling
-
-	/**
-	 * Attempt to find a {@link Method} on the supplied class with the supplied name
-	 * and no parameters. Searches all superclasses up to {@code Object}.
-	 * <p>Returns {@code null} if no {@link Method} can be found.
-	 * @param clazz the class to introspect
-	 * @param name the name of the method
-	 * @return the Method object, or {@code null} if none found
-	 */
-	public static Method findMethod(Class<?> clazz, String name) {
-		return findMethod(clazz, name, EMPTY_CLASS_ARRAY);
-	}
-
-	/**
-	 * Attempt to find a {@link Method} on the supplied class with the supplied name
-	 * and parameter types. Searches all superclasses up to {@code Object}.
-	 * <p>Returns {@code null} if no {@link Method} can be found.
-	 * @param clazz the class to introspect
-	 * @param name the name of the method
-	 * @param paramTypes the parameter types of the method
-	 * (may be {@code null} to indicate any signature)
-	 * @return the Method object, or {@code null} if none found
-	 */
-	public static Method findMethod(Class<?> clazz, String name, Class<?> ... paramTypes) {
-		Assert.notNull(clazz, "Class must not be null");
-		Assert.notNull(name, "Method name must not be null");
-		Class<?> searchType = clazz;
-		while (searchType != null) {
-			Method[] methods = (searchType.isInterface() ? searchType.getMethods() :
-					getDeclaredMethods(searchType, false));
-			for (Method method : methods) {
-				if (name.equals(method.getName()) && (paramTypes == null || hasSameParams(method, paramTypes))) {
-					return method;
-				}
-			}
-			searchType = searchType.getSuperclass();
-		}
-		return null;
-	}
-
-	private static boolean hasSameParams(Method method, Class<?>[] paramTypes) {
-		return (paramTypes.length == method.getParameterCount() &&
-				Arrays.equals(paramTypes, method.getParameterTypes()));
-	}
-
-	/**
-	 * Invoke the specified {@link Method} against the supplied target object with no arguments.
-	 * The target object can be {@code null} when invoking a static {@link Method}.
-	 * <p>Thrown exceptions are handled via a call to {@link #handleReflectionException}.
-	 * @param method the method to invoke
-	 * @param target the target object to invoke the method on
-	 * @return the invocation result, if any
-	 * @see #invokeMethod(java.lang.reflect.Method, Object, Object[])
-	 */
-	public static Object invokeMethod(Method method, Object target) {
-		return invokeMethod(method, target, EMPTY_OBJECT_ARRAY);
-	}
-
-	/**
-	 * Invoke the specified {@link Method} against the supplied target object with the
-	 * supplied arguments. The target object can be {@code null} when invoking a
-	 * static {@link Method}.
-	 * <p>Thrown exceptions are handled via a call to {@link #handleReflectionException}.
-	 * @param method the method to invoke
-	 * @param target the target object to invoke the method on
-	 * @param args the invocation arguments (may be {@code null})
-	 * @return the invocation result, if any
-	 */
-	public static Object invokeMethod(Method method, Object target, Object... args) {
-		try {
-			return method.invoke(target, args);
-		}
-		catch (Exception ex) {
-			handleReflectionException(ex);
-		}
-		throw new IllegalStateException("Should never get here");
-	}
-
-	/**
-	 * Determine whether the given method explicitly declares the given
-	 * exception or one of its superclasses, which means that an exception
-	 * of that type can be propagated as-is within a reflective invocation.
-	 * @param method the declaring method
-	 * @param exceptionType the exception to throw
-	 * @return {@code true} if the exception can be thrown as-is;
-	 * {@code false} if it needs to be wrapped
-	 */
-	public static boolean declaresException(Method method, Class<?> exceptionType) {
-		Assert.notNull(method, "Method must not be null");
-		Class<?>[] declaredExceptions = method.getExceptionTypes();
-		for (Class<?> declaredException : declaredExceptions) {
-			if (declaredException.isAssignableFrom(exceptionType)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Perform the given callback operation on all matching methods of the given
-	 * class, as locally declared or equivalent thereof (such as default methods
-	 * from interfaces that the given class implements).
-	 * @param clazz the class to introspect
-	 * @param mc the callback to invoke for each method
-	 * @throws IllegalStateException if introspection fails
-	 * @since 4.2
-	 * @see #doWithMethods
-	 */
-	public static void doWithLocalMethods(Class<?> clazz, MethodCallback mc) {
-		Method[] methods = getDeclaredMethods(clazz, false);
-		for (Method method : methods) {
-			try {
-				mc.doWith(method);
-			}
-			catch (IllegalAccessException ex) {
-				throw new IllegalStateException("Not allowed to access method '" + method.getName() + "': " + ex);
-			}
-		}
-	}
-
-	/**
-	 * Perform the given callback operation on all matching methods of the given
-	 * class and superclasses.
-	 * <p>The same named method occurring on subclass and superclass will appear
-	 * twice, unless excluded by a {@link MethodFilter}.
-	 * @param clazz the class to introspect
-	 * @param mc the callback to invoke for each method
-	 * @throws IllegalStateException if introspection fails
-	 * @see #doWithMethods(Class, MethodCallback, MethodFilter)
-	 */
-	public static void doWithMethods(Class<?> clazz, MethodCallback mc) {
-		doWithMethods(clazz, mc, null);
-	}
 
 	/**
 	 * Perform the given callback operation on all matching methods of the given
@@ -376,83 +140,6 @@ public abstract class ReflectionUtils {
 				doWithMethods(superIfc, mc, mf);
 			}
 		}
-	}
-
-	/**
-	 * Get all declared methods on the leaf class and all superclasses.
-	 * Leaf class methods are included first.
-	 * @param leafClass the class to introspect
-	 * @throws IllegalStateException if introspection fails
-	 */
-	public static Method[] getAllDeclaredMethods(Class<?> leafClass) {
-		final List<Method> methods = new ArrayList<>(20);
-		doWithMethods(leafClass, methods::add);
-		return methods.toArray(EMPTY_METHOD_ARRAY);
-	}
-
-	/**
-	 * Get the unique set of declared methods on the leaf class and all superclasses.
-	 * Leaf class methods are included first and while traversing the superclass hierarchy
-	 * any methods found with signatures matching a method already included are filtered out.
-	 * @param leafClass the class to introspect
-	 * @throws IllegalStateException if introspection fails
-	 */
-	public static Method[] getUniqueDeclaredMethods(Class<?> leafClass) {
-		return getUniqueDeclaredMethods(leafClass, null);
-	}
-
-	/**
-	 * Get the unique set of declared methods on the leaf class and all superclasses.
-	 * Leaf class methods are included first and while traversing the superclass hierarchy
-	 * any methods found with signatures matching a method already included are filtered out.
-	 * @param leafClass the class to introspect
-	 * @param mf the filter that determines the methods to take into account
-	 * @throws IllegalStateException if introspection fails
-	 * @since 5.2
-	 */
-	public static Method[] getUniqueDeclaredMethods(Class<?> leafClass, MethodFilter mf) {
-		final List<Method> methods = new ArrayList<>(20);
-		doWithMethods(leafClass, method -> {
-			boolean knownSignature = false;
-			Method methodBeingOverriddenWithCovariantReturnType = null;
-			for (Method existingMethod : methods) {
-				if (method.getName().equals(existingMethod.getName()) &&
-						method.getParameterCount() == existingMethod.getParameterCount() &&
-						Arrays.equals(method.getParameterTypes(), existingMethod.getParameterTypes())) {
-					// Is this a covariant return type situation?
-					if (existingMethod.getReturnType() != method.getReturnType() &&
-							existingMethod.getReturnType().isAssignableFrom(method.getReturnType())) {
-						methodBeingOverriddenWithCovariantReturnType = existingMethod;
-					}
-					else {
-						knownSignature = true;
-					}
-					break;
-				}
-			}
-			if (methodBeingOverriddenWithCovariantReturnType != null) {
-				methods.remove(methodBeingOverriddenWithCovariantReturnType);
-			}
-			if (!knownSignature && !isCglibRenamedMethod(method)) {
-				methods.add(method);
-			}
-		}, mf);
-		return methods.toArray(EMPTY_METHOD_ARRAY);
-	}
-
-	/**
-	 * Variant of {@link Class#getDeclaredMethods()} that uses a local cache in
-	 * order to avoid new {@link Method} instances. In addition, it also includes
-	 * default methods from locally implemented interfaces, since those are
-	 * effectively to be treated just like declared methods.
-	 * @param clazz the class to introspect
-	 * @return the cached array of methods
-	 * @throws IllegalStateException if introspection fails
-	 * @since 5.2
-	 * @see Class#getDeclaredMethods()
-	 */
-	public static Method[] getDeclaredMethods(Class<?> clazz) {
-		return getDeclaredMethods(clazz, true);
 	}
 
 	private static Method[] getDeclaredMethods(Class<?> clazz, boolean defensive) {
@@ -500,60 +187,6 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
-	 * Determine whether the given method is an "equals" method.
-	 * @see java.lang.Object#equals(Object)
-	 */
-	@Contract("null -> false")
-	public static boolean isEqualsMethod(Method method) {
-		return (method != null && method.getParameterCount() == 1 && method.getName().equals("equals") &&
-				method.getParameterTypes()[0] == Object.class);
-	}
-
-	/**
-	 * Determine whether the given method is a "hashCode" method.
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Contract("null -> false")
-	public static boolean isHashCodeMethod(Method method) {
-		return (method != null && method.getParameterCount() == 0 && method.getName().equals("hashCode"));
-	}
-
-	/**
-	 * Determine whether the given method is a "toString" method.
-	 * @see java.lang.Object#toString()
-	 */
-	@Contract("null -> false")
-	public static boolean isToStringMethod(Method method) {
-		return (method != null && method.getParameterCount() == 0 && method.getName().equals("toString"));
-	}
-
-	/**
-	 * Determine whether the given method is originally declared by {@link java.lang.Object}.
-	 */
-	@Contract("null -> false")
-	public static boolean isObjectMethod(Method method) {
-		return (method != null && (method.getDeclaringClass() == Object.class ||
-				isEqualsMethod(method) || isHashCodeMethod(method) || isToStringMethod(method)));
-	}
-
-	/**
-	 * Determine whether the given method is a CGLIB 'renamed' method,
-	 * following the pattern "CGLIB$methodName$0".
-	 * @param renamedMethod the method to check
-	 */
-	public static boolean isCglibRenamedMethod(Method renamedMethod) {
-		String name = renamedMethod.getName();
-		if (name.startsWith(CGLIB_RENAMED_METHOD_PREFIX)) {
-			int i = name.length() - 1;
-			while (i >= 0 && Character.isDigit(name.charAt(i))) {
-				i--;
-			}
-			return (i > CGLIB_RENAMED_METHOD_PREFIX.length() && (i < name.length() - 1) && name.charAt(i) == '$');
-		}
-		return false;
-	}
-
-	/**
 	 * Make the given method accessible, explicitly setting it accessible if
 	 * necessary. The {@code setAccessible(true)} method is only called
 	 * when actually necessary, to avoid unnecessary conflicts.
@@ -591,7 +224,6 @@ public abstract class ReflectionUtils {
 	 * @param type the type of the field (may be {@code null} if name is specified)
 	 * @return the corresponding Field object, or {@code null} if not found
 	 */
-	@Contract("_, null, null -> fail")
 	public static Field findField(Class<?> clazz, String name, Class<?> type) {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.isTrue(name != null || type != null, "Either name or type of the field must be specified");
@@ -607,130 +239,6 @@ public abstract class ReflectionUtils {
 			searchType = searchType.getSuperclass();
 		}
 		return null;
-	}
-
-	/**
-	 * Attempt to find a {@link Field field} on the supplied {@link Class} with the
-	 * supplied {@code name}. Searches all superclasses up to {@link Object}.
-	 * @param clazz the class to introspect
-	 * @param name the name of the field (with upper/lower case to be ignored)
-	 * @return the corresponding Field object, or {@code null} if not found
-	 * @since 6.1
-	 */
-	public static Field findFieldIgnoreCase(Class<?> clazz, String name) {
-		Assert.notNull(clazz, "Class must not be null");
-		Assert.notNull(name, "Name must not be null");
-		Class<?> searchType = clazz;
-		while (Object.class != searchType && searchType != null) {
-			Field[] fields = getDeclaredFields(searchType);
-			for (Field field : fields) {
-				if (name.equalsIgnoreCase(field.getName())) {
-					return field;
-				}
-			}
-			searchType = searchType.getSuperclass();
-		}
-		return null;
-	}
-
-	/**
-	 * Set the field represented by the supplied {@linkplain Field field object} on
-	 * the specified {@linkplain Object target object} to the specified {@code value}.
-	 * <p>In accordance with {@link Field#set(Object, Object)} semantics, the new value
-	 * is automatically unwrapped if the underlying field has a primitive type.
-	 * <p>This method does not support setting {@code static final} fields.
-	 * <p>Thrown exceptions are handled via a call to {@link #handleReflectionException(Exception)}.
-	 * @param field the field to set
-	 * @param target the target object on which to set the field
-	 * (or {@code null} for a static field)
-	 * @param value the value to set (may be {@code null})
-	 */
-	public static void setField(Field field, Object target, Object value) {
-		try {
-			field.set(target, value);
-		}
-		catch (IllegalAccessException ex) {
-			handleReflectionException(ex);
-		}
-	}
-
-	/**
-	 * Get the field represented by the supplied {@link Field field object} on the
-	 * specified {@link Object target object}. In accordance with {@link Field#get(Object)}
-	 * semantics, the returned value is automatically wrapped if the underlying field
-	 * has a primitive type.
-	 * <p>Thrown exceptions are handled via a call to {@link #handleReflectionException(Exception)}.
-	 * @param field the field to get
-	 * @param target the target object from which to get the field
-	 * (or {@code null} for a static field)
-	 * @return the field's current value
-	 */
-	public static Object getField(Field field, Object target) {
-		try {
-			return field.get(target);
-		}
-		catch (IllegalAccessException ex) {
-			handleReflectionException(ex);
-		}
-		throw new IllegalStateException("Should never get here");
-	}
-
-	/**
-	 * Invoke the given callback on all locally declared fields in the given class.
-	 * @param clazz the target class to analyze
-	 * @param fc the callback to invoke for each field
-	 * @throws IllegalStateException if introspection fails
-	 * @since 4.2
-	 * @see #doWithFields
-	 */
-	public static void doWithLocalFields(Class<?> clazz, FieldCallback fc) {
-		for (Field field : getDeclaredFields(clazz)) {
-			try {
-				fc.doWith(field);
-			}
-			catch (IllegalAccessException ex) {
-				throw new IllegalStateException("Not allowed to access field '" + field.getName() + "': " + ex);
-			}
-		}
-	}
-
-	/**
-	 * Invoke the given callback on all fields in the target class, going up the
-	 * class hierarchy to get all declared fields.
-	 * @param clazz the target class to analyze
-	 * @param fc the callback to invoke for each field
-	 * @throws IllegalStateException if introspection fails
-	 */
-	public static void doWithFields(Class<?> clazz, FieldCallback fc) {
-		doWithFields(clazz, fc, null);
-	}
-
-	/**
-	 * Invoke the given callback on all fields in the target class, going up the
-	 * class hierarchy to get all declared fields.
-	 * @param clazz the target class to analyze
-	 * @param fc the callback to invoke for each field
-	 * @param ff the filter that determines the fields to apply the callback to
-	 * @throws IllegalStateException if introspection fails
-	 */
-	public static void doWithFields(Class<?> clazz, FieldCallback fc, FieldFilter ff) {
-		// Keep backing up the inheritance hierarchy.
-		Class<?> targetClass = clazz;
-		do {
-			for (Field field : getDeclaredFields(targetClass)) {
-				if (ff != null && !ff.matches(field)) {
-					continue;
-				}
-				try {
-					fc.doWith(field);
-				}
-				catch (IllegalAccessException ex) {
-					throw new IllegalStateException("Not allowed to access field '" + field.getName() + "': " + ex);
-				}
-			}
-			targetClass = targetClass.getSuperclass();
-		}
-		while (targetClass != null && targetClass != Object.class);
 	}
 
 	/**
@@ -758,35 +266,6 @@ public abstract class ReflectionUtils {
 	}
 
 	/**
-	 * Given the source object and the destination, which must be the same class
-	 * or a subclass, copy all fields, including inherited fields. Designed to
-	 * work on objects with public no-arg constructors.
-	 * @throws IllegalStateException if introspection fails
-	 */
-	public static void shallowCopyFieldState(final Object src, final Object dest) {
-		Assert.notNull(src, "Source for field copy cannot be null");
-		Assert.notNull(dest, "Destination for field copy cannot be null");
-		if (!src.getClass().isAssignableFrom(dest.getClass())) {
-			throw new IllegalArgumentException("Destination class [" + dest.getClass().getName() +
-					"] must be same or subclass as source class [" + src.getClass().getName() + "]");
-		}
-		doWithFields(src.getClass(), field -> {
-			makeAccessible(field);
-			Object srcValue = field.get(src);
-			field.set(dest, srcValue);
-		}, COPYABLE_FIELDS);
-	}
-
-	/**
-	 * Determine whether the given field is a "public static final" constant.
-	 * @param field the field to check
-	 */
-	public static boolean isPublicStaticFinal(Field field) {
-		int modifiers = field.getModifiers();
-		return (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers));
-	}
-
-	/**
 	 * Make the given field accessible, explicitly setting it accessible if
 	 * necessary. The {@code setAccessible(true)} method is only called
 	 * when actually necessary, to avoid unnecessary conflicts.
@@ -800,18 +279,6 @@ public abstract class ReflectionUtils {
 				Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
 			field.setAccessible(true);
 		}
-	}
-
-
-	// Cache handling
-
-	/**
-	 * Clear the internal method/field cache.
-	 * @since 4.2.4
-	 */
-	public static void clearCache() {
-		declaredMethodsCache.clear();
-		declaredFieldsCache.clear();
 	}
 
 
@@ -841,59 +308,7 @@ public abstract class ReflectionUtils {
 		 */
 		boolean matches(Method method);
 
-		/**
-		 * Create a composite filter based on this filter <em>and</em> the provided filter.
-		 * <p>If this filter does not match, the next filter will not be applied.
-		 * @param next the next {@code MethodFilter}
-		 * @return a composite {@code MethodFilter}
-		 * @throws IllegalArgumentException if the MethodFilter argument is {@code null}
-		 * @since 5.3.2
-		 */
-		default MethodFilter and(MethodFilter next) {
-			Assert.notNull(next, "Next MethodFilter must not be null");
-			return method -> matches(method) && next.matches(method);
-		}
 	}
 
-
-	/**
-	 * Callback interface invoked on each field in the hierarchy.
-	 */
-	@FunctionalInterface
-	public interface FieldCallback {
-
-		/**
-		 * Perform an operation using the given field.
-		 * @param field the field to operate on
-		 */
-		void doWith(Field field) throws IllegalArgumentException, IllegalAccessException;
-	}
-
-
-	/**
-	 * Callback optionally used to filter fields to be operated on by a field callback.
-	 */
-	@FunctionalInterface
-	public interface FieldFilter {
-
-		/**
-		 * Determine whether the given field matches.
-		 * @param field the field to check
-		 */
-		boolean matches(Field field);
-
-		/**
-		 * Create a composite filter based on this filter <em>and</em> the provided filter.
-		 * <p>If this filter does not match, the next filter will not be applied.
-		 * @param next the next {@code FieldFilter}
-		 * @return a composite {@code FieldFilter}
-		 * @throws IllegalArgumentException if the FieldFilter argument is {@code null}
-		 * @since 5.3.2
-		 */
-		default FieldFilter and(FieldFilter next) {
-			Assert.notNull(next, "Next FieldFilter must not be null");
-			return field -> matches(field) && next.matches(field);
-		}
-	}
 
 }

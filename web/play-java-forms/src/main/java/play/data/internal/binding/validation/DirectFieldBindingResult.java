@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
 package play.data.internal.binding.validation;
 
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
-import play.data.internal.binding.beans.PropertyAccessorFactory;
+import play.data.internal.binding.beans.DirectFieldAccessor;
 
 /**
  * Special implementation of the Errors and BindingResult interfaces,
  * supporting registration and evaluation of binding errors on value objects.
  * Performs direct field access instead of going through JavaBean getters.
  *
- * <p>Since Spring 4.1 this implementation is able to traverse nested fields.
+ * <p>This implementation is able to traverse nested fields.
  *
  * @author Juergen Hoeller
- * @since 2.0
  * @see DataBinder#getBindingResult()
  * @see DataBinder#initDirectFieldAccess()
  * @see BeanPropertyBindingResult
@@ -43,33 +46,12 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 
 	private transient ConfigurablePropertyAccessor directFieldAccessor;
 
-
-	/**
-	 * Create a new {@code DirectFieldBindingResult} for the given target.
-	 * @param target the target object to bind onto
-	 * @param objectName the name of the target object
-	 */
-	public DirectFieldBindingResult(Object target, String objectName) {
-		this(target, objectName, true);
-	}
-
-	/**
-	 * Create a new {@code DirectFieldBindingResult} for the given target.
-	 * @param target the target object to bind onto
-	 * @param objectName the name of the target object
-	 * @param autoGrowNestedPaths whether to "auto-grow" a nested path that contains a null value
-	 */
-	public DirectFieldBindingResult(Object target, String objectName, boolean autoGrowNestedPaths) {
-		this(target, objectName, autoGrowNestedPaths, Integer.MAX_VALUE);
-	}
-
 	/**
 	 * Create a new {@code DirectFieldBindingResult} for the given target.
 	 * @param target the target object to bind onto
 	 * @param objectName the name of the target object
 	 * @param autoGrowNestedPaths whether to "auto-grow" a nested path that contains a null value
 	 * @param autoGrowCollectionLimit the limit for array and collection auto-growing
-	 * @since 7.1
 	 */
 	public DirectFieldBindingResult(Object target, String objectName,
 			boolean autoGrowNestedPaths, int autoGrowCollectionLimit) {
@@ -95,7 +77,6 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 	public final ConfigurablePropertyAccessor getPropertyAccessor() {
 		if (this.directFieldAccessor == null) {
 			this.directFieldAccessor = createDirectFieldAccessor();
-			this.directFieldAccessor.setExtractOldValueForEditor(true);
 			this.directFieldAccessor.setAutoGrowNestedPaths(this.autoGrowNestedPaths);
 			this.directFieldAccessor.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
 		}
@@ -110,7 +91,7 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 		if (this.target == null) {
 			throw new IllegalStateException("Cannot access fields on null target instance '" + getObjectName() + "'");
 		}
-		return PropertyAccessorFactory.forDirectFieldAccess(this.target);
+		return new DirectFieldAccessor(this.target);
 	}
 
 }
