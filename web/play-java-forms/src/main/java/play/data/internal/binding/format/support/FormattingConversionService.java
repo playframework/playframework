@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.context.EmbeddedValueResolverAware;
 import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.data.internal.binding.core.DecoratingProxy;
@@ -54,7 +52,7 @@ import play.data.internal.binding.util.StringValueResolver;
 public class FormattingConversionService extends GenericConversionService
 		implements FormatterRegistry, EmbeddedValueResolverAware {
 
-	private @Nullable StringValueResolver embeddedValueResolver;
+	private StringValueResolver embeddedValueResolver;
 
 	private final Map<AnnotationConverterKey, GenericConverter> cachedPrinters = new ConcurrentHashMap<>(64);
 
@@ -164,7 +162,7 @@ public class FormattingConversionService extends GenericConversionService
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 			if (!sourceType.isAssignableTo(this.printerObjectType)) {
 				source = this.conversionService.convert(source, sourceType, this.printerObjectType);
 			}
@@ -174,7 +172,7 @@ public class FormattingConversionService extends GenericConversionService
 			return this.printer.print(source, LocaleContextHolder.getLocale());
 		}
 
-		private @Nullable Class<?> resolvePrinterObjectType(Printer<?> printer) {
+		private Class<?> resolvePrinterObjectType(Printer<?> printer) {
 			return GenericTypeResolver.resolveTypeArgument(printer.getClass(), Printer.class);
 		}
 
@@ -205,7 +203,7 @@ public class FormattingConversionService extends GenericConversionService
 		}
 
 		@Override
-		public @Nullable Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 			String text = (String) source;
 			if (!StringUtils.hasText(text)) {
 				return null;
@@ -263,7 +261,7 @@ public class FormattingConversionService extends GenericConversionService
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public @Nullable Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 			Annotation ann = sourceType.getAnnotation(this.annotationType);
 			if (ann == null) {
 				throw new IllegalStateException(
@@ -317,7 +315,7 @@ public class FormattingConversionService extends GenericConversionService
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public @Nullable Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
 			Annotation ann = targetType.getAnnotation(this.annotationType);
 			if (ann == null) {
 				throw new IllegalStateException(
@@ -362,7 +360,7 @@ public class FormattingConversionService extends GenericConversionService
 		}
 
 		@Override
-		public boolean equals(@Nullable Object other) {
+		public boolean equals(Object other) {
 			return (this == other || (other instanceof AnnotationConverterKey that &&
 					this.fieldType == that.fieldType && this.annotation.equals(that.annotation)));
 		}

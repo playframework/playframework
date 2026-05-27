@@ -20,8 +20,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.StringJoiner;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ObjectUtils;
 
@@ -74,7 +72,7 @@ public class PropertyBatchUpdateException extends BeansException {
 	/**
 	 * Return the exception for this field, or {@code null} if there isn't any.
 	 */
-	public @Nullable PropertyAccessException getPropertyAccessException(String propertyName) {
+	public PropertyAccessException getPropertyAccessException(String propertyName) {
 		for (PropertyAccessException pae : this.propertyAccessExceptions) {
 			if (ObjectUtils.nullSafeEquals(propertyName, pae.getPropertyName())) {
 				return pae;
@@ -130,7 +128,7 @@ public class PropertyBatchUpdateException extends BeansException {
 	}
 
 	@Override
-	public boolean contains(@Nullable Class<?> exType) {
+	public boolean contains(Class<?> exType) {
 		if (exType == null) {
 			return false;
 		}

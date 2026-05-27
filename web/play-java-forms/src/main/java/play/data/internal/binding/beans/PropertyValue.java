@@ -18,8 +18,6 @@ package play.data.internal.binding.beans;
 
 import java.io.Serializable;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ObjectUtils;
 
@@ -45,19 +43,19 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 
 	private final String name;
 
-	private final @Nullable Object value;
+	private final Object value;
 
 	private boolean optional = false;
 
 	private boolean converted = false;
 
-	private @Nullable Object convertedValue;
+	private Object convertedValue;
 
 	/** Package-visible field that indicates whether conversion is necessary. */
-	volatile @Nullable Boolean conversionNecessary;
+	volatile Boolean conversionNecessary;
 
 	/** Package-visible field for caching the resolved property path tokens. */
-	transient volatile @Nullable Object resolvedTokens;
+	transient volatile Object resolvedTokens;
 
 
 	/**
@@ -65,7 +63,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 * @param name the name of the property (never {@code null})
 	 * @param value the value of the property (possibly before type conversion)
 	 */
-	public PropertyValue(String name, @Nullable Object value) {
+	public PropertyValue(String name, Object value) {
 		Assert.notNull(name, "Name must not be null");
 		this.name = name;
 		this.value = value;
@@ -94,7 +92,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 * @param original the PropertyValue to link to (never {@code null})
 	 * @param newValue the new value to apply
 	 */
-	public PropertyValue(PropertyValue original, @Nullable Object newValue) {
+	public PropertyValue(PropertyValue original, Object newValue) {
 		Assert.notNull(original, "Original must not be null");
 		this.name = original.getName();
 		this.value = newValue;
@@ -119,7 +117,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 * It is the responsibility of the BeanWrapper implementation to
 	 * perform type conversion.
 	 */
-	public @Nullable Object getValue() {
+	public Object getValue() {
 		return this.value;
 	}
 
@@ -168,7 +166,7 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 * Set the converted value of this property value,
 	 * after processed type conversion.
 	 */
-	public synchronized void setConvertedValue(@Nullable Object value) {
+	public synchronized void setConvertedValue(Object value) {
 		this.converted = true;
 		this.convertedValue = value;
 	}
@@ -177,13 +175,13 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	 * Return the converted value of this property value,
 	 * after processed type conversion.
 	 */
-	public synchronized @Nullable Object getConvertedValue() {
+	public synchronized Object getConvertedValue() {
 		return this.convertedValue;
 	}
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof PropertyValue that &&
 				this.name.equals(that.name) &&
 				ObjectUtils.nullSafeEquals(this.value, that.value) &&

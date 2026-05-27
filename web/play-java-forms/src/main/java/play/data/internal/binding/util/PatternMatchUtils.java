@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.util;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.lang.Contract;
 
 /**
@@ -39,7 +37,7 @@ public abstract class PatternMatchUtils {
 	 * @return whether the String matches the given pattern
 	 */
 	@Contract("null, _ -> false; _, null -> false")
-	public static boolean simpleMatch(@Nullable String pattern, @Nullable String str) {
+	public static boolean simpleMatch(String pattern, String str) {
 		return simpleMatch(pattern, str, false);
 	}
 
@@ -48,11 +46,11 @@ public abstract class PatternMatchUtils {
 	 * @since 6.1.20
 	 */
 	@Contract("null, _ -> false; _, null -> false")
-	public static boolean simpleMatchIgnoreCase(@Nullable String pattern, @Nullable String str) {
+	public static boolean simpleMatchIgnoreCase(String pattern, String str) {
 		return simpleMatch(pattern, str, true);
 	}
 
-	private static boolean simpleMatch(@Nullable String pattern, @Nullable String str, boolean ignoreCase) {
+	private static boolean simpleMatch(String pattern, String str, boolean ignoreCase) {
 		if (pattern == null || str == null) {
 			return false;
 		}
@@ -118,7 +116,7 @@ public abstract class PatternMatchUtils {
 	 * @return whether the String matches any of the given patterns
 	 */
 	@Contract("null, _ -> false; _, null -> false")
-	public static boolean simpleMatch(String @Nullable [] patterns, @Nullable String str) {
+	public static boolean simpleMatch(String [] patterns, String str) {
 		if (patterns != null) {
 			for (String pattern : patterns) {
 				if (simpleMatch(pattern, str)) {
@@ -134,7 +132,7 @@ public abstract class PatternMatchUtils {
 	 * @since 6.1.20
 	 */
 	@Contract("null, _ -> false; _, null -> false")
-	public static boolean simpleMatchIgnoreCase(String @Nullable [] patterns, @Nullable String str) {
+	public static boolean simpleMatchIgnoreCase(String [] patterns, String str) {
 		if (patterns != null) {
 			for (String pattern : patterns) {
 				if (simpleMatch(pattern, str, true)) {

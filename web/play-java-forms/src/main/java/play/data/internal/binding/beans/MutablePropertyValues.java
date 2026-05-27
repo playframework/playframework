@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Stream;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.StringUtils;
 
 /**
@@ -49,7 +47,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 
 	private final List<PropertyValue> propertyValueList;
 
-	private @Nullable Set<String> processedProperties;
+	private Set<String> processedProperties;
 
 	private volatile boolean converted;
 
@@ -70,7 +68,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * @param original the PropertyValues to copy
 	 * @see #addPropertyValues(PropertyValues)
 	 */
-	public MutablePropertyValues(@Nullable PropertyValues original) {
+	public MutablePropertyValues(PropertyValues original) {
 		// We can optimize this because it's all new:
 		// There is no replacement of existing property values.
 		if (original != null) {
@@ -90,7 +88,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * @param original a Map with property values keyed by property name Strings
 	 * @see #addPropertyValues(Map)
 	 */
-	public MutablePropertyValues(@Nullable Map<?, ?> original) {
+	public MutablePropertyValues(Map<?, ?> original) {
 		// We can optimize this because it's all new:
 		// There is no replacement of existing property values.
 		if (original != null) {
@@ -110,7 +108,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * It is not intended for typical programmatic use.
 	 * @param propertyValueList a List of PropertyValue objects
 	 */
-	public MutablePropertyValues(@Nullable List<PropertyValue> propertyValueList) {
+	public MutablePropertyValues(List<PropertyValue> propertyValueList) {
 		this.propertyValueList =
 				(propertyValueList != null ? propertyValueList : new ArrayList<>());
 	}
@@ -140,7 +138,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * @param other the PropertyValues to copy
 	 * @return this in order to allow for adding multiple property values in a chain
 	 */
-	public MutablePropertyValues addPropertyValues(@Nullable PropertyValues other) {
+	public MutablePropertyValues addPropertyValues(PropertyValues other) {
 		if (other != null) {
 			PropertyValue[] pvs = other.getPropertyValues();
 			for (PropertyValue pv : pvs) {
@@ -156,7 +154,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * which must be a String
 	 * @return this in order to allow for adding multiple property values in a chain
 	 */
-	public MutablePropertyValues addPropertyValues(@Nullable Map<?, ?> other) {
+	public MutablePropertyValues addPropertyValues(Map<?, ?> other) {
 		if (other != null) {
 			other.forEach((attrName, attrValue) -> addPropertyValue(
 					new PropertyValue(attrName.toString(), attrValue)));
@@ -203,7 +201,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * @param propertyValue value of the property
 	 * @return this in order to allow for adding multiple property values in a chain
 	 */
-	public MutablePropertyValues add(String propertyName, @Nullable Object propertyValue) {
+	public MutablePropertyValues add(String propertyName, Object propertyValue) {
 		addPropertyValue(new PropertyValue(propertyName, propertyValue));
 		return this;
 	}
@@ -271,7 +269,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	}
 
 	@Override
-	public @Nullable PropertyValue getPropertyValue(String propertyName) {
+	public PropertyValue getPropertyValue(String propertyName) {
 		for (PropertyValue pv : this.propertyValueList) {
 			if (pv.getName().equals(propertyName)) {
 				return pv;
@@ -288,7 +286,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 	 * @see #getPropertyValue(String)
 	 * @see PropertyValue#getValue()
 	 */
-	public @Nullable Object get(String propertyName) {
+	public Object get(String propertyName) {
 		PropertyValue pv = getPropertyValue(propertyName);
 		return (pv != null ? pv.getValue() : null);
 	}
@@ -366,7 +364,7 @@ public class MutablePropertyValues implements PropertyValues, Serializable {
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof MutablePropertyValues that &&
 				this.propertyValueList.equals(that.propertyValueList)));
 	}

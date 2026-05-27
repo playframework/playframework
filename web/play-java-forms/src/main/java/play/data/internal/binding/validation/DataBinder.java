@@ -36,7 +36,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import play.data.internal.binding.beans.BeanInstantiationException;
 import play.data.internal.binding.beans.BeanUtils;
@@ -145,17 +144,17 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	private static final int NO_INDEX = -1;
 
 
-	private @Nullable Object target;
+	private Object target;
 
-	@Nullable ResolvableType targetType;
+	ResolvableType targetType;
 
 	private final String objectName;
 
-	private @Nullable AbstractPropertyBindingResult bindingResult;
+	private AbstractPropertyBindingResult bindingResult;
 
 	private boolean directFieldAccess = false;
 
-	private @Nullable ExtendedTypeConverter typeConverter;
+	private ExtendedTypeConverter typeConverter;
 
 	private boolean declarativeBinding = false;
 
@@ -167,23 +166,23 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 
 	private int autoGrowCollectionLimit = DEFAULT_AUTO_GROW_COLLECTION_LIMIT;
 
-	private String @Nullable [] allowedFields;
+	private String [] allowedFields;
 
-	private String @Nullable [] disallowedFields;
+	private String [] disallowedFields;
 
-	private String @Nullable [] requiredFields;
+	private String [] requiredFields;
 
-	private @Nullable NameResolver nameResolver;
+	private NameResolver nameResolver;
 
-	private @Nullable ConversionService conversionService;
+	private ConversionService conversionService;
 
-	private @Nullable MessageCodesResolver messageCodesResolver;
+	private MessageCodesResolver messageCodesResolver;
 
 	private BindingErrorProcessor bindingErrorProcessor = new DefaultBindingErrorProcessor();
 
 	private final List<Validator> validators = new ArrayList<>();
 
-	private @Nullable Predicate<Validator> excludedValidators;
+	private Predicate<Validator> excludedValidators;
 
 
 	/**
@@ -192,7 +191,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * if the binder is just used to convert a plain parameter value)
 	 * @see #DEFAULT_OBJECT_NAME
 	 */
-	public DataBinder(@Nullable Object target) {
+	public DataBinder(Object target) {
 		this(target, DEFAULT_OBJECT_NAME);
 	}
 
@@ -202,7 +201,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * if the binder is just used to convert a plain parameter value)
 	 * @param objectName the name of the target object
 	 */
-	public DataBinder(@Nullable Object target, String objectName) {
+	public DataBinder(Object target, String objectName) {
 		this.target = ObjectUtils.unwrapOptional(target);
 		this.objectName = objectName;
 	}
@@ -213,7 +212,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * <p>If the target object is {@code null} and {@link #getTargetType()} is set,
 	 * then {@link #construct(ValueResolver)} may be called to create the target.
 	 */
-	public @Nullable Object getTarget() {
+	public Object getTarget() {
 		return this.target;
 	}
 
@@ -240,7 +239,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * Return the {@link #setTargetType configured} type for the target object.
 	 * @since 6.1
 	 */
-	public @Nullable ResolvableType getTargetType() {
+	public ResolvableType getTargetType() {
 		return this.targetType;
 	}
 
@@ -517,7 +516,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @see #setDisallowedFields
 	 * @see #isAllowed(String)
 	 */
-	public void setAllowedFields(String @Nullable ... allowedFields) {
+	public void setAllowedFields(String ... allowedFields) {
 		this.allowedFields = PropertyAccessorUtils.canonicalPropertyNames(allowedFields);
 	}
 
@@ -526,7 +525,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @return array of allowed field patterns
 	 * @see #setAllowedFields(String...)
 	 */
-	public String @Nullable [] getAllowedFields() {
+	public String [] getAllowedFields() {
 		return this.allowedFields;
 	}
 
@@ -553,7 +552,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @see #setAllowedFields
 	 * @see #isAllowed(String)
 	 */
-	public void setDisallowedFields(String @Nullable ... disallowedFields) {
+	public void setDisallowedFields(String ... disallowedFields) {
 		if (disallowedFields == null) {
 			this.disallowedFields = null;
 		}
@@ -571,7 +570,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @return array of disallowed field patterns
 	 * @see #setDisallowedFields(String...)
 	 */
-	public String @Nullable [] getDisallowedFields() {
+	public String [] getDisallowedFields() {
 		return this.disallowedFields;
 	}
 
@@ -588,7 +587,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @see #setBindingErrorProcessor
 	 * @see DefaultBindingErrorProcessor#MISSING_FIELD_ERROR_CODE
 	 */
-	public void setRequiredFields(String @Nullable ... requiredFields) {
+	public void setRequiredFields(String ... requiredFields) {
 		this.requiredFields = PropertyAccessorUtils.canonicalPropertyNames(requiredFields);
 		if (logger.isDebugEnabled()) {
 			logger.debug("DataBinder requires binding of required fields [" +
@@ -600,7 +599,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * Return the fields that are required for each binding process.
 	 * @return array of field names
 	 */
-	public String @Nullable [] getRequiredFields() {
+	public String [] getRequiredFields() {
 		return this.requiredFields;
 	}
 
@@ -621,7 +620,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * constructor parameters.
 	 * @since 6.1
 	 */
-	public @Nullable NameResolver getNameResolver() {
+	public NameResolver getNameResolver() {
 		return this.nameResolver;
 	}
 
@@ -632,7 +631,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @see BeanPropertyBindingResult#setMessageCodesResolver
 	 * @see DefaultMessageCodesResolver
 	 */
-	public void setMessageCodesResolver(@Nullable MessageCodesResolver messageCodesResolver) {
+	public void setMessageCodesResolver(MessageCodesResolver messageCodesResolver) {
 		Assert.state(this.messageCodesResolver == null, "DataBinder is already initialized with MessageCodesResolver");
 		this.messageCodesResolver = messageCodesResolver;
 		if (this.bindingResult != null && messageCodesResolver != null) {
@@ -663,7 +662,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @see #addValidators(Validator...)
 	 * @see #replaceValidators(Validator...)
 	 */
-	public void setValidator(@Nullable Validator validator) {
+	public void setValidator(Validator validator) {
 		assertValidators(validator);
 		this.validators.clear();
 		if (validator != null) {
@@ -671,7 +670,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		}
 	}
 
-	private void assertValidators(@Nullable Validator... validators) {
+	private void assertValidators(Validator... validators) {
 		Object target = getTarget();
 		for (Validator validator : validators) {
 			if (validator != null && (target != null && !validator.supports(target.getClass()))) {
@@ -712,7 +711,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	/**
 	 * Return the primary Validator to apply after each binding step, if any.
 	 */
-	public @Nullable Validator getValidator() {
+	public Validator getValidator() {
 		return (!this.validators.isEmpty() ? this.validators.get(0) : null);
 	}
 
@@ -744,7 +743,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * Specify a {@link ConversionService} to use for converting
 	 * property values, as an alternative to JavaBeans PropertyEditors.
 	 */
-	public void setConversionService(@Nullable ConversionService conversionService) {
+	public void setConversionService(ConversionService conversionService) {
 		Assert.state(this.conversionService == null, "DataBinder is already initialized with ConversionService");
 		this.conversionService = conversionService;
 		if (this.bindingResult != null && conversionService != null) {
@@ -755,7 +754,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	/**
 	 * Return the associated ConversionService, if any.
 	 */
-	public @Nullable ConversionService getConversionService() {
+	public ConversionService getConversionService() {
 		return this.conversionService;
 	}
 
@@ -823,37 +822,37 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	}
 
 	@Override
-	public void registerCustomEditor(@Nullable Class<?> requiredType, @Nullable String field, PropertyEditor propertyEditor) {
+	public void registerCustomEditor(Class<?> requiredType, String field, PropertyEditor propertyEditor) {
 		getPropertyEditorRegistry().registerCustomEditor(requiredType, field, propertyEditor);
 	}
 
 	@Override
-	public @Nullable PropertyEditor findCustomEditor(@Nullable Class<?> requiredType, @Nullable String propertyPath) {
+	public PropertyEditor findCustomEditor(Class<?> requiredType, String propertyPath) {
 		return getPropertyEditorRegistry().findCustomEditor(requiredType, propertyPath);
 	}
 
 	@Override
-	public <T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType) throws TypeMismatchException {
+	public <T> T convertIfNecessary(Object value, Class<T> requiredType) throws TypeMismatchException {
 		return getTypeConverter().convertIfNecessary(value, requiredType);
 	}
 
 	@Override
-	public <T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
-			@Nullable MethodParameter methodParam) throws TypeMismatchException {
+	public <T> T convertIfNecessary(Object value, Class<T> requiredType,
+			MethodParameter methodParam) throws TypeMismatchException {
 
 		return getTypeConverter().convertIfNecessary(value, requiredType, methodParam);
 	}
 
 	@Override
-	public <T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType, @Nullable Field field)
+	public <T> T convertIfNecessary(Object value, Class<T> requiredType, Field field)
 			throws TypeMismatchException {
 
 		return getTypeConverter().convertIfNecessary(value, requiredType, field);
 	}
 
 	@Override
-	public <T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
-			@Nullable TypeDescriptor typeDescriptor) throws TypeMismatchException {
+	public <T> T convertIfNecessary(Object value, Class<T> requiredType,
+			TypeDescriptor typeDescriptor) throws TypeMismatchException {
 
 		return getTypeConverter().convertIfNecessary(value, requiredType, typeDescriptor);
 	}
@@ -892,7 +891,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		}
 	}
 
-	private @Nullable Object createObject(ResolvableType objectType, String nestedPath, ValueResolver valueResolver) {
+	private Object createObject(ResolvableType objectType, String nestedPath, ValueResolver valueResolver) {
 		Class<?> clazz = objectType.resolve();
 		boolean isOptional = (clazz == Optional.class);
 		clazz = (isOptional ? objectType.resolveGeneric(0) : clazz);
@@ -910,9 +909,9 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		}
 		else {
 			// A single data class constructor -> resolve constructor arguments from request parameters.
-			@Nullable String[] paramNames = BeanUtils.getParameterNames(ctor);
+			String[] paramNames = BeanUtils.getParameterNames(ctor);
 			Class<?>[] paramTypes = ctor.getParameterTypes();
-			@Nullable Object[] args = new Object[paramTypes.length];
+			Object[] args = new Object[paramTypes.length];
 			Set<String> failedParamNames = new HashSet<>(4);
 
 			for (int i = 0; i < paramNames.length; i++) {
@@ -1021,7 +1020,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		return false;
 	}
 
-	private @Nullable List<?> createList(
+	private List<?> createList(
 			String paramPath, Class<?> paramType, ResolvableType type, ValueResolver valueResolver) {
 
 		ResolvableType elementType = type.getNested(2);
@@ -1046,7 +1045,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		return list;
 	}
 
-	private <V> @Nullable Map<String, V> createMap(
+	private <V> Map<String, V> createMap(
 			String paramPath, Class<?> paramType, ResolvableType type, ValueResolver valueResolver) {
 
 		ResolvableType elementType = type.getNested(2);
@@ -1073,7 +1072,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <V> @Nullable V @Nullable [] createArray(
+	private <V> V [] createArray(
 			String paramPath, Class<?> paramType, ResolvableType type, ValueResolver valueResolver) {
 
 		ResolvableType elementType = type.getNested(2);
@@ -1084,7 +1083,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 
 		int lastIndex = Math.max(indexes.last(), 0);
 		int size = (lastIndex < this.autoGrowCollectionLimit ? lastIndex + 1: 0);
-		@Nullable V[] array = (V[]) Array.newInstance(elementType.resolve(), size);
+		V[] array = (V[]) Array.newInstance(elementType.resolve(), size);
 
 		for (int index : indexes) {
 			String indexedPath = paramPath + "[" + (index != NO_INDEX ? index : "") + "]";
@@ -1095,7 +1094,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		return array;
 	}
 
-	private static @Nullable SortedSet<Integer> getIndexes(String paramPath, ValueResolver valueResolver) {
+	private static SortedSet<Integer> getIndexes(String paramPath, ValueResolver valueResolver) {
 		SortedSet<Integer> indexes = null;
 		for (String name : valueResolver.getNames()) {
 			if (name.startsWith(paramPath + "[")) {
@@ -1119,7 +1118,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <V> @Nullable V createIndexedValue(
+	private <V> V createIndexedValue(
 			String paramPath, Class<?> containerType, ResolvableType elementType,
 			String indexedPath, ValueResolver valueResolver) {
 
@@ -1154,7 +1153,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	}
 
 	private void handleTypeMismatchException(
-			TypeMismatchException ex, String paramPath, Class<?> paramType, @Nullable Object value) {
+			TypeMismatchException ex, String paramPath, Class<?> paramType, Object value) {
 
 		ex.initPropertyName(paramPath);
 		getBindingResult().recordFieldValue(paramPath, paramType, value);
@@ -1162,7 +1161,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	}
 
 	private void validateConstructorArgument(
-			Class<?> constructorClass, String nestedPath, @Nullable String name, @Nullable Object value) {
+			Class<?> constructorClass, String nestedPath, String name, Object value) {
 
 		Object[] hints = null;
 		if (this.targetType != null && this.targetType.getSource() instanceof MethodParameter parameter) {
@@ -1429,7 +1428,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		 * if unresolved. For constructor parameters, the name is determined via
 		 * {@link play.data.internal.binding.core.DefaultParameterNameDiscoverer} if unresolved.
 		 */
-		@Nullable String resolveName(MethodParameter parameter);
+		String resolveName(MethodParameter parameter);
 	}
 
 
@@ -1446,7 +1445,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		 * @param type the target type, based on the constructor parameter type
 		 * @return the resolved value, possibly {@code null} if none found
 		 */
-		@Nullable Object resolveValue(String name, Class<?> type);
+		Object resolveValue(String name, Class<?> type);
 
 		/**
 		 * Return the names of all property values.

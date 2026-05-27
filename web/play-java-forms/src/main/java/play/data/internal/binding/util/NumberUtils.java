@@ -23,8 +23,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Miscellaneous utility methods for number conversion and parsing.
  * <p>Mainly for internal use within the framework; consider Apache's
@@ -238,7 +236,7 @@ public abstract class NumberUtils {
 	 */
 	@SuppressWarnings("NullAway") // Dataflow analysis limitation
 	public static <T extends Number> T parseNumber(
-			String text, Class<T> targetClass, @Nullable NumberFormat numberFormat) {
+			String text, Class<T> targetClass, NumberFormat numberFormat) {
 
 		if (numberFormat != null) {
 			Assert.notNull(text, "Text must not be null");

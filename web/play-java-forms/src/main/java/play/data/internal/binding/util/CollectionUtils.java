@@ -34,8 +34,6 @@ import java.util.SortedSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.lang.Contract;
 
 /**
@@ -65,7 +63,7 @@ public abstract class CollectionUtils {
 	 * @return whether the given Collection is empty
 	 */
 	@Contract("null -> true")
-	public static boolean isEmpty(@Nullable Collection<? extends @Nullable Object> collection) {
+	public static boolean isEmpty(Collection<? extends Object> collection) {
 		return (collection == null || collection.isEmpty());
 	}
 
@@ -76,7 +74,7 @@ public abstract class CollectionUtils {
 	 * @return whether the given Map is empty
 	 */
 	@Contract("null -> true")
-	public static boolean isEmpty(@Nullable Map<?, ? extends @Nullable Object> map) {
+	public static boolean isEmpty(Map<?, ? extends Object> map) {
 		return (map == null || map.isEmpty());
 	}
 
@@ -110,7 +108,7 @@ public abstract class CollectionUtils {
 	 * @since 5.3
 	 * @see #newHashMap(int)
 	 */
-	public static <K, V extends @Nullable Object> LinkedHashMap<K, V> newLinkedHashMap(int expectedSize) {
+	public static <K, V extends Object> LinkedHashMap<K, V> newLinkedHashMap(int expectedSize) {
 		return new LinkedHashMap<>(computeInitialCapacity(expectedSize), DEFAULT_LOAD_FACTOR);
 	}
 
@@ -156,7 +154,7 @@ public abstract class CollectionUtils {
 	 * @see ObjectUtils#toObjectArray(Object)
 	 * @see Arrays#asList(Object[])
 	 */
-	public static List<?> arrayToList(@Nullable Object source) {
+	public static List<?> arrayToList(Object source) {
 		return Arrays.asList(ObjectUtils.toObjectArray(source));
 	}
 
@@ -166,7 +164,7 @@ public abstract class CollectionUtils {
 	 * @param collection the target Collection to merge the array into
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E> void mergeArrayIntoCollection(@Nullable Object array, Collection<E> collection) {
+	public static <E> void mergeArrayIntoCollection(Object array, Collection<E> collection) {
 		Object[] arr = ObjectUtils.toObjectArray(array);
 		Collections.addAll(collection, (E[])arr);
 	}
@@ -180,7 +178,7 @@ public abstract class CollectionUtils {
 	 * @param map the target Map to merge the properties into
 	 */
 	@SuppressWarnings("unchecked")
-	public static <K, V> void mergePropertiesIntoMap(@Nullable Properties props, Map<K, V> map) {
+	public static <K, V> void mergePropertiesIntoMap(Properties props, Map<K, V> map) {
 		if (props != null) {
 			for (Enumeration<?> en = props.propertyNames(); en.hasMoreElements();) {
 				String key = (String) en.nextElement();
@@ -202,8 +200,8 @@ public abstract class CollectionUtils {
 	 * @return {@code true} if found, {@code false} otherwise
 	 */
 	@Contract("null, _ -> false")
-	public static boolean contains(@Nullable Iterator<? extends @Nullable Object> iterator,
-			@Nullable Object element) {
+	public static boolean contains(Iterator<? extends Object> iterator,
+			Object element) {
 
 		if (iterator != null) {
 			while (iterator.hasNext()) {
@@ -223,8 +221,8 @@ public abstract class CollectionUtils {
 	 * @return {@code true} if found, {@code false} otherwise
 	 */
 	@Contract("null, _ -> false")
-	public static boolean contains(@Nullable Enumeration<? extends @Nullable Object> enumeration,
-			@Nullable Object element) {
+	public static boolean contains(Enumeration<? extends Object> enumeration,
+			Object element) {
 
 		if (enumeration != null) {
 			while (enumeration.hasMoreElements()) {
@@ -246,8 +244,8 @@ public abstract class CollectionUtils {
 	 * @return {@code true} if found, {@code false} otherwise
 	 */
 	@Contract("null, _ -> false")
-	public static boolean containsInstance(@Nullable Collection<? extends @Nullable Object> collection,
-			@Nullable Object element) {
+	public static boolean containsInstance(Collection<? extends Object> collection,
+			Object element) {
 
 		if (collection != null) {
 			for (Object candidate : collection) {
@@ -266,8 +264,8 @@ public abstract class CollectionUtils {
 	 * @param candidates the candidates to search for
 	 * @return whether any of the candidates has been found
 	 */
-	public static boolean containsAny(Collection<? extends @Nullable Object> source,
-			Collection<? extends @Nullable Object> candidates) {
+	public static boolean containsAny(Collection<? extends Object> source,
+			Collection<? extends Object> candidates) {
 
 		if (isEmpty(source) || isEmpty(candidates)) {
 			return false;
@@ -289,7 +287,7 @@ public abstract class CollectionUtils {
 	 * @param candidates the candidates to search for
 	 * @return the first present object, or {@code null} if not found
 	 */
-	public static <E> @Nullable E findFirstMatch(Collection<?> source, Collection<E> candidates) {
+	public static <E> E findFirstMatch(Collection<?> source, Collection<E> candidates) {
 		if (isEmpty(source) || isEmpty(candidates)) {
 			return null;
 		}
@@ -310,7 +308,7 @@ public abstract class CollectionUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	@Contract("null, _ -> null")
-	public static <T> @Nullable T findValueOfType(@Nullable Collection<?> collection, @Nullable Class<T> type) {
+	public static <T> T findValueOfType(Collection<?> collection, Class<T> type) {
 		if (isEmpty(collection)) {
 			return null;
 		}
@@ -336,7 +334,7 @@ public abstract class CollectionUtils {
 	 * @return a value of one of the given types found if there is a clear match,
 	 * or {@code null} if none or more than one such value found
 	 */
-	public static @Nullable Object findValueOfType(Collection<?> collection, Class<?>[] types) {
+	public static Object findValueOfType(Collection<?> collection, Class<?>[] types) {
 		if (isEmpty(collection) || ObjectUtils.isEmpty(types)) {
 			return null;
 		}
@@ -379,7 +377,7 @@ public abstract class CollectionUtils {
 	 * @return the common element type, or {@code null} if no clear
 	 * common type has been found (or the collection was empty)
 	 */
-	public static @Nullable Class<?> findCommonElementType(Collection<?> collection) {
+	public static Class<?> findCommonElementType(Collection<?> collection) {
 		if (isEmpty(collection)) {
 			return null;
 		}
@@ -408,7 +406,7 @@ public abstract class CollectionUtils {
 	 * @see java.util.LinkedHashSet
 	 */
 	@Contract("null -> null")
-	public static <T> @Nullable T firstElement(@Nullable Set<T> set) {
+	public static <T> T firstElement(Set<T> set) {
 		if (isEmpty(set)) {
 			return null;
 		}
@@ -431,7 +429,7 @@ public abstract class CollectionUtils {
 	 * @since 5.2.3
 	 */
 	@Contract("null -> null")
-	public static <T> @Nullable T firstElement(@Nullable List<T> list) {
+	public static <T> T firstElement(List<T> list) {
 		if (isEmpty(list)) {
 			return null;
 		}
@@ -449,7 +447,7 @@ public abstract class CollectionUtils {
 	 * @see java.util.LinkedHashSet
 	 */
 	@Contract("null -> null")
-	public static <T> @Nullable T lastElement(@Nullable Set<T> set) {
+	public static <T> T lastElement(Set<T> set) {
 		if (isEmpty(set)) {
 			return null;
 		}
@@ -473,7 +471,7 @@ public abstract class CollectionUtils {
 	 * @since 5.0.3
 	 */
 	@Contract("null -> null")
-	public static <T> @Nullable T lastElement(@Nullable List<T> list) {
+	public static <T> T lastElement(List<T> list) {
 		if (isEmpty(list)) {
 			return null;
 		}
@@ -498,7 +496,7 @@ public abstract class CollectionUtils {
 	 * @param enumeration the original {@code Enumeration}
 	 * @return the adapted {@code Iterator}
 	 */
-	public static <E> Iterator<E> toIterator(@Nullable Enumeration<E> enumeration) {
+	public static <E> Iterator<E> toIterator(Enumeration<E> enumeration) {
 		return (enumeration != null ? enumeration.asIterator() : Collections.emptyIterator());
 	}
 
@@ -567,8 +565,8 @@ public abstract class CollectionUtils {
 	 * @since 6.2
 	 */
 	public static <K, V> Map<K, V> compositeMap(Map<K,V> first, Map<K,V> second,
-			@Nullable BiFunction<K, V, V> putFunction,
-			@Nullable Consumer<Map<K, V>> putAllFunction) {
+			BiFunction<K, V, V> putFunction,
+			Consumer<Map<K, V>> putAllFunction) {
 
 		return new CompositeMap<>(first, second, putFunction, putAllFunction);
 	}

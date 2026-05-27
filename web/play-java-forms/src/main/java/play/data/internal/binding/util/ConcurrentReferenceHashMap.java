@@ -40,8 +40,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * A {@link ConcurrentHashMap} variant that uses {@link ReferenceType#SOFT soft} or
  * {@linkplain ReferenceType#WEAK weak} references for both {@code keys} and {@code values}.
@@ -105,17 +103,17 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	/**
 	 * Late binding entry set.
 	 */
-	private @Nullable Set<Map.Entry<K, V>> entrySet;
+	private Set<Map.Entry<K, V>> entrySet;
 
 	/**
 	 * Late binding key set.
 	 */
-	private @Nullable Set<K> keySet;
+	private Set<K> keySet;
 
 	/**
 	 * Late binding values collection.
 	 */
-	private @Nullable Collection<V> values;
+	private Collection<V> values;
 
 
 	/**
@@ -234,7 +232,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	 * @param o the object to hash (may be null)
 	 * @return the resulting hash code
 	 */
-	protected int getHash(@Nullable Object o) {
+	protected int getHash(Object o) {
 		int hash = (o != null ? o.hashCode() : 0);
 		hash += (hash << 15) ^ 0xffffcd7d;
 		hash ^= (hash >>> 10);
@@ -246,21 +244,21 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V get(@Nullable Object key) {
+	public V get(Object key) {
 		Reference<K, V> ref = getReference(key, Restructure.WHEN_NECESSARY);
 		Entry<K, V> entry = (ref != null ? ref.get() : null);
 		return (entry != null ? entry.getValue() : null);
 	}
 
 	@Override
-	public @Nullable V getOrDefault(@Nullable Object key, @Nullable V defaultValue) {
+	public V getOrDefault(Object key, V defaultValue) {
 		Reference<K, V> ref = getReference(key, Restructure.WHEN_NECESSARY);
 		Entry<K, V> entry = (ref != null ? ref.get() : null);
 		return (entry != null ? entry.getValue() : defaultValue);
 	}
 
 	@Override
-	public boolean containsKey(@Nullable Object key) {
+	public boolean containsKey(Object key) {
 		Reference<K, V> ref = getReference(key, Restructure.WHEN_NECESSARY);
 		Entry<K, V> entry = (ref != null ? ref.get() : null);
 		return (entry != null && ObjectUtils.nullSafeEquals(entry.getKey(), key));
@@ -273,25 +271,25 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	 * @param restructure types of restructure allowed during this call
 	 * @return the reference, or {@code null} if not found
 	 */
-	protected final @Nullable Reference<K, V> getReference(@Nullable Object key, Restructure restructure) {
+	protected final Reference<K, V> getReference(Object key, Restructure restructure) {
 		int hash = getHash(key);
 		return getSegmentForHash(hash).getReference(key, hash, restructure);
 	}
 
 	@Override
-	public @Nullable V put(@Nullable K key, @Nullable V value) {
+	public V put(K key, V value) {
 		return put(key, value, true);
 	}
 
 	@Override
-	public @Nullable V putIfAbsent(@Nullable K key, @Nullable V value) {
+	public V putIfAbsent(K key, V value) {
 		return put(key, value, false);
 	}
 
-	private @Nullable V put(final @Nullable K key, final @Nullable V value, final boolean overwriteExisting) {
+	private V put(final K key, final V value, final boolean overwriteExisting) {
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.RESIZE) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry, @Nullable Entries<V> entries) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry, Entries<V> entries) {
 				if (entry != null) {
 					V oldValue = entry.getValue();
 					if (overwriteExisting) {
@@ -307,10 +305,10 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V remove(@Nullable Object key) {
+	public V remove(Object key) {
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_AFTER, TaskOption.SKIP_IF_EMPTY) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry) {
 				if (entry != null) {
 					if (ref != null) {
 						ref.release();
@@ -323,10 +321,10 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public boolean remove(@Nullable Object key, final @Nullable Object value) {
+	public boolean remove(Object key, final Object value) {
 		Boolean result = doTask(key, new Task<Boolean>(TaskOption.RESTRUCTURE_AFTER, TaskOption.SKIP_IF_EMPTY) {
 			@Override
-			protected Boolean execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry) {
+			protected Boolean execute(Reference<K, V> ref, Entry<K, V> entry) {
 				if (entry != null && ObjectUtils.nullSafeEquals(entry.getValue(), value)) {
 					if (ref != null) {
 						ref.release();
@@ -340,10 +338,10 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public boolean replace(@Nullable K key, final @Nullable V oldValue, final @Nullable V newValue) {
+	public boolean replace(K key, final V oldValue, final V newValue) {
 		Boolean result = doTask(key, new Task<Boolean>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.SKIP_IF_EMPTY) {
 			@Override
-			protected Boolean execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry) {
+			protected Boolean execute(Reference<K, V> ref, Entry<K, V> entry) {
 				if (entry != null && ObjectUtils.nullSafeEquals(entry.getValue(), oldValue)) {
 					entry.setValue(newValue);
 					return true;
@@ -355,10 +353,10 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V replace(@Nullable K key, final @Nullable V value) {
+	public V replace(K key, final V value) {
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.SKIP_IF_EMPTY) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry) {
 				if (entry != null) {
 					V oldValue = entry.getValue();
 					entry.setValue(value);
@@ -370,7 +368,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V computeIfAbsent(@Nullable K key, Function<@Nullable ? super K, @Nullable ? extends V> mappingFunction) {
+	public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
 		// Avoid locking if entry is present
 		Reference<K, V> ref = getReference(key, Restructure.NEVER);
 		Entry<K, V> entry = (ref != null ? ref.get() : null);
@@ -380,7 +378,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.RESIZE) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry, @Nullable Entries<V> entries) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry, Entries<V> entries) {
 				if (entry != null) {
 					return entry.getValue();
 				}
@@ -396,7 +394,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V computeIfPresent(@Nullable K key, BiFunction<@Nullable ? super K, @Nullable ? super V, @Nullable ? extends V> remappingFunction) {
+	public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
 		// Avoid locking if entry is absent
 		Reference<K, V> ref = getReference(key, Restructure.NEVER);
 		Entry<K, V> entry = (ref != null ? ref.get() : null);
@@ -406,7 +404,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.RESIZE) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry, @Nullable Entries<V> entries) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry, Entries<V> entries) {
 				if (entry != null) {
 					V oldValue = entry.getValue();
 					V value = remappingFunction.apply(key, oldValue);
@@ -428,10 +426,10 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V compute(@Nullable K key, BiFunction<@Nullable ? super K, @Nullable ? super V, @Nullable ? extends V> remappingFunction) {
+	public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.RESIZE) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry, @Nullable Entries<V> entries) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry, Entries<V> entries) {
 				V oldValue = null;
 				if (entry != null) {
 					oldValue = entry.getValue();
@@ -461,10 +459,10 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	}
 
 	@Override
-	public @Nullable V merge(@Nullable K key, @Nullable V value, BiFunction<@Nullable ? super V, @Nullable ? super V, @Nullable ? extends V> remappingFunction) {
+	public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
 		return doTask(key, new Task<V>(TaskOption.RESTRUCTURE_BEFORE, TaskOption.RESIZE) {
 			@Override
-			protected @Nullable V execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry, @Nullable Entries<V> entries) {
+			protected V execute(Reference<K, V> ref, Entry<K, V> entry, Entries<V> entries) {
 				if (entry != null) {
 					V oldValue = entry.getValue();
 					V newValue = remappingFunction.apply(oldValue, value);
@@ -567,7 +565,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		return values;
 	}
 
-	private <T> @Nullable T doTask(@Nullable Object key, Task<T> task) {
+	private <T> T doTask(Object key, Task<T> task) {
 		int hash = getHash(key);
 		return getSegmentForHash(hash).doTask(hash, key, task);
 	}
@@ -621,7 +619,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * Array of references indexed using the low order bits from the hash.
 		 * This property should only be set along with {@code resizeThreshold}.
 		 */
-		private volatile @Nullable Reference<K, V>[] references;
+		private volatile Reference<K, V>[] references;
 
 		/**
 		 * The total number of references contained in this segment. This includes chained
@@ -642,7 +640,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 			this.resizeThreshold = resizeThreshold;
 		}
 
-		public @Nullable Reference<K, V> getReference(@Nullable Object key, int hash, Restructure restructure) {
+		public Reference<K, V> getReference(Object key, int hash, Restructure restructure) {
 			if (restructure == Restructure.WHEN_NECESSARY) {
 				restructureIfNecessary(false);
 			}
@@ -650,7 +648,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 				return null;
 			}
 			// Use a local copy to protect against other threads writing
-			@Nullable Reference<K, V>[] references = this.references;
+			Reference<K, V>[] references = this.references;
 			int index = getIndex(hash, references);
 			Reference<K, V> head = references[index];
 			return findInChain(head, key, hash);
@@ -664,7 +662,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * @param task the update operation
 		 * @return the result of the operation
 		 */
-		private <T> @Nullable T doTask(final int hash, final @Nullable Object key, final Task<T> task) {
+		private <T> T doTask(final int hash, final Object key, final Task<T> task) {
 			boolean resize = task.hasOption(TaskOption.RESIZE);
 			if (task.hasOption(TaskOption.RESTRUCTURE_BEFORE)) {
 				restructureIfNecessary(resize);
@@ -728,7 +726,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 			}
 		}
 
-		private void restructure(boolean allowResize, @Nullable Reference<K, V> ref) {
+		private void restructure(boolean allowResize, Reference<K, V> ref) {
 			lock();
 			try {
 				int expectedCount = this.count.get();
@@ -805,7 +803,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 			}
 		}
 
-		private @Nullable Reference<K, V> findInChain(@Nullable Reference<K, V> ref, @Nullable Object key, int hash) {
+		private Reference<K, V> findInChain(Reference<K, V> ref, Object key, int hash) {
 			Reference<K, V> currRef = ref;
 			while (currRef != null) {
 				if (currRef.getHash() == hash) {
@@ -827,7 +825,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 			return new Reference[size];
 		}
 
-		private int getIndex(int hash, @Nullable Reference<K, V>[] references) {
+		private int getIndex(int hash, Reference<K, V>[] references) {
 			return (hash & (references.length - 1));
 		}
 
@@ -858,7 +856,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		/**
 		 * Return the referenced entry, or {@code null} if the entry is no longer available.
 		 */
-		@Nullable Entry<K, V> get();
+		Entry<K, V> get();
 
 		/**
 		 * Return the hash for the reference.
@@ -868,7 +866,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		/**
 		 * Return the next reference in the chain, or {@code null} if none.
 		 */
-		@Nullable Reference<K, V> getNext();
+		Reference<K, V> getNext();
 
 		/**
 		 * Release this entry and ensure that it will be returned from
@@ -885,34 +883,34 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 	 */
 	protected static final class Entry<K, V> implements Map.Entry<K, V> {
 
-		private final @Nullable K key;
+		private final K key;
 
-		private volatile @Nullable V value;
+		private volatile V value;
 
-		public Entry(@Nullable K key, @Nullable V value) {
+		public Entry(K key, V value) {
 			this.key = key;
 			this.value = value;
 		}
 
 		@Override
-		public @Nullable K getKey() {
+		public K getKey() {
 			return this.key;
 		}
 
 		@Override
-		public @Nullable V getValue() {
+		public V getValue() {
 			return this.value;
 		}
 
 		@Override
-		public @Nullable V setValue(@Nullable V value) {
+		public V setValue(V value) {
 			V previous = this.value;
 			this.value = value;
 			return previous;
 		}
 
 		@Override
-		public boolean equals(@Nullable Object other) {
+		public boolean equals(Object other) {
 			return (this == other || (other instanceof Map.Entry<?, ?> that &&
 					ObjectUtils.nullSafeEquals(getKey(), that.getKey()) &&
 					ObjectUtils.nullSafeEquals(getValue(), that.getValue())));
@@ -953,7 +951,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * @return the result of the task
 		 * @see #execute(Reference, Entry)
 		 */
-		protected @Nullable T execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry, @Nullable Entries<V> entries) {
+		protected T execute(Reference<K, V> ref, Entry<K, V> entry, Entries<V> entries) {
 			return execute(ref, entry);
 		}
 
@@ -964,7 +962,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * @return the result of the task
 		 * @see #execute(Reference, Entry, Entries)
 		 */
-		protected @Nullable T execute(@Nullable Reference<K, V> ref, @Nullable Entry<K, V> entry) {
+		protected T execute(Reference<K, V> ref, Entry<K, V> entry) {
 			return null;
 		}
 	}
@@ -988,7 +986,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * Add a new entry with the specified value.
 		 * @param value the value to add
 		 */
-		void add(@Nullable V value);
+		void add(V value);
 	}
 
 
@@ -1003,7 +1001,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		public boolean contains(@Nullable Object o) {
+		public boolean contains(Object o) {
 			if (o instanceof Map.Entry<?, ?> entry) {
 				Reference<K, V> ref = ConcurrentReferenceHashMap.this.getReference(entry.getKey(), Restructure.NEVER);
 				Entry<K, V> otherEntry = (ref != null ? ref.get() : null);
@@ -1170,13 +1168,13 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 
 		private int referenceIndex;
 
-		private @Nullable Reference<K, V> @Nullable [] references;
+		private Reference<K, V> [] references;
 
-		private @Nullable Reference<K, V> reference;
+		private Reference<K, V> reference;
 
-		private @Nullable Entry<K, V> next;
+		private Entry<K, V> next;
 
-		private @Nullable Entry<K, V> last;
+		private Entry<K, V> last;
 
 		public EntryIterator() {
 			moveToNextSegment();
@@ -1267,7 +1265,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * @param next the next reference in the chain, or {@code null} if none
 		 * @return a new {@link Reference}
 		 */
-		public Reference<K, V> createReference(Entry<K, V> entry, int hash, @Nullable Reference<K, V> next) {
+		public Reference<K, V> createReference(Entry<K, V> entry, int hash, Reference<K, V> next) {
 			if (ConcurrentReferenceHashMap.this.referenceType == ReferenceType.WEAK) {
 				return new WeakEntryReference<>(entry, hash, next, this.queue);
 			}
@@ -1282,7 +1280,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		 * @return a reference to purge or {@code null}
 		 */
 		@SuppressWarnings("unchecked")
-		public @Nullable Reference<K, V> pollForPurge() {
+		public Reference<K, V> pollForPurge() {
 			return (Reference<K, V>) this.queue.poll();
 		}
 	}
@@ -1295,9 +1293,9 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 
 		private final int hash;
 
-		private final @Nullable Reference<K, V> nextReference;
+		private final Reference<K, V> nextReference;
 
-		public SoftEntryReference(Entry<K, V> entry, int hash, @Nullable Reference<K, V> next,
+		public SoftEntryReference(Entry<K, V> entry, int hash, Reference<K, V> next,
 				ReferenceQueue<Entry<K, V>> queue) {
 
 			super(entry, queue);
@@ -1311,7 +1309,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		public @Nullable Reference<K, V> getNext() {
+		public Reference<K, V> getNext() {
 			return this.nextReference;
 		}
 
@@ -1329,9 +1327,9 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 
 		private final int hash;
 
-		private final @Nullable Reference<K, V> nextReference;
+		private final Reference<K, V> nextReference;
 
-		public WeakEntryReference(Entry<K, V> entry, int hash, @Nullable Reference<K, V> next,
+		public WeakEntryReference(Entry<K, V> entry, int hash, Reference<K, V> next,
 				ReferenceQueue<Entry<K, V>> queue) {
 
 			super(entry, queue);
@@ -1345,7 +1343,7 @@ public class ConcurrentReferenceHashMap<K, V> extends AbstractMap<K, V> implemen
 		}
 
 		@Override
-		public @Nullable Reference<K, V> getNext() {
+		public Reference<K, V> getNext() {
 			return this.nextReference;
 		}
 

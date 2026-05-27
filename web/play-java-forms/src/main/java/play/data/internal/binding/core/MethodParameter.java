@@ -38,7 +38,6 @@ import kotlin.Unit;
 import kotlin.reflect.KFunction;
 import kotlin.reflect.KParameter;
 import kotlin.reflect.jvm.ReflectJvmMapping;
-import org.jspecify.annotations.Nullable;
 
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ClassUtils;
@@ -73,30 +72,30 @@ public class MethodParameter {
 
 	private final int parameterIndex;
 
-	private volatile @Nullable Parameter parameter;
+	private volatile Parameter parameter;
 
 	private int nestingLevel;
 
 	/** Map from Integer level to Integer type index. */
-	@Nullable Map<Integer, Integer> typeIndexesPerLevel;
+	Map<Integer, Integer> typeIndexesPerLevel;
 
 	/** The containing class. Could also be supplied by overriding {@link #getContainingClass()} */
-	private volatile @Nullable Class<?> containingClass;
+	private volatile Class<?> containingClass;
 
-	private volatile @Nullable Class<?> parameterType;
+	private volatile Class<?> parameterType;
 
-	private volatile @Nullable Type genericParameterType;
+	private volatile Type genericParameterType;
 
-	private volatile Annotation @Nullable [] methodAnnotations;
+	private volatile Annotation [] methodAnnotations;
 
-	private volatile Annotation @Nullable [] parameterAnnotations;
+	private volatile Annotation [] parameterAnnotations;
 
-	private volatile @Nullable ParameterNameDiscoverer parameterNameDiscoverer =
+	private volatile ParameterNameDiscoverer parameterNameDiscoverer =
 			DefaultParameterNameDiscoverer.getSharedInstance();
 
-	volatile @Nullable String parameterName;
+	volatile String parameterName;
 
-	private volatile @Nullable MethodParameter nestedMethodParameter;
+	private volatile MethodParameter nestedMethodParameter;
 
 
 	/**
@@ -160,7 +159,7 @@ public class MethodParameter {
 	 * @param containingClass the containing class
 	 * @since 5.2
 	 */
-	MethodParameter(Executable executable, int parameterIndex, @Nullable Class<?> containingClass) {
+	MethodParameter(Executable executable, int parameterIndex, Class<?> containingClass) {
 		Assert.notNull(executable, "Executable must not be null");
 		this.executable = executable;
 		this.parameterIndex = validateIndex(executable, parameterIndex);
@@ -195,7 +194,7 @@ public class MethodParameter {
 	 * <p>Note: Either Method or Constructor is available.
 	 * @return the Method, or {@code null} if none
 	 */
-	public @Nullable Method getMethod() {
+	public Method getMethod() {
 		return (this.executable instanceof Method method ? method : null);
 	}
 
@@ -204,7 +203,7 @@ public class MethodParameter {
 	 * <p>Note: Either Method or Constructor is available.
 	 * @return the Constructor, or {@code null} if none
 	 */
-	public @Nullable Constructor<?> getConstructor() {
+	public Constructor<?> getConstructor() {
 		return (this.executable instanceof Constructor<?> constructor ? constructor : null);
 	}
 
@@ -327,7 +326,7 @@ public class MethodParameter {
 	 * if none specified (indicating the default type index)
 	 * @see #getNestingLevel()
 	 */
-	public @Nullable Integer getTypeIndexForCurrentLevel() {
+	public Integer getTypeIndexForCurrentLevel() {
 		return getTypeIndexForLevel(this.nestingLevel);
 	}
 
@@ -337,7 +336,7 @@ public class MethodParameter {
 	 * @return the corresponding type index, or {@code null}
 	 * if none specified (indicating the default type index)
 	 */
-	public @Nullable Integer getTypeIndexForLevel(int nestingLevel) {
+	public Integer getTypeIndexForLevel(int nestingLevel) {
 		return getTypeIndexesPerLevel().get(nestingLevel);
 	}
 
@@ -366,7 +365,7 @@ public class MethodParameter {
 	 * @param typeIndex the type index for the new nesting level
 	 * @since 5.2
 	 */
-	public MethodParameter nested(@Nullable Integer typeIndex) {
+	public MethodParameter nested(Integer typeIndex) {
 		MethodParameter nestedParam = this.nestedMethodParameter;
 		if (nestedParam != null && typeIndex == null) {
 			return nestedParam;
@@ -378,7 +377,7 @@ public class MethodParameter {
 		return nestedParam;
 	}
 
-	private MethodParameter nested(int nestingLevel, @Nullable Integer typeIndex) {
+	private MethodParameter nested(int nestingLevel, Integer typeIndex) {
 		MethodParameter copy = clone();
 		copy.nestingLevel = nestingLevel;
 		if (this.typeIndexesPerLevel != null) {
@@ -427,7 +426,7 @@ public class MethodParameter {
 	 * @since 5.2
 	 * @see #getParameterType()
 	 */
-	public MethodParameter withContainingClass(@Nullable Class<?> containingClass) {
+	public MethodParameter withContainingClass(Class<?> containingClass) {
 		MethodParameter result = clone();
 		result.containingClass = containingClass;
 		result.parameterType = null;
@@ -458,7 +457,7 @@ public class MethodParameter {
 	 * Set a resolved (generic) parameter type.
 	 */
 	@Deprecated(since = "5.2")
-	void setParameterType(@Nullable Class<?> parameterType) {
+	void setParameterType(Class<?> parameterType) {
 		this.parameterType = parameterType;
 	}
 
@@ -602,7 +601,7 @@ public class MethodParameter {
 	 * @return the annotation object, or {@code null} if not found
 	 */
 	@SuppressWarnings("unchecked")
-	public <A extends Annotation> @Nullable A getMethodAnnotation(Class<A> annotationType) {
+	public <A extends Annotation> A getMethodAnnotation(Class<A> annotationType) {
 		Annotation[] anns = getMethodAnnotations();
 		for (Annotation ann : anns) {
 			if (annotationType.isInstance(ann)) {
@@ -659,7 +658,7 @@ public class MethodParameter {
 	 * @return the annotation object, or {@code null} if not found
 	 */
 	@SuppressWarnings("unchecked")
-	public <A extends Annotation> @Nullable A getParameterAnnotation(Class<A> annotationType) {
+	public <A extends Annotation> A getParameterAnnotation(Class<A> annotationType) {
 		Annotation[] anns = getParameterAnnotations();
 		for (Annotation ann : anns) {
 			if (annotationType.isInstance(ann)) {
@@ -688,7 +687,7 @@ public class MethodParameter {
 	 * suppress discovery (passing {@code null}).
 	 * @see DefaultParameterNameDiscoverer#getSharedInstance()
 	 */
-	public void initParameterNameDiscovery(@Nullable ParameterNameDiscoverer parameterNameDiscoverer) {
+	public void initParameterNameDiscovery(ParameterNameDiscoverer parameterNameDiscoverer) {
 		this.parameterNameDiscoverer = parameterNameDiscoverer;
 	}
 
@@ -699,13 +698,13 @@ public class MethodParameter {
 	 * {@link #initParameterNameDiscovery ParameterNameDiscoverer}
 	 * has been set to begin with)
 	 */
-	public @Nullable String getParameterName() {
+	public String getParameterName() {
 		if (this.parameterIndex < 0) {
 			return null;
 		}
 		ParameterNameDiscoverer discoverer = this.parameterNameDiscoverer;
 		if (discoverer != null) {
-			@Nullable String[] parameterNames = null;
+			String[] parameterNames = null;
 			if (this.executable instanceof Method method) {
 				parameterNames = discoverer.getParameterNames(method);
 			}
@@ -747,7 +746,7 @@ public class MethodParameter {
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof MethodParameter that &&
 				getContainingClass() == that.getContainingClass() &&
 				ObjectUtils.nullSafeEquals(this.typeIndexesPerLevel, that.typeIndexesPerLevel) &&
@@ -865,7 +864,7 @@ public class MethodParameter {
 	 * @return the corresponding {@code MethodParameter} instance
 	 * @since 6.1
 	 */
-	public static MethodParameter forFieldAwareConstructor(Constructor<?> ctor, int parameterIndex, @Nullable String fieldName) {
+	public static MethodParameter forFieldAwareConstructor(Constructor<?> ctor, int parameterIndex, String fieldName) {
 		return new FieldAwareConstructorParameter(ctor, parameterIndex, fieldName);
 	}
 
@@ -875,9 +874,9 @@ public class MethodParameter {
 	 */
 	private static class FieldAwareConstructorParameter extends MethodParameter {
 
-		private volatile Annotation @Nullable [] combinedAnnotations;
+		private volatile Annotation [] combinedAnnotations;
 
-		public FieldAwareConstructorParameter(Constructor<?> constructor, int parameterIndex, @Nullable String fieldName) {
+		public FieldAwareConstructorParameter(Constructor<?> constructor, int parameterIndex, String fieldName) {
 			super(constructor, parameterIndex);
 			this.parameterName = fieldName;
 		}

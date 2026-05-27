@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.beans;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Thrown on an unrecoverable problem encountered in the
  * beans packages or sub-packages, for example, bad class or field.
@@ -41,7 +39,7 @@ public class FatalBeanException extends BeansException {
 	 * @param msg the detail message
 	 * @param cause the root cause
 	 */
-	public FatalBeanException(String msg, @Nullable Throwable cause) {
+	public FatalBeanException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 

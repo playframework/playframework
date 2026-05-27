@@ -18,8 +18,6 @@ package play.data.internal.binding.validation;
 
 import java.beans.PropertyEditor;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.beans.BeanUtils;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.PropertyAccessorUtils;
@@ -44,7 +42,7 @@ import play.data.internal.binding.util.Assert;
 @SuppressWarnings("serial")
 public abstract class AbstractPropertyBindingResult extends AbstractBindingResult {
 
-	private transient @Nullable ConversionService conversionService;
+	private transient ConversionService conversionService;
 
 
 	/**
@@ -70,7 +68,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @see #getPropertyAccessor()
 	 */
 	@Override
-	public @Nullable PropertyEditorRegistry getPropertyEditorRegistry() {
+	public PropertyEditorRegistry getPropertyEditorRegistry() {
 		return (getTarget() != null ? getPropertyAccessor() : null);
 	}
 
@@ -88,7 +86,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @see #getPropertyAccessor()
 	 */
 	@Override
-	public @Nullable Class<?> getFieldType(@Nullable String field) {
+	public Class<?> getFieldType(String field) {
 		return (getTarget() != null ? getPropertyAccessor().getPropertyType(fixedField(field)) :
 				super.getFieldType(field));
 	}
@@ -98,7 +96,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @see #getPropertyAccessor()
 	 */
 	@Override
-	protected @Nullable Object getActualFieldValue(String field) {
+	protected Object getActualFieldValue(String field) {
 		return getPropertyAccessor().getPropertyValue(field);
 	}
 
@@ -107,7 +105,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @see #getCustomEditor
 	 */
 	@Override
-	protected @Nullable Object formatFieldValue(String field, @Nullable Object value) {
+	protected Object formatFieldValue(String field, Object value) {
 		String fixedField = fixedField(field);
 		// Try custom editor...
 		PropertyEditor customEditor = getCustomEditor(fixedField);
@@ -136,7 +134,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @param fixedField the fully qualified field name
 	 * @return the custom PropertyEditor, or {@code null}
 	 */
-	protected @Nullable PropertyEditor getCustomEditor(String fixedField) {
+	protected PropertyEditor getCustomEditor(String fixedField) {
 		Class<?> targetType = getPropertyAccessor().getPropertyType(fixedField);
 		PropertyEditor editor = getPropertyAccessor().findCustomEditor(targetType, fixedField);
 		if (editor == null) {
@@ -150,7 +148,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * if applicable.
 	 */
 	@Override
-	public @Nullable PropertyEditor findEditor(@Nullable String field, @Nullable Class<?> valueType) {
+	public PropertyEditor findEditor(String field, Class<?> valueType) {
 		Class<?> valueTypeForLookup = valueType;
 		if (valueTypeForLookup == null) {
 			valueTypeForLookup = getFieldType(field);

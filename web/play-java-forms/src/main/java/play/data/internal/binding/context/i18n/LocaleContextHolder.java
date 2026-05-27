@@ -19,8 +19,6 @@ package play.data.internal.binding.context.i18n;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.NamedInheritableThreadLocal;
 import play.data.internal.binding.core.NamedThreadLocal;
 
@@ -52,10 +50,10 @@ public final class LocaleContextHolder {
 			new NamedInheritableThreadLocal<>("LocaleContext");
 
 	// Shared default locale at the framework level
-	private static @Nullable Locale defaultLocale;
+	private static Locale defaultLocale;
 
 	// Shared default time zone at the framework level
-	private static @Nullable TimeZone defaultTimeZone;
+	private static TimeZone defaultTimeZone;
 
 
 	private LocaleContextHolder() {
@@ -80,7 +78,7 @@ public final class LocaleContextHolder {
 	 * @see SimpleLocaleContext
 	 * @see SimpleTimeZoneAwareLocaleContext
 	 */
-	public static void setLocaleContext(@Nullable LocaleContext localeContext) {
+	public static void setLocaleContext(LocaleContext localeContext) {
 		setLocaleContext(localeContext, false);
 	}
 
@@ -95,7 +93,7 @@ public final class LocaleContextHolder {
 	 * @see SimpleLocaleContext
 	 * @see SimpleTimeZoneAwareLocaleContext
 	 */
-	public static void setLocaleContext(@Nullable LocaleContext localeContext, boolean inheritable) {
+	public static void setLocaleContext(LocaleContext localeContext, boolean inheritable) {
 		if (localeContext == null) {
 			resetLocaleContext();
 		}
@@ -115,7 +113,7 @@ public final class LocaleContextHolder {
 	 * Return the LocaleContext associated with the current thread, if any.
 	 * @return the current LocaleContext, or {@code null} if none
 	 */
-	public static @Nullable LocaleContext getLocaleContext() {
+	public static LocaleContext getLocaleContext() {
 		LocaleContext localeContext = localeContextHolder.get();
 		if (localeContext == null) {
 			localeContext = inheritableLocaleContextHolder.get();
@@ -133,7 +131,7 @@ public final class LocaleContextHolder {
 	 * @see #setTimeZone(TimeZone)
 	 * @see SimpleLocaleContext#SimpleLocaleContext(Locale)
 	 */
-	public static void setLocale(@Nullable Locale locale) {
+	public static void setLocale(Locale locale) {
 		setLocale(locale, false);
 	}
 
@@ -148,7 +146,7 @@ public final class LocaleContextHolder {
 	 * @see #setTimeZone(TimeZone, boolean)
 	 * @see SimpleLocaleContext#SimpleLocaleContext(Locale)
 	 */
-	public static void setLocale(@Nullable Locale locale, boolean inheritable) {
+	public static void setLocale(Locale locale, boolean inheritable) {
 		LocaleContext localeContext = getLocaleContext();
 		TimeZone timeZone = (localeContext instanceof TimeZoneAwareLocaleContext timeZoneAware ?
 				timeZoneAware.getTimeZone() : null);
@@ -178,7 +176,7 @@ public final class LocaleContextHolder {
 	 * @see #getLocale()
 	 * @see Locale#getDefault()
 	 */
-	public static void setDefaultLocale(@Nullable Locale locale) {
+	public static void setDefaultLocale(Locale locale) {
 		LocaleContextHolder.defaultLocale = locale;
 	}
 
@@ -217,7 +215,7 @@ public final class LocaleContextHolder {
 	 * @see #setDefaultLocale(Locale)
 	 * @see java.util.Locale#getDefault()
 	 */
-	public static Locale getLocale(@Nullable LocaleContext localeContext) {
+	public static Locale getLocale(LocaleContext localeContext) {
 		if (localeContext != null) {
 			Locale locale = localeContext.getLocale();
 			if (locale != null) {
@@ -237,7 +235,7 @@ public final class LocaleContextHolder {
 	 * @see #setLocale(Locale)
 	 * @see SimpleTimeZoneAwareLocaleContext#SimpleTimeZoneAwareLocaleContext(Locale, TimeZone)
 	 */
-	public static void setTimeZone(@Nullable TimeZone timeZone) {
+	public static void setTimeZone(TimeZone timeZone) {
 		setTimeZone(timeZone, false);
 	}
 
@@ -252,7 +250,7 @@ public final class LocaleContextHolder {
 	 * @see #setLocale(Locale, boolean)
 	 * @see SimpleTimeZoneAwareLocaleContext#SimpleTimeZoneAwareLocaleContext(Locale, TimeZone)
 	 */
-	public static void setTimeZone(@Nullable TimeZone timeZone, boolean inheritable) {
+	public static void setTimeZone(TimeZone timeZone, boolean inheritable) {
 		LocaleContext localeContext = getLocaleContext();
 		Locale locale = (localeContext != null ? localeContext.getLocale() : null);
 		if (timeZone != null) {
@@ -281,7 +279,7 @@ public final class LocaleContextHolder {
 	 * @see #getTimeZone()
 	 * @see TimeZone#getDefault()
 	 */
-	public static void setDefaultTimeZone(@Nullable TimeZone timeZone) {
+	public static void setDefaultTimeZone(TimeZone timeZone) {
 		defaultTimeZone = timeZone;
 	}
 
@@ -321,7 +319,7 @@ public final class LocaleContextHolder {
 	 * @see #setDefaultTimeZone(TimeZone)
 	 * @see java.util.TimeZone#getDefault()
 	 */
-	public static TimeZone getTimeZone(@Nullable LocaleContext localeContext) {
+	public static TimeZone getTimeZone(LocaleContext localeContext) {
 		if (localeContext instanceof TimeZoneAwareLocaleContext timeZoneAware) {
 			TimeZone timeZone = timeZoneAware.getTimeZone();
 			if (timeZone != null) {

@@ -18,8 +18,6 @@ package play.data.internal.binding.core;
 
 import java.lang.reflect.Method;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.ObjectUtils;
 
 /**
@@ -34,7 +32,7 @@ public final class MethodClassKey implements Comparable<MethodClassKey> {
 
 	private final Method method;
 
-	private final @Nullable Class<?> targetClass;
+	private final Class<?> targetClass;
 
 
 	/**
@@ -43,14 +41,14 @@ public final class MethodClassKey implements Comparable<MethodClassKey> {
 	 * @param targetClass the target class that the method will be invoked
 	 * on (may be {@code null} if identical to the declaring class)
 	 */
-	public MethodClassKey(Method method, @Nullable Class<?> targetClass) {
+	public MethodClassKey(Method method, Class<?> targetClass) {
 		this.method = method;
 		this.targetClass = targetClass;
 	}
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof MethodClassKey that &&
 				this.method.equals(that.method) &&
 				ObjectUtils.nullSafeEquals(this.targetClass, that.targetClass)));

@@ -36,8 +36,6 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.lang.Contract;
 
 /**
@@ -110,7 +108,7 @@ public abstract class StringUtils {
 	 */
 	@Deprecated(since = "5.3")
 	@Contract("null -> true")
-	public static boolean isEmpty(@Nullable Object str) {
+	public static boolean isEmpty(Object str) {
 		return (str == null || "".equals(str));
 	}
 
@@ -131,7 +129,7 @@ public abstract class StringUtils {
 	 * @see #hasText(CharSequence)
 	 */
 	@Contract("null -> false")
-	public static boolean hasLength(@Nullable CharSequence str) {
+	public static boolean hasLength(CharSequence str) {
 		return (str != null && !str.isEmpty());  // as of JDK 15
 	}
 
@@ -145,7 +143,7 @@ public abstract class StringUtils {
 	 * @see #hasText(String)
 	 */
 	@Contract("null -> false")
-	public static boolean hasLength(@Nullable String str) {
+	public static boolean hasLength(String str) {
 		return (str != null && !str.isEmpty());
 	}
 
@@ -169,7 +167,7 @@ public abstract class StringUtils {
 	 * @see Character#isWhitespace
 	 */
 	@Contract("null -> false")
-	public static boolean hasText(@Nullable CharSequence str) {
+	public static boolean hasText(CharSequence str) {
 		if (str == null) {
 			return false;
 		}
@@ -200,7 +198,7 @@ public abstract class StringUtils {
 	 * @see Character#isWhitespace
 	 */
 	@Contract("null -> false")
-	public static boolean hasText(@Nullable String str) {
+	public static boolean hasText(String str) {
 		return (str != null && !str.isBlank());
 	}
 
@@ -212,7 +210,7 @@ public abstract class StringUtils {
 	 * @see Character#isWhitespace
 	 */
 	@Contract("null -> false")
-	public static boolean containsWhitespace(@Nullable CharSequence str) {
+	public static boolean containsWhitespace(CharSequence str) {
 		if (!hasLength(str)) {
 			return false;
 		}
@@ -234,7 +232,7 @@ public abstract class StringUtils {
 	 * @see #containsWhitespace(CharSequence)
 	 */
 	@Contract("null -> false")
-	public static boolean containsWhitespace(@Nullable String str) {
+	public static boolean containsWhitespace(String str) {
 		return containsWhitespace((CharSequence) str);
 	}
 
@@ -370,7 +368,7 @@ public abstract class StringUtils {
 	 * @since 5.2.9
 	 */
 	@Contract("null, _ -> false")
-	public static boolean matchesCharacter(@Nullable String str, char singleCharacter) {
+	public static boolean matchesCharacter(String str, char singleCharacter) {
 		return (str != null && str.length() == 1 && str.charAt(0) == singleCharacter);
 	}
 
@@ -382,7 +380,7 @@ public abstract class StringUtils {
 	 * @see java.lang.String#startsWith
 	 */
 	@Contract("null, _ -> false; _, null -> false")
-	public static boolean startsWithIgnoreCase(@Nullable String str, @Nullable String prefix) {
+	public static boolean startsWithIgnoreCase(String str, String prefix) {
 		return (str != null && prefix != null && str.length() >= prefix.length() &&
 				str.regionMatches(true, 0, prefix, 0, prefix.length()));
 	}
@@ -395,7 +393,7 @@ public abstract class StringUtils {
 	 * @see java.lang.String#endsWith
 	 */
 	@Contract("null, _ -> false; _, null -> false")
-	public static boolean endsWithIgnoreCase(@Nullable String str, @Nullable String suffix) {
+	public static boolean endsWithIgnoreCase(String str, String suffix) {
 		return (str != null && suffix != null && str.length() >= suffix.length() &&
 				str.regionMatches(true, str.length() - suffix.length(), suffix, 0, suffix.length()));
 	}
@@ -446,7 +444,7 @@ public abstract class StringUtils {
 	 * @param newPattern {@code String} to insert
 	 * @return a {@code String} with the replacements
 	 */
-	public static String replace(String inString, String oldPattern, @Nullable String newPattern) {
+	public static String replace(String inString, String oldPattern, String newPattern) {
 		if (!hasLength(inString) || !hasLength(oldPattern) || newPattern == null) {
 			return inString;
 		}
@@ -493,7 +491,7 @@ public abstract class StringUtils {
 	 * For example, "az\n" will delete 'a's, 'z's and new lines.
 	 * @return the resulting {@code String}
 	 */
-	public static String deleteAny(String inString, @Nullable String charsToDelete) {
+	public static String deleteAny(String inString, String charsToDelete) {
 		if (!hasLength(inString) || !hasLength(charsToDelete)) {
 			return inString;
 		}
@@ -523,7 +521,7 @@ public abstract class StringUtils {
 	 * or {@code null} if the input was {@code null}
 	 */
 	@Contract("null -> null; !null -> !null")
-	public static @Nullable String quote(@Nullable String str) {
+	public static String quote(String str) {
 		return (str != null ? "'" + str + "'" : null);
 	}
 
@@ -535,7 +533,7 @@ public abstract class StringUtils {
 	 * or the input object as-is if not a {@code String}
 	 */
 	@Contract("null -> null; !null -> !null")
-	public static @Nullable Object quoteIfString(@Nullable Object obj) {
+	public static Object quoteIfString(Object obj) {
 		return (obj instanceof String str ? quote(str) : obj);
 	}
 
@@ -635,7 +633,7 @@ public abstract class StringUtils {
 	 * forward slash ({@code "/"}), or {@code null} if the supplied path is {@code null}
 	 */
 	@Contract("null -> null; !null -> !null")
-	public static @Nullable String getFilename(@Nullable String path) {
+	public static String getFilename(String path) {
 		if (path == null) {
 			return null;
 		}
@@ -661,7 +659,7 @@ public abstract class StringUtils {
 	 * ({@code "."})
 	 */
 	@Contract("null -> null")
-	public static @Nullable String getFilenameExtension(@Nullable String path) {
+	public static String getFilenameExtension(String path) {
 		if (path == null) {
 			return null;
 		}
@@ -901,7 +899,7 @@ public abstract class StringUtils {
 	 * @see #parseLocaleString
 	 * @see Locale#forLanguageTag
 	 */
-	public static @Nullable Locale parseLocale(String localeValue) {
+	public static Locale parseLocale(String localeValue) {
 		if (!localeValue.contains("_") && !localeValue.contains(" ")) {
 			validateLocalePart(localeValue);
 			Locale resolved = Locale.forLanguageTag(localeValue);
@@ -927,7 +925,7 @@ public abstract class StringUtils {
 	 * @throws IllegalArgumentException in case of an invalid locale specification
 	 */
 	@SuppressWarnings("deprecation")  // for Locale constructors on JDK 19
-	public static @Nullable Locale parseLocaleString(String localeString) {
+	public static Locale parseLocaleString(String localeString) {
 		if (localeString.isEmpty()) {
 			return null;
 		}
@@ -1000,7 +998,7 @@ public abstract class StringUtils {
 	 * (potentially {@code null} or empty)
 	 * @return the resulting {@code String} array
 	 */
-	public static String[] toStringArray(@Nullable Collection<String> collection) {
+	public static String[] toStringArray(Collection<String> collection) {
 		return (!CollectionUtils.isEmpty(collection) ? collection.toArray(EMPTY_STRING_ARRAY) : EMPTY_STRING_ARRAY);
 	}
 
@@ -1011,7 +1009,7 @@ public abstract class StringUtils {
 	 * (potentially {@code null} or empty)
 	 * @return the resulting {@code String} array
 	 */
-	public static String[] toStringArray(@Nullable Enumeration<String> enumeration) {
+	public static String[] toStringArray(Enumeration<String> enumeration) {
 		return (enumeration != null ? toStringArray(Collections.list(enumeration)) : EMPTY_STRING_ARRAY);
 	}
 
@@ -1023,7 +1021,7 @@ public abstract class StringUtils {
 	 * @param str the {@code String} to append
 	 * @return the new array (never {@code null})
 	 */
-	public static String[] addStringToArray(String @Nullable [] array, String str) {
+	public static String[] addStringToArray(String [] array, String str) {
 		if (ObjectUtils.isEmpty(array)) {
 			return new String[] {str};
 		}
@@ -1043,7 +1041,7 @@ public abstract class StringUtils {
 	 * @return the new array ({@code null} if both given arrays were {@code null})
 	 */
 	@Contract("null, _ -> param2; _, null -> param1")
-	public static String @Nullable [] concatenateStringArrays(String @Nullable [] array1, String @Nullable [] array2) {
+	public static String [] concatenateStringArrays(String [] array1, String [] array2) {
 		if (ObjectUtils.isEmpty(array1)) {
 			return array2;
 		}
@@ -1077,12 +1075,12 @@ public abstract class StringUtils {
 	 * @param array the original {@code String} array (potentially empty)
 	 * @return the resulting array (of the same size) with trimmed elements
 	 */
-	public static @Nullable String[] trimArrayElements(@Nullable String[] array) {
+	public static String[] trimArrayElements(String[] array) {
 		if (ObjectUtils.isEmpty(array)) {
 			return array;
 		}
 
-		@Nullable String[] result = new String[array.length];
+		String[] result = new String[array.length];
 		for (int i = 0; i < array.length; i++) {
 			String element = array[i];
 			result[i] = (element != null ? element.trim() : null);
@@ -1115,7 +1113,7 @@ public abstract class StringUtils {
 	 * or {@code null} if the delimiter wasn't found in the given input {@code String}
 	 */
 	@Contract("null, _ -> null; _, null -> null")
-	public static String @Nullable [] split(@Nullable String toSplit, @Nullable String delimiter) {
+	public static String [] split(String toSplit, String delimiter) {
 		if (!hasLength(toSplit) || !hasLength(delimiter)) {
 			return null;
 		}
@@ -1140,7 +1138,7 @@ public abstract class StringUtils {
 	 * or {@code null} if the array to process was {@code null} or empty
 	 */
 	@Contract("null, _ -> null")
-	public static @Nullable Properties splitArrayElementsIntoProperties(String @Nullable [] array, String delimiter) {
+	public static Properties splitArrayElementsIntoProperties(String [] array, String delimiter) {
 		return splitArrayElementsIntoProperties(array, delimiter, null);
 	}
 
@@ -1159,8 +1157,8 @@ public abstract class StringUtils {
 	 * or {@code null} if the array to process was {@code null} or empty
 	 */
 	@Contract("null, _, _ -> null")
-	public static @Nullable Properties splitArrayElementsIntoProperties(
-			String @Nullable [] array, String delimiter, @Nullable String charsToDelete) {
+	public static Properties splitArrayElementsIntoProperties(
+			String [] array, String delimiter, String charsToDelete) {
 
 		if (ObjectUtils.isEmpty(array)) {
 			return null;
@@ -1196,7 +1194,7 @@ public abstract class StringUtils {
 	 * @see String#trim()
 	 * @see #delimitedListToStringArray
 	 */
-	public static String[] tokenizeToStringArray(@Nullable String str, String delimiters) {
+	public static String[] tokenizeToStringArray(String str, String delimiters) {
 		return tokenizeToStringArray(str, delimiters, true, true);
 	}
 
@@ -1220,7 +1218,7 @@ public abstract class StringUtils {
 	 * @see #delimitedListToStringArray
 	 */
 	public static String[] tokenizeToStringArray(
-			@Nullable String str, String delimiters, boolean trimTokens, boolean ignoreEmptyTokens) {
+			String str, String delimiters, boolean trimTokens, boolean ignoreEmptyTokens) {
 
 		if (str == null) {
 			return EMPTY_STRING_ARRAY;
@@ -1253,7 +1251,7 @@ public abstract class StringUtils {
 	 * @return an array of the tokens in the list
 	 * @see #tokenizeToStringArray
 	 */
-	public static String[] delimitedListToStringArray(@Nullable String str, @Nullable String delimiter) {
+	public static String[] delimitedListToStringArray(String str, String delimiter) {
 		return delimitedListToStringArray(str, delimiter, null);
 	}
 
@@ -1273,7 +1271,7 @@ public abstract class StringUtils {
 	 * @see #tokenizeToStringArray
 	 */
 	public static String[] delimitedListToStringArray(
-			@Nullable String str, @Nullable String delimiter, @Nullable String charsToDelete) {
+			String str, String delimiter, String charsToDelete) {
 
 		if (str == null) {
 			return EMPTY_STRING_ARRAY;
@@ -1309,7 +1307,7 @@ public abstract class StringUtils {
 	 * @param str the input {@code String} (potentially {@code null} or empty)
 	 * @return an array of strings, or the empty array in case of empty input
 	 */
-	public static String[] commaDelimitedListToStringArray(@Nullable String str) {
+	public static String[] commaDelimitedListToStringArray(String str) {
 		return delimitedListToStringArray(str, ",");
 	}
 
@@ -1321,7 +1319,7 @@ public abstract class StringUtils {
 	 * @return a set of {@code String} entries in the list
 	 * @see #removeDuplicateStrings(String[])
 	 */
-	public static Set<String> commaDelimitedListToSet(@Nullable String str) {
+	public static Set<String> commaDelimitedListToSet(String str) {
 		String[] tokens = commaDelimitedListToStringArray(str);
 		return new LinkedHashSet<>(Arrays.asList(tokens));
 	}
@@ -1336,7 +1334,7 @@ public abstract class StringUtils {
 	 * @return the delimited {@code String}
 	 */
 	public static String collectionToDelimitedString(
-			@Nullable Collection<?> coll, String delim, String prefix, String suffix) {
+			Collection<?> coll, String delim, String prefix, String suffix) {
 
 		if (CollectionUtils.isEmpty(coll)) {
 			return "";
@@ -1365,7 +1363,7 @@ public abstract class StringUtils {
 	 * @param delim the delimiter to use (typically a ",")
 	 * @return the delimited {@code String}
 	 */
-	public static String collectionToDelimitedString(@Nullable Collection<?> coll, String delim) {
+	public static String collectionToDelimitedString(Collection<?> coll, String delim) {
 		return collectionToDelimitedString(coll, delim, "", "");
 	}
 
@@ -1375,7 +1373,7 @@ public abstract class StringUtils {
 	 * @param coll the {@code Collection} to convert (potentially {@code null} or empty)
 	 * @return the delimited {@code String}
 	 */
-	public static String collectionToCommaDelimitedString(@Nullable Collection<?> coll) {
+	public static String collectionToCommaDelimitedString(Collection<?> coll) {
 		return collectionToDelimitedString(coll, ",");
 	}
 
@@ -1386,7 +1384,7 @@ public abstract class StringUtils {
 	 * @param delim the delimiter to use (typically a ",")
 	 * @return the delimited {@code String}
 	 */
-	public static String arrayToDelimitedString(@Nullable Object @Nullable [] arr, String delim) {
+	public static String arrayToDelimitedString(Object [] arr, String delim) {
 		if (ObjectUtils.isEmpty(arr)) {
 			return "";
 		}
@@ -1408,7 +1406,7 @@ public abstract class StringUtils {
 	 * @param arr the array to display (potentially {@code null} or empty)
 	 * @return the delimited {@code String}
 	 */
-	public static String arrayToCommaDelimitedString(@Nullable Object @Nullable [] arr) {
+	public static String arrayToCommaDelimitedString(Object [] arr) {
 		return arrayToDelimitedString(arr, ",");
 	}
 

@@ -27,8 +27,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.lang.Contract;
 
 /**
@@ -140,7 +138,7 @@ public abstract class ReflectionUtils {
 	 * @throws RuntimeException the rethrown exception
 	 */
 	@Contract("_ -> fail")
-	public static void rethrowRuntimeException(@Nullable Throwable ex) {
+	public static void rethrowRuntimeException(Throwable ex) {
 		if (ex instanceof RuntimeException runtimeException) {
 			throw runtimeException;
 		}
@@ -162,7 +160,7 @@ public abstract class ReflectionUtils {
 	 * @throws Exception the rethrown exception (in case of a checked exception)
 	 */
 	@Contract("_ -> fail")
-	public static void rethrowException(@Nullable Throwable throwable) throws Exception {
+	public static void rethrowException(Throwable throwable) throws Exception {
 		if (throwable instanceof Exception exception) {
 			throw exception;
 		}
@@ -217,7 +215,7 @@ public abstract class ReflectionUtils {
 	 * @param name the name of the method
 	 * @return the Method object, or {@code null} if none found
 	 */
-	public static @Nullable Method findMethod(Class<?> clazz, String name) {
+	public static Method findMethod(Class<?> clazz, String name) {
 		return findMethod(clazz, name, EMPTY_CLASS_ARRAY);
 	}
 
@@ -231,7 +229,7 @@ public abstract class ReflectionUtils {
 	 * (may be {@code null} to indicate any signature)
 	 * @return the Method object, or {@code null} if none found
 	 */
-	public static @Nullable Method findMethod(Class<?> clazz, String name, Class<?> @Nullable ... paramTypes) {
+	public static Method findMethod(Class<?> clazz, String name, Class<?> ... paramTypes) {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.notNull(name, "Method name must not be null");
 		Class<?> searchType = clazz;
@@ -262,7 +260,7 @@ public abstract class ReflectionUtils {
 	 * @return the invocation result, if any
 	 * @see #invokeMethod(java.lang.reflect.Method, Object, Object[])
 	 */
-	public static @Nullable Object invokeMethod(Method method, @Nullable Object target) {
+	public static Object invokeMethod(Method method, Object target) {
 		return invokeMethod(method, target, EMPTY_OBJECT_ARRAY);
 	}
 
@@ -276,7 +274,7 @@ public abstract class ReflectionUtils {
 	 * @param args the invocation arguments (may be {@code null})
 	 * @return the invocation result, if any
 	 */
-	public static @Nullable Object invokeMethod(Method method, @Nullable Object target, @Nullable Object... args) {
+	public static Object invokeMethod(Method method, Object target, Object... args) {
 		try {
 			return method.invoke(target, args);
 		}
@@ -352,7 +350,7 @@ public abstract class ReflectionUtils {
 	 * @param mf the filter that determines the methods to apply the callback to
 	 * @throws IllegalStateException if introspection fails
 	 */
-	public static void doWithMethods(Class<?> clazz, MethodCallback mc, @Nullable MethodFilter mf) {
+	public static void doWithMethods(Class<?> clazz, MethodCallback mc, MethodFilter mf) {
 		if (mf == USER_DECLARED_METHODS && clazz == Object.class) {
 			// nothing to introspect
 			return;
@@ -412,7 +410,7 @@ public abstract class ReflectionUtils {
 	 * @throws IllegalStateException if introspection fails
 	 * @since 5.2
 	 */
-	public static Method[] getUniqueDeclaredMethods(Class<?> leafClass, @Nullable MethodFilter mf) {
+	public static Method[] getUniqueDeclaredMethods(Class<?> leafClass, MethodFilter mf) {
 		final List<Method> methods = new ArrayList<>(20);
 		doWithMethods(leafClass, method -> {
 			boolean knownSignature = false;
@@ -486,7 +484,7 @@ public abstract class ReflectionUtils {
 		return (result.length == 0 || !defensive) ? result : result.clone();
 	}
 
-	private static @Nullable List<Method> findDefaultMethodsOnInterfaces(Class<?> clazz) {
+	private static List<Method> findDefaultMethodsOnInterfaces(Class<?> clazz) {
 		List<Method> result = null;
 		for (Class<?> ifc : clazz.getInterfaces()) {
 			for (Method method : ifc.getMethods()) {
@@ -506,7 +504,7 @@ public abstract class ReflectionUtils {
 	 * @see java.lang.Object#equals(Object)
 	 */
 	@Contract("null -> false")
-	public static boolean isEqualsMethod(@Nullable Method method) {
+	public static boolean isEqualsMethod(Method method) {
 		return (method != null && method.getParameterCount() == 1 && method.getName().equals("equals") &&
 				method.getParameterTypes()[0] == Object.class);
 	}
@@ -516,7 +514,7 @@ public abstract class ReflectionUtils {
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Contract("null -> false")
-	public static boolean isHashCodeMethod(@Nullable Method method) {
+	public static boolean isHashCodeMethod(Method method) {
 		return (method != null && method.getParameterCount() == 0 && method.getName().equals("hashCode"));
 	}
 
@@ -525,7 +523,7 @@ public abstract class ReflectionUtils {
 	 * @see java.lang.Object#toString()
 	 */
 	@Contract("null -> false")
-	public static boolean isToStringMethod(@Nullable Method method) {
+	public static boolean isToStringMethod(Method method) {
 		return (method != null && method.getParameterCount() == 0 && method.getName().equals("toString"));
 	}
 
@@ -533,7 +531,7 @@ public abstract class ReflectionUtils {
 	 * Determine whether the given method is originally declared by {@link java.lang.Object}.
 	 */
 	@Contract("null -> false")
-	public static boolean isObjectMethod(@Nullable Method method) {
+	public static boolean isObjectMethod(Method method) {
 		return (method != null && (method.getDeclaringClass() == Object.class ||
 				isEqualsMethod(method) || isHashCodeMethod(method) || isToStringMethod(method)));
 	}
@@ -580,7 +578,7 @@ public abstract class ReflectionUtils {
 	 * @param name the name of the field
 	 * @return the corresponding Field object, or {@code null} if not found
 	 */
-	public static @Nullable Field findField(Class<?> clazz, String name) {
+	public static Field findField(Class<?> clazz, String name) {
 		return findField(clazz, name, null);
 	}
 
@@ -594,7 +592,7 @@ public abstract class ReflectionUtils {
 	 * @return the corresponding Field object, or {@code null} if not found
 	 */
 	@Contract("_, null, null -> fail")
-	public static @Nullable Field findField(Class<?> clazz, @Nullable String name, @Nullable Class<?> type) {
+	public static Field findField(Class<?> clazz, String name, Class<?> type) {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.isTrue(name != null || type != null, "Either name or type of the field must be specified");
 		Class<?> searchType = clazz;
@@ -619,7 +617,7 @@ public abstract class ReflectionUtils {
 	 * @return the corresponding Field object, or {@code null} if not found
 	 * @since 6.1
 	 */
-	public static @Nullable Field findFieldIgnoreCase(Class<?> clazz, String name) {
+	public static Field findFieldIgnoreCase(Class<?> clazz, String name) {
 		Assert.notNull(clazz, "Class must not be null");
 		Assert.notNull(name, "Name must not be null");
 		Class<?> searchType = clazz;
@@ -647,7 +645,7 @@ public abstract class ReflectionUtils {
 	 * (or {@code null} for a static field)
 	 * @param value the value to set (may be {@code null})
 	 */
-	public static void setField(Field field, @Nullable Object target, @Nullable Object value) {
+	public static void setField(Field field, Object target, Object value) {
 		try {
 			field.set(target, value);
 		}
@@ -667,7 +665,7 @@ public abstract class ReflectionUtils {
 	 * (or {@code null} for a static field)
 	 * @return the field's current value
 	 */
-	public static @Nullable Object getField(Field field, @Nullable Object target) {
+	public static Object getField(Field field, Object target) {
 		try {
 			return field.get(target);
 		}
@@ -715,7 +713,7 @@ public abstract class ReflectionUtils {
 	 * @param ff the filter that determines the fields to apply the callback to
 	 * @throws IllegalStateException if introspection fails
 	 */
-	public static void doWithFields(Class<?> clazz, FieldCallback fc, @Nullable FieldFilter ff) {
+	public static void doWithFields(Class<?> clazz, FieldCallback fc, FieldFilter ff) {
 		// Keep backing up the inheritance hierarchy.
 		Class<?> targetClass = clazz;
 		do {

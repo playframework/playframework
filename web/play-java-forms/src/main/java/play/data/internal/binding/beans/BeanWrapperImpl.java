@@ -20,7 +20,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import play.data.internal.binding.core.MethodParameter;
 import play.data.internal.binding.core.ResolvableType;
@@ -64,7 +63,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	 * Cached introspections results for this object, to prevent encountering
 	 * the cost of JavaBeans introspection every time.
 	 */
-	private @Nullable CachedIntrospectionResults cachedIntrospectionResults;
+	private CachedIntrospectionResults cachedIntrospectionResults;
 
 
 	/**
@@ -139,7 +138,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	}
 
 	@Override
-	public void setWrappedInstance(Object object, @Nullable String nestedPath, @Nullable Object rootObject) {
+	public void setWrappedInstance(Object object, String nestedPath, Object rootObject) {
 		super.setWrappedInstance(object, nestedPath, rootObject);
 		setIntrospectionClass(getWrappedClass());
 	}
@@ -177,7 +176,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	 * @return the new value, possibly the result of type conversion
 	 * @throws TypeMismatchException if type conversion failed
 	 */
-	public @Nullable Object convertForProperty(@Nullable Object value, String propertyName) throws TypeMismatchException {
+	public Object convertForProperty(Object value, String propertyName) throws TypeMismatchException {
 		CachedIntrospectionResults cachedIntrospectionResults = getCachedIntrospectionResults();
 		PropertyDescriptor pd = cachedIntrospectionResults.getPropertyDescriptor(propertyName);
 		if (pd == null) {
@@ -189,7 +188,7 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 	}
 
 	@Override
-	protected @Nullable PropertyHandler getLocalPropertyHandler(String propertyName) {
+	protected PropertyHandler getLocalPropertyHandler(String propertyName) {
 		PropertyDescriptor pd = getCachedIntrospectionResults().getPropertyDescriptor(propertyName);
 		return (pd != null ? new BeanPropertyHandler((GenericTypeAwarePropertyDescriptor) pd) : null);
 	}
@@ -258,12 +257,12 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 		}
 
 		@Override
-		public @Nullable TypeDescriptor nested(int level) {
+		public TypeDescriptor nested(int level) {
 			return this.pd.getTypeDescriptor().nested(level);
 		}
 
 		@Override
-		public @Nullable Object getValue() throws Exception {
+		public Object getValue() throws Exception {
 			Method readMethod = this.pd.getReadMethod();
 			Assert.state(readMethod != null, "No read method available");
 			ReflectionUtils.makeAccessible(readMethod);
@@ -271,14 +270,14 @@ public class BeanWrapperImpl extends AbstractNestablePropertyAccessor implements
 		}
 
 		@Override
-		public void setValue(@Nullable Object value) throws Exception {
+		public void setValue(Object value) throws Exception {
 			Method writeMethod = this.pd.getWriteMethodForActualAccess();
 			ReflectionUtils.makeAccessible(writeMethod);
 			writeMethod.invoke(getWrappedInstance(), value);
 		}
 
 		@Override
-		public boolean setValueFallbackIfPossible(@Nullable Object value) {
+		public boolean setValueFallbackIfPossible(Object value) {
 			try {
 				Method writeMethod = this.pd.getWriteMethodFallback(value != null ? value.getClass() : null);
 				if (writeMethod == null) {

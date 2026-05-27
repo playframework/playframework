@@ -36,8 +36,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.LinkedMultiValueMap;
 import play.data.internal.binding.util.MultiValueMap;
@@ -95,7 +93,7 @@ public final class CollectionFactory {
 	 * @param collectionType the collection type to check
 	 * @return {@code true} if the type is <em>approximable</em>
 	 */
-	public static boolean isApproximableCollectionType(@Nullable Class<?> collectionType) {
+	public static boolean isApproximableCollectionType(Class<?> collectionType) {
 		return (collectionType != null && (approximableCollectionTypes.contains(collectionType) ||
 				collectionType.getName().equals("java.util.SequencedSet") ||
 				collectionType.getName().equals("java.util.SequencedCollection")));
@@ -122,7 +120,7 @@ public final class CollectionFactory {
 	 * @see java.util.LinkedHashSet
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static <E> Collection<E> createApproximateCollection(@Nullable Object collection, int capacity) {
+	public static <E> Collection<E> createApproximateCollection(Object collection, int capacity) {
 		if (collection instanceof EnumSet enumSet) {
 			Collection<E> copy = EnumSet.copyOf(enumSet);
 			copy.clear();
@@ -180,7 +178,7 @@ public final class CollectionFactory {
 	 * @see java.util.EnumSet
 	 */
 	@SuppressWarnings("unchecked")
-	public static <E> Collection<E> createCollection(Class<?> collectionType, @Nullable Class<?> elementType, int capacity) {
+	public static <E> Collection<E> createCollection(Class<?> collectionType, Class<?> elementType, int capacity) {
 		Assert.notNull(collectionType, "Collection type must not be null");
 		if (LinkedHashSet.class == collectionType ||
 				Set.class == collectionType || Collection.class == collectionType ||
@@ -225,7 +223,7 @@ public final class CollectionFactory {
 	 * @param mapType the map type to check
 	 * @return {@code true} if the type is <em>approximable</em>
 	 */
-	public static boolean isApproximableMapType(@Nullable Class<?> mapType) {
+	public static boolean isApproximableMapType(Class<?> mapType) {
 		return (mapType != null && (approximableMapTypes.contains(mapType) ||
 				mapType.getName().equals("java.util.SequencedMap")));
 	}
@@ -248,7 +246,7 @@ public final class CollectionFactory {
 	 * @see java.util.LinkedHashMap
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static <K, V> Map<K, V> createApproximateMap(@Nullable Object map, int capacity) {
+	public static <K, V> Map<K, V> createApproximateMap(Object map, int capacity) {
 		if (map instanceof EnumMap enumMap) {
 			EnumMap copy = new EnumMap(enumMap);
 			copy.clear();
@@ -304,7 +302,7 @@ public final class CollectionFactory {
 	 * @see java.util.EnumMap
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public static <K, V> Map<K, V> createMap(Class<?> mapType, @Nullable Class<?> keyType, int capacity) {
+	public static <K, V> Map<K, V> createMap(Class<?> mapType, Class<?> keyType, int capacity) {
 		Assert.notNull(mapType, "Map type must not be null");
 		if (LinkedHashMap.class == mapType || Map.class == mapType ||
 				mapType.getName().equals("java.util.SequencedMap")) {
@@ -350,7 +348,7 @@ public final class CollectionFactory {
 	public static Properties createStringAdaptingProperties() {
 		return new SortedProperties(false) {
 			@Override
-			public @Nullable String getProperty(String key) {
+			public String getProperty(String key) {
 				Object value = get(key);
 				return (value != null ? value.toString() : null);
 			}

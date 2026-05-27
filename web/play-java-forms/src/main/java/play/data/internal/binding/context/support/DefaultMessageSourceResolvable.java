@@ -18,8 +18,6 @@ package play.data.internal.binding.context.support;
 
 import java.io.Serializable;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.context.MessageSourceResolvable;
 import play.data.internal.binding.util.ObjectUtils;
 import play.data.internal.binding.util.StringUtils;
@@ -36,11 +34,11 @@ import play.data.internal.binding.util.StringUtils;
 @SuppressWarnings("serial")
 public class DefaultMessageSourceResolvable implements MessageSourceResolvable, Serializable {
 
-	private final String @Nullable [] codes;
+	private final String [] codes;
 
-	private final Object @Nullable [] arguments;
+	private final Object [] arguments;
 
-	private final @Nullable String defaultMessage;
+	private final String defaultMessage;
 
 
 	/**
@@ -84,7 +82,7 @@ public class DefaultMessageSourceResolvable implements MessageSourceResolvable, 
 	 * @param defaultMessage the default message to be used to resolve this message
 	 */
 	public DefaultMessageSourceResolvable(
-			String @Nullable [] codes, Object @Nullable [] arguments, @Nullable String defaultMessage) {
+			String [] codes, Object [] arguments, String defaultMessage) {
 
 		this.codes = codes;
 		this.arguments = arguments;
@@ -104,22 +102,22 @@ public class DefaultMessageSourceResolvable implements MessageSourceResolvable, 
 	 * Return the default code of this resolvable, that is,
 	 * the last one in the codes array.
 	 */
-	public @Nullable String getCode() {
+	public String getCode() {
 		return (this.codes != null && this.codes.length > 0 ? this.codes[this.codes.length - 1] : null);
 	}
 
 	@Override
-	public String @Nullable [] getCodes() {
+	public String [] getCodes() {
 		return this.codes;
 	}
 
 	@Override
-	public Object @Nullable [] getArguments() {
+	public Object [] getArguments() {
 		return this.arguments;
 	}
 
 	@Override
-	public @Nullable String getDefaultMessage() {
+	public String getDefaultMessage() {
 		return this.defaultMessage;
 	}
 
@@ -164,7 +162,7 @@ public class DefaultMessageSourceResolvable implements MessageSourceResolvable, 
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof MessageSourceResolvable that &&
 				ObjectUtils.nullSafeEquals(getCodes(), that.getCodes()) &&
 				ObjectUtils.nullSafeEquals(getArguments(), that.getArguments()) &&

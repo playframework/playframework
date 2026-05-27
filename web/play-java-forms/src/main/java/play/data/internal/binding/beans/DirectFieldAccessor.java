@@ -21,8 +21,6 @@ import java.lang.reflect.InaccessibleObjectException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.ResolvableType;
 import play.data.internal.binding.core.convert.TypeDescriptor;
 import play.data.internal.binding.util.ReflectionUtils;
@@ -73,7 +71,7 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 
 
 	@Override
-	protected @Nullable PropertyHandler getLocalPropertyHandler(String propertyName) {
+	protected PropertyHandler getLocalPropertyHandler(String propertyName) {
 		FieldPropertyHandler propertyHandler = this.fieldMap.get(propertyName);
 		if (propertyHandler == null) {
 			Field field = ReflectionUtils.findField(getWrappedClass(), propertyName);
@@ -133,12 +131,12 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 		}
 
 		@Override
-		public @Nullable TypeDescriptor nested(int level) {
+		public TypeDescriptor nested(int level) {
 			return TypeDescriptor.nested(this.field, level);
 		}
 
 		@Override
-		public @Nullable Object getValue() throws Exception {
+		public Object getValue() throws Exception {
 			try {
 				ReflectionUtils.makeAccessible(this.field);
 				return this.field.get(getWrappedInstance());
@@ -150,7 +148,7 @@ public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 		}
 
 		@Override
-		public void setValue(@Nullable Object value) throws Exception {
+		public void setValue(Object value) throws Exception {
 			try {
 				ReflectionUtils.makeAccessible(this.field);
 				this.field.set(getWrappedInstance(), value);

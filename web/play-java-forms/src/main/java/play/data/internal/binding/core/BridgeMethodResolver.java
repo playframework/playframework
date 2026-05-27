@@ -24,8 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.ClassUtils;
 import play.data.internal.binding.util.ConcurrentReferenceHashMap;
 import play.data.internal.binding.util.ReflectionUtils;
@@ -86,7 +84,7 @@ public final class BridgeMethodResolver {
 	 * @see #findBridgedMethod
 	 * @see play.data.internal.binding.util.ClassUtils#getMostSpecificMethod
 	 */
-	public static Method getMostSpecificMethod(Method bridgeMethod, @Nullable Class<?> targetClass) {
+	public static Method getMostSpecificMethod(Method bridgeMethod, Class<?> targetClass) {
 		if (targetClass != null &&
 				!ClassUtils.getUserClass(bridgeMethod.getDeclaringClass()).isAssignableFrom(targetClass) &&
 				!Proxy.isProxyClass(bridgeMethod.getDeclaringClass())) {
@@ -148,7 +146,7 @@ public final class BridgeMethodResolver {
 	 * @param bridgeMethod the bridge method
 	 * @return the bridged method, or {@code null} if none found
 	 */
-	private static @Nullable Method searchCandidates(
+	private static Method searchCandidates(
 			List<Method> candidateMethods, Method bridgeMethod, Class<?> targetClass) {
 
 		Method previousMethod = null;
@@ -222,7 +220,7 @@ public final class BridgeMethodResolver {
 	 * matches that of the supplied bridge method.
 	 * @throws IllegalStateException if the generic declaration cannot be found
 	 */
-	private static @Nullable Method findGenericDeclaration(Method bridgeMethod) {
+	private static Method findGenericDeclaration(Method bridgeMethod) {
 		if (!bridgeMethod.isBridge()) {
 			return bridgeMethod;
 		}
@@ -241,7 +239,7 @@ public final class BridgeMethodResolver {
 		return searchInterfaces(interfaces, bridgeMethod);
 	}
 
-	private static @Nullable Method searchInterfaces(Class<?>[] interfaces, Method bridgeMethod) {
+	private static Method searchInterfaces(Class<?>[] interfaces, Method bridgeMethod) {
 		for (Class<?> ifc : interfaces) {
 			Method method = searchForMatch(ifc, bridgeMethod);
 			if (method != null && !method.isBridge()) {
@@ -262,7 +260,7 @@ public final class BridgeMethodResolver {
 	 * that of the supplied {@link Method}, then this matching {@link Method} is returned,
 	 * otherwise {@code null} is returned.
 	 */
-	private static @Nullable Method searchForMatch(Class<?> type, Method bridgeMethod) {
+	private static Method searchForMatch(Class<?> type, Method bridgeMethod) {
 		try {
 			return type.getDeclaredMethod(bridgeMethod.getName(), bridgeMethod.getParameterTypes());
 		}

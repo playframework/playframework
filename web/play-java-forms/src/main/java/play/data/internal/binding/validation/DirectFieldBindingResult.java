@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.validation;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.PropertyAccessorFactory;
 
@@ -37,13 +35,13 @@ import play.data.internal.binding.beans.PropertyAccessorFactory;
 @SuppressWarnings("serial")
 public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 
-	private final @Nullable Object target;
+	private final Object target;
 
 	private final boolean autoGrowNestedPaths;
 
 	private final int autoGrowCollectionLimit;
 
-	private transient @Nullable ConfigurablePropertyAccessor directFieldAccessor;
+	private transient ConfigurablePropertyAccessor directFieldAccessor;
 
 
 	/**
@@ -51,7 +49,7 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 	 * @param target the target object to bind onto
 	 * @param objectName the name of the target object
 	 */
-	public DirectFieldBindingResult(@Nullable Object target, String objectName) {
+	public DirectFieldBindingResult(Object target, String objectName) {
 		this(target, objectName, true);
 	}
 
@@ -61,7 +59,7 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 	 * @param objectName the name of the target object
 	 * @param autoGrowNestedPaths whether to "auto-grow" a nested path that contains a null value
 	 */
-	public DirectFieldBindingResult(@Nullable Object target, String objectName, boolean autoGrowNestedPaths) {
+	public DirectFieldBindingResult(Object target, String objectName, boolean autoGrowNestedPaths) {
 		this(target, objectName, autoGrowNestedPaths, Integer.MAX_VALUE);
 	}
 
@@ -73,7 +71,7 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 	 * @param autoGrowCollectionLimit the limit for array and collection auto-growing
 	 * @since 7.1
 	 */
-	public DirectFieldBindingResult(@Nullable Object target, String objectName,
+	public DirectFieldBindingResult(Object target, String objectName,
 			boolean autoGrowNestedPaths, int autoGrowCollectionLimit) {
 
 		super(objectName);
@@ -84,7 +82,7 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 
 
 	@Override
-	public final @Nullable Object getTarget() {
+	public final Object getTarget() {
 		return this.target;
 	}
 

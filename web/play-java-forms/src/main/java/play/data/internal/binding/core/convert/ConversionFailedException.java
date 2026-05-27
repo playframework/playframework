@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.core.convert;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.ObjectUtils;
 
 /**
@@ -30,11 +28,11 @@ import play.data.internal.binding.util.ObjectUtils;
 @SuppressWarnings("serial")
 public class ConversionFailedException extends ConversionException {
 
-	private final @Nullable TypeDescriptor sourceType;
+	private final TypeDescriptor sourceType;
 
 	private final TypeDescriptor targetType;
 
-	private final @Nullable Object value;
+	private final Object value;
 
 
 	/**
@@ -44,8 +42,8 @@ public class ConversionFailedException extends ConversionException {
 	 * @param value the value we tried to convert
 	 * @param cause the cause of the conversion failure
 	 */
-	public ConversionFailedException(@Nullable TypeDescriptor sourceType, TypeDescriptor targetType,
-			@Nullable Object value, Throwable cause) {
+	public ConversionFailedException(TypeDescriptor sourceType, TypeDescriptor targetType,
+			Object value, Throwable cause) {
 
 		super("Failed to convert from type [" + sourceType + "] to type [" + targetType +
 				"] for value [" + ObjectUtils.nullSafeConciseToString(value) + "]", cause);
@@ -58,7 +56,7 @@ public class ConversionFailedException extends ConversionException {
 	/**
 	 * Return the source type we tried to convert the value from.
 	 */
-	public @Nullable TypeDescriptor getSourceType() {
+	public TypeDescriptor getSourceType() {
 		return this.sourceType;
 	}
 
@@ -72,7 +70,7 @@ public class ConversionFailedException extends ConversionException {
 	/**
 	 * Return the offending value.
 	 */
-	public @Nullable Object getValue() {
+	public Object getValue() {
 		return this.value;
 	}
 

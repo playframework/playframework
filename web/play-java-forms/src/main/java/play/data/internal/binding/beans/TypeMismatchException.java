@@ -18,8 +18,6 @@ package play.data.internal.binding.beans;
 
 import java.beans.PropertyChangeEvent;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ClassUtils;
 
@@ -38,11 +36,11 @@ public class TypeMismatchException extends PropertyAccessException {
 	public static final String ERROR_CODE = "typeMismatch";
 
 
-	private @Nullable String propertyName;
+	private String propertyName;
 
-	private final transient @Nullable Object value;
+	private final transient Object value;
 
-	private final @Nullable Class<?> requiredType;
+	private final Class<?> requiredType;
 
 
 	/**
@@ -60,8 +58,8 @@ public class TypeMismatchException extends PropertyAccessException {
 	 * @param requiredType the required target type (or {@code null} if not known)
 	 * @param cause the root cause (may be {@code null})
 	 */
-	public TypeMismatchException(PropertyChangeEvent propertyChangeEvent, @Nullable Class<?> requiredType,
-			@Nullable Throwable cause) {
+	public TypeMismatchException(PropertyChangeEvent propertyChangeEvent, Class<?> requiredType,
+			Throwable cause) {
 
 		super(propertyChangeEvent,
 				"Failed to convert property value of type '" +
@@ -83,7 +81,7 @@ public class TypeMismatchException extends PropertyAccessException {
 	 * @param requiredType the required target type (or {@code null} if not known)
 	 * @see #initPropertyName
 	 */
-	public TypeMismatchException(@Nullable Object value, @Nullable Class<?> requiredType) {
+	public TypeMismatchException(Object value, Class<?> requiredType) {
 		this(value, requiredType, null);
 	}
 
@@ -94,7 +92,7 @@ public class TypeMismatchException extends PropertyAccessException {
 	 * @param cause the root cause (may be {@code null})
 	 * @see #initPropertyName
 	 */
-	public TypeMismatchException(@Nullable Object value, @Nullable Class<?> requiredType, @Nullable Throwable cause) {
+	public TypeMismatchException(Object value, Class<?> requiredType, Throwable cause) {
 		super("Failed to convert value of type '" + ClassUtils.getDescriptiveType(value) + "'" +
 				(requiredType != null ? " to required type '" + ClassUtils.getQualifiedName(requiredType) + "'" : "") +
 				(cause != null ? "; " + cause.getMessage() : ""),
@@ -121,7 +119,7 @@ public class TypeMismatchException extends PropertyAccessException {
 	 * Return the name of the affected property, if available.
 	 */
 	@Override
-	public @Nullable String getPropertyName() {
+	public String getPropertyName() {
 		return this.propertyName;
 	}
 
@@ -129,14 +127,14 @@ public class TypeMismatchException extends PropertyAccessException {
 	 * Return the offending value (may be {@code null}).
 	 */
 	@Override
-	public @Nullable Object getValue() {
+	public Object getValue() {
 		return this.value;
 	}
 
 	/**
 	 * Return the required target type, if any.
 	 */
-	public @Nullable Class<?> getRequiredType() {
+	public Class<?> getRequiredType() {
 		return this.requiredType;
 	}
 

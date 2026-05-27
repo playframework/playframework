@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.beans;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.convert.ConversionService;
 
 /**
@@ -38,12 +36,12 @@ public interface ConfigurablePropertyAccessor extends PropertyAccessor, Property
 	 * Specify a {@link ConversionService} to use for converting
 	 * property values, as an alternative to JavaBeans PropertyEditors.
 	 */
-	void setConversionService(@Nullable ConversionService conversionService);
+	void setConversionService(ConversionService conversionService);
 
 	/**
 	 * Return the associated ConversionService, if any.
 	 */
-	@Nullable ConversionService getConversionService();
+	ConversionService getConversionService();
 
 	/**
 	 * Set whether to extract the old property value when applying a

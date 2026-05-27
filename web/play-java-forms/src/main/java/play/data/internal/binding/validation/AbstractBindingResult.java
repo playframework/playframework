@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.beans.PropertyEditorRegistry;
 import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.ObjectUtils;
@@ -98,13 +96,13 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public void reject(String errorCode, Object @Nullable [] errorArgs, @Nullable String defaultMessage) {
+	public void reject(String errorCode, Object [] errorArgs, String defaultMessage) {
 		addError(new ObjectError(getObjectName(), resolveMessageCodes(errorCode), errorArgs, defaultMessage));
 	}
 
 	@Override
-	public void rejectValue(@Nullable String field, String errorCode,
-			Object @Nullable [] errorArgs, @Nullable String defaultMessage) {
+	public void rejectValue(String field, String errorCode,
+			Object [] errorArgs, String defaultMessage) {
 
 		if (!StringUtils.hasLength(getNestedPath()) && !StringUtils.hasLength(field)) {
 			// We're at the top of the nested object hierarchy,
@@ -156,7 +154,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public @Nullable ObjectError getGlobalError() {
+	public ObjectError getGlobalError() {
 		for (ObjectError objectError : this.errors) {
 			if (!(objectError instanceof FieldError)) {
 				return objectError;
@@ -177,7 +175,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public @Nullable FieldError getFieldError() {
+	public FieldError getFieldError() {
 		for (ObjectError objectError : this.errors) {
 			if (objectError instanceof FieldError fieldError) {
 				return fieldError;
@@ -199,7 +197,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public @Nullable FieldError getFieldError(String field) {
+	public FieldError getFieldError(String field) {
 		String fixedField = fixedField(field);
 		for (ObjectError objectError : this.errors) {
 			if (objectError instanceof FieldError fieldError && isMatchingFieldError(fixedField, fieldError)) {
@@ -210,7 +208,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public @Nullable Object getFieldValue(String field) {
+	public Object getFieldValue(String field) {
 		FieldError fieldError = getFieldError(field);
 		// Use rejected value in case of error, current field value otherwise.
 		if (fieldError != null) {
@@ -234,7 +232,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * @see #getActualFieldValue
 	 */
 	@Override
-	public @Nullable Class<?> getFieldType(@Nullable String field) {
+	public Class<?> getFieldType(String field) {
 		if (getTarget() != null) {
 			Object value = getActualFieldValue(fixedField(field));
 			if (value != null) {
@@ -272,7 +270,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public @Nullable Object getRawFieldValue(String field) {
+	public Object getRawFieldValue(String field) {
 		return (getTarget() != null ? getActualFieldValue(fixedField(field)) : null);
 	}
 
@@ -282,7 +280,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * editor lookup facility, if available.
 	 */
 	@Override
-	public @Nullable PropertyEditor findEditor(@Nullable String field, @Nullable Class<?> valueType) {
+	public PropertyEditor findEditor(String field, Class<?> valueType) {
 		PropertyEditorRegistry editorRegistry = getPropertyEditorRegistry();
 		if (editorRegistry != null) {
 			Class<?> valueTypeToUse = valueType;
@@ -300,7 +298,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * This implementation returns {@code null}.
 	 */
 	@Override
-	public @Nullable PropertyEditorRegistry getPropertyEditorRegistry() {
+	public PropertyEditorRegistry getPropertyEditorRegistry() {
 		return null;
 	}
 
@@ -310,7 +308,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public String[] resolveMessageCodes(String errorCode, @Nullable String field) {
+	public String[] resolveMessageCodes(String errorCode, String field) {
 		return getMessageCodesResolver().resolveMessageCodes(
 				errorCode, getObjectName(), fixedField(field), getFieldType(field));
 	}
@@ -321,7 +319,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public void recordFieldValue(String field, Class<?> type, @Nullable Object value) {
+	public void recordFieldValue(String field, Class<?> type, Object value) {
 		this.fieldTypes.put(field, type);
 		this.fieldValues.put(field, value);
 	}
@@ -350,7 +348,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof BindingResult that &&
 				getObjectName().equals(that.getObjectName()) &&
 				ObjectUtils.nullSafeEquals(getTarget(), that.getTarget()) &&
@@ -371,14 +369,14 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * Return the wrapped target object.
 	 */
 	@Override
-	public abstract @Nullable Object getTarget();
+	public abstract Object getTarget();
 
 	/**
 	 * Extract the actual field value for the given field.
 	 * @param field the field to check
 	 * @return the current value of the field
 	 */
-	protected abstract @Nullable Object getActualFieldValue(String field);
+	protected abstract Object getActualFieldValue(String field);
 
 	/**
 	 * Format the given value for the specified field.
@@ -388,7 +386,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * other than from a binding error, or an actual field value)
 	 * @return the formatted value
 	 */
-	protected @Nullable Object formatFieldValue(String field, @Nullable Object value) {
+	protected Object formatFieldValue(String field, Object value) {
 		return value;
 	}
 

@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.beans;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.NestedRuntimeException;
 
 /**
@@ -47,7 +45,7 @@ public abstract class BeansException extends NestedRuntimeException {
 	 * @param msg the detail message
 	 * @param cause the root cause
 	 */
-	public BeansException(@Nullable String msg, @Nullable Throwable cause) {
+	public BeansException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 

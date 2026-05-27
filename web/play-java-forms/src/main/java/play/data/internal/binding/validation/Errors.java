@@ -21,8 +21,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.beans.PropertyAccessor;
 
 /**
@@ -145,7 +143,7 @@ public interface Errors {
 	 * @param defaultMessage fallback default message
 	 * @see #rejectValue(String, String, Object[], String)
 	 */
-	void reject(String errorCode, Object @Nullable [] errorArgs, @Nullable String defaultMessage);
+	void reject(String errorCode, Object [] errorArgs, String defaultMessage);
 
 	/**
 	 * Register a field error for the specified field of the current object
@@ -159,7 +157,7 @@ public interface Errors {
 	 * @param errorCode error code, interpretable as a message key
 	 * @see #rejectValue(String, String, Object[], String)
 	 */
-	default void rejectValue(@Nullable String field, String errorCode) {
+	default void rejectValue(String field, String errorCode) {
 		rejectValue(field, errorCode, null, null);
 	}
 
@@ -176,7 +174,7 @@ public interface Errors {
 	 * @param defaultMessage fallback default message
 	 * @see #rejectValue(String, String, Object[], String)
 	 */
-	default void rejectValue(@Nullable String field, String errorCode, String defaultMessage) {
+	default void rejectValue(String field, String errorCode, String defaultMessage) {
 		rejectValue(field, errorCode, null, defaultMessage);
 	}
 
@@ -195,8 +193,8 @@ public interface Errors {
 	 * @param defaultMessage fallback default message
 	 * @see #reject(String, Object[], String)
 	 */
-	void rejectValue(@Nullable String field, String errorCode,
-			Object @Nullable [] errorArgs, @Nullable String defaultMessage);
+	void rejectValue(String field, String errorCode,
+			Object [] errorArgs, String defaultMessage);
 
 	/**
 	 * Add all errors from the given {@code Errors} instance to this
@@ -286,7 +284,7 @@ public interface Errors {
 	 * @return the global error, or {@code null}
 	 * @see #getFieldError()
 	 */
-	default @Nullable ObjectError getGlobalError() {
+	default ObjectError getGlobalError() {
 		return getGlobalErrors().stream().findFirst().orElse(null);
 	}
 
@@ -318,7 +316,7 @@ public interface Errors {
 	 * @return the field-specific error, or {@code null}
 	 * @see #getGlobalError()
 	 */
-	default @Nullable FieldError getFieldError() {
+	default FieldError getFieldError() {
 		return getFieldErrors().stream().findFirst().orElse(null);
 	}
 
@@ -358,7 +356,7 @@ public interface Errors {
 	 * @return the field-specific error, or {@code null}
 	 * @see #getFieldError()
 	 */
-	default @Nullable FieldError getFieldError(String field) {
+	default FieldError getFieldError(String field) {
 		return getFieldErrors().stream().filter(error -> field.equals(error.getField())).findFirst().orElse(null);
 	}
 
@@ -371,7 +369,7 @@ public interface Errors {
 	 * @return the current value of the given field
 	 * @see #getFieldType(String)
 	 */
-	@Nullable Object getFieldValue(String field);
+	Object getFieldValue(String field);
 
 	/**
 	 * Determine the type of the given field, as far as possible.
@@ -382,7 +380,7 @@ public interface Errors {
 	 * @return the type of the field, or {@code null} if not determinable
 	 * @see #getFieldValue(String)
 	 */
-	default @Nullable Class<?> getFieldType(String field) {
+	default Class<?> getFieldType(String field) {
 		return Optional.ofNullable(getFieldValue(field)).map(Object::getClass).orElse(null);
 	}
 

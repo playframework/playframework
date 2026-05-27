@@ -24,8 +24,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.util.StringUtils;
 
 /**
@@ -47,7 +45,7 @@ public abstract class AbstractErrors implements Errors, Serializable {
 
 
 	@Override
-	public void setNestedPath(@Nullable String nestedPath) {
+	public void setNestedPath(String nestedPath) {
 		doSetNestedPath(nestedPath);
 		this.nestedPathStack.clear();
 	}
@@ -78,7 +76,7 @@ public abstract class AbstractErrors implements Errors, Serializable {
 	 * Actually set the nested path.
 	 * Delegated to by setNestedPath and pushNestedPath.
 	 */
-	protected void doSetNestedPath(@Nullable String nestedPath) {
+	protected void doSetNestedPath(String nestedPath) {
 		if (nestedPath == null) {
 			nestedPath = "";
 		}
@@ -93,7 +91,7 @@ public abstract class AbstractErrors implements Errors, Serializable {
 	 * Transform the given field into its full path,
 	 * regarding the nested path of this instance.
 	 */
-	protected String fixedField(@Nullable String field) {
+	protected String fixedField(String field) {
 		if (StringUtils.hasLength(field)) {
 			return getNestedPath() + canonicalFieldName(field);
 		}

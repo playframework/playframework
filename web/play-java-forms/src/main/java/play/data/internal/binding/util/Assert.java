@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.lang.Contract;
 
 /**
@@ -145,7 +143,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the object is not {@code null}
 	 */
 	@Contract("!null, _ -> fail")
-	public static void isNull(@Nullable Object object, String message) {
+	public static void isNull(Object object, String message) {
 		if (object != null) {
 			throw new IllegalArgumentException(message);
 		}
@@ -163,7 +161,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("!null, _ -> fail")
-	public static void isNull(@Nullable Object object, Supplier<String> messageSupplier) {
+	public static void isNull(Object object, Supplier<String> messageSupplier) {
 		if (object != null) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -177,7 +175,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the object is {@code null}
 	 */
 	@Contract("null, _ -> fail")
-	public static void notNull(@Nullable Object object, String message) {
+	public static void notNull(Object object, String message) {
 		if (object == null) {
 			throw new IllegalArgumentException(message);
 		}
@@ -196,7 +194,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("null, _ -> fail")
-	public static void notNull(@Nullable Object object, Supplier<String> messageSupplier) {
+	public static void notNull(Object object, Supplier<String> messageSupplier) {
 		if (object == null) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -212,7 +210,7 @@ public abstract class Assert {
 	 * @see StringUtils#hasLength
 	 */
 	@Contract("null, _ -> fail")
-	public static void hasLength(@Nullable String text, String message) {
+	public static void hasLength(String text, String message) {
 		if (!StringUtils.hasLength(text)) {
 			throw new IllegalArgumentException(message);
 		}
@@ -233,7 +231,7 @@ public abstract class Assert {
 	 * @see StringUtils#hasLength
 	 */
 	@Contract("null, _ -> fail")
-	public static void hasLength(@Nullable String text, Supplier<String> messageSupplier) {
+	public static void hasLength(String text, Supplier<String> messageSupplier) {
 		if (!StringUtils.hasLength(text)) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -249,7 +247,7 @@ public abstract class Assert {
 	 * @see StringUtils#hasText
 	 */
 	@Contract("null, _ -> fail")
-	public static void hasText(@Nullable String text, String message) {
+	public static void hasText(String text, String message) {
 		if (!StringUtils.hasText(text)) {
 			throw new IllegalArgumentException(message);
 		}
@@ -270,7 +268,7 @@ public abstract class Assert {
 	 * @see StringUtils#hasText
 	 */
 	@Contract("null, _ -> fail")
-	public static void hasText(@Nullable String text, Supplier<String> messageSupplier) {
+	public static void hasText(String text, Supplier<String> messageSupplier) {
 		if (!StringUtils.hasText(text)) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -284,7 +282,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws IllegalArgumentException if the text contains the substring
 	 */
-	public static void doesNotContain(@Nullable String textToSearch, String substring, String message) {
+	public static void doesNotContain(String textToSearch, String substring, String message) {
 		if (StringUtils.hasLength(textToSearch) && StringUtils.hasLength(substring) &&
 				textToSearch.contains(substring)) {
 			throw new IllegalArgumentException(message);
@@ -303,7 +301,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the text contains the substring
 	 * @since 5.0
 	 */
-	public static void doesNotContain(@Nullable String textToSearch, String substring, Supplier<String> messageSupplier) {
+	public static void doesNotContain(String textToSearch, String substring, Supplier<String> messageSupplier) {
 		if (StringUtils.hasLength(textToSearch) && StringUtils.hasLength(substring) &&
 				textToSearch.contains(substring)) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
@@ -319,7 +317,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the object array is {@code null} or contains no elements
 	 */
 	@Contract("null, _ -> fail")
-	public static void notEmpty(@Nullable Object @Nullable [] array, String message) {
+	public static void notEmpty(Object [] array, String message) {
 		if (ObjectUtils.isEmpty(array)) {
 			throw new IllegalArgumentException(message);
 		}
@@ -338,7 +336,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("null, _ -> fail")
-	public static void notEmpty(Object @Nullable [] array, Supplier<String> messageSupplier) {
+	public static void notEmpty(Object [] array, Supplier<String> messageSupplier) {
 		if (ObjectUtils.isEmpty(array)) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -352,7 +350,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws IllegalArgumentException if the object array contains a {@code null} element
 	 */
-	public static void noNullElements(@Nullable Object @Nullable [] array, String message) {
+	public static void noNullElements(Object [] array, String message) {
 		if (array != null) {
 			for (Object element : array) {
 				if (element == null) {
@@ -374,7 +372,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the object array contains a {@code null} element
 	 * @since 5.0
 	 */
-	public static void noNullElements(@Nullable Object @Nullable [] array, Supplier<String> messageSupplier) {
+	public static void noNullElements(Object [] array, Supplier<String> messageSupplier) {
 		if (array != null) {
 			for (Object element : array) {
 				if (element == null) {
@@ -394,7 +392,7 @@ public abstract class Assert {
 	 * contains no elements
 	 */
 	@Contract("null, _ -> fail")
-	public static void notEmpty(@Nullable Collection<?> collection, String message) {
+	public static void notEmpty(Collection<?> collection, String message) {
 		if (CollectionUtils.isEmpty(collection)) {
 			throw new IllegalArgumentException(message);
 		}
@@ -414,7 +412,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("null, _ -> fail")
-	public static void notEmpty(@Nullable Collection<?> collection, Supplier<String> messageSupplier) {
+	public static void notEmpty(Collection<?> collection, Supplier<String> messageSupplier) {
 		if (CollectionUtils.isEmpty(collection)) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -429,7 +427,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the collection contains a {@code null} element
 	 * @since 5.2
 	 */
-	public static void noNullElements(@Nullable Collection<? extends @Nullable Object> collection, String message) {
+	public static void noNullElements(Collection<? extends Object> collection, String message) {
 		if (collection != null) {
 			for (Object element : collection) {
 				if (element == null) {
@@ -451,7 +449,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the collection contains a {@code null} element
 	 * @since 5.2
 	 */
-	public static void noNullElements(@Nullable Collection<? extends @Nullable Object> collection, Supplier<String> messageSupplier) {
+	public static void noNullElements(Collection<? extends Object> collection, Supplier<String> messageSupplier) {
 		if (collection != null) {
 			for (Object element : collection) {
 				if (element == null) {
@@ -470,7 +468,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the map is {@code null} or contains no entries
 	 */
 	@Contract("null, _ -> fail")
-	public static void notEmpty(@Nullable Map<?, ?> map, String message) {
+	public static void notEmpty(Map<?, ?> map, String message) {
 		if (CollectionUtils.isEmpty(map)) {
 			throw new IllegalArgumentException(message);
 		}
@@ -489,7 +487,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("null, _ -> fail")
-	public static void notEmpty(@Nullable Map<?, ?> map, Supplier<String> messageSupplier) {
+	public static void notEmpty(Map<?, ?> map, Supplier<String> messageSupplier) {
 		if (CollectionUtils.isEmpty(map)) {
 			throw new IllegalArgumentException(nullSafeGet(messageSupplier));
 		}
@@ -508,7 +506,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the object is not an instance of type
 	 */
 	@Contract("_, null, _ -> fail")
-	public static void isInstanceOf(Class<?> type, @Nullable Object obj, String message) {
+	public static void isInstanceOf(Class<?> type, Object obj, String message) {
 		notNull(type, "Type to check against must not be null");
 		if (!type.isInstance(obj)) {
 			instanceCheckFailed(type, obj, message);
@@ -528,7 +526,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("_, null, _ -> fail")
-	public static void isInstanceOf(Class<?> type, @Nullable Object obj, Supplier<String> messageSupplier) {
+	public static void isInstanceOf(Class<?> type, Object obj, Supplier<String> messageSupplier) {
 		notNull(type, "Type to check against must not be null");
 		if (!type.isInstance(obj)) {
 			instanceCheckFailed(type, obj, nullSafeGet(messageSupplier));
@@ -543,7 +541,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the object is not an instance of type
 	 */
 	@Contract("_, null -> fail")
-	public static void isInstanceOf(Class<?> type, @Nullable Object obj) {
+	public static void isInstanceOf(Class<?> type, Object obj) {
 		isInstanceOf(type, obj, "");
 	}
 
@@ -560,7 +558,7 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the classes are not assignable
 	 */
 	@Contract("_, null, _ -> fail")
-	public static void isAssignable(Class<?> superType, @Nullable Class<?> subType, String message) {
+	public static void isAssignable(Class<?> superType, Class<?> subType, String message) {
 		notNull(superType, "Supertype to check against must not be null");
 		if (subType == null || !superType.isAssignableFrom(subType)) {
 			assignableCheckFailed(superType, subType, message);
@@ -580,7 +578,7 @@ public abstract class Assert {
 	 * @since 5.0
 	 */
 	@Contract("_, null, _ -> fail")
-	public static void isAssignable(Class<?> superType, @Nullable Class<?> subType, Supplier<String> messageSupplier) {
+	public static void isAssignable(Class<?> superType, Class<?> subType, Supplier<String> messageSupplier) {
 		notNull(superType, "Supertype to check against must not be null");
 		if (subType == null || !superType.isAssignableFrom(subType)) {
 			assignableCheckFailed(superType, subType, nullSafeGet(messageSupplier));
@@ -595,12 +593,12 @@ public abstract class Assert {
 	 * @throws IllegalArgumentException if the classes are not assignable
 	 */
 	@Contract("_, null -> fail")
-	public static void isAssignable(Class<?> superType, @Nullable Class<?> subType) {
+	public static void isAssignable(Class<?> superType, Class<?> subType) {
 		isAssignable(superType, subType, "");
 	}
 
 
-	private static void instanceCheckFailed(Class<?> type, @Nullable Object obj, @Nullable String msg) {
+	private static void instanceCheckFailed(Class<?> type, Object obj, String msg) {
 		String className = (obj != null ? obj.getClass().getName() : "null");
 		String result = "";
 		boolean defaultMessage = true;
@@ -619,7 +617,7 @@ public abstract class Assert {
 		throw new IllegalArgumentException(result);
 	}
 
-	private static void assignableCheckFailed(Class<?> superType, @Nullable Class<?> subType, @Nullable String msg) {
+	private static void assignableCheckFailed(Class<?> superType, Class<?> subType, String msg) {
 		String result = "";
 		boolean defaultMessage = true;
 		if (StringUtils.hasLength(msg)) {
@@ -641,11 +639,11 @@ public abstract class Assert {
 		return (msg.endsWith(":") || msg.endsWith(";") || msg.endsWith(",") || msg.endsWith("."));
 	}
 
-	private static String messageWithTypeName(String msg, @Nullable Object typeName) {
+	private static String messageWithTypeName(String msg, Object typeName) {
 		return msg + (msg.endsWith(" ") ? "" : ": ") + typeName;
 	}
 
-	private static @Nullable String nullSafeGet(@Nullable Supplier<String> messageSupplier) {
+	private static String nullSafeGet(Supplier<String> messageSupplier) {
 		return (messageSupplier != null ? messageSupplier.get() : null);
 	}
 

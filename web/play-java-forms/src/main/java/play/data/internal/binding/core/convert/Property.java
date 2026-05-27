@@ -24,8 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.MethodParameter;
 import play.data.internal.binding.util.ConcurrentReferenceHashMap;
 import play.data.internal.binding.util.ObjectUtils;
@@ -53,23 +51,23 @@ public final class Property {
 
 	private final Class<?> objectType;
 
-	private final @Nullable Method readMethod;
+	private final Method readMethod;
 
-	private final @Nullable Method writeMethod;
+	private final Method writeMethod;
 
 	private final String name;
 
 	private final MethodParameter methodParameter;
 
-	private Annotation @Nullable [] annotations;
+	private Annotation [] annotations;
 
 
-	public Property(Class<?> objectType, @Nullable Method readMethod, @Nullable Method writeMethod) {
+	public Property(Class<?> objectType, Method readMethod, Method writeMethod) {
 		this(objectType, readMethod, writeMethod, null);
 	}
 
 	public Property(
-			Class<?> objectType, @Nullable Method readMethod, @Nullable Method writeMethod, @Nullable String name) {
+			Class<?> objectType, Method readMethod, Method writeMethod, String name) {
 
 		this.objectType = objectType;
 		this.readMethod = readMethod;
@@ -103,14 +101,14 @@ public final class Property {
 	/**
 	 * The property getter method: for example, {@code getFoo()}.
 	 */
-	public @Nullable Method getReadMethod() {
+	public Method getReadMethod() {
 		return this.readMethod;
 	}
 
 	/**
 	 * The property setter method: for example, {@code setFoo(String)}.
 	 */
-	public @Nullable Method getWriteMethod() {
+	public Method getWriteMethod() {
 		return this.writeMethod;
 	}
 
@@ -181,14 +179,14 @@ public final class Property {
 		return write;
 	}
 
-	private @Nullable MethodParameter resolveReadMethodParameter() {
+	private MethodParameter resolveReadMethodParameter() {
 		if (getReadMethod() == null) {
 			return null;
 		}
 		return new MethodParameter(getReadMethod(), -1).withContainingClass(getObjectType());
 	}
 
-	private @Nullable MethodParameter resolveWriteMethodParameter() {
+	private MethodParameter resolveWriteMethodParameter() {
 		if (getWriteMethod() == null) {
 			return null;
 		}
@@ -209,7 +207,7 @@ public final class Property {
 	}
 
 	private void addAnnotationsToMap(
-			Map<Class<? extends Annotation>, Annotation> annotationMap, @Nullable AnnotatedElement object) {
+			Map<Class<? extends Annotation>, Annotation> annotationMap, AnnotatedElement object) {
 
 		if (object != null) {
 			for (Annotation annotation : object.getAnnotations()) {
@@ -218,7 +216,7 @@ public final class Property {
 		}
 	}
 
-	private @Nullable Field getField() {
+	private Field getField() {
 		String name = getName();
 		if (!StringUtils.hasLength(name)) {
 			return null;
@@ -238,7 +236,7 @@ public final class Property {
 		return field;
 	}
 
-	private @Nullable Class<?> declaringClass() {
+	private Class<?> declaringClass() {
 		if (getReadMethod() != null) {
 			return getReadMethod().getDeclaringClass();
 		}
@@ -252,7 +250,7 @@ public final class Property {
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		return (this == other || (other instanceof Property that &&
 				ObjectUtils.nullSafeEquals(this.objectType, that.objectType) &&
 				ObjectUtils.nullSafeEquals(this.name, that.name) &&

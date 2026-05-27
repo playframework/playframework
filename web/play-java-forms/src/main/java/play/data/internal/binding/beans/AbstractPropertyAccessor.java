@@ -21,8 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Abstract implementation of the {@link PropertyAccessor} interface.
  * Provides base implementations of all convenience methods, with the
@@ -151,7 +149,7 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 
 	// Redefined with public visibility.
 	@Override
-	public @Nullable Class<?> getPropertyType(String propertyPath) {
+	public Class<?> getPropertyType(String propertyPath) {
 		return null;
 	}
 
@@ -165,7 +163,7 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 	 * accessor method failed
 	 */
 	@Override
-	public abstract @Nullable Object getPropertyValue(String propertyName) throws BeansException;
+	public abstract Object getPropertyValue(String propertyName) throws BeansException;
 
 	/**
 	 * Actually set a property value.
@@ -177,6 +175,6 @@ public abstract class AbstractPropertyAccessor extends TypeConverterSupport impl
 	 * accessor method failed or a type mismatch occurred
 	 */
 	@Override
-	public abstract void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException;
+	public abstract void setPropertyValue(String propertyName, Object value) throws BeansException;
 
 }

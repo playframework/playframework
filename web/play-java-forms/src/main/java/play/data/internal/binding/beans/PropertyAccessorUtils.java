@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.beans;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Utility methods for classes that perform bean property access
  * according to the {@link PropertyAccessor} interface.
@@ -44,7 +42,7 @@ public abstract class PropertyAccessorUtils {
 	 * @param propertyPath the property path to check
 	 * @return whether the path indicates an indexed or nested property
 	 */
-	public static boolean isNestedOrIndexedProperty(@Nullable String propertyPath) {
+	public static boolean isNestedOrIndexedProperty(String propertyPath) {
 		if (propertyPath == null) {
 			return false;
 		}
@@ -139,7 +137,7 @@ public abstract class PropertyAccessorUtils {
 	 * @param propertyName the bean property path
 	 * @return the canonical representation of the property path
 	 */
-	public static String canonicalPropertyName(@Nullable String propertyName) {
+	public static String canonicalPropertyName(String propertyName) {
 		if (propertyName == null) {
 			return "";
 		}
@@ -174,7 +172,7 @@ public abstract class PropertyAccessorUtils {
 	 * (as array of the same size)
 	 * @see #canonicalPropertyName(String)
 	 */
-	public static String @Nullable [] canonicalPropertyNames(String @Nullable [] propertyNames) {
+	public static String [] canonicalPropertyNames(String [] propertyNames) {
 		if (propertyNames == null) {
 			return null;
 		}

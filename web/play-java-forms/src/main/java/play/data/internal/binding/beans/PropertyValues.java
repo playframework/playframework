@@ -23,8 +23,6 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Holder containing one or more {@link PropertyValue} objects,
  * typically comprising one update for a specific target bean.
@@ -72,7 +70,7 @@ public interface PropertyValues extends Iterable<PropertyValue> {
 	 * @param propertyName the name to search for
 	 * @return the property value, or {@code null} if none
 	 */
-	@Nullable PropertyValue getPropertyValue(String propertyName);
+	PropertyValue getPropertyValue(String propertyName);
 
 	/**
 	 * Return the changes since the previous PropertyValues.

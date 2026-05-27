@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.ResolvableType;
 import play.data.internal.binding.util.ObjectUtils;
 import play.data.internal.binding.util.StringUtils;
@@ -136,7 +134,7 @@ abstract class PropertyDescriptorUtils {
 	/**
 	 * See {@link java.beans.PropertyDescriptor#findPropertyType}.
 	 */
-	public static @Nullable Class<?> findPropertyType(@Nullable Method readMethod, @Nullable Method writeMethod)
+	public static Class<?> findPropertyType(Method readMethod, Method writeMethod)
 			throws IntrospectionException {
 
 		Class<?> propertyType = null;
@@ -180,8 +178,8 @@ abstract class PropertyDescriptorUtils {
 	/**
 	 * See {@link java.beans.IndexedPropertyDescriptor#findIndexedPropertyType}.
 	 */
-	public static @Nullable Class<?> findIndexedPropertyType(String name, @Nullable Class<?> propertyType,
-			@Nullable Method indexedReadMethod, @Nullable Method indexedWriteMethod) throws IntrospectionException {
+	public static Class<?> findIndexedPropertyType(String name, Class<?> propertyType,
+			Method indexedReadMethod, Method indexedWriteMethod) throws IntrospectionException {
 
 		Class<?> indexedPropertyType = null;
 
@@ -259,13 +257,13 @@ abstract class PropertyDescriptorUtils {
 
 		private final Class<?> beanClass;
 
-		private @Nullable Method readMethod;
+		private Method readMethod;
 
-		private @Nullable Method writeMethod;
+		private Method writeMethod;
 
 		private final List<Method> candidateWriteMethods = new ArrayList<>();
 
-		public BasicPropertyDescriptor(String propertyName, Class<?> beanClass, @Nullable Method readMethod, @Nullable Method writeMethod)
+		public BasicPropertyDescriptor(String propertyName, Class<?> beanClass, Method readMethod, Method writeMethod)
 				throws IntrospectionException {
 
 			super(propertyName, readMethod, writeMethod);
@@ -273,17 +271,17 @@ abstract class PropertyDescriptorUtils {
 		}
 
 		@Override
-		public void setReadMethod(@Nullable Method readMethod) {
+		public void setReadMethod(Method readMethod) {
 			this.readMethod = readMethod;
 		}
 
 		@Override
-		public @Nullable Method getReadMethod() {
+		public Method getReadMethod() {
 			return this.readMethod;
 		}
 
 		@Override
-		public void setWriteMethod(@Nullable Method writeMethod) {
+		public void setWriteMethod(Method writeMethod) {
 			this.writeMethod = writeMethod;
 		}
 
@@ -298,7 +296,7 @@ abstract class PropertyDescriptorUtils {
 		}
 
 		@Override
-		public @Nullable Method getWriteMethod() {
+		public Method getWriteMethod() {
 			if (this.writeMethod == null && !this.candidateWriteMethods.isEmpty()) {
 				if (this.readMethod == null || this.candidateWriteMethods.size() == 1) {
 					this.writeMethod = this.candidateWriteMethods.get(0);

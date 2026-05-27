@@ -18,8 +18,6 @@ package play.data.internal.binding.validation;
 
 import java.io.Serializable;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.beans.BeanWrapper;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.PropertyAccessorFactory;
@@ -44,13 +42,13 @@ import play.data.internal.binding.beans.PropertyAccessorFactory;
 @SuppressWarnings("serial")
 public class BeanPropertyBindingResult extends AbstractPropertyBindingResult implements Serializable {
 
-	private final @Nullable Object target;
+	private final Object target;
 
 	private final boolean autoGrowNestedPaths;
 
 	private final int autoGrowCollectionLimit;
 
-	private transient @Nullable BeanWrapper beanWrapper;
+	private transient BeanWrapper beanWrapper;
 
 
 	/**
@@ -58,7 +56,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 	 * @param target the target bean to bind onto
 	 * @param objectName the name of the target object
 	 */
-	public BeanPropertyBindingResult(@Nullable Object target, String objectName) {
+	public BeanPropertyBindingResult(Object target, String objectName) {
 		this(target, objectName, true, Integer.MAX_VALUE);
 	}
 
@@ -69,7 +67,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 	 * @param autoGrowNestedPaths whether to "auto-grow" a nested path that contains a null value
 	 * @param autoGrowCollectionLimit the limit for array and collection auto-growing
 	 */
-	public BeanPropertyBindingResult(@Nullable Object target, String objectName,
+	public BeanPropertyBindingResult(Object target, String objectName,
 			boolean autoGrowNestedPaths, int autoGrowCollectionLimit) {
 
 		super(objectName);
@@ -80,7 +78,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 
 
 	@Override
-	public final @Nullable Object getTarget() {
+	public final Object getTarget() {
 		return this.target;
 	}
 

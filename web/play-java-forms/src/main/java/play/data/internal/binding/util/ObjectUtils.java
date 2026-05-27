@@ -28,8 +28,6 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.TimeZone;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.lang.Contract;
 
 /**
@@ -84,7 +82,7 @@ public abstract class ObjectUtils {
 	 * @param declaredExceptions the exception types declared in the throws clause
 	 * @return whether the given exception is compatible
 	 */
-	public static boolean isCompatibleWithThrowsClause(Throwable ex, Class<?> @Nullable ... declaredExceptions) {
+	public static boolean isCompatibleWithThrowsClause(Throwable ex, Class<?> ... declaredExceptions) {
 		if (!isCheckedException(ex)) {
 			return true;
 		}
@@ -104,7 +102,7 @@ public abstract class ObjectUtils {
 	 * @param obj the object to check
 	 */
 	@Contract("null -> false")
-	public static boolean isArray(@Nullable Object obj) {
+	public static boolean isArray(Object obj) {
 		return (obj != null && obj.getClass().isArray());
 	}
 
@@ -115,7 +113,7 @@ public abstract class ObjectUtils {
 	 * @see #isEmpty(Object)
 	 */
 	@Contract("null -> true")
-	public static boolean isEmpty(@Nullable Object @Nullable [] array) {
+	public static boolean isEmpty(Object [] array) {
 		return (array == null || array.length == 0);
 	}
 
@@ -141,7 +139,7 @@ public abstract class ObjectUtils {
 	 * @see CollectionUtils#isEmpty(java.util.Map)
 	 */
 	@Contract("null -> true")
-	public static boolean isEmpty(@Nullable Object obj) {
+	public static boolean isEmpty(Object obj) {
 		if (obj == null) {
 			return true;
 		}
@@ -174,7 +172,7 @@ public abstract class ObjectUtils {
 	 * @since 5.0
 	 */
 	@Contract("null -> null")
-	public static @Nullable Object unwrapOptional(@Nullable Object obj) {
+	public static Object unwrapOptional(Object obj) {
 		if (obj instanceof Optional<?> optional) {
 			Object result = optional.orElse(null);
 			Assert.isTrue(!(result instanceof Optional), "Multi-level Optional usage not supported");
@@ -191,7 +189,7 @@ public abstract class ObjectUtils {
 	 * @return whether the element has been found in the given array
 	 */
 	@Contract("null, _ -> false")
-	public static boolean containsElement(@Nullable Object @Nullable [] array, @Nullable Object element) {
+	public static boolean containsElement(Object [] array, Object element) {
 		if (array == null) {
 			return false;
 		}
@@ -256,7 +254,7 @@ public abstract class ObjectUtils {
 	 * @param obj the object to append
 	 * @return the new array (of the same component type; never {@code null})
 	 */
-	public static <A, O extends A> A[] addObjectToArray(A @Nullable [] array, O obj) {
+	public static <A, O extends A> A[] addObjectToArray(A [] array, O obj) {
 		return addObjectToArray(array, obj, (array != null ? array.length : 0));
 	}
 
@@ -269,7 +267,7 @@ public abstract class ObjectUtils {
 	 * @return the new array (of the same component type; never {@code null})
 	 * @since 6.0
 	 */
-	public static <A, O extends A> A[] addObjectToArray(A @Nullable [] array, O obj, int position) {
+	public static <A, O extends A> A[] addObjectToArray(A [] array, O obj, int position) {
 		Class<?> componentType = Object.class;
 		if (array != null) {
 			componentType = array.getClass().componentType();
@@ -298,7 +296,7 @@ public abstract class ObjectUtils {
 	 * @return the corresponding object array (never {@code null})
 	 * @throws IllegalArgumentException if the parameter is not an array
 	 */
-	public static Object[] toObjectArray(@Nullable Object source) {
+	public static Object[] toObjectArray(Object source) {
 		if (source instanceof Object[] objects) {
 			return objects;
 		}
@@ -337,7 +335,7 @@ public abstract class ObjectUtils {
 	 * @see java.util.Arrays#equals
 	 */
 	@Contract("null, null -> true; null, _ -> false; _, null -> false")
-	public static boolean nullSafeEquals(@Nullable Object o1, @Nullable Object o2) {
+	public static boolean nullSafeEquals(Object o1, Object o2) {
 		if (o1 == o2) {
 			return true;
 		}
@@ -404,7 +402,7 @@ public abstract class ObjectUtils {
 	 * @return a hash value of the elements
 	 * @since 6.1
 	 */
-	public static int nullSafeHash(@Nullable Object @Nullable ... elements) {
+	public static int nullSafeHash(Object ... elements) {
 		if (elements == null) {
 			return 0;
 		}
@@ -423,7 +421,7 @@ public abstract class ObjectUtils {
 	 * @see Object#hashCode()
 	 * @see Arrays
 	 */
-	public static int nullSafeHashCode(@Nullable Object obj) {
+	public static int nullSafeHashCode(Object obj) {
 		if (obj == null) {
 			return 0;
 		}
@@ -465,7 +463,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(Object[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(Object @Nullable [] array) {
+	public static int nullSafeHashCode(Object [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -475,7 +473,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(boolean[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(boolean @Nullable [] array) {
+	public static int nullSafeHashCode(boolean [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -485,7 +483,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(byte[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(byte @Nullable [] array) {
+	public static int nullSafeHashCode(byte [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -495,7 +493,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(char[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(char @Nullable [] array) {
+	public static int nullSafeHashCode(char [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -505,7 +503,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(double[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(double @Nullable [] array) {
+	public static int nullSafeHashCode(double [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -515,7 +513,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(float[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(float @Nullable [] array) {
+	public static int nullSafeHashCode(float [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -525,7 +523,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(int[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(int @Nullable [] array) {
+	public static int nullSafeHashCode(int [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -535,7 +533,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(long[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(long @Nullable [] array) {
+	public static int nullSafeHashCode(long [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -545,7 +543,7 @@ public abstract class ObjectUtils {
 	 * @deprecated as of 6.1 in favor of {@link Arrays#hashCode(short[])}
 	 */
 	@Deprecated(since = "6.1")
-	public static int nullSafeHashCode(short @Nullable [] array) {
+	public static int nullSafeHashCode(short [] array) {
 		return Arrays.hashCode(array);
 	}
 
@@ -560,7 +558,7 @@ public abstract class ObjectUtils {
 	 * @return the object's identity as String representation,
 	 * or an empty String if the object was {@code null}
 	 */
-	public static String identityToString(@Nullable Object obj) {
+	public static String identityToString(Object obj) {
 		if (obj == null) {
 			return EMPTY_STRING;
 		}
@@ -585,7 +583,7 @@ public abstract class ObjectUtils {
 	 * @return a display String representation of {@code obj}
 	 * @see #nullSafeToString(Object)
 	 */
-	public static String getDisplayString(@Nullable Object obj) {
+	public static String getDisplayString(Object obj) {
 		if (obj == null) {
 			return EMPTY_STRING;
 		}
@@ -598,7 +596,7 @@ public abstract class ObjectUtils {
 	 * @param obj the object to introspect (may be {@code null})
 	 * @return the corresponding class name
 	 */
-	public static String nullSafeClassName(@Nullable Object obj) {
+	public static String nullSafeClassName(Object obj) {
 		return (obj != null ? obj.getClass().getName() : NULL_STRING);
 	}
 
@@ -610,7 +608,7 @@ public abstract class ObjectUtils {
 	 * @return a String representation of {@code obj}
 	 * @see #nullSafeConciseToString(Object)
 	 */
-	public static String nullSafeToString(@Nullable Object obj) {
+	public static String nullSafeToString(Object obj) {
 		if (obj == null) {
 			return NULL_STRING;
 		}
@@ -657,7 +655,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(@Nullable Object @Nullable [] array) {
+	public static String nullSafeToString(Object [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -681,7 +679,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(boolean @Nullable [] array) {
+	public static String nullSafeToString(boolean [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -705,7 +703,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(byte @Nullable [] array) {
+	public static String nullSafeToString(byte [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -724,7 +722,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(char @Nullable [] array) {
+	public static String nullSafeToString(char [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -747,7 +745,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(double @Nullable [] array) {
+	public static String nullSafeToString(double [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -770,7 +768,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(float @Nullable [] array) {
+	public static String nullSafeToString(float [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -793,7 +791,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(int @Nullable [] array) {
+	public static String nullSafeToString(int [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -816,7 +814,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(long @Nullable [] array) {
+	public static String nullSafeToString(long [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -840,7 +838,7 @@ public abstract class ObjectUtils {
 	 * @param array the array to build a String representation for
 	 * @return a String representation of {@code array}
 	 */
-	public static String nullSafeToString(short @Nullable [] array) {
+	public static String nullSafeToString(short [] array) {
 		if (array == null) {
 			return NULL_STRING;
 		}
@@ -896,7 +894,7 @@ public abstract class ObjectUtils {
 	 * @see StringUtils#truncate(CharSequence)
 	 * @see ClassUtils#isSimpleValueType(Class)
 	 */
-	public static String nullSafeConciseToString(@Nullable Object obj) {
+	public static String nullSafeConciseToString(Object obj) {
 		if (obj == null) {
 			return NULL_STRING;
 		}

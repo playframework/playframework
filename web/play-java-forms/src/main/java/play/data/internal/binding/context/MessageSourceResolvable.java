@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.context;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Interface for objects that are suitable for message resolution in a
  * {@link MessageSource}.
@@ -37,7 +35,7 @@ public interface MessageSourceResolvable {
 	 * they should get tried. The last code will therefore be the default one.
 	 * @return a String array of codes which are associated with this message
 	 */
-	String @Nullable [] getCodes();
+	String [] getCodes();
 
 	/**
 	 * Return the array of arguments to be used to resolve this message.
@@ -46,7 +44,7 @@ public interface MessageSourceResolvable {
 	 * placeholders within the message text
 	 * @see java.text.MessageFormat
 	 */
-	default Object @Nullable [] getArguments() {
+	default Object [] getArguments() {
 		return null;
 	}
 
@@ -59,7 +57,7 @@ public interface MessageSourceResolvable {
 	 * for this particular message.
 	 * @return the default message, or {@code null} if no default
 	 */
-	default @Nullable String getDefaultMessage() {
+	default String getDefaultMessage() {
 		return null;
 	}
 

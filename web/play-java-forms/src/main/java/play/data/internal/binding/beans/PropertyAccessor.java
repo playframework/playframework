@@ -18,8 +18,6 @@ package play.data.internal.binding.beans;
 
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.convert.TypeDescriptor;
 
 /**
@@ -102,7 +100,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed
 	 */
-	@Nullable Class<?> getPropertyType(String propertyName) throws BeansException;
+	Class<?> getPropertyType(String propertyName) throws BeansException;
 
 	/**
 	 * Return a type descriptor for the specified property:
@@ -114,7 +112,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed
 	 */
-	@Nullable TypeDescriptor getPropertyTypeDescriptor(String propertyName) throws BeansException;
+	TypeDescriptor getPropertyTypeDescriptor(String propertyName) throws BeansException;
 
 	/**
 	 * Get the current value of the specified property.
@@ -126,7 +124,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed
 	 */
-	@Nullable Object getPropertyValue(String propertyName) throws BeansException;
+	Object getPropertyValue(String propertyName) throws BeansException;
 
 	/**
 	 * Set the specified value as current property value.
@@ -138,7 +136,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed or a type mismatch occurred
 	 */
-	void setPropertyValue(String propertyName, @Nullable Object value) throws BeansException;
+	void setPropertyValue(String propertyName, Object value) throws BeansException;
 
 	/**
 	 * Set the specified value as current property value.

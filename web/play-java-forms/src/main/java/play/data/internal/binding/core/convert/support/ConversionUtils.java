@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.core.convert.support;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.convert.ConversionFailedException;
 import play.data.internal.binding.core.convert.ConversionService;
 import play.data.internal.binding.core.convert.TypeDescriptor;
@@ -34,7 +32,7 @@ import play.data.internal.binding.util.ClassUtils;
  */
 abstract class ConversionUtils {
 
-	public static @Nullable Object invokeConverter(GenericConverter converter, @Nullable Object source,
+	public static Object invokeConverter(GenericConverter converter, Object source,
 			TypeDescriptor sourceType, TypeDescriptor targetType) {
 
 		try {
@@ -48,8 +46,8 @@ abstract class ConversionUtils {
 		}
 	}
 
-	public static boolean canConvertElements(@Nullable TypeDescriptor sourceElementType,
-			@Nullable TypeDescriptor targetElementType, ConversionService conversionService) {
+	public static boolean canConvertElements(TypeDescriptor sourceElementType,
+			TypeDescriptor targetElementType, ConversionService conversionService) {
 
 		if (targetElementType == null) {
 			// yes

@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import play.data.internal.binding.core.io.support.SpringFactoriesLoader;
 import play.data.internal.binding.util.ClassUtils;
@@ -115,7 +114,7 @@ public final class CachedIntrospectionResults {
 	 * be paired with a {@link #clearClassLoader} call at application shutdown.
 	 * @param classLoader the ClassLoader to accept
 	 */
-	public static void acceptClassLoader(@Nullable ClassLoader classLoader) {
+	public static void acceptClassLoader(ClassLoader classLoader) {
 		if (classLoader != null) {
 			acceptedClassLoaders.add(classLoader);
 		}
@@ -127,7 +126,7 @@ public final class CachedIntrospectionResults {
 	 * removing the ClassLoader (and its children) from the acceptance list.
 	 * @param classLoader the ClassLoader to clear the cache for
 	 */
-	public static void clearClassLoader(@Nullable ClassLoader classLoader) {
+	public static void clearClassLoader(ClassLoader classLoader) {
 		acceptedClassLoaders.removeIf(registeredLoader ->
 				isUnderneathClassLoader(registeredLoader, classLoader));
 		strongClassCache.keySet().removeIf(beanClass ->
@@ -192,7 +191,7 @@ public final class CachedIntrospectionResults {
 	 * @param candidate the candidate ClassLoader to check
 	 * @param parent the parent ClassLoader to check for
 	 */
-	private static boolean isUnderneathClassLoader(@Nullable ClassLoader candidate, @Nullable ClassLoader parent) {
+	private static boolean isUnderneathClassLoader(ClassLoader candidate, ClassLoader parent) {
 		if (candidate == parent) {
 			return true;
 		}
@@ -359,7 +358,7 @@ public final class CachedIntrospectionResults {
 		}
 	}
 
-	private boolean isInvalidReadOnlyPropertyType(@Nullable Class<?> returnType, Class<?> beanClass) {
+	private boolean isInvalidReadOnlyPropertyType(Class<?> returnType, Class<?> beanClass) {
 		return (returnType != null && (ClassLoader.class.isAssignableFrom(returnType) ||
 				ProtectionDomain.class.isAssignableFrom(returnType) ||
 				(AutoCloseable.class.isAssignableFrom(returnType) &&
@@ -375,7 +374,7 @@ public final class CachedIntrospectionResults {
 		return this.beanInfo.getBeanDescriptor().getBeanClass();
 	}
 
-	@Nullable PropertyDescriptor getPropertyDescriptor(String name) {
+	PropertyDescriptor getPropertyDescriptor(String name) {
 		PropertyDescriptor pd = this.propertyDescriptors.get(name);
 		if (pd == null && StringUtils.hasLength(name)) {
 			// Same lenient fallback checking as in Property...

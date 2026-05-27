@@ -18,8 +18,6 @@ package play.data.internal.binding.core.convert.converter;
 
 import java.util.Set;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.core.convert.TypeDescriptor;
 import play.data.internal.binding.util.Assert;
 
@@ -54,7 +52,7 @@ public interface GenericConverter {
 	 * <p>For {@link ConditionalConverter conditional converters} this method may return
 	 * {@code null} to indicate all source-to-target pairs should be considered.
 	 */
-	@Nullable Set<ConvertiblePair> getConvertibleTypes();
+	Set<ConvertiblePair> getConvertibleTypes();
 
 	/**
 	 * Convert the source object to the targetType described by the {@code TypeDescriptor}.
@@ -63,7 +61,7 @@ public interface GenericConverter {
 	 * @param targetType the type descriptor of the field we are converting to
 	 * @return the converted object
 	 */
-	@Nullable Object convert(@Nullable Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+	Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
 
 
 	/**
@@ -96,7 +94,7 @@ public interface GenericConverter {
 		}
 
 		@Override
-		public boolean equals(@Nullable Object other) {
+		public boolean equals(Object other) {
 			if (this == other) {
 				return true;
 			}

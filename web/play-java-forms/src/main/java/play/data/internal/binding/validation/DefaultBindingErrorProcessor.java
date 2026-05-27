@@ -18,8 +18,6 @@ package play.data.internal.binding.validation;
 
 import java.io.Serializable;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.beans.PropertyAccessException;
 import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
 import play.data.internal.binding.util.Assert;
@@ -105,14 +103,14 @@ public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
 	@SuppressWarnings("serial")
 	private static class BindingFieldError extends FieldError implements Serializable {
 
-		public BindingFieldError(String objectName, String field, @Nullable Object rejectedValue, String[] codes,
+		public BindingFieldError(String objectName, String field, Object rejectedValue, String[] codes,
 				Object[] arguments) {
 
 			super(objectName, field, rejectedValue, true, codes, arguments,
 					"Field '" + field + "' is required");
 		}
 
-		public BindingFieldError(String objectName, String field, @Nullable Object rejectedValue, String[] codes,
+		public BindingFieldError(String objectName, String field, Object rejectedValue, String[] codes,
 				Object[] arguments, PropertyAccessException ex) {
 
 			super(objectName, field, rejectedValue, true, codes, arguments, ex.getLocalizedMessage());

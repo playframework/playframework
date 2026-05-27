@@ -28,7 +28,6 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
 
 import play.data.internal.binding.core.CollectionFactory;
 import play.data.internal.binding.core.convert.ConversionFailedException;
@@ -60,7 +59,7 @@ class TypeConverterDelegate {
 
 	private final PropertyEditorRegistrySupport propertyEditorRegistry;
 
-	private final @Nullable Object targetObject;
+	private final Object targetObject;
 
 
 	/**
@@ -76,7 +75,7 @@ class TypeConverterDelegate {
 	 * @param propertyEditorRegistry the editor registry to use
 	 * @param targetObject the target object to work on (as context that can be passed to editors)
 	 */
-	public TypeConverterDelegate(PropertyEditorRegistrySupport propertyEditorRegistry, @Nullable Object targetObject) {
+	public TypeConverterDelegate(PropertyEditorRegistrySupport propertyEditorRegistry, Object targetObject) {
 		this.propertyEditorRegistry = propertyEditorRegistry;
 		this.targetObject = targetObject;
 	}
@@ -92,8 +91,8 @@ class TypeConverterDelegate {
 	 * @return the new value, possibly the result of type conversion
 	 * @throws IllegalArgumentException if type conversion failed
 	 */
-	public <T> @Nullable T convertIfNecessary(@Nullable String propertyName, @Nullable Object oldValue,
-			Object newValue, @Nullable Class<T> requiredType) throws IllegalArgumentException {
+	public <T> T convertIfNecessary(String propertyName, Object oldValue,
+			Object newValue, Class<T> requiredType) throws IllegalArgumentException {
 
 		return convertIfNecessary(propertyName, oldValue, newValue, requiredType, TypeDescriptor.valueOf(requiredType));
 	}
@@ -111,8 +110,8 @@ class TypeConverterDelegate {
 	 * @throws IllegalArgumentException if type conversion failed
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> @Nullable T convertIfNecessary(@Nullable String propertyName, @Nullable Object oldValue, @Nullable Object newValue,
-			@Nullable Class<T> requiredType, @Nullable TypeDescriptor typeDescriptor) throws IllegalArgumentException {
+	public <T> T convertIfNecessary(String propertyName, Object oldValue, Object newValue,
+			Class<T> requiredType, TypeDescriptor typeDescriptor) throws IllegalArgumentException {
 
 		// Custom editor for this type?
 		PropertyEditor editor = this.propertyEditorRegistry.findCustomEditor(requiredType, propertyName);
@@ -334,7 +333,7 @@ class TypeConverterDelegate {
 	 * @param requiredType the type to find an editor for
 	 * @return the corresponding editor, or {@code null} if none
 	 */
-	private @Nullable PropertyEditor findDefaultEditor(@Nullable Class<?> requiredType) {
+	private PropertyEditor findDefaultEditor(Class<?> requiredType) {
 		PropertyEditor editor = null;
 		if (requiredType != null) {
 			// No custom editor -> check BeanWrapperImpl's default editors.
@@ -358,8 +357,8 @@ class TypeConverterDelegate {
 	 * @return the new value, possibly the result of type conversion
 	 * @throws IllegalArgumentException if type conversion failed
 	 */
-	private @Nullable Object doConvertValue(@Nullable Object oldValue, @Nullable Object newValue,
-			@Nullable Class<?> requiredType, @Nullable PropertyEditor editor) {
+	private Object doConvertValue(Object oldValue, Object newValue,
+			Class<?> requiredType, PropertyEditor editor) {
 
 		Object convertedValue = newValue;
 
@@ -421,7 +420,7 @@ class TypeConverterDelegate {
 	 * @param editor the PropertyEditor to use
 	 * @return the converted value
 	 */
-	private Object doConvertTextValue(@Nullable Object oldValue, String newTextValue, PropertyEditor editor) {
+	private Object doConvertTextValue(Object oldValue, String newTextValue, PropertyEditor editor) {
 		try {
 			editor.setValue(oldValue);
 		}
@@ -435,7 +434,7 @@ class TypeConverterDelegate {
 		return editor.getValue();
 	}
 
-	private Object convertToTypedArray(Object input, @Nullable String propertyName, Class<?> componentType) {
+	private Object convertToTypedArray(Object input, String propertyName, Class<?> componentType) {
 		if (input instanceof Collection<?> coll) {
 			// Convert Collection elements to array elements.
 			Object result = Array.newInstance(componentType, coll.size());
@@ -473,8 +472,8 @@ class TypeConverterDelegate {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Collection<?> convertToTypedCollection(Collection<?> original, @Nullable String propertyName,
-			Class<?> requiredType, @Nullable TypeDescriptor typeDescriptor) {
+	private Collection<?> convertToTypedCollection(Collection<?> original, String propertyName,
+			Class<?> requiredType, TypeDescriptor typeDescriptor) {
 
 		if (!Collection.class.isAssignableFrom(requiredType)) {
 			return original;
@@ -546,8 +545,8 @@ class TypeConverterDelegate {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Map<?, ?> convertToTypedMap(Map<?, ?> original, @Nullable String propertyName,
-			Class<?> requiredType, @Nullable TypeDescriptor typeDescriptor) {
+	private Map<?, ?> convertToTypedMap(Map<?, ?> original, String propertyName,
+			Class<?> requiredType, TypeDescriptor typeDescriptor) {
 
 		if (!Map.class.isAssignableFrom(requiredType)) {
 			return original;
@@ -623,13 +622,13 @@ class TypeConverterDelegate {
 		return (originalAllowed ? original : convertedCopy);
 	}
 
-	private @Nullable String buildIndexedPropertyName(@Nullable String propertyName, int index) {
+	private String buildIndexedPropertyName(String propertyName, int index) {
 		return (propertyName != null ?
 				propertyName + PropertyAccessor.PROPERTY_KEY_PREFIX + index + PropertyAccessor.PROPERTY_KEY_SUFFIX :
 				null);
 	}
 
-	private @Nullable String buildKeyedPropertyName(@Nullable String propertyName, Object key) {
+	private String buildKeyedPropertyName(String propertyName, Object key) {
 		return (propertyName != null ?
 				propertyName + PropertyAccessor.PROPERTY_KEY_PREFIX + key + PropertyAccessor.PROPERTY_KEY_SUFFIX :
 				null);

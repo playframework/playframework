@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.beans;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Exception thrown on an attempt to set the value of a property that
  * is not writable (typically because there is no setter method).
@@ -29,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 @SuppressWarnings("serial")
 public class NotWritablePropertyException extends InvalidPropertyException {
 
-	private final String @Nullable [] possibleMatches;
+	private final String [] possibleMatches;
 
 
 	/**
@@ -85,7 +83,7 @@ public class NotWritablePropertyException extends InvalidPropertyException {
 	 * Return suggestions for actual bean property names that closely match
 	 * the invalid property name, if any.
 	 */
-	public String @Nullable [] getPossibleMatches() {
+	public String [] getPossibleMatches() {
 		return this.possibleMatches;
 	}
 

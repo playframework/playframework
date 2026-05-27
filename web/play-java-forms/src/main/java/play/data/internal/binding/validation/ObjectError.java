@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.validation;
 
-import org.jspecify.annotations.Nullable;
-
 import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
 import play.data.internal.binding.util.Assert;
 
@@ -38,7 +36,7 @@ public class ObjectError extends DefaultMessageSourceResolvable {
 
 	private final String objectName;
 
-	private transient @Nullable Object source;
+	private transient Object source;
 
 
 	/**
@@ -46,7 +44,7 @@ public class ObjectError extends DefaultMessageSourceResolvable {
 	 * @param objectName the name of the affected object
 	 * @param defaultMessage the default message to be used to resolve this message
 	 */
-	public ObjectError(String objectName, @Nullable String defaultMessage) {
+	public ObjectError(String objectName, String defaultMessage) {
 		this(objectName, null, null, defaultMessage);
 	}
 
@@ -58,7 +56,7 @@ public class ObjectError extends DefaultMessageSourceResolvable {
 	 * @param defaultMessage the default message to be used to resolve this message
 	 */
 	public ObjectError(
-			String objectName, String @Nullable [] codes, Object @Nullable [] arguments, @Nullable String defaultMessage) {
+			String objectName, String [] codes, Object [] arguments, String defaultMessage) {
 
 		super(codes, arguments, defaultMessage);
 		Assert.notNull(objectName, "Object name must not be null");
@@ -131,7 +129,7 @@ public class ObjectError extends DefaultMessageSourceResolvable {
 
 
 	@Override
-	public boolean equals(@Nullable Object other) {
+	public boolean equals(Object other) {
 		if (this == other) {
 			return true;
 		}

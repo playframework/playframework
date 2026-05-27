@@ -16,8 +16,6 @@
 
 package play.data.internal.binding.beans;
 
-import org.jspecify.annotations.Nullable;
-
 /**
  * Exception thrown when referring to an invalid bean property.
  * Carries the offending bean class and property name.
@@ -50,7 +48,7 @@ public class InvalidPropertyException extends FatalBeanException {
 	 * @param msg the detail message
 	 * @param cause the root cause
 	 */
-	public InvalidPropertyException(Class<?> beanClass, String propertyName, String msg, @Nullable Throwable cause) {
+	public InvalidPropertyException(Class<?> beanClass, String propertyName, String msg, Throwable cause) {
 		super("Invalid property '" + propertyName + "' of bean class [" + beanClass.getName() + "]: " + msg, cause);
 		this.beanClass = beanClass;
 		this.propertyName = propertyName;
