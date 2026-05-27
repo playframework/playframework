@@ -54,7 +54,7 @@ object BuildSettings {
   val fileHeaderSettings = Seq(
     (Compile / headerSources / excludeFilter) := HiddenFileFilter ||
       fileUriRegexFilter(".*/cookie/encoding/.*") || fileUriRegexFilter(".*/inject/SourceProvider.java$") ||
-      fileUriRegexFilter(".*/libs/reflect/.*"),
+      fileUriRegexFilter(".*/libs/reflect/.*") || fileUriRegexFilter(".*/play/data/internal/binding/.*"),
     headerLicense := Some(
       HeaderLicense.Custom(
         """Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>""".stripMargin
