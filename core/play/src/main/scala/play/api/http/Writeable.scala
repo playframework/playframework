@@ -146,6 +146,14 @@ trait DefaultWriteables extends LowPriorityWriteables {
   }
 
   /**
+   * explicit `Writeable` for `Array[Byte]` that uses `ByteString.fromArrayUnsafe` to avoid copying the array for performance reasons.
+   *
+   * This should only be used in cases where the array being supplied is not to be modified.
+   */
+  def createWriteableFromArrayUnsafe: Writeable[Array[Byte]] =
+    Writeable(array => ByteString.fromArrayUnsafe(array))
+
+  /**
    * `Writeable` for `MultipartFormData`.
    *
    * If you pass a boundary, it will be used to separate the data/file parts of the multipart/form-data body.
