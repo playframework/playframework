@@ -102,8 +102,6 @@ object Dependencies {
       }
     })
 
-  val springFrameworkVersion = "7.0.7"
-
   val javaDeps = Seq(
     // Used by the Java routing DSL
     "net.jodah" % "typetools" % "0.6.3"
@@ -115,17 +113,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "9.1.0.Final",
-    ("org.springframework"    % "spring-context"      % springFrameworkVersion)
-      .exclude("org.springframework", "spring-aop")
-      .exclude("org.springframework", "spring-beans")
-      .exclude("org.springframework", "spring-core")
-      .exclude("org.springframework", "spring-expression")
-      .exclude("io.micrometer", "micrometer-observation"),
-    ("org.springframework" % "spring-core" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-jcl"),
-    ("org.springframework" % "spring-beans" % springFrameworkVersion)
-      .exclude("org.springframework", "spring-core")
+    "org.hibernate.validator" % "hibernate-validator" % "9.1.0.Final"
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
