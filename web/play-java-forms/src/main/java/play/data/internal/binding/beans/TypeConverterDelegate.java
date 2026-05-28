@@ -26,6 +26,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -78,9 +79,9 @@ class TypeConverterDelegate {
 	 * @throws IllegalArgumentException if type conversion failed
 	 */
 	public <T> T convertIfNecessary(String propertyName,
-			Object newValue, Class<T> requiredType) throws IllegalArgumentException {
+			Object newValue, Class<T> requiredType, Locale locale) throws IllegalArgumentException {
 
-		return convertIfNecessary(propertyName, newValue, requiredType, TypeDescriptor.valueOf(requiredType));
+		return convertIfNecessary(propertyName, newValue, requiredType, TypeDescriptor.valueOf(requiredType), locale);
 	}
 
 	/**
@@ -96,7 +97,7 @@ class TypeConverterDelegate {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T convertIfNecessary(String propertyName, Object newValue,
-			Class<T> requiredType, TypeDescriptor typeDescriptor) throws IllegalArgumentException {
+			Class<T> requiredType, TypeDescriptor typeDescriptor, Locale locale) throws IllegalArgumentException {
 
 		ConversionFailedException conversionAttemptEx = null;
 
@@ -105,7 +106,7 @@ class TypeConverterDelegate {
 			TypeDescriptor sourceTypeDesc = TypeDescriptor.forObject(newValue);
 			if (conversionService.canConvert(sourceTypeDesc, typeDescriptor)) {
 				try {
-					return (T) conversionService.convert(newValue, sourceTypeDesc, typeDescriptor);
+					return (T) conversionService.convert(newValue, sourceTypeDesc, typeDescriptor, locale);
 				}
 				catch (ConversionFailedException ex) {
 					// fallback to default conversion logic below
@@ -152,12 +153,12 @@ class TypeConverterDelegate {
 							Enum.class.isAssignableFrom(requiredType.componentType())) {
 						convertedValue = StringUtils.commaDelimitedListToStringArray(text);
 					}
-					return (T) convertToTypedArray(convertedValue, propertyName, requiredType.componentType());
+					return (T) convertToTypedArray(convertedValue, propertyName, requiredType.componentType(), locale);
 				}
 				else if (convertedValue.getClass().isArray()) {
 					if (Collection.class.isAssignableFrom(requiredType)) {
 						convertedValue = convertToTypedCollection(CollectionUtils.arrayToList(convertedValue),
-								propertyName, requiredType, typeDescriptor);
+								propertyName, requiredType, typeDescriptor, locale);
 						standardConversion = true;
 					}
 					else if (Array.getLength(convertedValue) == 1) {
@@ -167,12 +168,12 @@ class TypeConverterDelegate {
 				}
 				else if (convertedValue instanceof Collection<?> coll) {
 					// Convert elements to target type, if determined.
-					convertedValue = convertToTypedCollection(coll, propertyName, requiredType, typeDescriptor);
+					convertedValue = convertToTypedCollection(coll, propertyName, requiredType, typeDescriptor, locale);
 					standardConversion = true;
 				}
 				else if (convertedValue instanceof Map<?, ?> map) {
 					// Convert keys and values to respective target type, if determined.
-					convertedValue = convertToTypedMap(map, propertyName, requiredType, typeDescriptor);
+					convertedValue = convertToTypedMap(map, propertyName, requiredType, typeDescriptor, locale);
 					standardConversion = true;
 				}
 				if (String.class == requiredType && ClassUtils.isPrimitiveOrWrapper(convertedValue.getClass())) {
@@ -204,7 +205,7 @@ class TypeConverterDelegate {
 				else if (conversionService != null && typeDescriptor != null) {
 					TypeDescriptor sourceTypeDesc = TypeDescriptor.forObject(newValue);
 					if (conversionService.canConvert(sourceTypeDesc, typeDescriptor)) {
-						return (T) conversionService.convert(newValue, sourceTypeDesc, typeDescriptor);
+						return (T) conversionService.convert(newValue, sourceTypeDesc, typeDescriptor, locale);
 					}
 				}
 
@@ -252,14 +253,14 @@ class TypeConverterDelegate {
 
 		return convertedValue;
 	}
-	private Object convertToTypedArray(Object input, String propertyName, Class<?> componentType) {
+	private Object convertToTypedArray(Object input, String propertyName, Class<?> componentType, Locale locale) {
 		if (input instanceof Collection<?> coll) {
 			// Convert Collection elements to array elements.
 			Object result = Array.newInstance(componentType, coll.size());
 			int i = 0;
 			for (Iterator<?> it = coll.iterator(); it.hasNext(); i++) {
 				Object value = convertIfNecessary(
-						buildIndexedPropertyName(propertyName, i), it.next(), componentType);
+						buildIndexedPropertyName(propertyName, i), it.next(), componentType, locale);
 				Array.set(result, i, value);
 			}
 			return result;
@@ -273,7 +274,7 @@ class TypeConverterDelegate {
 			Object result = Array.newInstance(componentType, arrayLength);
 			for (int i = 0; i < arrayLength; i++) {
 				Object value = convertIfNecessary(
-						buildIndexedPropertyName(propertyName, i), Array.get(input, i), componentType);
+						buildIndexedPropertyName(propertyName, i), Array.get(input, i), componentType, locale);
 				Array.set(result, i, value);
 			}
 			return result;
@@ -282,7 +283,7 @@ class TypeConverterDelegate {
 			// A plain value: convert it to an array with a single component.
 			Object result = Array.newInstance(componentType, 1);
 			Object value = convertIfNecessary(
-					buildIndexedPropertyName(propertyName, 0), input, componentType);
+					buildIndexedPropertyName(propertyName, 0), input, componentType, locale);
 			Array.set(result, 0, value);
 			return result;
 		}
@@ -290,7 +291,7 @@ class TypeConverterDelegate {
 
 	@SuppressWarnings("unchecked")
 	private Collection<?> convertToTypedCollection(Collection<?> original, String propertyName,
-			Class<?> requiredType, TypeDescriptor typeDescriptor) {
+			Class<?> requiredType, TypeDescriptor typeDescriptor, Locale locale) {
 
 		if (!Collection.class.isAssignableFrom(requiredType)) {
 			return original;
@@ -335,7 +336,7 @@ class TypeConverterDelegate {
 			Object element = it.next();
 			String indexedPropertyName = buildIndexedPropertyName(propertyName, i);
 			Object convertedElement = convertIfNecessary(indexedPropertyName, element,
-					(elementType != null ? elementType.getType() : null) , elementType);
+					(elementType != null ? elementType.getType() : null) , elementType, locale);
 			try {
 				convertedCopy.add(convertedElement);
 			}
@@ -350,7 +351,7 @@ class TypeConverterDelegate {
 
 	@SuppressWarnings("unchecked")
 	private Map<?, ?> convertToTypedMap(Map<?, ?> original, String propertyName,
-			Class<?> requiredType, TypeDescriptor typeDescriptor) {
+			Class<?> requiredType, TypeDescriptor typeDescriptor, Locale locale) {
 
 		if (!Map.class.isAssignableFrom(requiredType)) {
 			return original;
@@ -398,9 +399,9 @@ class TypeConverterDelegate {
 			Object value = entry.getValue();
 			String keyedPropertyName = buildKeyedPropertyName(propertyName, key);
 			Object convertedKey = convertIfNecessary(keyedPropertyName, key,
-					(keyType != null ? keyType.getType() : null), keyType);
+					(keyType != null ? keyType.getType() : null), keyType, locale);
 			Object convertedValue = convertIfNecessary(keyedPropertyName, value,
-					(valueType!= null ? valueType.getType() : null), valueType);
+					(valueType!= null ? valueType.getType() : null), valueType, locale);
 			try {
 				convertedCopy.put(convertedKey, convertedValue);
 			}

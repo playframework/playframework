@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -99,13 +100,13 @@ public class GenericConversionService implements ConversionService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T convert(Object source, Class<T> targetType) {
+	public <T> T convert(Object source, Class<T> targetType, Locale locale) {
 		Assert.notNull(targetType, "Target type to convert to cannot be null");
-		return (T) convert(source, TypeDescriptor.forObject(source), TypeDescriptor.valueOf(targetType));
+		return (T) convert(source, TypeDescriptor.forObject(source), TypeDescriptor.valueOf(targetType), locale);
 	}
 
 	@Override
-	public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+	public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
 		Assert.notNull(targetType, "Target type to convert to cannot be null");
 		if (sourceType == null) {
 			Assert.isTrue(source == null, "Source must be [null] if source type == [null]");
@@ -117,7 +118,7 @@ public class GenericConversionService implements ConversionService {
 		}
 		GenericConverter converter = getConverter(sourceType, targetType);
 		if (converter != null) {
-			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType);
+			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType, locale);
 			return handleResult(sourceType, targetType, result);
 		}
 		return handleConverterNotFound(source, sourceType, targetType);
@@ -465,7 +466,7 @@ public class GenericConversionService implements ConversionService {
 		}
 
 		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
 			return source;
 		}
 
