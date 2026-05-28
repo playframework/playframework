@@ -55,7 +55,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import play.data.format.Formatters;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
@@ -913,9 +912,6 @@ public class Form<T> {
     if (allowedFields.length > 0) {
       dataBinder.setAllowedFields(allowedFields);
     }
-    SpringValidatorAdapter validator =
-        new SpringValidatorAdapter(this.validatorFactory.getValidator());
-    dataBinder.setValidator(validator);
     dataBinder.setConversionService(formatters.conversion);
     dataBinder.setAutoGrowNestedPaths(true);
     if (this.directFieldAccess) {
