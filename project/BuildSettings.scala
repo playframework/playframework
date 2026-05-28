@@ -707,6 +707,9 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$SAFARI_="
       ),
+      // Formatters.parse/print now need a Locale passed because we removed the LocaleContextHolder ThreadLocal
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.print"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

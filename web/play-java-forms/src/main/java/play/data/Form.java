@@ -30,13 +30,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,7 +53,6 @@ import play.data.internal.binding.beans.MutablePropertyValues;
 import play.data.internal.binding.beans.NotReadablePropertyException;
 import play.data.internal.binding.beans.PropertyAccessException;
 import play.data.internal.binding.beans.PropertyValue;
-import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
 import play.data.internal.binding.util.ObjectUtils;
 import play.data.internal.binding.util.StringUtils;
@@ -112,7 +111,7 @@ public class Form<T> {
 
       @Override
       public void processPropertyAccessException(
-          PropertyAccessException ex, BindingResult bindingResult) {
+          PropertyAccessException ex, BindingResult bindingResult, Locale locale) {
         /*
          * Spring intentionally passes null as the property name when converting map keys, so
          * property-specific editors apply only to map values. If map-key conversion fails, that
@@ -124,11 +123,12 @@ public class Form<T> {
          */
         String field = ex.getPropertyName();
         if (!"null".equals(field) || currentPropertyName == null) {
-          super.processPropertyAccessException(ex, bindingResult);
+          super.processPropertyAccessException(ex, bindingResult, locale);
           return;
         }
 
-        String[] codes = bindingResult.resolveMessageCodes(ex.getErrorCode(), currentPropertyName);
+        String[] codes =
+            bindingResult.resolveMessageCodes(ex.getErrorCode(), currentPropertyName, locale);
         Object[] arguments =
             getArgumentsForBindError(bindingResult.getObjectName(), currentPropertyName);
         Object rejectedValue = ex.getValue();
@@ -172,7 +172,7 @@ public class Form<T> {
     }
 
     @Override
-    protected void applyPropertyValues(MutablePropertyValues mpvs) {
+    protected void applyPropertyValues(MutablePropertyValues mpvs, Locale locale) {
       /*
        * Spring turns regular PropertyAccessException failures, such as type mismatches, into
        * FieldErrors. InvalidPropertyException is different: it is a FatalBeanException and escapes
@@ -192,7 +192,7 @@ public class Form<T> {
         singlePropertyValue.addPropertyValue(propertyValue);
         try {
           currentPropertyName = propertyValue.getName();
-          super.applyPropertyValues(singlePropertyValue);
+          super.applyPropertyValues(singlePropertyValue, locale);
         } catch (InvalidPropertyException ex) {
           getBindingResult()
               .addError(
@@ -1105,29 +1105,25 @@ public class Form<T> {
 
   private Set<ConstraintViolation<Object>> runValidation(
       Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, Object> objectData) {
-    return withRequestLocale(
-        lang,
-        () -> {
-          dataBinder.bind(new MutablePropertyValues(objectData));
-          final Messages messages = lang == null ? null : new MessagesImpl(lang, messagesApi);
-          final ValidationPayload payload = new ValidationPayload(lang, messages, attrs, config);
-          final Validator validator =
-              validatorFactory
-                  .unwrap(HibernateValidatorFactory.class)
-                  .usingContext()
-                  .constraintValidatorPayload(payload)
-                  .getValidator();
-          if (groups != null) {
-            return validator.validate(dataBinder.getTarget(), groups);
-          } else {
-            return validator.validate(dataBinder.getTarget());
-          }
-        });
+    dataBinder.bind(new MutablePropertyValues(objectData), locale(lang));
+    final Messages messages = lang == null ? null : new MessagesImpl(lang, messagesApi);
+    final ValidationPayload payload = new ValidationPayload(lang, messages, attrs, config);
+    final Validator validator =
+        validatorFactory
+            .unwrap(HibernateValidatorFactory.class)
+            .usingContext()
+            .constraintValidatorPayload(payload)
+            .getValidator();
+    if (groups != null) {
+      return validator.validate(dataBinder.getTarget(), groups);
+    } else {
+      return validator.validate(dataBinder.getTarget());
+    }
   }
 
   @SuppressWarnings("unchecked")
   private void addConstraintViolationToBindingResult(
-      ConstraintViolation<Object> violation, BindingResult result) {
+      ConstraintViolation<Object> violation, BindingResult result, Locale locale) {
     String field =
         REPLACE_COLLECTION_ELEMENT.matcher(violation.getPropertyPath().toString()).replaceAll("");
     FieldError fieldError = result.getFieldError(field);
@@ -1141,19 +1137,20 @@ public class Form<T> {
               "", // global error
               violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
               new Object[0], // no msg arguments to pass
-              (String) dynamicPayload // dynamicPayload itself is the error message(-key)
-              );
+              (String) dynamicPayload, // dynamicPayload itself is the error message(-key)
+              locale);
         } else if (dynamicPayload instanceof ValidationError) {
-          rejectValidationError(violation, result, (ValidationError) dynamicPayload, field);
+          rejectValidationError(violation, result, (ValidationError) dynamicPayload, field, locale);
         } else if (dynamicPayload instanceof List) {
           ((List<ValidationError>) dynamicPayload)
-              .forEach(error -> rejectValidationError(violation, result, error, field));
+              .forEach(error -> rejectValidationError(violation, result, error, field, locale));
         } else {
           result.rejectValue(
               field,
               violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
               getArgumentsForConstraint(result.getObjectName(), field, violation),
-              getMessageForConstraintViolation(violation));
+              getMessageForConstraintViolation(violation),
+              locale);
         }
       } catch (NotReadablePropertyException ex) {
         throw new IllegalStateException(
@@ -1170,13 +1167,15 @@ public class Form<T> {
       ConstraintViolation<Object> violation,
       BindingResult result,
       final ValidationError error,
-      final String field) {
+      final String field,
+      Locale locale) {
     final String keyPrefix = (field == null || field.isEmpty() ? "" : field + ".");
     result.rejectValue(
         error.key() != null && !error.key().isEmpty() ? keyPrefix + error.key() : error.key(),
         violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
         error.arguments() != null ? error.arguments().toArray() : new Object[0],
-        error.message());
+        error.message(),
+        locale);
   }
 
   private List<ValidationError> getFieldErrorsAsValidationErrors(Lang lang, BindingResult result) {
@@ -1268,7 +1267,8 @@ public class Form<T> {
         runValidation(lang, attrs, dataBinder, objectDataFinal);
     final BindingResult result = dataBinder.getBindingResult();
 
-    validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));
+    validationErrors.forEach(
+        violation -> addConstraintViolationToBindingResult(violation, result, locale(lang)));
 
     boolean hasAnyError = result.hasErrors() || result.getGlobalErrorCount() > 0;
 
@@ -1655,8 +1655,8 @@ public class Form<T> {
         if (rootName != null && key.startsWith(rootName + ".")) {
           objectKey = key.substring(rootName.length() + 1);
         }
-        if (propertyAccessor.isReadableProperty(objectKey)) {
-          Object oValue = propertyAccessor.getPropertyValue(objectKey);
+        if (propertyAccessor.isReadableProperty(objectKey, locale(lang))) {
+          Object oValue = propertyAccessor.getPropertyValue(objectKey, locale(lang));
           if (oValue != null) {
             if (oValue instanceof Http.MultipartFormData.FilePart<?>) {
               file = (Http.MultipartFormData.FilePart<?>) oValue;
@@ -1664,13 +1664,11 @@ public class Form<T> {
               if (formatters != null) {
                 final String objectKeyFinal = objectKey;
                 fieldValue =
-                    withRequestLocale(
-                        lang,
-                        () ->
-                            play.data.format.FormattersInternals$.MODULE$.print(
-                                formatters,
-                                propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal),
-                                oValue));
+                    play.data.format.FormattersInternals$.MODULE$.print(
+                        formatters,
+                        propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal, locale(lang)),
+                        oValue,
+                        locale(lang));
               } else {
                 fieldValue = oValue.toString();
               }
@@ -1685,7 +1683,8 @@ public class Form<T> {
     ConfigurablePropertyAccessor propertyAccessor = propertyAccessor(blankInstance());
     propertyAccessor.setAutoGrowNestedPaths(true);
     try {
-      for (Annotation a : propertyAccessor.getPropertyTypeDescriptor(key).getAnnotations()) {
+      for (Annotation a :
+          propertyAccessor.getPropertyTypeDescriptor(key, locale(lang)).getAnnotations()) {
         Class<?> annotationType = a.annotationType();
         if (annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
           play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
@@ -1717,7 +1716,7 @@ public class Form<T> {
     }
     int p = leafKey.lastIndexOf('.');
     if (p > 0) {
-      classType = propertyAccessor.getPropertyType(leafKey.substring(0, p));
+      classType = propertyAccessor.getPropertyType(leafKey.substring(0, p), locale(lang));
       leafKey = leafKey.substring(p + 1);
     }
     if (classType != null && this.validatorFactory != null) {
@@ -1850,6 +1849,17 @@ public class Form<T> {
     return propertyAccessor;
   }
 
+  private Locale locale(Lang lang) {
+    if (langs == null) {
+      // Langs is available in real applications; support manually constructed forms in tests by
+      // falling back to the JDK default locale.
+      return lang != null ? lang.toLocale() : Locale.getDefault();
+    }
+    return langs
+        .preferred(lang != null ? Collections.singleton(lang) : langs.availables())
+        .toLocale();
+  }
+
   public String toString() {
     return "Form(of="
         + backedType
@@ -1860,27 +1870,6 @@ public class Form<T> {
         + ", errors="
         + errors
         + ")";
-  }
-
-  /**
-   * Sets the locale of the current request (if there is one) into Spring's LocaleContextHolder.
-   *
-   * @param <T> the return type.
-   * @param code The code to execute while the locale is set
-   * @return the result of the code block
-   */
-  private static <T> T withRequestLocale(Lang lang, Supplier<T> code) {
-    try {
-      LocaleContextHolder.setLocale(lang != null ? lang.toLocale() : null);
-    } catch (Exception e) {
-      // Just continue (Maybe there is no context or some internal error in LocaleContextHolder).
-      // System default locale will be used.
-    }
-    try {
-      return code.get();
-    } finally {
-      LocaleContextHolder.resetLocaleContext(); // Clean up ThreadLocal
-    }
   }
 
   /** A form field. */
@@ -2030,8 +2019,11 @@ public class Form<T> {
                               form.propertyAccessor(value);
                           propertyAccessor.setAutoGrowNestedPaths(true);
 
-                          if (propertyAccessor.isReadableProperty(objectKey)) {
-                            Object value1 = propertyAccessor.getPropertyValue(objectKey);
+                          if (propertyAccessor.isReadableProperty(
+                              objectKey, form.locale(form.lang))) {
+                            Object value1 =
+                                propertyAccessor.getPropertyValue(
+                                    objectKey, form.locale(form.lang));
                             if (value1 instanceof Collection) {
                               for (int i = 0; i < ((Collection<?>) value1).size(); i++) {
                                 result.add(i);

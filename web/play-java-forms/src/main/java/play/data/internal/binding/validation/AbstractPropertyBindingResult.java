@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.validation;
 
+import java.util.Locale;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.PropertyAccessorUtils;
 import play.data.internal.binding.core.convert.ConversionService;
@@ -75,9 +76,9 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @see #getPropertyAccessor()
 	 */
 	@Override
-	public Class<?> getFieldType(String field) {
-		return (getTarget() != null ? getPropertyAccessor().getPropertyType(fixedField(field)) :
-				super.getFieldType(field));
+	public Class<?> getFieldType(String field, Locale locale) {
+		return (getTarget() != null ? getPropertyAccessor().getPropertyType(fixedField(field), locale) :
+				super.getFieldType(field, locale));
 	}
 
 	/**
@@ -85,18 +86,18 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 	 * @see #getPropertyAccessor()
 	 */
 	@Override
-	protected Object getActualFieldValue(String field) {
-		return getPropertyAccessor().getPropertyValue(field);
+	protected Object getActualFieldValue(String field, Locale locale) {
+		return getPropertyAccessor().getPropertyValue(field, locale);
 	}
 
 	@Override
-	protected Object formatFieldValue(String field, Object value) {
+	protected Object formatFieldValue(String field, Object value, Locale locale) {
 		String fixedField = fixedField(field);
 		if (this.conversionService != null) {
-			TypeDescriptor fieldDesc = getPropertyAccessor().getPropertyTypeDescriptor(fixedField);
+			TypeDescriptor fieldDesc = getPropertyAccessor().getPropertyTypeDescriptor(fixedField, locale);
 			TypeDescriptor strDesc = TypeDescriptor.valueOf(String.class);
 			if (fieldDesc != null && this.conversionService.canConvert(fieldDesc, strDesc)) {
-				return this.conversionService.convert(value, fieldDesc, strDesc);
+				return this.conversionService.convert(value, fieldDesc, strDesc, locale);
 			}
 		}
 		return value;
