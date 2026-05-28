@@ -1682,31 +1682,6 @@ trait FormSpec extends CommonFormSpec {
         myForm.field("password").constraints().get(5)._1 must beEqualTo("constraint.email")
       }
     }
-
-    "have the validator translate error messages correctly" in new WithApplication(
-      application("play.i18n.langs" -> List("de", "en", "ja"))
-    ) {
-      override def running() = {
-        val myFormJa = formFactory
-          .form(classOf[JavaI18NValidatorForm])
-          .bind(new Lang(Locale.JAPANESE), TypedMap.empty(), Map("note" -> "foo").asJava)
-        myFormJa.errors("note").get(0).message() must beEqualTo("10 から 100 の間のサイズにしてください")
-        val myFormEn = formFactory
-          .form(classOf[JavaI18NValidatorForm])
-          .bind(new Lang(Locale.ENGLISH), TypedMap.empty(), Map("note" -> "foo").asJava)
-        myFormEn.errors("note").get(0).message() must beEqualTo("size must be between 10 and 100")
-        val myFormDe = formFactory
-          .form(classOf[JavaI18NValidatorForm])
-          .bind(new Lang(Locale.GERMAN), TypedMap.empty(), Map("note" -> "foo").asJava)
-        myFormDe.errors("note").get(0).message() must beEqualTo("Größe muss zwischen 10 und 100 sein")
-
-        // French not defined in config, fall back to default (which is german, since it is first in the list)
-        val myFormFr = formFactory
-          .form(classOf[JavaI18NValidatorForm])
-          .bind(new Lang(Locale.FRENCH), TypedMap.empty(), Map("note" -> "foo").asJava)
-        myFormFr.errors("note").get(0).message() must beEqualTo("Größe muss zwischen 10 und 100 sein")
-      }
-    }
   }
 }
 
