@@ -21,6 +21,7 @@
 package play.data.internal.binding.validation;
 
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,7 +81,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 
 	@Override
 	public void rejectValue(String field, String errorCode,
-			Object [] errorArgs, String defaultMessage) {
+			Object [] errorArgs, String defaultMessage, Locale locale) {
 
 		if (!StringUtils.hasLength(field)) {
 			reject(errorCode, errorArgs, defaultMessage);
@@ -88,9 +89,9 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 		}
 
 		String fixedField = fixedField(field);
-		Object newVal = getActualFieldValue(fixedField);
+		Object newVal = getActualFieldValue(fixedField, locale);
 		FieldError fe = new FieldError(getObjectName(), fixedField, newVal, false,
-				resolveMessageCodes(errorCode, field), errorArgs, defaultMessage);
+				resolveMessageCodes(errorCode, field, locale), errorArgs, defaultMessage);
 		addError(fe);
 	}
 
@@ -143,17 +144,17 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public Object getFieldValue(String field) {
+	public Object getFieldValue(String field, Locale locale) {
 		FieldError fieldError = getFieldError(field);
 		// Use rejected value in case of error, current field value otherwise.
 		if (fieldError != null) {
 			Object value = fieldError.getRejectedValue();
 			// Do not apply formatting on binding failures like type mismatches.
-			return (fieldError.isBindingFailure() || getTarget() == null ? value : formatFieldValue(field, value));
+			return (fieldError.isBindingFailure() || getTarget() == null ? value : formatFieldValue(field, value, locale));
 		}
 		else if (getTarget() != null) {
-			Object value = getActualFieldValue(fixedField(field));
-			return formatFieldValue(field, value);
+			Object value = getActualFieldValue(fixedField(field), locale);
+			return formatFieldValue(field, value, locale);
 		}
 		else {
 			return null;
@@ -167,9 +168,9 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * @see #getActualFieldValue
 	 */
 	@Override
-	public Class<?> getFieldType(String field) {
+	public Class<?> getFieldType(String field, Locale locale) {
 		if (getTarget() != null) {
-			Object value = getActualFieldValue(fixedField(field));
+			Object value = getActualFieldValue(fixedField(field), locale);
 			if (value != null) {
 				return value.getClass();
 			}
@@ -187,9 +188,9 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	}
 
 	@Override
-	public String[] resolveMessageCodes(String errorCode, String field) {
+	public String[] resolveMessageCodes(String errorCode, String field, Locale locale) {
 		return getMessageCodesResolver().resolveMessageCodes(
-				errorCode, getObjectName(), fixedField(field), getFieldType(field));
+				errorCode, getObjectName(), fixedField(field), getFieldType(field, locale));
 	}
 
 	@Override
@@ -227,7 +228,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * @param field the field to check
 	 * @return the current value of the field
 	 */
-	protected abstract Object getActualFieldValue(String field);
+	protected abstract Object getActualFieldValue(String field, Locale locale);
 
 	/**
 	 * Format the given value for the specified field.
@@ -237,7 +238,7 @@ public abstract class AbstractBindingResult extends AbstractErrors implements Bi
 	 * other than from a binding error, or an actual field value)
 	 * @return the formatted value
 	 */
-	protected Object formatFieldValue(String field, Object value) {
+	protected Object formatFieldValue(String field, Object value, Locale locale) {
 		return value;
 	}
 

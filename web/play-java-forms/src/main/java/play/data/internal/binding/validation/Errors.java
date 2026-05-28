@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.validation;
 
+import java.util.Locale;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -55,7 +56,7 @@ public interface Errors {
 	 * @param errorArgs error arguments, for argument binding via MessageFormat
 	 * (can be {@code null})
 	 * @param defaultMessage fallback default message
-	 * @see #rejectValue(String, String, Object[], String)
+	 * @see #rejectValue(String, String, Object[], String, Locale)
 	 */
 	void reject(String errorCode, Object [] errorArgs, String defaultMessage);
 
@@ -74,7 +75,7 @@ public interface Errors {
 	 * @see #reject(String, Object[], String)
 	 */
 	void rejectValue(String field, String errorCode,
-			Object [] errorArgs, String defaultMessage);
+			Object [] errorArgs, String defaultMessage, Locale locale);
 
 	/**
 	 * Determine if there were any errors.
@@ -138,9 +139,9 @@ public interface Errors {
 	 * even if there were type mismatches.
 	 * @param field the field name
 	 * @return the current value of the given field
-	 * @see #getFieldType(String)
+	 * @see #getFieldType(String, Locale)
 	 */
-	Object getFieldValue(String field);
+	Object getFieldValue(String field, Locale locale);
 
 	/**
 	 * Determine the type of the given field, as far as possible.
@@ -149,10 +150,10 @@ public interface Errors {
 	 * associated descriptor.
 	 * @param field the field name
 	 * @return the type of the field, or {@code null} if not determinable
-	 * @see #getFieldValue(String)
+	 * @see #getFieldValue(String, Locale)
 	 */
-	default Class<?> getFieldType(String field) {
-		return Optional.ofNullable(getFieldValue(field)).map(Object::getClass).orElse(null);
+	default Class<?> getFieldType(String field, Locale locale) {
+		return Optional.ofNullable(getFieldValue(field, locale)).map(Object::getClass).orElse(null);
 	}
 
 	/**

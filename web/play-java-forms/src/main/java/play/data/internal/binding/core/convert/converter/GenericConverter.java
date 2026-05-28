@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.core.convert.converter;
 
+import java.util.Locale;
 import java.util.Set;
 
 import play.data.internal.binding.core.convert.TypeDescriptor;
@@ -56,7 +57,7 @@ public interface GenericConverter {
 	 * @param targetType the type descriptor of the field we are converting to
 	 * @return the converted object
 	 */
-	Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+	Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale);
 
 
 	/**

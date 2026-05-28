@@ -9,7 +9,6 @@ import jakarta.inject.Singleton;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
-import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.data.internal.binding.core.GenericTypeResolver;
 import play.data.internal.binding.core.convert.ConversionFailedException;
 import play.data.internal.binding.core.convert.TypeDescriptor;
@@ -41,8 +40,8 @@ public class Formatters {
    * @param <T> the type to parse out of the text
    * @return the parsed value
    */
-  public <T> T parse(String text, Class<T> clazz) {
-    return conversion.convert(text, clazz);
+  public <T> T parse(String text, Class<T> clazz, Locale locale) {
+    return conversion.convert(text, clazz, locale);
   }
 
   /**
@@ -54,8 +53,8 @@ public class Formatters {
    * @return the parsed value
    */
   @SuppressWarnings("unchecked")
-  public <T> T parse(Field field, String text) {
-    return (T) conversion.convert(text, new TypeDescriptor(field));
+  public <T> T parse(Field field, String text, Locale locale) {
+    return (T) conversion.convert(text, new TypeDescriptor(field), locale);
   }
 
   /**
@@ -65,12 +64,12 @@ public class Formatters {
    * @param <T> the type to print
    * @return the formatted string
    */
-  public <T> String print(T t) {
+  public <T> String print(T t, Locale locale) {
     if (t == null) {
       return "";
     }
     if (conversion.canConvert(t.getClass(), String.class)) {
-      return conversion.convert(t, String.class);
+      return conversion.convert(t, String.class, locale);
     } else {
       return t.toString();
     }
@@ -84,8 +83,8 @@ public class Formatters {
    * @param <T> the type to print
    * @return the formatted string
    */
-  public <T> String print(Field field, T t) {
-    return print(new TypeDescriptor(field), t);
+  public <T> String print(Field field, T t, Locale locale) {
+    return print(new TypeDescriptor(field), t, locale);
   }
 
   /**
@@ -96,14 +95,14 @@ public class Formatters {
    * @param <T> the type to print
    * @return the formatted string
    */
-  <T> String print(TypeDescriptor desc, T t) {
+  <T> String print(TypeDescriptor desc, T t, Locale locale) {
     if (t == null) {
       return "";
     }
     if (desc != null && conversion.canConvert(desc, TypeDescriptor.valueOf(String.class))) {
-      return (String) conversion.convert(t, desc, TypeDescriptor.valueOf(String.class));
+      return (String) conversion.convert(t, desc, TypeDescriptor.valueOf(String.class), locale);
     } else if (conversion.canConvert(t.getClass(), String.class)) {
-      return conversion.convert(t, String.class);
+      return conversion.convert(t, String.class, locale);
     } else {
       return t.toString();
     }
@@ -213,11 +212,12 @@ public class Formatters {
         new GenericConverter() {
 
           public Object convert(
-              Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+              Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
             if (sourceType.getObjectType().equals(String.class)) {
               // From String to Optional
               Object element =
-                  conversion.convert(source, sourceType, targetType.elementTypeDescriptor(source));
+                  conversion.convert(
+                      source, sourceType, targetType.elementTypeDescriptor(source), locale);
               return Optional.ofNullable(element);
             } else if (targetType.getObjectType().equals(String.class)) {
               // From Optional to String
@@ -227,7 +227,7 @@ public class Formatters {
               return opt.map(
                       o ->
                           conversion.convert(
-                              source, sourceType.getElementTypeDescriptor(), targetType))
+                              source, sourceType.getElementTypeDescriptor(), targetType, locale))
                   .orElse("");
             }
             return null;
@@ -318,7 +318,8 @@ public class Formatters {
     }
 
     @Override
-    public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+    public Object convert(
+        Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
       try {
         if (sourceType.getType() == String.class) {
           return converter.parse((String) source, targetType.getType());
@@ -363,9 +364,8 @@ public class Formatters {
           }
 
           public Object convert(
-              Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+              Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
             final A a = (A) sourceType.getAnnotation(annotationType);
-            Locale locale = LocaleContextHolder.getLocale();
             try {
               return formatter.print(a, (T) source, locale);
             } catch (Exception ex) {
@@ -398,9 +398,8 @@ public class Formatters {
           }
 
           public Object convert(
-              Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+              Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
             final A a = (A) targetType.getAnnotation(annotationType);
-            Locale locale = LocaleContextHolder.getLocale();
             try {
               return formatter.parse(a, (String) source, locale);
             } catch (Exception ex) {

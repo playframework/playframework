@@ -20,6 +20,8 @@
 
 package play.data.internal.binding.core.convert;
 
+import java.util.Locale;
+
 /**
  * A service interface for type conversion. This is the entry point into the convert system.
  * Call {@link #convert(Object, Class)} to perform a thread-safe type conversion using this system.
@@ -73,7 +75,7 @@ public interface ConversionService {
 	 * @throws ConversionException if a conversion exception occurred
 	 * @throws IllegalArgumentException if targetType is {@code null}
 	 */
-	<T> T convert(Object source, Class<T> targetType);
+	<T> T convert(Object source, Class<T> targetType, Locale locale);
 
 	/**
 	 * Convert the given {@code source} to the specified {@code targetType}.
@@ -86,8 +88,8 @@ public interface ConversionService {
 	 * @throws ConversionException if a conversion exception occurred
 	 * @throws IllegalArgumentException if targetType is {@code null}
 	 */
-	default Object convert(Object source, TypeDescriptor targetType) {
-		return convert(source, TypeDescriptor.forObject(source), targetType);
+	default Object convert(Object source, TypeDescriptor targetType, Locale locale) {
+		return convert(source, TypeDescriptor.forObject(source), targetType, locale);
 	}
 
 	/**
@@ -103,6 +105,6 @@ public interface ConversionService {
 	 * @throws IllegalArgumentException if targetType is {@code null},
 	 * or {@code sourceType} is {@code null} but source is not {@code null}
 	 */
-	Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+	Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale);
 
 }
