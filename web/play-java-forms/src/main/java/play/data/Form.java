@@ -60,6 +60,7 @@ import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
+import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 import play.i18n.MessagesImpl;
@@ -108,6 +109,7 @@ public class Form<T> {
   private final Lang lang;
   private final boolean directFieldAccess;
   final MessagesApi messagesApi;
+  final Langs langs;
   final Formatters formatters;
   final ValidatorFactory validatorFactory;
   final Config config;
@@ -140,20 +142,23 @@ public class Form<T> {
   public Form(
       Class<T> clazz,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    this(null, clazz, messagesApi, formatters, validatorFactory, config);
+    this(null, clazz, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   public Form(
       String rootName,
       Class<T> clazz,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    this(rootName, clazz, (Class<?>) null, messagesApi, formatters, validatorFactory, config);
+    this(
+        rootName, clazz, (Class<?>) null, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   public Form(
@@ -161,6 +166,7 @@ public class Form<T> {
       Class<T> clazz,
       Class<?> group,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -169,6 +175,7 @@ public class Form<T> {
         clazz,
         group != null ? new Class[] {group} : null,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -179,6 +186,7 @@ public class Form<T> {
       Class<T> clazz,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -190,6 +198,7 @@ public class Form<T> {
         Optional.empty(),
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -202,6 +211,7 @@ public class Form<T> {
       List<ValidationError> errors,
       Optional<T> value,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -213,6 +223,7 @@ public class Form<T> {
         errors,
         value,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -226,6 +237,7 @@ public class Form<T> {
       List<ValidationError> errors,
       Optional<T> value,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -238,6 +250,7 @@ public class Form<T> {
         value,
         (Class<?>) null,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -251,6 +264,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?> group,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -263,6 +277,7 @@ public class Form<T> {
         value,
         group,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -277,6 +292,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?> group,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -289,6 +305,7 @@ public class Form<T> {
         value,
         group != null ? new Class[] {group} : null,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -318,6 +335,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -330,6 +348,7 @@ public class Form<T> {
         value,
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -361,6 +380,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -373,6 +393,7 @@ public class Form<T> {
         value,
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -405,6 +426,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config,
@@ -418,6 +440,7 @@ public class Form<T> {
         value,
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -452,6 +475,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config,
@@ -465,6 +489,7 @@ public class Form<T> {
         value,
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -499,6 +524,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config,
@@ -513,6 +539,7 @@ public class Form<T> {
         value,
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -549,6 +576,7 @@ public class Form<T> {
       Optional<T> value,
       Class<?>[] groups,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config,
@@ -562,6 +590,7 @@ public class Form<T> {
     this.value = value;
     this.groups = groups;
     this.messagesApi = messagesApi;
+    this.langs = langs;
     this.formatters = formatters;
     this.validatorFactory = validatorFactory;
     this.config = config;
@@ -1124,6 +1153,7 @@ public class Form<T> {
           Optional.ofNullable((T) result.getTarget()),
           groups,
           messagesApi,
+          langs,
           formatters,
           this.validatorFactory,
           config,
@@ -1139,6 +1169,7 @@ public class Form<T> {
         Optional.ofNullable((T) result.getTarget()),
         groups,
         messagesApi,
+        langs,
         formatters,
         this.validatorFactory,
         config,
@@ -1212,6 +1243,7 @@ public class Form<T> {
         Optional.ofNullable(value),
         groups,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -1367,6 +1399,7 @@ public class Form<T> {
         this.value,
         this.groups,
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -1424,6 +1457,7 @@ public class Form<T> {
         this.value,
         this.groups,
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -1611,6 +1645,7 @@ public class Form<T> {
         this.value,
         this.groups,
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -1634,6 +1669,7 @@ public class Form<T> {
         this.value,
         this.groups,
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,

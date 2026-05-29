@@ -24,7 +24,8 @@ import views.html.helper.FieldConstructor.defaultField
  * Specs for Java dynamic forms
  */
 class DynamicFormSpec extends CommonFormSpec {
-  val messagesApi                 = new DefaultMessagesApi()
+  val jLangs                      = new play.api.i18n.DefaultLangs().asJava
+  val messagesApi                 = new DefaultMessagesApi(langs = jLangs.asScala())
   implicit val messages: Messages = messagesApi.preferred(Seq.empty)
   val jMessagesApi                = new play.i18n.MessagesApi(messagesApi)
   val validatorFactory            = FormSpec.validatorFactory()
@@ -32,7 +33,7 @@ class DynamicFormSpec extends CommonFormSpec {
 
   "a dynamic form" should {
     "bind values from a request" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.get("foo") must_== "bar"
       form.value("foo").get must_== "bar"
@@ -47,7 +48,8 @@ class DynamicFormSpec extends CommonFormSpec {
         val req = createThesisRequestWithFileParts(files)
 
         val myForm =
-          new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config).bindFromRequest(req)
+          new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
+            .bindFromRequest(req)
 
         myForm.hasErrors() must beEqualTo(false)
         myForm.hasGlobalErrors() must beEqualTo(false)
@@ -178,13 +180,13 @@ class DynamicFormSpec extends CommonFormSpec {
     }
 
     "allow access to raw data values from request" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.rawData().get("foo") must_== "bar"
     }
 
     "display submitted values in template helpers" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       val html = inputText(form("foo")).body
       html must contain("value=\"bar\"")
@@ -192,7 +194,7 @@ class DynamicFormSpec extends CommonFormSpec {
     }
 
     "render correctly when no value is submitted in template helpers" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map()))
       val html = inputText(form("foo")).body
       html must contain("value=\"\"")
@@ -200,7 +202,7 @@ class DynamicFormSpec extends CommonFormSpec {
     }
 
     "display errors in template helpers" in {
-      var form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      var form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form = form.withError("foo", "There was an error")
       val html = inputText(form("foo")).body
@@ -208,7 +210,7 @@ class DynamicFormSpec extends CommonFormSpec {
     }
 
     "display errors when a field is not present" in {
-      var form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      var form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .bindFromRequest(FormSpec.dummyRequest(Map()))
       form = form.withError("foo", "Foo is required")
       val html = inputText(form("foo")).body
@@ -216,27 +218,27 @@ class DynamicFormSpec extends CommonFormSpec {
     }
 
     "allow access to the property when filled" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
       form.get("foo") must_== "bar"
       form.value("foo").get must_== "bar"
     }
 
     "allow access to the equivalent of the raw data when filled" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
       form("foo").value().get() must_== "bar"
     }
 
     "fail with exception when trying to switch on direct field access" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
       form.withDirectFieldAccess(true) must throwA[RuntimeException].like {
         case e => e.getMessage must endWith("Not possible to enable direct field access for dynamic forms.")
       }
     }
 
     "work when switch off direct field access" in {
-      val form = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, config)
+      val form = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, config)
         .withDirectFieldAccess(false)
         .bindFromRequest(FormSpec.dummyRequest(Map("foo" -> Array("bar"))))
       form.get("foo") must_== "bar"
@@ -245,7 +247,7 @@ class DynamicFormSpec extends CommonFormSpec {
 
     "don't throw NullPointerException when all components of form are null" in {
       val form =
-        new DynamicForm(null, null, null, null).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
+        new DynamicForm(null, null, null, null, null).fill(Map("foo" -> "bar").asInstanceOf[Map[String, Object]].asJava)
       form("foo").value().get() must_== "bar"
     }
 
@@ -267,7 +269,7 @@ class DynamicFormSpec extends CommonFormSpec {
                        |play.http.parser.maxMemoryBuffer = 32
                        |""".stripMargin)
         .withFallback(config)
-      val form       = new DynamicForm(jMessagesApi, new Formatters(jMessagesApi), validatorFactory, cfg)
+      val form       = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, cfg)
       val longString =
         "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
       val textNode: JsonNode = new TextNode(longString)

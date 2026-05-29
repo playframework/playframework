@@ -508,6 +508,10 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.PathBindable.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Session.<clinit>"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.ServerProvider.<clinit>"),
+      // Pass Lang into java form
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.FormFactory.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.this"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
