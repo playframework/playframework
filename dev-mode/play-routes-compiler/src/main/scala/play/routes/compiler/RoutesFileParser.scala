@@ -258,7 +258,18 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
     } |
       (space("(") ~ types ~ space(")")) ^^ {
         case _ ~ b ~ _ => "(" + b + ")"
-      }
+      } |
+      wildcardType
+  }
+
+  def wildcardType: Parser[String] = {
+    def bound(operator: String): Parser[String] = (operator <~ ignoreWhiteSpace) ~ (simpleType <~ ignoreWhiteSpace) ^^ {
+      case _ ~ tpe => " " + operator + " " + tpe
+    }
+
+    ("?" <~ ignoreWhiteSpace) ~> opt(bound(">:")) ~ opt(bound("<:")) ^^ {
+      case lower ~ upper => "?" + lower.getOrElse("") + upper.getOrElse("")
+    }
   }
 
   def typeArgs: Parser[String] = {
