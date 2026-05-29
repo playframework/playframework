@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
+import play.i18n.Langs;
 import play.i18n.MessagesApi;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http;
@@ -38,10 +39,11 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
    */
   public DynamicForm(
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    super(DynamicForm.Dynamic.class, messagesApi, formatters, validatorFactory, config);
+    super(DynamicForm.Dynamic.class, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -60,6 +62,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       List<ValidationError> errors,
       Optional<Dynamic> value,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
@@ -69,6 +72,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         errors,
         value,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config);
@@ -92,10 +96,12 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       List<ValidationError> errors,
       Optional<Dynamic> value,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    this(data, files, errors, value, messagesApi, formatters, validatorFactory, config, null);
+    this(
+        data, files, errors, value, messagesApi, langs, formatters, validatorFactory, config, null);
   }
 
   /**
@@ -116,6 +122,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       List<ValidationError> errors,
       Optional<Dynamic> value,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config,
@@ -126,6 +133,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         errors,
         value,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -152,6 +160,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       List<ValidationError> errors,
       Optional<Dynamic> value,
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config,
@@ -165,6 +174,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         value,
         null,
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -244,6 +254,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         form.errors(),
         form.value(),
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -324,6 +335,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         form.errors(),
         form.value(),
         messagesApi,
+        langs,
         formatters,
         validatorFactory,
         config,
@@ -370,6 +382,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         form.errors(),
         form.value(),
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -385,6 +398,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         form.errors(),
         form.value(),
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -405,6 +419,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         form.errors(),
         form.value(),
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -425,6 +440,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         form.errors(),
         form.value(),
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,
@@ -439,6 +455,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         this.errors(),
         this.value(),
         this.messagesApi,
+        this.langs,
         this.formatters,
         this.validatorFactory,
         this.config,

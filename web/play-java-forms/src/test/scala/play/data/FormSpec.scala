@@ -1257,7 +1257,21 @@ trait FormSpec extends CommonFormSpec {
       ).asJava.asInstanceOf[util.Map[String, Http.MultipartFormData.FilePart[?]]]
 
       val form: Form[Object] =
-        new Form(null, null, dataPart, filePart, null, Optional.empty[Object](), null, null, null, null, null, null)
+        new Form(
+          null,
+          null,
+          dataPart,
+          filePart,
+          null,
+          Optional.empty[Object](),
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        )
 
       val dataField = new Form.Field(form, "someDataField", null, null, null, null, null)
       dataField.indexes() must beEqualTo(List(0, 1, 2, 4, 59, 70, 81).asJava)
@@ -1290,6 +1304,7 @@ trait FormSpec extends CommonFormSpec {
         map.asJava,
         List.empty.asJava.asInstanceOf[java.util.List[ValidationError]],
         Optional.empty[JavaForm],
+        null,
         null,
         null,
         FormSpec.validatorFactory(),

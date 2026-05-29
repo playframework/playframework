@@ -18,6 +18,6 @@ public interface FormFactoryComponents
   }
 
   default FormFactory formFactory() {
-    return new FormFactory(messagesApi(), formatters(), validatorFactory(), config());
+    return new FormFactory(messagesApi(), langs(), formatters(), validatorFactory(), config());
   }
 }

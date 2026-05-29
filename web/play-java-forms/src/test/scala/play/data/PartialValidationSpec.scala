@@ -15,11 +15,18 @@ import play.data.validation.Constraints.Required
 import play.libs.typedmap.TypedMap
 
 class PartialValidationSpec extends Specification {
-  val messagesApi = new DefaultMessagesApi()
+  val jLangs      = new DefaultLangs().asJava
+  val messagesApi = new DefaultMessagesApi(langs = jLangs.asScala())
 
   val jMessagesApi = new play.i18n.MessagesApi(messagesApi)
   val formFactory  =
-    new FormFactory(jMessagesApi, new Formatters(jMessagesApi), FormSpec.validatorFactory(), ConfigFactory.load())
+    new FormFactory(
+      jMessagesApi,
+      jLangs,
+      new Formatters(jMessagesApi),
+      FormSpec.validatorFactory(),
+      ConfigFactory.load()
+    )
 
   "partial validation" should {
     "not fail when fields not in the same group fail validation" in {

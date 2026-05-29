@@ -22,6 +22,7 @@ import play.data.*;
 import play.data.format.Formatters;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
+import play.i18n.Langs;
 import play.i18n.MessagesApi;
 import play.inject.guice.GuiceApplicationBuilder;
 import play.mvc.Http.Request;
@@ -61,6 +62,7 @@ public class HttpFormsTest {
         formToCopy.value(),
         (Class[]) null,
         app.injector().instanceOf(MessagesApi.class),
+        app.injector().instanceOf(Langs.class),
         app.injector().instanceOf(Formatters.class),
         app.injector().instanceOf(ValidatorFactory.class),
         app.injector().instanceOf(Config.class),
@@ -216,6 +218,7 @@ public class HttpFormsTest {
     withApplication(
         (app) -> {
           MessagesApi messagesApi = app.injector().instanceOf(MessagesApi.class);
+          Langs langs = app.injector().instanceOf(Langs.class);
           Formatters formatters = app.injector().instanceOf(Formatters.class);
           ValidatorFactory validatorFactory = app.injector().instanceOf(ValidatorFactory.class);
           Config config = app.injector().instanceOf(Config.class);
@@ -239,6 +242,7 @@ public class HttpFormsTest {
                   Optional.empty(),
                   null,
                   messagesApi,
+                  langs,
                   formatters,
                   validatorFactory,
                   config,
@@ -255,13 +259,13 @@ public class HttpFormsTest {
         (app) -> {
           // The messagesApi is empty
           MessagesApi emptyMessagesApi = play.test.Helpers.stubMessagesApi();
+          Langs langs = new DefaultLangs().asJava();
           Formatters formatters = app.injector().instanceOf(Formatters.class);
           ValidatorFactory validatorFactory = app.injector().instanceOf(ValidatorFactory.class);
           Config config = app.injector().instanceOf(Config.class);
 
           // The lang has to be build from an empty messagesApi
-          final Lang lang =
-              emptyMessagesApi.preferred(new DefaultLangs().asJava().availables()).lang();
+          final Lang lang = emptyMessagesApi.preferred(langs.availables()).lang();
 
           // Also the form should contain the empty messagesApi
           Form<Money> form =
@@ -272,6 +276,7 @@ public class HttpFormsTest {
                   new ArrayList<>(),
                   Optional.empty(),
                   emptyMessagesApi,
+                  langs,
                   formatters,
                   validatorFactory,
                   config);

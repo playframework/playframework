@@ -9,6 +9,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.ValidatorFactory;
 import play.data.format.Formatters;
+import play.i18n.Langs;
 import play.i18n.MessagesApi;
 
 /** Helper to create HTML forms. */
@@ -16,6 +17,8 @@ import play.i18n.MessagesApi;
 public class FormFactory {
 
   private final MessagesApi messagesApi;
+
+  private final Langs langs;
 
   private final Formatters formatters;
 
@@ -26,10 +29,12 @@ public class FormFactory {
   @Inject
   public FormFactory(
       MessagesApi messagesApi,
+      Langs langs,
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
     this.messagesApi = messagesApi;
+    this.langs = langs;
     this.formatters = formatters;
     this.validatorFactory = validatorFactory;
     this.config = config;
@@ -39,7 +44,7 @@ public class FormFactory {
    * @return a dynamic form.
    */
   public DynamicForm form() {
-    return new DynamicForm(messagesApi, formatters, validatorFactory, config);
+    return new DynamicForm(messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -48,7 +53,7 @@ public class FormFactory {
    * @return a new form that wraps the specified class.
    */
   public <T> Form<T> form(Class<T> clazz) {
-    return new Form<>(clazz, messagesApi, formatters, validatorFactory, config);
+    return new Form<>(clazz, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -58,7 +63,7 @@ public class FormFactory {
    * @return a new form that wraps the specified class.
    */
   public <T> Form<T> form(String name, Class<T> clazz) {
-    return new Form<>(name, clazz, messagesApi, formatters, validatorFactory, config);
+    return new Form<>(name, clazz, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -69,7 +74,8 @@ public class FormFactory {
    * @return a new form that wraps the specified class.
    */
   public <T> Form<T> form(String name, Class<T> clazz, Class<?>... groups) {
-    return new Form<>(name, clazz, groups, messagesApi, formatters, validatorFactory, config);
+    return new Form<>(
+        name, clazz, groups, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -79,6 +85,7 @@ public class FormFactory {
    * @return a new form that wraps the specified class.
    */
   public <T> Form<T> form(Class<T> clazz, Class<?>... groups) {
-    return new Form<>(null, clazz, groups, messagesApi, formatters, validatorFactory, config);
+    return new Form<>(
+        null, clazz, groups, messagesApi, langs, formatters, validatorFactory, config);
   }
 }
