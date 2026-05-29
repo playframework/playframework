@@ -13,7 +13,7 @@ jobs:
   publish-snapshot-artifacts:
     name: Publish / Artifacts (Snapshot)
     if: github.ref_type == 'branch' # Snapshots
-    uses: playframework/.github/.github/workflows/publish.yml@v4
+    uses: playframework/.github/.github/workflows/publish.yml@ubuntu-24.04-arm
     with:
       gradle-build-root: dev-mode/gradle-plugin
       cmd: |
@@ -25,7 +25,7 @@ jobs:
   publish-release:
     name: Publish / Artifacts (Stable Release)
     if: github.ref_type == 'tag' # Releases
-    uses: playframework/.github/.github/workflows/publish.yml@v4
+    uses: playframework/.github/.github/workflows/publish.yml@ubuntu-24.04-arm
     with:
       extra-coursier-cache-key: "publish"
     secrets: inherit
@@ -33,7 +33,7 @@ jobs:
   publish-release-gradle:
     name: Publish / Artifacts (Stable Gradle Plugin)
     if: github.ref_type == 'tag' # Releases
-    uses: playframework/.github/.github/workflows/publish.yml@v4
+    uses: playframework/.github/.github/workflows/publish.yml@ubuntu-24.04-arm
     with:
       gradle-build-root: dev-mode/gradle-plugin
       cmd: |
