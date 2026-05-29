@@ -2,7 +2,7 @@
 
 # Custom Routing
 
-Play provides a mechanism to bind types from path or query string parameters. 
+Play provides a mechanism to bind types from path or query string parameters. To use any custom type you should implement either [`PathBindable[A]`](api/scala/play/api/mvc/PathBindable.html)  or [`QueryStringBindable[A]`](api/scala/play/api/mvc/QueryStringBindable.html), make them implicit (or given for scala 3) and import the defined methods to your routes (add `play.sbt.routes.RoutesKeys.routesImport += "controllers.QueryBinders.given"` to your build.sbt file) 
 
 ## PathBindable
 
