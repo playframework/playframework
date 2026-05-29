@@ -146,6 +146,46 @@ class RoutesFileParserSpec extends Specification {
       )
     }
 
+    "parse an argument with a wildcard type parameter" in {
+      parseRoute("GET /s p.c.m(b: java.util.List[?])").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.List[?]", None, None))))
+    }
+
+    "parse an argument with multiple wildcard type parameters" in {
+      parseRoute("GET /s p.c.m(b: java.util.Map[?, ?])").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.Map[?,?]", None, None))))
+    }
+
+    "parse an argument with a nested wildcard type parameter" in {
+      parseRoute("GET /s p.c.m(b: Option[java.util.List[?]])").call.parameters must
+        beSome(===(Seq(Parameter("b", "Option[java.util.List[?]]", None, None))))
+    }
+
+    "parse an argument with an upper bounded wildcard type parameter" in {
+      parseRoute("GET /s p.c.m(b: java.util.List[? <: Number])").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.List[? <: Number]", None, None))))
+    }
+
+    "parse an argument with a lower bounded wildcard type parameter" in {
+      parseRoute("GET /s p.c.m(b: java.util.List[? >: String])").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.List[? >: String]", None, None))))
+    }
+
+    "parse an argument with a wildcard type parameter bounded both below and above" in {
+      parseRoute("GET /s p.c.m(b: java.util.List[? >: String <: Number])").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.List[? >: String <: Number]", None, None))))
+    }
+
+    "parse an argument with a wildcard type parameter surrounded by whitespace" in {
+      parseRoute("GET /s p.c.m(b: java.util.List[ ? ])").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.List[?]", None, None))))
+    }
+
+    "parse an argument with a wildcard type parameter and a default value" in {
+      parseRoute("GET /s p.c.m(b: java.util.List[?] ?= null)").call.parameters must
+        beSome(===(Seq(Parameter("b", "java.util.List[?]", None, Some("null")))))
+    }
+
     "parse a non instantiating route" in {
       parseRoute("GET /s p.c.m").call.instantiate must_== false
     }
