@@ -10,6 +10,8 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.Application
+import play.api.Configuration
+import com.typesafe.config.ConfigException
 
 trait CORSCommonSpec extends PlaySpecification {
   def withApplication[T](conf: Map[String, ? <: Any] = Map.empty)(block: Application => T): T
@@ -398,6 +400,43 @@ trait CORSCommonSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
       header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost:9000")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    "throw an exception if the configuration contains an invalid regex" in {
+      val invalidRegexOrigins = Map(
+        "play.filters.cors.allowedOrigins"        -> Seq("http://["),
+        "play.filters.cors.allowedOriginsAsRegex" -> true
+      )
+      val conf = Configuration.from(invalidRegexOrigins)
+      CORSConfig.fromConfiguration(conf) must throwA[ConfigException.BadValue]
+    }
+
+    val regexOrigins = Map(
+      "play.filters.cors.allowedOrigins"        -> Seq("^http[s]?://[^\\.]+\\.example.org$"),
+      "play.filters.cors.allowedOriginsAsRegex" -> true
+    )
+
+    "forbid a preflight request with a restricted regex origin" in withApplication(conf = regexOrigins) { app =>
+      val result = route(
+        app,
+        fakeRequest("OPTIONS", "/").withHeaders(ORIGIN -> "http://localhost", ACCESS_CONTROL_REQUEST_METHOD -> "PUT")
+      ).get
+
+      status(result) must_== FORBIDDEN
+      mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    "handle a cors request with a whitelisted regex origin" in withApplication(conf = regexOrigins) { app =>
+      val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://regex.example.org")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://regex.example.org")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
       header(VARY, result) must beSome(ORIGIN)
