@@ -319,6 +319,23 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
         await(result).body must beAnInstanceOf[HttpEntity.Strict]
       }
 
+      "add a Vary header when gzipped" in withApplication(Ok("hello")) { implicit app =>
+        val result = makeGzipRequest(app)
+        checkGzipped(result)
+        header(VARY, result) must beSome[String].which(_.contains(ACCEPT_ENCODING))
+      }
+
+      "add a Vary header even when not gzipped" in withApplication(Ok("hello")) { implicit app =>
+        val result = route(app, FakeRequest()).get
+        header(CONTENT_ENCODING, result) must beNone
+        header(VARY, result) must beSome[String].which(_.contains(ACCEPT_ENCODING))
+      }
+
+      "not add a Vary header if the result is not compressible" in withApplication(NoContent) { implicit app =>
+        val result = makeGzipRequest(app)
+        header(VARY, result) must beNone
+      }
+
       "preserve original headers, cookie, flash and session values" in withApplication(
         Ok("hello")
           .withHeaders(SERVER -> "Play")
