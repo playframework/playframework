@@ -344,6 +344,47 @@ trait FormSpec extends CommonFormSpec {
         myForm.hasErrors() must beEqualTo(false)
       }
     }
+    "reject indexed binding beyond auto-grow collection limit configured for Java forms" in new WithApplication(
+      application("play.forms.binding.autoGrowCollectionLimit" -> "1")
+    ) {
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))
+        )
+
+        val myForm = formFactory.form(classOf[AnotherUser]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("emails[1]").size must beEqualTo(1)
+      }
+    }
+    "reject indexed binding beyond auto-grow collection limit set on a Java form" in {
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))
+      )
+
+      val myForm = formFactory.form(classOf[AnotherUser]).withAutoGrowCollectionLimit(1).bindFromRequest(req)
+      myForm.hasErrors() must beEqualTo(true)
+      myForm.errors("emails[1]").size must beEqualTo(1)
+    }
+    "reject direct field indexed binding beyond auto-grow collection limit configured for Java forms" in new WithApplication(
+      application("play.forms.binding.directFieldAccess" -> "true", "play.forms.binding.autoGrowCollectionLimit" -> "1")
+    ) {
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map(
+            "id"        -> Array("1234567891"),
+            "name"      -> Array("peter"),
+            "dueDate"   -> Array("15/12/2009"),
+            "emails[0]" -> Array("peter@example.com"),
+            "emails[1]" -> Array("admin@example.com")
+          )
+        )
+
+        val myForm = formFactory.form(classOf[play.data.Subtask]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("emails[1]").size must beEqualTo(1)
+      }
+    }
     "be valid with mandatory params passed" in {
       val req = FormSpec.dummyRequest(
         Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009"))
