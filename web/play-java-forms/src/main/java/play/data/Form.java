@@ -265,6 +265,7 @@ public class Form<T> {
   private final Class<?>[] groups;
   private final Lang lang;
   private final boolean directFieldAccess;
+  private final int autoGrowCollectionLimit;
   final MessagesApi messagesApi;
   final Langs langs;
   final Formatters formatters;
@@ -284,6 +285,10 @@ public class Form<T> {
       throw new RuntimeException(
           "Cannot instantiate " + backedType + ". It must have a default constructor", e);
     }
+  }
+
+  private static int configuredAutoGrowCollectionLimit(Config config) {
+    return config != null ? config.getInt("play.forms.binding.autoGrowCollectionLimit") : 256;
   }
 
   /**
@@ -651,7 +656,8 @@ public class Form<T> {
         validatorFactory,
         config,
         lang,
-        config != null && config.getBoolean("play.forms.binding.directFieldAccess"));
+        config != null && config.getBoolean("play.forms.binding.directFieldAccess"),
+        configuredAutoGrowCollectionLimit(config));
   }
 
   /**
@@ -701,7 +707,8 @@ public class Form<T> {
         validatorFactory,
         config,
         lang,
-        directFieldAccess);
+        directFieldAccess,
+        configuredAutoGrowCollectionLimit(config));
   }
 
   /**
@@ -723,6 +730,7 @@ public class Form<T> {
    * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
    *     #apply(String)}) and for translations in {@link #errorsAsJson()}
    * @param directFieldAccess access fields of form directly during binding instead of using getters
+   * @param autoGrowCollectionLimit the limit for array and collection auto-growing
    */
   public Form(
       String rootName,
@@ -738,7 +746,8 @@ public class Form<T> {
       ValidatorFactory validatorFactory,
       Config config,
       Lang lang,
-      boolean directFieldAccess) {
+      boolean directFieldAccess,
+      int autoGrowCollectionLimit) {
     this.rootName = rootName;
     this.backedType = clazz;
     this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -753,6 +762,7 @@ public class Form<T> {
     this.config = config;
     this.lang = lang;
     this.directFieldAccess = directFieldAccess;
+    this.autoGrowCollectionLimit = autoGrowCollectionLimit;
   }
 
   /** The default maximum number of chars to support when binding a form from JSON. */
@@ -1100,6 +1110,7 @@ public class Form<T> {
     }
     dataBinder.setConversionService(formatters.conversion);
     dataBinder.setAutoGrowNestedPaths(true);
+    dataBinder.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
     if (this.directFieldAccess) {
       // FYI: initBeanPropertyAccess() is the default, let's switch to direct field access instead
       dataBinder
@@ -1315,7 +1326,8 @@ public class Form<T> {
           this.validatorFactory,
           config,
           lang,
-          directFieldAccess);
+          directFieldAccess,
+          autoGrowCollectionLimit);
     }
     return new Form<>(
         rootName,
@@ -1331,7 +1343,8 @@ public class Form<T> {
         this.validatorFactory,
         config,
         lang,
-        directFieldAccess);
+        directFieldAccess,
+        autoGrowCollectionLimit);
   }
 
   /**
@@ -1405,7 +1418,8 @@ public class Form<T> {
         validatorFactory,
         config,
         lang,
-        directFieldAccess);
+        directFieldAccess,
+        autoGrowCollectionLimit);
   }
 
   /**
@@ -1561,7 +1575,8 @@ public class Form<T> {
         this.validatorFactory,
         this.config,
         this.lang,
-        this.directFieldAccess);
+        this.directFieldAccess,
+        this.autoGrowCollectionLimit);
   }
 
   /**
@@ -1619,7 +1634,8 @@ public class Form<T> {
         this.validatorFactory,
         this.config,
         this.lang,
-        this.directFieldAccess);
+        this.directFieldAccess,
+        this.autoGrowCollectionLimit);
   }
 
   /**
@@ -1807,7 +1823,8 @@ public class Form<T> {
         this.validatorFactory,
         this.config,
         lang,
-        this.directFieldAccess);
+        this.directFieldAccess,
+        this.autoGrowCollectionLimit);
   }
 
   /**
@@ -1831,11 +1848,43 @@ public class Form<T> {
         this.validatorFactory,
         this.config,
         lang,
-        directFieldAccess);
+        directFieldAccess,
+        this.autoGrowCollectionLimit);
+  }
+
+  /**
+   * Sets the limit for array and collection auto-growing during form binding.
+   *
+   * @param autoGrowCollectionLimit the limit for array and collection auto-growing
+   */
+  public Form<T> withAutoGrowCollectionLimit(int autoGrowCollectionLimit) {
+    return new Form<>(
+        this.rootName,
+        this.backedType,
+        this.rawData,
+        this.files,
+        this.errors,
+        this.value,
+        this.groups,
+        this.messagesApi,
+        this.langs,
+        this.formatters,
+        this.validatorFactory,
+        this.config,
+        lang,
+        this.directFieldAccess,
+        autoGrowCollectionLimit);
   }
 
   ConfigurablePropertyAccessor propertyAccessor(Object target) {
-    return this.directFieldAccess ? new DirectFieldAccessor(target) : new BeanWrapperImpl(target);
+    if (this.directFieldAccess) {
+      DirectFieldAccessor propertyAccessor = new DirectFieldAccessor(target);
+      propertyAccessor.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
+      return propertyAccessor;
+    }
+    BeanWrapperImpl propertyAccessor = new BeanWrapperImpl(target);
+    propertyAccessor.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
+    return propertyAccessor;
   }
 
   public String toString() {
