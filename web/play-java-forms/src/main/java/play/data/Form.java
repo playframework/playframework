@@ -47,12 +47,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.ConfigurablePropertyAccessor;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.NotReadablePropertyException;
+import org.springframework.beans.PropertyAccessException;
+import org.springframework.beans.PropertyValue;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.AbstractPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.DataBinder;
+import org.springframework.validation.DefaultBindingErrorProcessor;
+import org.springframework.validation.DirectFieldBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import play.data.format.Formatters;
@@ -87,6 +95,155 @@ public class Form<T> {
       Pattern.compile("typeMismatch", Pattern.LITERAL);
 
   private static final String INVALID_MSG_KEY = "error.invalid";
+
+  private static final class PlayDataBinder extends DataBinder {
+
+    private String currentPropertyName;
+
+    PlayDataBinder(Object target) {
+      super(target);
+      setBindingErrorProcessor(new PlayBindingErrorProcessor());
+    }
+
+    PlayDataBinder(Object target, String objectName) {
+      super(target, objectName);
+      setBindingErrorProcessor(new PlayBindingErrorProcessor());
+    }
+
+    private final class PlayBindingErrorProcessor extends DefaultBindingErrorProcessor {
+
+      @Override
+      public void processPropertyAccessException(
+          PropertyAccessException ex, BindingResult bindingResult) {
+        /*
+         * Spring intentionally passes null as the property name when converting map keys, so
+         * property-specific editors apply only to map values. If map-key conversion fails, that
+         * null property name can become the literal "null" field in the resulting binding error.
+         * Since Play applies submitted properties one at a time, use the original submitted field
+         * name here so forms report errors such as uuidMap[bad-key] instead of "null".
+         *
+         * See https://github.com/playframework/playframework/issues/13966
+         */
+        String field = ex.getPropertyName();
+        if (!"null".equals(field) || currentPropertyName == null) {
+          super.processPropertyAccessException(ex, bindingResult);
+          return;
+        }
+
+        String[] codes = bindingResult.resolveMessageCodes(ex.getErrorCode(), currentPropertyName);
+        Object[] arguments =
+            getArgumentsForBindError(bindingResult.getObjectName(), currentPropertyName);
+        Object rejectedValue = ex.getValue();
+        if (ObjectUtils.isArray(rejectedValue)) {
+          rejectedValue =
+              StringUtils.arrayToCommaDelimitedString(ObjectUtils.toObjectArray(rejectedValue));
+        }
+        FieldError error =
+            new PlayBindingFieldError(
+                bindingResult.getObjectName(),
+                currentPropertyName,
+                rejectedValue,
+                codes,
+                arguments,
+                ex.getLocalizedMessage());
+        error.wrap(ex);
+        bindingResult.addError(error);
+      }
+    }
+
+    /*
+     * Mirrors Spring's private DefaultBindingErrorProcessor.BindingFieldError class closely enough
+     * for Play's custom binding-error path.
+     */
+    private static final class PlayBindingFieldError extends FieldError {
+
+      PlayBindingFieldError(
+          String objectName,
+          String field,
+          Object rejectedValue,
+          String[] codes,
+          Object[] arguments,
+          String defaultMessage) {
+        super(objectName, field, rejectedValue, true, codes, arguments, defaultMessage);
+      }
+
+      @Override
+      public boolean shouldRenderDefaultMessage() {
+        return false;
+      }
+    }
+
+    @Override
+    protected void applyPropertyValues(MutablePropertyValues mpvs) {
+      /*
+       * Spring turns regular PropertyAccessException failures, such as type mismatches, into
+       * FieldErrors. InvalidPropertyException is different: it is a FatalBeanException and escapes
+       * DataBinder.bind(...). One common way to trigger it is an indexed path beyond the
+       * auto-grow collection limit, for example list[256].name with Spring's default limit of 256.
+       *
+       * From Play's Form API perspective that should behave like any other invalid submitted
+       * field: the returned Form should contain an error and still expose successfully bound
+       * values for the remaining fields. Applying each property separately lets us convert only
+       * the failing field into a binding error while preserving binding for the rest of the
+       * request.
+       *
+       * See https://github.com/playframework/playframework/issues/13967
+       */
+      for (PropertyValue propertyValue : mpvs.getPropertyValues()) {
+        MutablePropertyValues singlePropertyValue = new MutablePropertyValues();
+        singlePropertyValue.addPropertyValue(propertyValue);
+        try {
+          currentPropertyName = propertyValue.getName();
+          super.applyPropertyValues(singlePropertyValue);
+        } catch (InvalidPropertyException ex) {
+          getBindingResult()
+              .addError(
+                  new FieldError(
+                      getObjectName(),
+                      ex.getPropertyName(),
+                      null,
+                      true,
+                      new String[] {"typeMismatch"},
+                      null,
+                      INVALID_MSG_KEY));
+        } finally {
+          currentPropertyName = null;
+        }
+      }
+    }
+
+    @Override
+    protected AbstractPropertyBindingResult createDirectFieldBindingResult() {
+      /*
+       * DataBinder's documented default auto-grow collection limit is 256. Spring applies that
+       * limit to bean-property binding through BeanPropertyBindingResult, but direct-field binding
+       * creates a DirectFieldAccessor that otherwise keeps AbstractNestablePropertyAccessor's
+       * Integer.MAX_VALUE default. That would make direct-field forms much easier to abuse with
+       * very large indexes such as list[99999999].
+       *
+       * Keep direct-field access aligned with bean-property access by copying DataBinder's current
+       * auto-grow collection limit onto the DirectFieldAccessor when it is created.
+       *
+       * See https://github.com/spring-projects/spring-framework/issues/36861
+       * See https://github.com/spring-projects/spring-framework/pull/36862
+       */
+      DirectFieldBindingResult result =
+          new DirectFieldBindingResult(getTarget(), getObjectName(), isAutoGrowNestedPaths()) {
+            @Override
+            protected ConfigurablePropertyAccessor createDirectFieldAccessor() {
+              ConfigurablePropertyAccessor accessor = super.createDirectFieldAccessor();
+              ((DirectFieldAccessor) accessor)
+                  .setAutoGrowCollectionLimit(getAutoGrowCollectionLimit());
+              return accessor;
+            }
+          };
+
+      if (getConversionService() != null) {
+        result.initConversion(getConversionService());
+      }
+      return result;
+    }
+  }
 
   /** Defines a form element's display name. */
   @Retention(RUNTIME)
@@ -934,9 +1091,9 @@ public class Form<T> {
   private DataBinder dataBinder(String... allowedFields) {
     DataBinder dataBinder;
     if (rootName == null) {
-      dataBinder = new DataBinder(blankInstance());
+      dataBinder = new PlayDataBinder(blankInstance());
     } else {
-      dataBinder = new DataBinder(blankInstance(), rootName);
+      dataBinder = new PlayDataBinder(blankInstance(), rootName);
     }
     if (allowedFields.length > 0) {
       dataBinder.setAllowedFields(allowedFields);
