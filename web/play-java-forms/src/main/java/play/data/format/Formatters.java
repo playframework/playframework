@@ -108,7 +108,7 @@ public class Formatters {
   // --
 
   /** The underlying conversion service. */
-  public final FormattingConversionService conversion = new FormattingConversionService();
+  final FormattingConversionService conversion = new FormattingConversionService();
 
   /**
    * Super-type for custom simple formatters.
@@ -231,6 +231,21 @@ public class Formatters {
           }
         });
 
+    return this;
+  }
+
+  /**
+   * Unregisters all formatters for the given class.
+   *
+   * <p>This removes both directions used by Play formatters: parsing from {@link String} to the
+   * given class and printing from the given class to {@link String}.
+   *
+   * @param clazz class handled by the formatters to unregister
+   * @return the modified Formatters object.
+   */
+  public Formatters unregisterAll(final Class<?> clazz) {
+    conversion.removeConvertible(clazz, String.class);
+    conversion.removeConvertible(String.class, clazz);
     return this;
   }
 

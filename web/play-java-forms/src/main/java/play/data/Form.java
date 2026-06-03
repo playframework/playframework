@@ -1108,7 +1108,7 @@ public class Form<T> {
     if (allowedFields.length > 0) {
       dataBinder.setAllowedFields(allowedFields);
     }
-    dataBinder.setConversionService(formatters.conversion);
+    play.data.format.FormattersInternals$.MODULE$.configureDataBinder(formatters, dataBinder);
     dataBinder.setAutoGrowNestedPaths(true);
     dataBinder.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
     if (this.directFieldAccess) {
