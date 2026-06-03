@@ -21,7 +21,6 @@
 package play.data.internal.binding.beans;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -182,23 +181,6 @@ class TypeConverterDelegate {
 					return (T) convertedValue.toString();
 				}
 				else if (convertedValue instanceof String text && !requiredType.isInstance(convertedValue)) {
-					if (conversionAttemptEx == null && !requiredType.isInterface() && !requiredType.isEnum()) {
-						try {
-							Constructor<T> strCtor = requiredType.getConstructor(String.class);
-							return BeanUtils.instantiateClass(strCtor, convertedValue);
-						}
-						catch (NoSuchMethodException ex) {
-							// proceed with field lookup
-							if (logger.isTraceEnabled()) {
-								logger.trace("No String constructor found on type [" + requiredType.getName() + "]", ex);
-							}
-						}
-						catch (Exception ex) {
-							if (logger.isDebugEnabled()) {
-								logger.debug("Construction via String failed for type [" + requiredType.getName() + "]", ex);
-							}
-						}
-					}
 					String trimmedValue = text.trim();
 					if (requiredType.isEnum() && trimmedValue.isEmpty()) {
 						// It's an empty enum identifier: reset the enum value to null.

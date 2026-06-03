@@ -22,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -117,11 +116,6 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("zoneId", "Europe/Vienna");
     data.put("zoneIdOffset", "+02:00");
     data.put("objectValue", "opaque text");
-    data.put("constructedValue", "constructed text");
-    data.put("constructedValueArray", "constructed array text");
-    data.put("constructedValueList", "constructed list text");
-    data.put("constructedValueMap[first]", "constructed map text");
-    data.put("constructedValueKeyMap[constructed-key]", "constructed key text");
     data.put("staticValue", "ALPHA");
 
     Form<FormData> form = bind(formFactory, data);
@@ -163,15 +157,6 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getZoneId()).isEqualTo(ZoneId.of("Europe/Vienna"));
     assertThat(bean.getZoneIdOffset()).isEqualTo(ZoneId.of("+02:00"));
     assertThat(bean.getObjectValue()).isEqualTo("opaque text");
-    assertThat(bean.getConstructedValue().value()).isEqualTo("constructed text");
-    assertThat(bean.getConstructedValueArray()).hasSize(1);
-    assertThat(bean.getConstructedValueArray()[0].value()).isEqualTo("constructed array text");
-    assertThat(bean.getConstructedValueList()).hasSize(1);
-    assertThat(bean.getConstructedValueList().get(0).value()).isEqualTo("constructed list text");
-    assertThat(bean.getConstructedValueMap().get("first").value())
-        .isEqualTo("constructed map text");
-    assertThat(bean.getConstructedValueKeyMap())
-        .containsEntry(new ConstructedValue("constructed-key"), "constructed key text");
     assertThat(bean.getStaticValue()).isSameAs(StaticValue.ALPHA);
   }
 
@@ -206,11 +191,6 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("zoneId", "Europe/Vienna");
     data.put("zoneIdOffset", "+02:00");
     data.put("objectValue", "opaque text");
-    data.put("constructedValue", "constructed text");
-    data.put("constructedValueArray", "constructed array text");
-    data.put("constructedValueList", "constructed list text");
-    data.put("constructedValueMap[first]", "constructed map text");
-    data.put("constructedValueKeyMap[constructed-key]", "constructed key text");
     data.put("staticValue", "ALPHA");
 
     Form<FormData> form = bindDirect(formFactory, data);
@@ -250,14 +230,6 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.zoneId).isEqualTo(ZoneId.of("Europe/Vienna"));
     assertThat(bean.zoneIdOffset).isEqualTo(ZoneId.of("+02:00"));
     assertThat(bean.objectValue).isEqualTo("opaque text");
-    assertThat(bean.constructedValue.value()).isEqualTo("constructed text");
-    assertThat(bean.constructedValueArray).hasSize(1);
-    assertThat(bean.constructedValueArray[0].value()).isEqualTo("constructed array text");
-    assertThat(bean.constructedValueList).hasSize(1);
-    assertThat(bean.constructedValueList.get(0).value()).isEqualTo("constructed list text");
-    assertThat(bean.constructedValueMap.get("first").value()).isEqualTo("constructed map text");
-    assertThat(bean.constructedValueKeyMap)
-        .containsEntry(new ConstructedValue("constructed-key"), "constructed key text");
     assertThat(bean.staticValue).isSameAs(StaticValue.ALPHA);
   }
 
@@ -1743,7 +1715,6 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("urlUnknownProtocol", "unknown-protocol:/missing/resource");
     data.put("uuid", "not-a-uuid");
     data.put("zoneId", "No/SuchZone");
-    data.put("failingConstructedValue", "cannot construct");
     data.put("dateValue", "not-a-date");
     data.put("staticValueWithWrongFieldType", "WRONG_FIELD_TYPE");
 
@@ -1763,7 +1734,6 @@ public class DefaultFormBindingTest extends WithApplication {
     assertInvalidError(form, "urlUnknownProtocol");
     assertInvalidError(form, "uuid");
     assertInvalidError(form, "zoneId");
-    assertInvalidError(form, "failingConstructedValue");
     assertInvalidDateError(form, "dateValue");
     assertInvalidError(form, "staticValueWithWrongFieldType");
   }
@@ -1785,7 +1755,6 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("urlUnknownProtocol", "unknown-protocol:/missing/resource");
     data.put("uuid", "not-a-uuid");
     data.put("zoneId", "No/SuchZone");
-    data.put("failingConstructedValue", "cannot construct");
     data.put("dateValue", "not-a-date");
     data.put("staticValueWithWrongFieldType", "WRONG_FIELD_TYPE");
 
@@ -1805,7 +1774,6 @@ public class DefaultFormBindingTest extends WithApplication {
     assertInvalidError(form, "urlUnknownProtocol");
     assertInvalidError(form, "uuid");
     assertInvalidError(form, "zoneId");
-    assertInvalidError(form, "failingConstructedValue");
     assertInvalidDateError(form, "dateValue");
     assertInvalidError(form, "staticValueWithWrongFieldType");
   }
@@ -4188,12 +4156,6 @@ public class DefaultFormBindingTest extends WithApplication {
     private Optional<String> optionalValue;
     private Date dateValue;
     private Object objectValue;
-    private ConstructedValue constructedValue;
-    private ConstructedValue[] constructedValueArray;
-    private List<ConstructedValue> constructedValueList;
-    private Map<String, ConstructedValue> constructedValueMap;
-    private Map<ConstructedValue, String> constructedValueKeyMap;
-    private FailingConstructedValue failingConstructedValue;
     private StaticValue staticValue;
     private StaticValue staticValueWithWrongFieldType;
     private SampleEnum sampleEnum;
@@ -4686,54 +4648,6 @@ public class DefaultFormBindingTest extends WithApplication {
 
     public void setObjectValue(Object objectValue) {
       this.objectValue = objectValue;
-    }
-
-    public ConstructedValue getConstructedValue() {
-      return constructedValue;
-    }
-
-    public void setConstructedValue(ConstructedValue constructedValue) {
-      this.constructedValue = constructedValue;
-    }
-
-    public ConstructedValue[] getConstructedValueArray() {
-      return constructedValueArray;
-    }
-
-    public void setConstructedValueArray(ConstructedValue[] constructedValueArray) {
-      this.constructedValueArray = constructedValueArray;
-    }
-
-    public List<ConstructedValue> getConstructedValueList() {
-      return constructedValueList;
-    }
-
-    public void setConstructedValueList(List<ConstructedValue> constructedValueList) {
-      this.constructedValueList = constructedValueList;
-    }
-
-    public Map<String, ConstructedValue> getConstructedValueMap() {
-      return constructedValueMap;
-    }
-
-    public void setConstructedValueMap(Map<String, ConstructedValue> constructedValueMap) {
-      this.constructedValueMap = constructedValueMap;
-    }
-
-    public Map<ConstructedValue, String> getConstructedValueKeyMap() {
-      return constructedValueKeyMap;
-    }
-
-    public void setConstructedValueKeyMap(Map<ConstructedValue, String> constructedValueKeyMap) {
-      this.constructedValueKeyMap = constructedValueKeyMap;
-    }
-
-    public FailingConstructedValue getFailingConstructedValue() {
-      return failingConstructedValue;
-    }
-
-    public void setFailingConstructedValue(FailingConstructedValue failingConstructedValue) {
-      this.failingConstructedValue = failingConstructedValue;
     }
 
     public StaticValue getStaticValue() {
@@ -5232,34 +5146,6 @@ public class DefaultFormBindingTest extends WithApplication {
     THIRD;
 
     public static final SampleEnum ALIAS = SECOND;
-  }
-
-  public static class ConstructedValue {
-    private final String value;
-
-    public ConstructedValue(String value) {
-      this.value = value;
-    }
-
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof ConstructedValue that && Objects.equals(this.value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-  }
-
-  public static class FailingConstructedValue {
-    public FailingConstructedValue(String value) {
-      throw new IllegalArgumentException(value);
-    }
   }
 
   public static class StaticValue {
