@@ -134,10 +134,7 @@ public class HttpFormsTest {
               .isEqualTo("1,234,567.89");
 
           // Clean up (Actually not really necassary because formatters are not global anyway ;-)
-          formatters.conversion.removeConvertible(
-              BigDecimal.class, String.class); // removes print conversion
-          formatters.conversion.removeConvertible(
-              String.class, BigDecimal.class); // removes parse conversion
+          formatters.unregisterAll(BigDecimal.class);
         });
   }
 
@@ -206,10 +203,7 @@ public class HttpFormsTest {
               .isEqualTo("1,234,567.89");
 
           // Clean up (Actually not really necassary because formatters are not global anyway ;-)
-          formatters.conversion.removeConvertible(
-              BigDecimal.class, String.class); // removes print conversion
-          formatters.conversion.removeConvertible(
-              String.class, BigDecimal.class); // removes parse conversion
+          formatters.unregisterAll(BigDecimal.class);
         });
   }
 

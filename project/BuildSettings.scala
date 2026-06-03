@@ -512,6 +512,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.DynamicForm.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.FormFactory.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.this"),
+      // Make Java's Formatter.conversion package private to hide spring implementation
+      ProblemFilters.exclude[InaccessibleFieldProblem]("play.data.format.Formatters.conversion"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
