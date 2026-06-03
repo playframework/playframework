@@ -1452,6 +1452,28 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
+  public void shouldRejectClassCollectionBinding() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Form<FormData> form =
+        bind(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
+
+    assertThat(form.hasErrors()).isTrue();
+    assertThat(form.errors()).hasSize(1);
+    assertInvalidError(form, "classList");
+  }
+
+  @Test
+  public void shouldRejectClassCollectionBindingWithDirectFieldAccess() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Form<FormData> form =
+        bindDirect(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
+
+    assertThat(form.hasErrors()).isTrue();
+    assertThat(form.errors()).hasSize(1);
+    assertInvalidError(form, "classList");
+  }
+
+  @Test
   public void shouldHandleEmptyDefaultEnumValues() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
@@ -4554,6 +4576,7 @@ public class DefaultFormBindingTest extends WithApplication {
     private SampleEnum[] sampleEnumArray;
     private List<SampleEnum> sampleEnumList;
     private Map<SampleEnum, SampleEnum> sampleEnumMap;
+    private List<Class<?>> classList;
     private String[] stringArray;
     private Character[] characterArray;
     private Boolean[] booleanArray;
@@ -5089,6 +5112,14 @@ public class DefaultFormBindingTest extends WithApplication {
 
     public void setSampleEnumList(List<SampleEnum> sampleEnumList) {
       this.sampleEnumList = sampleEnumList;
+    }
+
+    public List<Class<?>> getClassList() {
+      return classList;
+    }
+
+    public void setClassList(List<Class<?>> classList) {
+      this.classList = classList;
     }
 
     public Map<SampleEnum, SampleEnum> getSampleEnumMap() {

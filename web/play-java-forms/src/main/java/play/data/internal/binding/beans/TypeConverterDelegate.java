@@ -122,7 +122,7 @@ class TypeConverterDelegate {
 				if (elementTypeDesc != null) {
 					Class<?> elementType = elementTypeDesc.getType();
 					if (convertedValue instanceof String text) {
-						if (Class.class == elementType || Enum.class.isAssignableFrom(elementType)) {
+						if (Enum.class.isAssignableFrom(elementType)) {
 							convertedValue = StringUtils.commaDelimitedListToStringArray(text);
 						}
 						else {
