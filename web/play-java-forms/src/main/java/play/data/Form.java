@@ -57,11 +57,9 @@ import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
 import play.data.internal.binding.util.ObjectUtils;
 import play.data.internal.binding.util.StringUtils;
-import play.data.internal.binding.validation.AbstractPropertyBindingResult;
 import play.data.internal.binding.validation.BindingResult;
 import play.data.internal.binding.validation.DataBinder;
 import play.data.internal.binding.validation.DefaultBindingErrorProcessor;
-import play.data.internal.binding.validation.DirectFieldBindingResult;
 import play.data.internal.binding.validation.Errors;
 import play.data.internal.binding.validation.FieldError;
 import play.data.validation.Constraints;
@@ -210,38 +208,6 @@ public class Form<T> {
           currentPropertyName = null;
         }
       }
-    }
-
-    @Override
-    protected AbstractPropertyBindingResult createDirectFieldBindingResult() {
-      /*
-       * DataBinder's documented default auto-grow collection limit is 256. Spring applies that
-       * limit to bean-property binding through BeanPropertyBindingResult, but direct-field binding
-       * creates a DirectFieldAccessor that otherwise keeps AbstractNestablePropertyAccessor's
-       * Integer.MAX_VALUE default. That would make direct-field forms much easier to abuse with
-       * very large indexes such as list[99999999].
-       *
-       * Keep direct-field access aligned with bean-property access by copying DataBinder's current
-       * auto-grow collection limit onto the DirectFieldAccessor when it is created.
-       *
-       * See https://github.com/spring-projects/spring-framework/issues/36861
-       * See https://github.com/spring-projects/spring-framework/pull/36862
-       */
-      DirectFieldBindingResult result =
-          new DirectFieldBindingResult(getTarget(), getObjectName(), isAutoGrowNestedPaths()) {
-            @Override
-            protected ConfigurablePropertyAccessor createDirectFieldAccessor() {
-              ConfigurablePropertyAccessor accessor = super.createDirectFieldAccessor();
-              ((DirectFieldAccessor) accessor)
-                  .setAutoGrowCollectionLimit(getAutoGrowCollectionLimit());
-              return accessor;
-            }
-          };
-
-      if (getConversionService() != null) {
-        result.initConversion(getConversionService());
-      }
-      return result;
     }
   }
 
