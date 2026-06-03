@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +32,9 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.junit.Test;
+import play.data.internal.binding.beans.MutablePropertyValues;
+import play.data.internal.binding.validation.DataBinder;
+import play.data.internal.binding.validation.FieldError;
 import play.data.validation.Constraints;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
@@ -83,6 +87,38 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(error.key()).isEqualTo(key);
     assertThat(error.messages()).containsExactly("error.invalid", "error.invalid.java.util.Date");
     assertThat(error.arguments()).isEmpty();
+  }
+
+  private static DataBinder bindObjectValues(Object target, Map<String, Object> values) {
+    return bindObjectValues(target, values, false);
+  }
+
+  private static DataBinder bindObjectValuesDirect(Object target, Map<String, Object> values) {
+    return bindObjectValues(target, values, true);
+  }
+
+  private static DataBinder bindObjectValues(
+      Object target, Map<String, Object> values, boolean directFieldAccess) {
+    DataBinder binder = new DataBinder(target);
+    if (directFieldAccess) {
+      binder.initDirectFieldAccess();
+    }
+    binder.bind(new MutablePropertyValues(values));
+    return binder;
+  }
+
+  private static void assertTypeMismatch(DataBinder binder, String field, Object rejectedValue) {
+    assertThat(
+            binder.getBindingResult().getFieldErrors().stream()
+                .filter(error -> field.equals(error.getField()))
+                .toList())
+        .hasSize(1);
+    FieldError error = binder.getBindingResult().getFieldError(field);
+    assertThat(error).isNotNull();
+    assertThat(error.getField()).isEqualTo(field);
+    assertThat(error.getCode()).isEqualTo("typeMismatch");
+    assertThat(error.isBindingFailure()).isTrue();
+    assertThat(error.getRejectedValue()).isSameAs(rejectedValue);
   }
 
   @Test
@@ -3655,6 +3691,134 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
+  public void shouldRejectUnsupportedObjectCollectionValues() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = List.of("unsupported-collection");
+    Object unreadable = new ThrowingIteratorCollection<>("unreadable-collection");
+    Object unknownSize = new ThrowingSizeCollection<>("unknown-size-collection");
+    Object throwingConstructor = List.of("throwing-constructor-collection");
+    Object rejecting = List.of("rejecting-collection");
+
+    DataBinder binder =
+        bindObjectValues(
+            target,
+            Map.of(
+                "unsupportedCollection", unsupported,
+                "unreadableCollection", unreadable,
+                "unknownSizeCollection", unknownSize,
+                "throwingConstructorCollection", throwingConstructor,
+                "rejectingCollection", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedCollection", unsupported);
+    assertTypeMismatch(binder, "unreadableCollection", unreadable);
+    assertTypeMismatch(binder, "unknownSizeCollection", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorCollection", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingCollection", rejecting);
+    assertThat(target.getUnsupportedCollection()).isNull();
+    assertThat(target.getUnreadableCollection()).isNull();
+    assertThat(target.getUnknownSizeCollection()).isNull();
+    assertThat(target.getThrowingConstructorCollection()).isNull();
+    assertThat(target.getRejectingCollection()).isNull();
+  }
+
+  @Test
+  public void shouldRejectUnsupportedObjectCollectionValuesWithDirectFieldAccess() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = List.of("unsupported-direct-collection");
+    Object unreadable = new ThrowingIteratorCollection<>("unreadable-direct-collection");
+    Object unknownSize = new ThrowingSizeCollection<>("unknown-size-direct-collection");
+    Object throwingConstructor = List.of("throwing-constructor-direct-collection");
+    Object rejecting = List.of("rejecting-direct-collection");
+
+    DataBinder binder =
+        bindObjectValuesDirect(
+            target,
+            Map.of(
+                "unsupportedCollection", unsupported,
+                "unreadableCollection", unreadable,
+                "unknownSizeCollection", unknownSize,
+                "throwingConstructorCollection", throwingConstructor,
+                "rejectingCollection", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedCollection", unsupported);
+    assertTypeMismatch(binder, "unreadableCollection", unreadable);
+    assertTypeMismatch(binder, "unknownSizeCollection", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorCollection", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingCollection", rejecting);
+    assertThat(target.unsupportedCollection).isNull();
+    assertThat(target.unreadableCollection).isNull();
+    assertThat(target.unknownSizeCollection).isNull();
+    assertThat(target.throwingConstructorCollection).isNull();
+    assertThat(target.rejectingCollection).isNull();
+  }
+
+  @Test
+  public void shouldRejectUnsupportedObjectMapValues() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = Map.of("unsupported-map", "value");
+    Object unreadable = new ThrowingEntrySetMap<>("unreadable-map", "value");
+    Object unknownSize = new ThrowingSizeMap<>("unknown-size-map", "value");
+    Object throwingConstructor = Map.of("throwing-constructor-map", "value");
+    Object rejecting = Map.of("rejecting-map", "value");
+
+    DataBinder binder =
+        bindObjectValues(
+            target,
+            Map.of(
+                "unsupportedMap", unsupported,
+                "unreadableMap", unreadable,
+                "unknownSizeMap", unknownSize,
+                "throwingConstructorMap", throwingConstructor,
+                "rejectingMap", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedMap", unsupported);
+    assertTypeMismatch(binder, "unreadableMap", unreadable);
+    assertTypeMismatch(binder, "unknownSizeMap", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorMap", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingMap", rejecting);
+    assertThat(target.getUnsupportedMap()).isNull();
+    assertThat(target.getUnreadableMap()).isNull();
+    assertThat(target.getUnknownSizeMap()).isNull();
+    assertThat(target.getThrowingConstructorMap()).isNull();
+    assertThat(target.getRejectingMap()).isNull();
+  }
+
+  @Test
+  public void shouldRejectUnsupportedObjectMapValuesWithDirectFieldAccess() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = Map.of("unsupported-direct-map", "value");
+    Object unreadable = new ThrowingEntrySetMap<>("unreadable-direct-map", "value");
+    Object unknownSize = new ThrowingSizeMap<>("unknown-size-direct-map", "value");
+    Object throwingConstructor = Map.of("throwing-constructor-direct-map", "value");
+    Object rejecting = Map.of("rejecting-direct-map", "value");
+
+    DataBinder binder =
+        bindObjectValuesDirect(
+            target,
+            Map.of(
+                "unsupportedMap", unsupported,
+                "unreadableMap", unreadable,
+                "unknownSizeMap", unknownSize,
+                "throwingConstructorMap", throwingConstructor,
+                "rejectingMap", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedMap", unsupported);
+    assertTypeMismatch(binder, "unreadableMap", unreadable);
+    assertTypeMismatch(binder, "unknownSizeMap", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorMap", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingMap", rejecting);
+    assertThat(target.unsupportedMap).isNull();
+    assertThat(target.unreadableMap).isNull();
+    assertThat(target.unknownSizeMap).isNull();
+    assertThat(target.throwingConstructorMap).isNull();
+    assertThat(target.rejectingMap).isNull();
+  }
+
+  @Test
   public void shouldBindIndexedNestedBeanProperties() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
@@ -4060,6 +4224,191 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors("list[256]")).hasSize(1);
     assertThat(form.discardingErrors().get().getUpload()).isSameAs(upload);
+  }
+
+  public static class CollectionFallbackData {
+
+    private NoDefaultConstructorCollection<String> unsupportedCollection;
+    private List<String> unreadableCollection;
+    private List<String> unknownSizeCollection;
+    private ThrowingConstructorCollection<String> throwingConstructorCollection;
+    private RejectingCollection<String> rejectingCollection;
+    private NoDefaultConstructorMap<String, String> unsupportedMap;
+    private Map<String, String> unreadableMap;
+    private Map<String, String> unknownSizeMap;
+    private ThrowingConstructorMap<String, String> throwingConstructorMap;
+    private RejectingMap<String, String> rejectingMap;
+
+    public NoDefaultConstructorCollection<String> getUnsupportedCollection() {
+      return unsupportedCollection;
+    }
+
+    public void setUnsupportedCollection(
+        NoDefaultConstructorCollection<String> unsupportedCollection) {
+      this.unsupportedCollection = unsupportedCollection;
+    }
+
+    public List<String> getUnreadableCollection() {
+      return unreadableCollection;
+    }
+
+    public void setUnreadableCollection(List<String> unreadableCollection) {
+      this.unreadableCollection = unreadableCollection;
+    }
+
+    public List<String> getUnknownSizeCollection() {
+      return unknownSizeCollection;
+    }
+
+    public void setUnknownSizeCollection(List<String> unknownSizeCollection) {
+      this.unknownSizeCollection = unknownSizeCollection;
+    }
+
+    public ThrowingConstructorCollection<String> getThrowingConstructorCollection() {
+      return throwingConstructorCollection;
+    }
+
+    public void setThrowingConstructorCollection(
+        ThrowingConstructorCollection<String> throwingConstructorCollection) {
+      this.throwingConstructorCollection = throwingConstructorCollection;
+    }
+
+    public RejectingCollection<String> getRejectingCollection() {
+      return rejectingCollection;
+    }
+
+    public void setRejectingCollection(RejectingCollection<String> rejectingCollection) {
+      this.rejectingCollection = rejectingCollection;
+    }
+
+    public NoDefaultConstructorMap<String, String> getUnsupportedMap() {
+      return unsupportedMap;
+    }
+
+    public void setUnsupportedMap(NoDefaultConstructorMap<String, String> unsupportedMap) {
+      this.unsupportedMap = unsupportedMap;
+    }
+
+    public Map<String, String> getUnreadableMap() {
+      return unreadableMap;
+    }
+
+    public void setUnreadableMap(Map<String, String> unreadableMap) {
+      this.unreadableMap = unreadableMap;
+    }
+
+    public Map<String, String> getUnknownSizeMap() {
+      return unknownSizeMap;
+    }
+
+    public void setUnknownSizeMap(Map<String, String> unknownSizeMap) {
+      this.unknownSizeMap = unknownSizeMap;
+    }
+
+    public ThrowingConstructorMap<String, String> getThrowingConstructorMap() {
+      return throwingConstructorMap;
+    }
+
+    public void setThrowingConstructorMap(
+        ThrowingConstructorMap<String, String> throwingConstructorMap) {
+      this.throwingConstructorMap = throwingConstructorMap;
+    }
+
+    public RejectingMap<String, String> getRejectingMap() {
+      return rejectingMap;
+    }
+
+    public void setRejectingMap(RejectingMap<String, String> rejectingMap) {
+      this.rejectingMap = rejectingMap;
+    }
+  }
+
+  public static class NoDefaultConstructorCollection<E> extends ArrayList<E> {
+
+    public NoDefaultConstructorCollection(String ignored) {}
+  }
+
+  public static class ThrowingIteratorCollection<E> extends ArrayList<E> {
+
+    public ThrowingIteratorCollection(E value) {
+      add(value);
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+      throw new UnsupportedOperationException("iterator unavailable");
+    }
+  }
+
+  public static class ThrowingSizeCollection<E> extends ArrayList<E> {
+
+    public ThrowingSizeCollection(E value) {
+      add(value);
+    }
+
+    @Override
+    public int size() {
+      throw new UnsupportedOperationException("size unavailable");
+    }
+  }
+
+  public static class ThrowingConstructorCollection<E> extends ArrayList<E> {
+
+    public ThrowingConstructorCollection() {
+      throw new UnsupportedOperationException("constructor unavailable");
+    }
+  }
+
+  public static class RejectingCollection<E> extends ArrayList<E> {
+
+    @Override
+    public boolean add(E value) {
+      throw new UnsupportedOperationException("collection is read-only");
+    }
+  }
+
+  public static class NoDefaultConstructorMap<K, V> extends LinkedHashMap<K, V> {
+
+    public NoDefaultConstructorMap(String ignored) {}
+  }
+
+  public static class ThrowingEntrySetMap<K, V> extends LinkedHashMap<K, V> {
+
+    public ThrowingEntrySetMap(K key, V value) {
+      put(key, value);
+    }
+
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+      throw new UnsupportedOperationException("entrySet unavailable");
+    }
+  }
+
+  public static class ThrowingSizeMap<K, V> extends LinkedHashMap<K, V> {
+
+    public ThrowingSizeMap(K key, V value) {
+      put(key, value);
+    }
+
+    @Override
+    public int size() {
+      throw new UnsupportedOperationException("size unavailable");
+    }
+  }
+
+  public static class ThrowingConstructorMap<K, V> extends LinkedHashMap<K, V> {
+
+    public ThrowingConstructorMap() {
+      throw new UnsupportedOperationException("constructor unavailable");
+    }
+  }
+
+  public static class RejectingMap<K, V> extends LinkedHashMap<K, V> {
+
+    @Override
+    public V put(K key, V value) {
+      throw new UnsupportedOperationException("map is read-only");
+    }
   }
 
   public static class FormData {

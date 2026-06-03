@@ -303,11 +303,8 @@ class TypeConverterDelegate {
 
 		boolean approximable = CollectionFactory.isApproximableCollectionType(requiredType);
 		if (!approximable && !canCreateCopy(requiredType)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Custom Collection type [" + original.getClass().getName() +
-						"] does not allow for creating a copy - injecting original Collection as-is");
-			}
-			return original;
+			throw new IllegalStateException("Custom Collection type [" + requiredType.getName() +
+					"] does not allow for creating a copy");
 		}
 
 		boolean originalAllowed = requiredType.isInstance(original);
@@ -321,11 +318,8 @@ class TypeConverterDelegate {
 			it = original.iterator();
 		}
 		catch (Throwable ex) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Cannot access Collection of type [" + original.getClass().getName() +
-						"] - injecting original Collection as-is: " + ex);
-			}
-			return original;
+			throw new IllegalStateException(
+					"Cannot access Collection of type [" + original.getClass().getName() + "]", ex);
 		}
 
 		Collection<Object> convertedCopy;
@@ -338,11 +332,8 @@ class TypeConverterDelegate {
 			}
 		}
 		catch (Throwable ex) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Cannot create copy of Collection type [" + original.getClass().getName() +
-						"] - injecting original Collection as-is: " + ex);
-			}
-			return original;
+			throw new IllegalStateException(
+					"Cannot create copy of Collection type [" + requiredType.getName() + "]", ex);
 		}
 
 		for (int i = 0; it.hasNext(); i++) {
@@ -354,11 +345,8 @@ class TypeConverterDelegate {
 				convertedCopy.add(convertedElement);
 			}
 			catch (Throwable ex) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Collection type [" + original.getClass().getName() +
-							"] seems to be read-only - injecting original Collection as-is: " + ex);
-				}
-				return original;
+				throw new IllegalStateException(
+						"Collection type [" + requiredType.getName() + "] does not accept converted elements", ex);
 			}
 			originalAllowed = originalAllowed && (element == convertedElement);
 		}
@@ -375,11 +363,8 @@ class TypeConverterDelegate {
 
 		boolean approximable = CollectionFactory.isApproximableMapType(requiredType);
 		if (!approximable && !canCreateCopy(requiredType)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Custom Map type [" + original.getClass().getName() +
-						"] does not allow for creating a copy - injecting original Map as-is");
-			}
-			return original;
+			throw new IllegalStateException("Custom Map type [" + requiredType.getName() +
+					"] does not allow for creating a copy");
 		}
 
 		boolean originalAllowed = requiredType.isInstance(original);
@@ -394,11 +379,8 @@ class TypeConverterDelegate {
 			it = original.entrySet().iterator();
 		}
 		catch (Throwable ex) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Cannot access Map of type [" + original.getClass().getName() +
-						"] - injecting original Map as-is: " + ex);
-			}
-			return original;
+			throw new IllegalStateException(
+					"Cannot access Map of type [" + original.getClass().getName() + "]", ex);
 		}
 
 		Map<Object, Object> convertedCopy;
@@ -411,11 +393,8 @@ class TypeConverterDelegate {
 			}
 		}
 		catch (Throwable ex) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Cannot create copy of Map type [" + original.getClass().getName() +
-						"] - injecting original Map as-is: " + ex);
-			}
-			return original;
+			throw new IllegalStateException(
+					"Cannot create copy of Map type [" + requiredType.getName() + "]", ex);
 		}
 
 		while (it.hasNext()) {
@@ -431,11 +410,8 @@ class TypeConverterDelegate {
 				convertedCopy.put(convertedKey, convertedValue);
 			}
 			catch (Throwable ex) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Map type [" + original.getClass().getName() +
-							"] seems to be read-only - injecting original Map as-is: " + ex);
-				}
-				return original;
+				throw new IllegalStateException(
+						"Map type [" + requiredType.getName() + "] does not accept converted entries", ex);
 			}
 			originalAllowed = originalAllowed && (key == convertedKey) && (value == convertedValue);
 		}
