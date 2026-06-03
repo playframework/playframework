@@ -1357,7 +1357,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", " SECOND ");
     data.put("sampleEnumAlias", "ALIAS");
-    data.put("rawEnum", " " + SampleEnum.class.getName() + ".FIRST ");
     data.put("sampleEnumMap[FIRST]", "THIRD");
 
     Form<FormData> form = bind(formFactory, data);
@@ -1366,7 +1365,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.getSampleEnum()).isEqualTo(SampleEnum.SECOND);
     assertThat(bean.getSampleEnumAlias()).isEqualTo(SampleEnum.SECOND);
-    assertThat(bean.getRawEnum()).isEqualTo(SampleEnum.FIRST);
     assertThat(bean.getSampleEnumMap()).containsEntry(SampleEnum.FIRST, SampleEnum.THIRD);
   }
 
@@ -1376,7 +1374,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", " SECOND ");
     data.put("sampleEnumAlias", "ALIAS");
-    data.put("rawEnum", " " + SampleEnum.class.getName() + ".FIRST ");
     data.put("sampleEnumMap[FIRST]", "THIRD");
 
     Form<FormData> form = bindDirect(formFactory, data);
@@ -1385,7 +1382,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.sampleEnum).isEqualTo(SampleEnum.SECOND);
     assertThat(bean.sampleEnumAlias).isEqualTo(SampleEnum.SECOND);
-    assertThat(bean.rawEnum).isEqualTo(SampleEnum.FIRST);
     assertThat(bean.sampleEnumMap).containsEntry(SampleEnum.FIRST, SampleEnum.THIRD);
   }
 
@@ -1395,12 +1391,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnumArray", "FIRST,SECOND");
     data.put("sampleEnumList", "SECOND,THIRD");
-    data.put(
-        "rawEnumArray",
-        SampleEnum.class.getName() + ".FIRST," + SampleEnum.class.getName() + ".SECOND");
-    data.put(
-        "rawEnumList",
-        SampleEnum.class.getName() + ".SECOND," + SampleEnum.class.getName() + ".THIRD");
 
     Form<FormData> form = bind(formFactory, data);
 
@@ -1408,8 +1398,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.getSampleEnumArray()).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
     assertThat(bean.getSampleEnumList()).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
-    assertThat(bean.getRawEnumArray()).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
-    assertThat(bean.getRawEnumList()).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
   }
 
   @Test
@@ -1418,12 +1406,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnumArray", "FIRST,SECOND");
     data.put("sampleEnumList", "SECOND,THIRD");
-    data.put(
-        "rawEnumArray",
-        SampleEnum.class.getName() + ".FIRST," + SampleEnum.class.getName() + ".SECOND");
-    data.put(
-        "rawEnumList",
-        SampleEnum.class.getName() + ".SECOND," + SampleEnum.class.getName() + ".THIRD");
 
     Form<FormData> form = bindDirect(formFactory, data);
 
@@ -1431,8 +1413,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.sampleEnumArray).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
     assertThat(bean.sampleEnumList).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
-    assertThat(bean.rawEnumArray).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
-    assertThat(bean.rawEnumList).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
   }
 
   @Test
@@ -1440,17 +1420,14 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "");
-    data.put("rawEnum", "");
     data.put("sampleEnumArray[0]", "");
     data.put("sampleEnumList[0]", "");
 
     Form<FormData> form = bind(formFactory, data);
 
-    assertThat(form.hasErrors()).isTrue();
-    assertInvalidError(form, "rawEnum");
+    assertThat(form.errors()).isEmpty();
     FormData bean = form.discardingErrors().get();
     assertThat(bean.getSampleEnum()).isNull();
-    assertThat(bean.getRawEnum()).isNull();
     assertThat(bean.getSampleEnumArray()).containsNull();
     assertThat(bean.getSampleEnumList()).containsNull();
   }
@@ -1460,17 +1437,14 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "");
-    data.put("rawEnum", "");
     data.put("sampleEnumArray[0]", "");
     data.put("sampleEnumList[0]", "");
 
     Form<FormData> form = bindDirect(formFactory, data);
 
-    assertThat(form.hasErrors()).isTrue();
-    assertInvalidError(form, "rawEnum");
+    assertThat(form.errors()).isEmpty();
     FormData bean = form.discardingErrors().get();
     assertThat(bean.sampleEnum).isNull();
-    assertThat(bean.rawEnum).isNull();
     assertThat(bean.sampleEnumArray).containsNull();
     assertThat(bean.sampleEnumList).containsNull();
   }
@@ -1480,9 +1454,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "NO_SUCH_ENUM");
-    data.put("rawEnum", SampleEnum.class.getName() + ".NO_SUCH_ENUM");
-    data.put("rawEnumWithoutType", "FIRST");
-    data.put("rawEnumWithUnknownType", "no.such.EnumType.FIRST");
     data.put("sampleEnumArray[0]", "NO_SUCH_ENUM");
     data.put("sampleEnumList[0]", "NO_SUCH_ENUM");
 
@@ -1490,9 +1461,6 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "sampleEnum");
-    assertInvalidError(form, "rawEnum");
-    assertInvalidError(form, "rawEnumWithoutType");
-    assertInvalidError(form, "rawEnumWithUnknownType");
     assertInvalidError(form, "sampleEnumArray[0]");
     assertInvalidError(form, "sampleEnumList[0]");
   }
@@ -1502,9 +1470,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "NO_SUCH_ENUM");
-    data.put("rawEnum", SampleEnum.class.getName() + ".NO_SUCH_ENUM");
-    data.put("rawEnumWithoutType", "FIRST");
-    data.put("rawEnumWithUnknownType", "no.such.EnumType.FIRST");
     data.put("sampleEnumArray[0]", "NO_SUCH_ENUM");
     data.put("sampleEnumList[0]", "NO_SUCH_ENUM");
 
@@ -1512,9 +1477,6 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "sampleEnum");
-    assertInvalidError(form, "rawEnum");
-    assertInvalidError(form, "rawEnumWithoutType");
-    assertInvalidError(form, "rawEnumWithUnknownType");
     assertInvalidError(form, "sampleEnumArray[0]");
     assertInvalidError(form, "sampleEnumList[0]");
   }
@@ -4160,15 +4122,10 @@ public class DefaultFormBindingTest extends WithApplication {
     private StaticValue staticValueWithWrongFieldType;
     private SampleEnum sampleEnum;
     private SampleEnum sampleEnumAlias;
-    private Enum<?> rawEnum;
-    private Enum<?> rawEnumWithoutType;
-    private Enum<?> rawEnumWithUnknownType;
     private String stringValue;
     private SampleEnum[] sampleEnumArray;
     private List<SampleEnum> sampleEnumList;
     private Map<SampleEnum, SampleEnum> sampleEnumMap;
-    private Enum<?>[] rawEnumArray;
-    private List<Enum<?>> rawEnumList;
     private String[] stringArray;
     private Character[] characterArray;
     private Boolean[] booleanArray;
@@ -4682,30 +4639,6 @@ public class DefaultFormBindingTest extends WithApplication {
       this.sampleEnumAlias = sampleEnumAlias;
     }
 
-    public Enum<?> getRawEnum() {
-      return rawEnum;
-    }
-
-    public void setRawEnum(Enum<?> rawEnum) {
-      this.rawEnum = rawEnum;
-    }
-
-    public Enum<?> getRawEnumWithoutType() {
-      return rawEnumWithoutType;
-    }
-
-    public void setRawEnumWithoutType(Enum<?> rawEnumWithoutType) {
-      this.rawEnumWithoutType = rawEnumWithoutType;
-    }
-
-    public Enum<?> getRawEnumWithUnknownType() {
-      return rawEnumWithUnknownType;
-    }
-
-    public void setRawEnumWithUnknownType(Enum<?> rawEnumWithUnknownType) {
-      this.rawEnumWithUnknownType = rawEnumWithUnknownType;
-    }
-
     public String getStringValue() {
       return stringValue;
     }
@@ -4736,22 +4669,6 @@ public class DefaultFormBindingTest extends WithApplication {
 
     public void setSampleEnumMap(Map<SampleEnum, SampleEnum> sampleEnumMap) {
       this.sampleEnumMap = sampleEnumMap;
-    }
-
-    public Enum<?>[] getRawEnumArray() {
-      return rawEnumArray;
-    }
-
-    public void setRawEnumArray(Enum<?>[] rawEnumArray) {
-      this.rawEnumArray = rawEnumArray;
-    }
-
-    public List<Enum<?>> getRawEnumList() {
-      return rawEnumList;
-    }
-
-    public void setRawEnumList(List<Enum<?>> rawEnumList) {
-      this.rawEnumList = rawEnumList;
     }
 
     public String[] getStringArray() {

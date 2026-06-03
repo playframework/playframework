@@ -68,17 +68,8 @@ import java.util.regex.Pattern;
  */
 public abstract class ClassUtils {
 
-	/** Suffix for array class names: {@code "[]"}. */
-	public static final String ARRAY_SUFFIX = "[]";
-
 	/** A reusable empty class array constant. */
 	private static final Class<?>[] EMPTY_CLASS_ARRAY = {};
-
-	/** The package separator character: {@code '.'}. */
-	private static final char PACKAGE_SEPARATOR = '.';
-
-	/** The nested class separator character: {@code '$'}. */
-	private static final char NESTED_CLASS_SEPARATOR = '$';
 
 	/** The CGLIB class separator: {@code "$$"}. */
 	public static final String CGLIB_CLASS_SEPARATOR = "$$";
@@ -168,101 +159,6 @@ public abstract class ClassUtils {
 	}
 
 	/**
-	 * Return the default ClassLoader to use: typically the thread context
-	 * ClassLoader, if available; the ClassLoader that loaded the ClassUtils
-	 * class will be used as fallback.
-	 * <p>Call this method if you intend to use the thread context ClassLoader
-	 * in a scenario where you clearly prefer a non-null ClassLoader reference:
-	 * for example, for class path resource loading (but not necessarily for
-	 * {@code Class.forName}, which accepts a {@code null} ClassLoader
-	 * reference as well).
-	 * @return the default ClassLoader (only {@code null} if even the system
-	 * ClassLoader isn't accessible)
-	 * @see Thread#getContextClassLoader()
-	 * @see ClassLoader#getSystemClassLoader()
-	 */
-	public static ClassLoader getDefaultClassLoader() {
-		ClassLoader cl = null;
-		try {
-			cl = Thread.currentThread().getContextClassLoader();
-		}
-		catch (Throwable ex) {
-			// Cannot access thread context ClassLoader - falling back...
-		}
-		if (cl == null) {
-			// No thread context class loader -> use class loader of this class.
-			cl = ClassUtils.class.getClassLoader();
-			if (cl == null) {
-				// getClassLoader() returning null indicates the bootstrap ClassLoader
-				try {
-					cl = ClassLoader.getSystemClassLoader();
-				}
-				catch (Throwable ex) {
-					// Cannot access system ClassLoader - oh well, maybe the caller can live with null...
-				}
-			}
-		}
-		return cl;
-	}
-
-	/**
-	 * Replacement for {@code Class.forName()} that also returns Class instances
-	 * for primitives (for example, "int") and array class names (for example, "String[]").
-	 * Furthermore, it is also capable of resolving nested class names in Java source
-	 * style (for example, "java.lang.Thread.State" instead of "java.lang.Thread$State").
-	 * @param name the name of the Class
-	 * @param classLoader the class loader to use
-	 * (can be {@code null}, which indicates the default class loader)
-	 * @return a class instance for the supplied name
-	 * @throws ClassNotFoundException if the class was not found
-	 * @throws LinkageError if the class file could not be loaded
-	 * @see Class#forName(String, boolean, ClassLoader)
-	 */
-	public static Class<?> forName(String name, ClassLoader classLoader)
-			throws ClassNotFoundException, LinkageError {
-
-		Assert.notNull(name, "Name must not be null");
-
-		Class<?> clazz = resolvePrimitiveClassName(name);
-		if (clazz == null) {
-			clazz = commonClassCache.get(name);
-		}
-		if (clazz != null) {
-			return clazz;
-		}
-
-		// "java.lang.String[]" style arrays
-		if (name.endsWith(ARRAY_SUFFIX)) {
-			String elementClassName = name.substring(0, name.length() - ARRAY_SUFFIX.length());
-			Class<?> elementClass = forName(elementClassName, classLoader);
-			return elementClass.arrayType();
-		}
-
-		ClassLoader clToUse = classLoader;
-		if (clToUse == null) {
-			clToUse = getDefaultClassLoader();
-		}
-		try {
-			return Class.forName(name, false, clToUse);
-		}
-		catch (ClassNotFoundException ex) {
-			int lastDotIndex = name.lastIndexOf(PACKAGE_SEPARATOR);
-			int previousDotIndex = name.lastIndexOf(PACKAGE_SEPARATOR, lastDotIndex - 1);
-			if (lastDotIndex != -1 && previousDotIndex != -1 && Character.isUpperCase(name.charAt(previousDotIndex + 1))) {
-				String nestedClassName =
-						name.substring(0, lastDotIndex) + NESTED_CLASS_SEPARATOR + name.substring(lastDotIndex + 1);
-				try {
-					return Class.forName(nestedClassName, false, clToUse);
-				}
-				catch (ClassNotFoundException ex2) {
-					// Swallow - let original exception get through
-				}
-			}
-			throw ex;
-		}
-	}
-
-	/**
 	 * Check whether the given class is cache-safe in the given context,
 	 * i.e. whether it is loaded by the given ClassLoader or a parent of it.
 	 * @param clazz the class to analyze
@@ -301,27 +197,6 @@ public abstract class ClassUtils {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Resolve the given class name as primitive class, if appropriate,
-	 * according to the JVM's naming rules for primitive classes.
-	 * <p>Also supports the JVM's internal class names for primitive arrays.
-	 * Does <i>not</i> support the "[]" suffix notation for primitive arrays;
-	 * this is only supported by {@link #forName(String, ClassLoader)}.
-	 * @param name the name of the potentially primitive class
-	 * @return the primitive class, or {@code null} if the name does not denote
-	 * a primitive class or primitive array class
-	 */
-	public static Class<?> resolvePrimitiveClassName(String name) {
-		Class<?> result = null;
-		// Most class names will be quite long, considering that they
-		// SHOULD sit in a package, so a length check is worthwhile.
-		if (name != null && name.length() <= 7) {
-			// Could be a primitive - likely.
-			result = primitiveTypeNameMap.get(name);
-		}
-		return result;
 	}
 
 	/**
