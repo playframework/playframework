@@ -37,7 +37,6 @@ import play.data.internal.binding.core.convert.ConversionService;
 import play.data.internal.binding.core.convert.TypeDescriptor;
 import play.data.internal.binding.util.ClassUtils;
 import play.data.internal.binding.util.CollectionUtils;
-import play.data.internal.binding.util.NumberUtils;
 import play.data.internal.binding.util.ReflectionUtils;
 import play.data.internal.binding.util.StringUtils;
 
@@ -187,10 +186,6 @@ class TypeConverterDelegate {
 						return null;
 					}
 					convertedValue = attemptToConvertStringToEnum(requiredType, trimmedValue, convertedValue);
-					standardConversion = true;
-				}
-				else if (convertedValue instanceof Number num && Number.class.isAssignableFrom(requiredType)) {
-					convertedValue = NumberUtils.convertNumberToTargetClass(num, (Class<Number>) requiredType);
 					standardConversion = true;
 				}
 			}

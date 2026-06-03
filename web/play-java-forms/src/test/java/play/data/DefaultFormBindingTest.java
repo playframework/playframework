@@ -3819,6 +3819,54 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
+  public void shouldRejectObjectNumberToNumberConversion() {
+    NumberFallbackData target = new NumberFallbackData();
+    Object integerValue = Integer.valueOf(12);
+    Object longValue = Long.valueOf(13L);
+    Object doubleValue = Double.valueOf(14.5d);
+
+    DataBinder binder =
+        bindObjectValues(
+            target,
+            Map.of(
+                "longValue", integerValue,
+                "integerValue", longValue,
+                "bigDecimal", doubleValue));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(3);
+    assertTypeMismatch(binder, "longValue", integerValue);
+    assertTypeMismatch(binder, "integerValue", longValue);
+    assertTypeMismatch(binder, "bigDecimal", doubleValue);
+    assertThat(target.getLongValue()).isNull();
+    assertThat(target.getIntegerValue()).isNull();
+    assertThat(target.getBigDecimal()).isNull();
+  }
+
+  @Test
+  public void shouldRejectObjectNumberToNumberConversionWithDirectFieldAccess() {
+    NumberFallbackData target = new NumberFallbackData();
+    Object integerValue = Integer.valueOf(15);
+    Object longValue = Long.valueOf(16L);
+    Object doubleValue = Double.valueOf(17.5d);
+
+    DataBinder binder =
+        bindObjectValuesDirect(
+            target,
+            Map.of(
+                "longValue", integerValue,
+                "integerValue", longValue,
+                "bigDecimal", doubleValue));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(3);
+    assertTypeMismatch(binder, "longValue", integerValue);
+    assertTypeMismatch(binder, "integerValue", longValue);
+    assertTypeMismatch(binder, "bigDecimal", doubleValue);
+    assertThat(target.longValue).isNull();
+    assertThat(target.integerValue).isNull();
+    assertThat(target.bigDecimal).isNull();
+  }
+
+  @Test
   public void shouldBindIndexedNestedBeanProperties() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
@@ -4408,6 +4456,37 @@ public class DefaultFormBindingTest extends WithApplication {
     @Override
     public V put(K key, V value) {
       throw new UnsupportedOperationException("map is read-only");
+    }
+  }
+
+  public static class NumberFallbackData {
+
+    private Long longValue;
+    private Integer integerValue;
+    private BigDecimal bigDecimal;
+
+    public Long getLongValue() {
+      return longValue;
+    }
+
+    public void setLongValue(Long longValue) {
+      this.longValue = longValue;
+    }
+
+    public Integer getIntegerValue() {
+      return integerValue;
+    }
+
+    public void setIntegerValue(Integer integerValue) {
+      this.integerValue = integerValue;
+    }
+
+    public BigDecimal getBigDecimal() {
+      return bigDecimal;
+    }
+
+    public void setBigDecimal(BigDecimal bigDecimal) {
+      this.bigDecimal = bigDecimal;
     }
   }
 
