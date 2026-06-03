@@ -106,16 +106,13 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uriMailto", "mailto:forms@example.test");
     data.put("uriCustomScheme", "widget:/catalog/items/42");
     data.put("uriRelative", "docs/releases/notes.txt");
-    // TODO: Decide whether Play should intentionally preserve classpath: URI values.
-    // data.put("uriClasspath", "classpath:play/forms/sample.txt");
+    data.put("uriClasspath", "classpath:play/forms/sample.txt");
     data.put("uriWithFragment", "https://example.net/docs#chapter-7");
     data.put("uriWithEncodedFragment", "https://example.net/docs path#chapter 7");
     data.put("uriWithNonAscii", "https://example.com/café and £");
     data.put("uriAlreadyEncoded", "https://example.com/a%20path%20and%20%C2%A3");
     data.put("url", "https://example.com/index.html");
     data.put("urlMailto", "mailto:forms@example.test");
-    // TODO: Decide whether Play should intentionally preserve Spring's classpath: URL resolution.
-    // data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("uuid", "5801519c-a3e7-4cb2-b9eb-872c68586042");
     data.put("zoneId", "Europe/Vienna");
     data.put("zoneIdOffset", "+02:00");
@@ -151,7 +148,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getUriMailto()).isEqualTo(URI.create("mailto:forms@example.test"));
     assertThat(bean.getUriCustomScheme()).isEqualTo(URI.create("widget:/catalog/items/42"));
     assertThat(bean.getUriRelative()).isEqualTo(URI.create("docs/releases/notes.txt"));
-    // assertThat(bean.getUriClasspath()).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
+    assertThat(bean.getUriClasspath()).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
     assertThat(bean.getUriWithFragment())
         .isEqualTo(URI.create("https://example.net/docs#chapter-7"));
     assertThat(bean.getUriWithEncodedFragment())
@@ -162,8 +159,6 @@ public class DefaultFormBindingTest extends WithApplication {
         .isEqualTo("https://example.com/a%2520path%2520and%2520%25C2%25A3");
     assertThat(bean.getUrl().toExternalForm()).isEqualTo("https://example.com/index.html");
     assertThat(bean.getUrlMailto().toExternalForm()).isEqualTo("mailto:forms@example.test");
-    // assertThat(bean.getUrlClasspath().getProtocol()).doesNotStartWith("classpath");
-    // assertThat(bean.getUrlClasspath().toExternalForm()).contains("DefaultFormBindingTest.class");
     assertThat(bean.getUuid()).isEqualTo(UUID.fromString("5801519c-a3e7-4cb2-b9eb-872c68586042"));
     assertThat(bean.getZoneId()).isEqualTo(ZoneId.of("Europe/Vienna"));
     assertThat(bean.getZoneIdOffset()).isEqualTo(ZoneId.of("+02:00"));
@@ -200,16 +195,13 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uriMailto", "mailto:forms@example.test");
     data.put("uriCustomScheme", "widget:/catalog/items/42");
     data.put("uriRelative", "docs/releases/notes.txt");
-    // TODO: Decide whether Play should intentionally preserve classpath: URI values.
-    // data.put("uriClasspath", "classpath:play/forms/sample.txt");
+    data.put("uriClasspath", "classpath:play/forms/sample.txt");
     data.put("uriWithFragment", "https://example.net/docs#chapter-7");
     data.put("uriWithEncodedFragment", "https://example.net/docs path#chapter 7");
     data.put("uriWithNonAscii", "https://example.com/café and £");
     data.put("uriAlreadyEncoded", "https://example.com/a%20path%20and%20%C2%A3");
     data.put("url", "https://example.com/index.html");
     data.put("urlMailto", "mailto:forms@example.test");
-    // TODO: Decide whether Play should intentionally preserve Spring's classpath: URL resolution.
-    // data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("uuid", "5801519c-a3e7-4cb2-b9eb-872c68586042");
     data.put("zoneId", "Europe/Vienna");
     data.put("zoneIdOffset", "+02:00");
@@ -244,7 +236,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.uriMailto).isEqualTo(URI.create("mailto:forms@example.test"));
     assertThat(bean.uriCustomScheme).isEqualTo(URI.create("widget:/catalog/items/42"));
     assertThat(bean.uriRelative).isEqualTo(URI.create("docs/releases/notes.txt"));
-    // assertThat(bean.uriClasspath).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
+    assertThat(bean.uriClasspath).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
     assertThat(bean.uriWithFragment).isEqualTo(URI.create("https://example.net/docs#chapter-7"));
     assertThat(bean.uriWithEncodedFragment)
         .isEqualTo(URI.create("https://example.net/docs%20path#chapter%207"));
@@ -254,8 +246,6 @@ public class DefaultFormBindingTest extends WithApplication {
         .isEqualTo("https://example.com/a%2520path%2520and%2520%25C2%25A3");
     assertThat(bean.url.toExternalForm()).isEqualTo("https://example.com/index.html");
     assertThat(bean.urlMailto.toExternalForm()).isEqualTo("mailto:forms@example.test");
-    // assertThat(bean.urlClasspath.getProtocol()).doesNotStartWith("classpath");
-    // assertThat(bean.urlClasspath.toExternalForm()).contains("DefaultFormBindingTest.class");
     assertThat(bean.uuid).isEqualTo(UUID.fromString("5801519c-a3e7-4cb2-b9eb-872c68586042"));
     assertThat(bean.zoneId).isEqualTo(ZoneId.of("Europe/Vienna"));
     assertThat(bean.zoneIdOffset).isEqualTo(ZoneId.of("+02:00"));
@@ -1749,6 +1739,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uri", "http://[invalid");
     data.put("uriRelative", "docs/releases with spaces.txt");
     data.put("url", "http://[invalid");
+    data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("urlUnknownProtocol", "unknown-protocol:/missing/resource");
     data.put("uuid", "not-a-uuid");
     data.put("zoneId", "No/SuchZone");
@@ -1768,6 +1759,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertInvalidError(form, "uri");
     assertInvalidError(form, "uriRelative");
     assertInvalidError(form, "url");
+    assertInvalidError(form, "urlClasspath");
     assertInvalidError(form, "urlUnknownProtocol");
     assertInvalidError(form, "uuid");
     assertInvalidError(form, "zoneId");
@@ -1789,6 +1781,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uri", "http://[invalid");
     data.put("uriRelative", "docs/releases with spaces.txt");
     data.put("url", "http://[invalid");
+    data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("urlUnknownProtocol", "unknown-protocol:/missing/resource");
     data.put("uuid", "not-a-uuid");
     data.put("zoneId", "No/SuchZone");
@@ -1808,6 +1801,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertInvalidError(form, "uri");
     assertInvalidError(form, "uriRelative");
     assertInvalidError(form, "url");
+    assertInvalidError(form, "urlClasspath");
     assertInvalidError(form, "urlUnknownProtocol");
     assertInvalidError(form, "uuid");
     assertInvalidError(form, "zoneId");
@@ -2955,6 +2949,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerList", "71");
     data.put("stringSet", "green");
     data.put("sortedStringSet", "blue");
+    data.put("rawCollection", "raw-teal");
     data.put("uuidCollection", "73eef03b-86e0-456f-b0eb-78a5541aaee2");
     data.put("uuidList", "18b396f2-066f-4c26-9629-2c5d963040ef");
     data.put("uuidSet", "a92afee8-60d0-4e74-82ab-9ea43c849160");
@@ -2968,6 +2963,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getIntegerList()).containsExactly(71);
     assertThat(bean.getStringSet()).containsExactly("green");
     assertThat(bean.getSortedStringSet()).containsExactly("blue");
+    assertThat(bean.getRawCollection()).containsExactly("raw-teal");
     assertThat(bean.getUuidCollection())
         .containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
     assertThat(bean.getUuidList())
@@ -2986,6 +2982,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerList", "71");
     data.put("stringSet", "green");
     data.put("sortedStringSet", "blue");
+    data.put("rawCollection", "raw-cyan");
     data.put("uuidCollection", "73eef03b-86e0-456f-b0eb-78a5541aaee2");
     data.put("uuidList", "18b396f2-066f-4c26-9629-2c5d963040ef");
     data.put("uuidSet", "a92afee8-60d0-4e74-82ab-9ea43c849160");
@@ -2999,6 +2996,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.integerList).containsExactly(71);
     assertThat(bean.stringSet).containsExactly("green");
     assertThat(bean.sortedStringSet).containsExactly("blue");
+    assertThat(bean.rawCollection).containsExactly("raw-cyan");
     assertThat(bean.uuidCollection)
         .containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
     assertThat(bean.uuidList)

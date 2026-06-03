@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -126,7 +127,15 @@ class TypeConverterDelegate {
 						if (Class.class == elementType || Enum.class.isAssignableFrom(elementType)) {
 							convertedValue = StringUtils.commaDelimitedListToStringArray(text);
 						}
+						else {
+							// The removed CustomCollectionEditor used to wrap a single submitted string as a one-element collection.
+							convertedValue = Collections.singletonList(text);
+						}
 					}
+				}
+				else if (convertedValue instanceof String text) {
+					// The removed CustomCollectionEditor used to wrap a single submitted string as a one-element collection.
+					convertedValue = Collections.singletonList(text);
 				}
 			}
 
