@@ -219,7 +219,15 @@ lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "core/play-java")
 
 lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "web/play-java-forms")
   .settings(
-    libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps
+    libraryDependencies ++= javaDeps ++ javaFormsDeps ++ javaTestDeps,
+    // Keep source imported from Spring unformatted, so it is easier to diff against the Spring repository.
+    Compile / javafmt / excludeFilter := {
+      val springDir = (Compile / javaSource).value / "play" / "data" / "internal" / "binding"
+      new FileFilter {
+        override def accept(file: File): Boolean =
+          file.toPath.startsWith(springDir.toPath)
+      }
+    },
   )
   .dependsOn(
     PlayJavaProject % "compile;test->test"
