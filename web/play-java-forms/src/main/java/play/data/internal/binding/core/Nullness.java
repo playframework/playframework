@@ -51,7 +51,7 @@ import org.jspecify.annotations.Nullable;
  * types.
  *
  * <p>JSR-305 annotations as well as Spring null safety annotations in the
- * {@code org.springframework.lang} package such as {@code @NonNullApi},
+ * {@code play.data.internal.binding.lang} package such as {@code @NonNullApi},
  * {@code @NonNullFields}, and {@code @NonNull} are not supported by this API.
  * However, {@code @Nullable} is supported via the package-less check. Migrating
  * to JSpecify is recommended.

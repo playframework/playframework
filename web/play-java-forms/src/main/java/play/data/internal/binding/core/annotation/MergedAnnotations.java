@@ -138,7 +138,7 @@ import play.data.internal.binding.util.Assert;
  * {@linkplain TypeNotPresentException that is not present in the classpath}, that
  * annotation will not be accessible via the {@code MergedAnnotations} API.
  * To assist with diagnosing such scenarios, you can set the log level for
- * {@code "org.springframework.core.annotation.MergedAnnotation"} to {@code DEBUG},
+ * {@code "play.data.internal.binding.core.annotation.MergedAnnotation"} to {@code DEBUG},
  * {@code INFO}, or {@code WARN}.
 
  * @author Phillip Webb

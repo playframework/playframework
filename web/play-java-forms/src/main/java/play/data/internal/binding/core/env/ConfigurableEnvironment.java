@@ -58,10 +58,10 @@ import java.util.Map;
  * When an {@link Environment} is being used by an {@code ApplicationContext}, it is
  * important that any such {@code PropertySource} manipulations be performed
  * <em>before</em> the context's {@link
- * org.springframework.context.support.AbstractApplicationContext#refresh() refresh()}
+ * play.data.internal.binding.context.support.AbstractApplicationContext#refresh() refresh()}
  * method is called. This ensures that all property sources are available during the
  * container bootstrap process, including use by {@linkplain
- * org.springframework.context.support.PropertySourcesPlaceholderConfigurer property
+ * play.data.internal.binding.context.support.PropertySourcesPlaceholderConfigurer property
  * placeholder configurers}.
  *
  * @author Chris Beams

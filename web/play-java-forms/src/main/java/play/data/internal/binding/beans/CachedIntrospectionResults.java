@@ -62,9 +62,9 @@ import play.data.internal.binding.util.StringUtils;
  * through an efficient method reflection pass. For full JavaBeans introspection
  * including indexed properties and all JDK-supported customizers, configure a
  * {@code META-INF/spring.factories} file with the following content:
- * {@code org.springframework.beans.BeanInfoFactory=org.springframework.beans.StandardBeanInfoFactory}
+ * {@code play.data.internal.binding.beans.BeanInfoFactory=play.data.internal.binding.beans.StandardBeanInfoFactory}
  * For Spring 5.3 compatible extended introspection including non-void setter methods:
- * {@code org.springframework.beans.BeanInfoFactory=org.springframework.beans.ExtendedBeanInfoFactory}
+ * {@code play.data.internal.binding.beans.BeanInfoFactory=play.data.internal.binding.beans.ExtendedBeanInfoFactory}
  *
  * @author Rod Johnson
  * @author Juergen Hoeller

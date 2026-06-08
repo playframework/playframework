@@ -102,7 +102,7 @@ import play.data.internal.binding.validation.annotation.ValidationAnnotationUtil
  * such error codes into proper user-visible error messages; this can be achieved through
  * resolving each error via a {@link play.data.internal.binding.context.MessageSource}, which is
  * able to resolve an {@link ObjectError}/{@link FieldError} through its
- * {@link play.data.internal.binding.context.MessageSource#getMessage(org.springframework.context.MessageSourceResolvable, java.util.Locale)}
+ * {@link play.data.internal.binding.context.MessageSource#getMessage(play.data.internal.binding.context.MessageSourceResolvable, java.util.Locale)}
  * method. The list of message codes can be customized through the {@link MessageCodesResolver}
  * strategy: see the {@link #setMessageCodesResolver} method. {@link DefaultMessageCodesResolver}'s
  * javadoc states details on the default resolution rules.
@@ -1205,7 +1205,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * copy will be created for this purpose. Pass in a copy of the PropertyValues
 	 * if you want your original instance to stay unmodified in any case.
 	 * @param pvs property values to bind
-	 * @see #doBind(org.springframework.beans.MutablePropertyValues)
+	 * @see #doBind(play.data.internal.binding.beans.MutablePropertyValues)
 	 */
 	public void bind(PropertyValues pvs) {
 		if (shouldNotBindPropertyValues()) {

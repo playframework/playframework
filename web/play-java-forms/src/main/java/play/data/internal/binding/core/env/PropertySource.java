@@ -45,7 +45,7 @@ import play.data.internal.binding.util.ObjectUtils;
  * as well as the {@link #named(String)} and {@link #toString()} methods for details.
  *
  * <p>Note that when working with @{@link
- * org.springframework.context.annotation.Configuration Configuration} classes that
+ * play.data.internal.binding.context.annotation.Configuration Configuration} classes that
  * the @{@link play.data.internal.binding.context.annotation.PropertySource PropertySource}
  * annotation provides a convenient and declarative way of adding property sources to the
  * enclosing {@code Environment}.

@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * code generation.
  *
  * <p>Inspired by {@code org.jetbrains.annotations.Contract}, this variant has
- * been introduced in the {@code org.springframework.lang} package to avoid
+ * been introduced in the {@code play.data.internal.binding.lang} package to avoid
  * requiring an extra dependency, while still following the same semantics.
  *
  * <p>Method contract has the following syntax:

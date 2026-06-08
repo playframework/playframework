@@ -36,11 +36,11 @@ public interface AnnotationFilter {
 
 	/**
 	 * {@link AnnotationFilter} that matches annotations in the
-	 * {@code java.lang} and {@code org.springframework.lang} packages
+	 * {@code java.lang} and {@code play.data.internal.binding.lang} packages
 	 * and their subpackages.
 	 * <p>This is the default filter in the {@link MergedAnnotations} model.
 	 */
-	AnnotationFilter PLAIN = packages("java.lang", "org.springframework.lang");
+	AnnotationFilter PLAIN = packages("java.lang", "play.data.internal.binding.lang");
 
 	/**
 	 * {@link AnnotationFilter} that matches annotations in the
