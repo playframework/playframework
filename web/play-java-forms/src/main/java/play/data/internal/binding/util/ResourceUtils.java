@@ -28,7 +28,7 @@ import java.util.Locale;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
+import play.data.internal.binding.lang.Contract;
 
 /**
  * Utility methods for resolving resource locations to files in the

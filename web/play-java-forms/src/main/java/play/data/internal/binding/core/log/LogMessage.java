@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * A simple log message type for use with Commons Logging, allowing for convenient

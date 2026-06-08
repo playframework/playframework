@@ -16,8 +16,8 @@
 
 package org.springframework.core.convert.support;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.converter.ConverterRegistry;
 
 /**
  * Configuration interface to be implemented by most if not all {@link ConversionService}

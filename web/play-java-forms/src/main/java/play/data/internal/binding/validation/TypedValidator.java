@@ -19,7 +19,7 @@ package org.springframework.validation;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Validator instance returned by {@link Validator#forInstanceOf(Class, BiConsumer)}

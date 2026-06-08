@@ -20,9 +20,9 @@ import java.io.Serializable;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.context.MessageSourceResolvable;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.context.MessageSourceResolvable;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Spring's default implementation of the {@link MessageSourceResolvable} interface.

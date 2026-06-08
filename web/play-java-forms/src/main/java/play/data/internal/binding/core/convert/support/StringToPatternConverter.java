@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Converts from a String to a {@link java.util.regex.Pattern}.

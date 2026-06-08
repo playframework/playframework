@@ -24,11 +24,11 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.beans.BeanUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * A simple implementation of the {@link Errors} interface, managing global

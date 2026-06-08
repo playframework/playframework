@@ -18,8 +18,8 @@ package org.springframework.validation;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.util.Assert;
+import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Encapsulates an object error, that is, a global reason for rejecting

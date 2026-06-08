@@ -18,7 +18,7 @@ package org.springframework.format;
 
 import java.lang.annotation.Annotation;
 
-import org.springframework.core.convert.converter.ConverterRegistry;
+import play.data.internal.binding.core.convert.converter.ConverterRegistry;
 
 /**
  * A registry of field formatting logic.

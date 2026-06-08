@@ -31,9 +31,9 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.annotation.AnnotationTypeMapping.MirrorSets.MirrorSet;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.annotation.AnnotationTypeMapping.MirrorSets.MirrorSet;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Provides mapping information for a single annotation (or meta-annotation) in

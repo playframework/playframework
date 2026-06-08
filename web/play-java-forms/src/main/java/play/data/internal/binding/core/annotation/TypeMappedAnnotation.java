@@ -31,8 +31,8 @@ import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
 
 /**
  * {@link MergedAnnotation} that adapts attributes from a root annotation by

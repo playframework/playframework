@@ -21,9 +21,9 @@ import java.io.IOException;
 
 import org.xml.sax.InputSource;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceEditor;
-import org.springframework.util.Assert;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.core.io.ResourceEditor;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Editor for {@code org.xml.sax.InputSource}, converting from a

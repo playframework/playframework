@@ -38,10 +38,10 @@ import java.util.TreeSet;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.LinkedMultiValueMap;
+import play.data.internal.binding.util.MultiValueMap;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * Factory for collections that is aware of common Java and Spring collection types.

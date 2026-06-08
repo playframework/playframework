@@ -29,7 +29,7 @@ import java.nio.file.Path;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.FileCopyUtils;
+import play.data.internal.binding.util.FileCopyUtils;
 
 /**
  * Interface for a resource descriptor that abstracts from the actual

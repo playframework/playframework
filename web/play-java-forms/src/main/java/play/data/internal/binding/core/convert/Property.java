@@ -26,11 +26,11 @@ import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.MethodParameter;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.MethodParameter;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * A description of a JavaBeans Property that allows us to avoid a dependency on

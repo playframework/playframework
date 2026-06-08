@@ -18,7 +18,7 @@ package org.springframework.core.convert.converter;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * A converter converts a source object of type {@code S} to a target of type {@code T}.

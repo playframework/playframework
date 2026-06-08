@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * The purpose of this class is to enable capturing and passing a generic

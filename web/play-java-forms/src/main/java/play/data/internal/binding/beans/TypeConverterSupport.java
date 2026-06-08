@@ -20,11 +20,11 @@ import java.lang.reflect.Field;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.MethodParameter;
-import org.springframework.core.convert.ConversionException;
-import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.Assert;
+import play.data.internal.binding.core.MethodParameter;
+import play.data.internal.binding.core.convert.ConversionException;
+import play.data.internal.binding.core.convert.ConverterNotFoundException;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Base implementation of the {@link TypeConverter} interface, using a package-private delegate.

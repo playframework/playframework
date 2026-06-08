@@ -16,7 +16,7 @@
 
 package org.springframework.core.env;
 
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * A {@link PropertySource} implementation capable of interrogating its

@@ -20,8 +20,8 @@ import java.beans.PropertyEditorSupport;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Property editor for {@link Class java.lang.Class}, to enable the direct

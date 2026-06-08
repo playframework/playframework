@@ -63,20 +63,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.NativeDetector;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.VfsResource;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.PathMatcher;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.NativeDetector;
+import play.data.internal.binding.core.io.DefaultResourceLoader;
+import play.data.internal.binding.core.io.FileSystemResource;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.core.io.ResourceLoader;
+import play.data.internal.binding.core.io.UrlResource;
+import play.data.internal.binding.core.io.VfsResource;
+import play.data.internal.binding.util.AntPathMatcher;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.PathMatcher;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.ResourceUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * A {@link ResourcePatternResolver} implementation that is able to resolve a

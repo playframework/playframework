@@ -27,14 +27,14 @@ import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.core.Ordered;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.annotation.MergedAnnotations.Search;
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.core.BridgeMethodResolver;
+import play.data.internal.binding.core.Ordered;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.core.annotation.MergedAnnotations.Search;
+import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrategy;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * Scanner to search for relevant annotations in the annotation hierarchy of an

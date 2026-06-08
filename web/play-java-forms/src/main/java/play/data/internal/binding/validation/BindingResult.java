@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.PropertyEditorRegistry;
+import play.data.internal.binding.beans.PropertyEditorRegistry;
 
 /**
  * General interface that represents binding results. Extends the

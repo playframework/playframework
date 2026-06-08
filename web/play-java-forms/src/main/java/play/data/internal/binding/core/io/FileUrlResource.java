@@ -28,7 +28,7 @@ import java.nio.file.StandardOpenOption;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ResourceUtils;
+import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * Subclass of {@link UrlResource} which assumes file resolution, to the degree

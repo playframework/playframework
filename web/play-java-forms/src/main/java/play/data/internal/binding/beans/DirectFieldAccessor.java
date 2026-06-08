@@ -23,9 +23,9 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * {@link ConfigurablePropertyAccessor} implementation that directly accesses

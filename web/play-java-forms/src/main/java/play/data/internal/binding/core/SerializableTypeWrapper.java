@@ -31,9 +31,9 @@ import java.lang.reflect.WildcardType;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * Internal utility class that can be used to obtain wrapped {@link Serializable}

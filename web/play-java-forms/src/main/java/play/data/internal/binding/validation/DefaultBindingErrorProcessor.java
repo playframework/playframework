@@ -20,11 +20,11 @@ import java.io.Serializable;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.PropertyAccessException;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.beans.PropertyAccessException;
+import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Default {@link BindingErrorProcessor} implementation.

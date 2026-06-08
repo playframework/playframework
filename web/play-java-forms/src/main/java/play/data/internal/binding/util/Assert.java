@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
+import play.data.internal.binding.lang.Contract;
 
 /**
  * Assertion utility class that assists in validating arguments.

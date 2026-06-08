@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.core.annotation.MergedAnnotation.Adapt;
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.util.MultiValueMap;
+import play.data.internal.binding.core.BridgeMethodResolver;
+import play.data.internal.binding.core.annotation.MergedAnnotation.Adapt;
+import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrategy;
+import play.data.internal.binding.util.MultiValueMap;
 
 /**
  * General utility methods for finding annotations, meta-annotations, and

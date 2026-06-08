@@ -35,14 +35,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.CollectionFactory;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.ConversionException;
-import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.CollectionFactory;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.core.convert.ConversionException;
+import play.data.internal.binding.core.convert.ConverterNotFoundException;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * A basic {@link ConfigurablePropertyAccessor} that provides the necessary

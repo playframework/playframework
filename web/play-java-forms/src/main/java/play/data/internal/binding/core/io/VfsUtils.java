@@ -27,7 +27,7 @@ import java.net.URL;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * Utility for detecting and accessing JBoss VFS in the classpath.

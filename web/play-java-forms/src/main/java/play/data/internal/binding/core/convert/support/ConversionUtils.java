@@ -18,12 +18,12 @@ package org.springframework.core.convert.support;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
+import play.data.internal.binding.core.convert.ConversionFailedException;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.GenericConverter;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
 
 /**
  * Internal utilities for the conversion package.

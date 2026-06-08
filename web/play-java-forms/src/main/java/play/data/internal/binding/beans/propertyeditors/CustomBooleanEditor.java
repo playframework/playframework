@@ -20,7 +20,7 @@ import java.beans.PropertyEditorSupport;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Property editor for Boolean/boolean properties.

@@ -35,10 +35,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.io.support.SpringFactoriesLoader;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Internal class that caches JavaBeans {@link java.beans.PropertyDescriptor}

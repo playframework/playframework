@@ -30,23 +30,23 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.DecoratingProxy;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalConverter;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.core.convert.converter.GenericConverter.ConvertiblePair;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.DecoratingProxy;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.core.convert.ConversionFailedException;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.ConverterNotFoundException;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalConverter;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.ConverterFactory;
+import play.data.internal.binding.core.convert.converter.ConverterRegistry;
+import play.data.internal.binding.core.convert.converter.GenericConverter;
+import play.data.internal.binding.core.convert.converter.GenericConverter.ConvertiblePair;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Base {@link ConversionService} implementation suitable for use in most environments.

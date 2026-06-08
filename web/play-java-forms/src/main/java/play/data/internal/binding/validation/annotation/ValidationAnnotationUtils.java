@@ -21,9 +21,9 @@ import java.lang.reflect.Method;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.aop.framework.AopProxyUtils;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.core.annotation.AnnotationUtils;
+import play.data.internal.binding.aop.framework.AopProxyUtils;
+import play.data.internal.binding.aop.support.AopUtils;
+import play.data.internal.binding.core.annotation.AnnotationUtils;
 
 /**
  * Utility class for handling validation annotations.

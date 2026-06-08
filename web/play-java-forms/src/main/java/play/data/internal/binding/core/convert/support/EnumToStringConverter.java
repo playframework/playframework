@@ -16,8 +16,8 @@
 
 package org.springframework.core.convert.support;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Calls {@link Enum#name()} to convert a source Enum to a String.

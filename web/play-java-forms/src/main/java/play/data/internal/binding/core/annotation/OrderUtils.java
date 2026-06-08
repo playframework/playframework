@@ -21,8 +21,8 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrategy;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
 
 /**
  * General utility for determining the order of an object based on its type declaration.

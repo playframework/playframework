@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Converts from a Properties to a String by calling {@link Properties#store(java.io.OutputStream, String)}.

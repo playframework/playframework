@@ -24,14 +24,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.SpringProperties;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.PropertyPlaceholderHelper;
-import org.springframework.util.SystemPropertyUtils;
+import play.data.internal.binding.core.SpringProperties;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.support.ConfigurableConversionService;
+import play.data.internal.binding.core.convert.support.DefaultConversionService;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.PropertyPlaceholderHelper;
+import play.data.internal.binding.util.SystemPropertyUtils;
 
 /**
  * Abstract base class for resolving properties against any underlying source.

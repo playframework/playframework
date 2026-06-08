@@ -27,8 +27,8 @@ import java.util.TreeSet;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * Property editor for Collections, converting any source Collection

@@ -27,8 +27,8 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
 
 /**
  * Helper class for resolving generic types against type variables.

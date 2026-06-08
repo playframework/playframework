@@ -27,8 +27,8 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
-import org.springframework.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.lang.Contract;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
 
 /**
  * Provides {@link AnnotationTypeMapping} information for a single source

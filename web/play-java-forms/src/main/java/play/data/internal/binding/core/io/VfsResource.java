@@ -24,8 +24,8 @@ import java.net.URL;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ResourceUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * JBoss VFS based {@link Resource} implementation.

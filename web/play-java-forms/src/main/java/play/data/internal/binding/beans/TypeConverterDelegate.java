@@ -30,15 +30,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.CollectionFactory;
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.NumberUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.CollectionFactory;
+import play.data.internal.binding.core.convert.ConversionFailedException;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.CollectionUtils;
+import play.data.internal.binding.util.NumberUtils;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Internal helper class for converting property values to target types.

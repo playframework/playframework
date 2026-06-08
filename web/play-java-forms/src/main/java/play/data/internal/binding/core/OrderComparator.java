@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * {@link Comparator} implementation for {@link Ordered} objects, sorting

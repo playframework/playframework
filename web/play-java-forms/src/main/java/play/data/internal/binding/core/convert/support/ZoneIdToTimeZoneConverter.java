@@ -19,7 +19,7 @@ package org.springframework.core.convert.support;
 import java.time.ZoneId;
 import java.util.TimeZone;
 
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Simple converter from Java's {@link java.time.ZoneId} to {@link java.util.TimeZone}.

@@ -18,7 +18,7 @@ package org.springframework.core.io;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ResourceUtils;
+import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * Strategy interface for loading resources (for example, class path or file system

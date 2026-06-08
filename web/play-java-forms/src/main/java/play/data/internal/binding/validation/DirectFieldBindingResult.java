@@ -18,8 +18,8 @@ package org.springframework.validation;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.ConfigurablePropertyAccessor;
-import org.springframework.beans.PropertyAccessorFactory;
+import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
+import play.data.internal.binding.beans.PropertyAccessorFactory;
 
 /**
  * Special implementation of the Errors and BindingResult interfaces,

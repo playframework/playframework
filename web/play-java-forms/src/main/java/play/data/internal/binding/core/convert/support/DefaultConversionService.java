@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.KotlinDetector;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import play.data.internal.binding.core.KotlinDetector;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.converter.ConverterRegistry;
 
 /**
  * A specialization of {@link GenericConversionService} configured by default

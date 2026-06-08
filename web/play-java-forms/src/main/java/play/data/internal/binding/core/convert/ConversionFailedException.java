@@ -18,7 +18,7 @@ package org.springframework.core.convert;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Exception to be thrown when an actual type conversion attempt fails.

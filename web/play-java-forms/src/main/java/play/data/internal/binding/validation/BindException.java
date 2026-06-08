@@ -22,8 +22,8 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.PropertyEditorRegistry;
-import org.springframework.util.Assert;
+import play.data.internal.binding.beans.PropertyEditorRegistry;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Thrown when binding errors are considered fatal. Implements the

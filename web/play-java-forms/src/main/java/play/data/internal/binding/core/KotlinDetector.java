@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ClassUtils;
+import play.data.internal.binding.util.ClassUtils;
 
 /**
  * A common delegate for detecting Kotlin's presence and for identifying Kotlin types. All the methods of this class

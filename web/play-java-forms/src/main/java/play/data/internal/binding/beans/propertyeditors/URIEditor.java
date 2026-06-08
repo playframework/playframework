@@ -23,10 +23,10 @@ import java.net.URISyntaxException;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.io.ClassPathResource;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ResourceUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Editor for {@code java.net.URI}, to directly populate a URI property

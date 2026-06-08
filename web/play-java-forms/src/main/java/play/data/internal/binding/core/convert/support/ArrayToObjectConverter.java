@@ -22,9 +22,9 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
 
 /**
  * Converts an array to an Object by returning the first array element

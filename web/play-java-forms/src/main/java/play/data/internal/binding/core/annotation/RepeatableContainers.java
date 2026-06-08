@@ -24,10 +24,10 @@ import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
-import org.springframework.util.Assert;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.lang.Contract;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Strategy used to find repeatable annotations within container annotations.

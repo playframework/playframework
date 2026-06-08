@@ -16,7 +16,7 @@
 
 package org.springframework.core;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * {@link InheritableThreadLocal} subclass that exposes a specified name

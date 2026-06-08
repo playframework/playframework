@@ -26,10 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ResourceUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Default implementation of the {@link ResourceLoader} interface.

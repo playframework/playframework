@@ -24,24 +24,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.context.EmbeddedValueResolverAware;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.DecoratingProxy;
-import org.springframework.core.GenericTypeResolver;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.format.AnnotationFormatterFactory;
-import org.springframework.format.Formatter;
-import org.springframework.format.FormatterRegistry;
-import org.springframework.format.Parser;
-import org.springframework.format.Printer;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.util.StringValueResolver;
+import play.data.internal.binding.context.EmbeddedValueResolverAware;
+import play.data.internal.binding.context.i18n.LocaleContextHolder;
+import play.data.internal.binding.core.DecoratingProxy;
+import play.data.internal.binding.core.GenericTypeResolver;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.core.convert.converter.GenericConverter;
+import play.data.internal.binding.core.convert.support.GenericConversionService;
+import play.data.internal.binding.format.AnnotationFormatterFactory;
+import play.data.internal.binding.format.Formatter;
+import play.data.internal.binding.format.FormatterRegistry;
+import play.data.internal.binding.format.Parser;
+import play.data.internal.binding.format.Printer;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.StringUtils;
+import play.data.internal.binding.util.StringValueResolver;
 
 /**
  * A {@link org.springframework.core.convert.ConversionService} implementation

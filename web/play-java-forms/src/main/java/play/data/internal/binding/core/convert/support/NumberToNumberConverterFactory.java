@@ -18,11 +18,11 @@ package org.springframework.core.convert.support;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalConverter;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
-import org.springframework.util.NumberUtils;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalConverter;
+import play.data.internal.binding.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.ConverterFactory;
+import play.data.internal.binding.util.NumberUtils;
 
 /**
  * Converts from any JDK-standard Number implementation to any other JDK-standard Number implementation.

@@ -26,12 +26,12 @@ import java.util.Properties;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.DefaultPropertiesPersister;
-import org.springframework.util.PropertiesPersister;
-import org.springframework.util.ResourceUtils;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.DefaultPropertiesPersister;
+import play.data.internal.binding.util.PropertiesPersister;
+import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * Convenient utility methods for loading of {@code java.util.Properties},

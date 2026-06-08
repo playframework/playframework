@@ -30,7 +30,7 @@ import java.util.TimeZone;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
+import play.data.internal.binding.lang.Contract;
 
 /**
  * Miscellaneous object utility methods.

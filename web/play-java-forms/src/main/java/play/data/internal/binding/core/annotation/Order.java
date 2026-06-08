@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.core.Ordered;
+import play.data.internal.binding.core.Ordered;
 
 /**
  * {@code @Order} defines the sort order for an annotated component.

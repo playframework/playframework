@@ -20,8 +20,8 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.Assert;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Generic converter interface for converting between two or more types.

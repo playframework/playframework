@@ -18,7 +18,7 @@ package org.springframework.beans;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.AttributeAccessorSupport;
+import play.data.internal.binding.core.AttributeAccessorSupport;
 
 /**
  * Extension of {@link org.springframework.core.AttributeAccessorSupport},

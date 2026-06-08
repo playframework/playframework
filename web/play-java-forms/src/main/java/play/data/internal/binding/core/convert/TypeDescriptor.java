@@ -29,13 +29,13 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.MethodParameter;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.annotation.AnnotatedElementAdapter;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.lang.Contract;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
+import play.data.internal.binding.core.MethodParameter;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.core.annotation.AnnotatedElementAdapter;
+import play.data.internal.binding.core.annotation.AnnotatedElementUtils;
+import play.data.internal.binding.lang.Contract;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
 
 /**
  * Contextual descriptor about a type to convert from or to.

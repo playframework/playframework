@@ -18,7 +18,7 @@ package org.springframework.beans;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.ConversionService;
 
 /**
  * Interface that encapsulates configuration methods for a PropertyAccessor.

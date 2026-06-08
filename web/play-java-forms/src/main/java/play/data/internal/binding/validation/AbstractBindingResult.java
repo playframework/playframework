@@ -29,10 +29,10 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.PropertyEditorRegistry;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.beans.PropertyEditorRegistry;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Abstract implementation of the {@link BindingResult} interface and

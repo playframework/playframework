@@ -16,7 +16,7 @@
 
 package org.springframework.core.convert;
 
-import org.springframework.core.NestedRuntimeException;
+import play.data.internal.binding.core.NestedRuntimeException;
 
 /**
  * Base class for exceptions thrown by the conversion system.

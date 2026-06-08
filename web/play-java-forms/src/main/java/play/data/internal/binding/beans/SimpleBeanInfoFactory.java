@@ -22,7 +22,7 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
 
-import org.springframework.core.Ordered;
+import play.data.internal.binding.core.Ordered;
 
 /**
  * {@link BeanInfoFactory} implementation that bypasses the standard {@link java.beans.Introspector}

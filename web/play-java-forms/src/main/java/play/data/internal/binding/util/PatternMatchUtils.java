@@ -18,7 +18,7 @@ package org.springframework.util;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
+import play.data.internal.binding.lang.Contract;
 
 /**
  * Utility methods for simple pattern matching, in particular for Spring's typical

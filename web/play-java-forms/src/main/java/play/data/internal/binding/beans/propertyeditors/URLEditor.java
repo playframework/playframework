@@ -20,9 +20,9 @@ import java.beans.PropertyEditorSupport;
 import java.io.IOException;
 import java.net.URL;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceEditor;
-import org.springframework.util.Assert;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.core.io.ResourceEditor;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Editor for {@code java.net.URL}, to directly populate a URL property

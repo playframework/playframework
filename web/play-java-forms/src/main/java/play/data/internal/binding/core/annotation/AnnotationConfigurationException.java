@@ -16,7 +16,7 @@
 
 package org.springframework.core.annotation;
 
-import org.springframework.core.NestedRuntimeException;
+import play.data.internal.binding.core.NestedRuntimeException;
 
 /**
  * Thrown by {@link AnnotationUtils} and <em>synthesized annotations</em>

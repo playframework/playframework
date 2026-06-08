@@ -42,16 +42,16 @@ import kotlin.reflect.jvm.KCallablesJvm;
 import kotlin.reflect.jvm.ReflectJvmMapping;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.KotlinDetector;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.ResolvableType;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.DefaultParameterNameDiscoverer;
+import play.data.internal.binding.core.KotlinDetector;
+import play.data.internal.binding.core.MethodParameter;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.CollectionUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Static convenience methods for JavaBeans: for instantiating beans,

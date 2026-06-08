@@ -16,7 +16,7 @@
 
 package org.springframework.core.convert.converter;
 
-import org.springframework.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.TypeDescriptor;
 
 /**
  * A {@link GenericConverter} that may conditionally execute based on attributes

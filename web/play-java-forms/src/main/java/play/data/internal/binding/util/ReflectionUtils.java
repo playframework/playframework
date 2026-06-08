@@ -29,7 +29,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
+import play.data.internal.binding.lang.Contract;
 
 /**
  * Simple utility class for working with the reflection API and handling

@@ -22,10 +22,10 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.util.Assert;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Converts an Object to a single-element array containing the Object.

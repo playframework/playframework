@@ -36,14 +36,14 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.SerializableTypeWrapper.FieldTypeProvider;
-import org.springframework.core.SerializableTypeWrapper.MethodParameterTypeProvider;
-import org.springframework.core.SerializableTypeWrapper.TypeProvider;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.SerializableTypeWrapper.FieldTypeProvider;
+import play.data.internal.binding.core.SerializableTypeWrapper.MethodParameterTypeProvider;
+import play.data.internal.binding.core.SerializableTypeWrapper.TypeProvider;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Encapsulates a Java {@link java.lang.reflect.Type}, providing access to

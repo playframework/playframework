@@ -18,8 +18,8 @@ package org.springframework.core.convert.support;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
+import play.data.internal.binding.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.ConverterFactory;
 
 /**
  * Converts from an Integer to a {@link java.lang.Enum} by calling {@link Class#getEnumConstants()}.

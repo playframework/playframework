@@ -28,7 +28,7 @@ import java.util.stream.StreamSupport;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * {@link MergedAnnotations} implementation backed by a {@link Collection} of

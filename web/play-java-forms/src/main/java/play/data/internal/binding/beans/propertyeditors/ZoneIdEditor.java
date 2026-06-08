@@ -20,7 +20,7 @@ import java.beans.PropertyEditorSupport;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Editor for {@code java.time.ZoneId}, translating time zone Strings into {@code ZoneId}

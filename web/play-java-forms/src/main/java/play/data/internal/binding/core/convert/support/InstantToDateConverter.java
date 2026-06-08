@@ -19,9 +19,9 @@ package org.springframework.core.convert.support;
 import java.time.Instant;
 import java.util.Date;
 
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalConverter;
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalConverter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Convert a {@link java.time.Instant} to a {@link java.util.Date}.

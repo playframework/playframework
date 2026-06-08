@@ -21,7 +21,7 @@ import java.util.HexFormat;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Editor for a {@link Character}, to populate a property

@@ -18,8 +18,8 @@ package org.springframework.core.convert.support;
 
 import java.util.TimeZone;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.convert.converter.Converter;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Convert a String to a {@link TimeZone}.

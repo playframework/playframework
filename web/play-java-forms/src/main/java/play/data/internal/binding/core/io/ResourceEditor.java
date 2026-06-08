@@ -21,10 +21,10 @@ import java.io.IOException;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.core.env.StandardEnvironment;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.env.PropertyResolver;
+import play.data.internal.binding.core.env.StandardEnvironment;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * {@link java.beans.PropertyEditor Editor} for {@link Resource}

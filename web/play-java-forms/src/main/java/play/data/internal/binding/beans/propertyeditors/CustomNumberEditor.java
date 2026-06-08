@@ -21,8 +21,8 @@ import java.text.NumberFormat;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.NumberUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.NumberUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Property editor for any Number subclass such as Short, Integer, Long,

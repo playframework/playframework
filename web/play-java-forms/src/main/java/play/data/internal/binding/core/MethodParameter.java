@@ -40,9 +40,9 @@ import kotlin.reflect.KParameter;
 import kotlin.reflect.jvm.ReflectJvmMapping;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Helper class that encapsulates the specification of a method parameter: a

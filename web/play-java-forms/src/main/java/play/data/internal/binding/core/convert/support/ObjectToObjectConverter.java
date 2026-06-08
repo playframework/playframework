@@ -27,12 +27,12 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
+import play.data.internal.binding.core.convert.ConversionFailedException;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ReflectionUtils;
 
 /**
  * Generic converter that uses conventions to convert a source object to a

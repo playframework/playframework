@@ -30,7 +30,7 @@ import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
+import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrategy;
 
 /**
  * A single merged annotation returned from a {@link MergedAnnotations}

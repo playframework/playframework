@@ -43,16 +43,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.KotlinDetector;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.log.LogMessage;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.KotlinDetector;
+import play.data.internal.binding.core.annotation.AnnotationAwareOrderComparator;
+import play.data.internal.binding.core.io.UrlResource;
+import play.data.internal.binding.core.log.LogMessage;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.CollectionUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * General purpose factory loading mechanism for internal use within the framework.

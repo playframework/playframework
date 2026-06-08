@@ -20,9 +20,9 @@ import java.beans.PropertyEditorSupport;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.Assert;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Adapter that exposes a {@link java.beans.PropertyEditor} for any given

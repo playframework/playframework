@@ -27,7 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.PropertyPlaceholderHelper.PlaceholderResolver;
+import play.data.internal.binding.util.PropertyPlaceholderHelper.PlaceholderResolver;
 
 /**
  * Parser for Strings that have placeholder values in them. In its simplest form,

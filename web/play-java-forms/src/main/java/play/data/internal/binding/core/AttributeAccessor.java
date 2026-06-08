@@ -20,7 +20,7 @@ import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Interface defining a generic contract for attaching and accessing metadata

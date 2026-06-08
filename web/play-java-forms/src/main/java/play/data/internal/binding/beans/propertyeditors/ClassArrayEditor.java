@@ -21,9 +21,9 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Property editor for an array of {@link Class Classes}, to enable

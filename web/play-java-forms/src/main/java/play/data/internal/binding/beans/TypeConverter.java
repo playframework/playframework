@@ -20,8 +20,8 @@ import java.lang.reflect.Field;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.MethodParameter;
-import org.springframework.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.MethodParameter;
+import play.data.internal.binding.core.convert.TypeDescriptor;
 
 /**
  * Interface that defines type conversion methods. Typically (but not necessarily)

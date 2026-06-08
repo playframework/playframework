@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Converts a String to a Boolean.

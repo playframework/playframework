@@ -32,14 +32,14 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.core.annotation.AnnotationTypeMapping.MirrorSets.MirrorSet;
-import org.springframework.core.annotation.MergedAnnotation.Adapt;
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.BridgeMethodResolver;
+import play.data.internal.binding.core.annotation.AnnotationTypeMapping.MirrorSets.MirrorSet;
+import play.data.internal.binding.core.annotation.MergedAnnotation.Adapt;
+import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrategy;
+import play.data.internal.binding.util.CollectionUtils;
+import play.data.internal.binding.util.ConcurrentReferenceHashMap;
+import play.data.internal.binding.util.ReflectionUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * General utility methods for working with annotations, handling meta-annotations,

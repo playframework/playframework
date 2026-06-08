@@ -24,10 +24,10 @@ import java.nio.charset.Charset;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.io.InputStreamSource;
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.core.io.InputStreamSource;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Holder that combines a {@link Resource} descriptor with a specific encoding

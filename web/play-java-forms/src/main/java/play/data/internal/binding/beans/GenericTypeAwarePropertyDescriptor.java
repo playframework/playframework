@@ -26,14 +26,14 @@ import java.util.Set;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.ResolvableType;
-import org.springframework.core.convert.Property;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.BridgeMethodResolver;
+import play.data.internal.binding.core.MethodParameter;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.core.convert.Property;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Extension of the standard JavaBeans {@link PropertyDescriptor} class,

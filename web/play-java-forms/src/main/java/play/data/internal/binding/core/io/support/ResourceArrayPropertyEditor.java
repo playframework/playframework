@@ -28,12 +28,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.env.Environment;
+import play.data.internal.binding.core.env.PropertyResolver;
+import play.data.internal.binding.core.env.StandardEnvironment;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Editor for {@link org.springframework.core.io.Resource} arrays, to

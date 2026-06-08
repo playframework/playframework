@@ -16,7 +16,7 @@
 
 package org.springframework.core.convert.converter;
 
-import org.springframework.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.TypeDescriptor;
 
 /**
  * Allows a {@link Converter}, {@link GenericConverter} or {@link ConverterFactory} to

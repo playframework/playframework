@@ -20,11 +20,11 @@ import java.beans.PropertyEditorSupport;
 import java.io.File;
 import java.io.IOException;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceEditor;
-import org.springframework.util.Assert;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.core.io.ResourceEditor;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ResourceUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Editor for {@code java.io.File}, to directly populate a File property

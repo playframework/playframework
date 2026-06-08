@@ -26,7 +26,7 @@ import java.util.NoSuchElementException;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Abstract implementation of the {@link Errors} interface.

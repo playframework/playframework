@@ -20,14 +20,14 @@ import java.beans.PropertyEditor;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.ConfigurablePropertyAccessor;
-import org.springframework.beans.PropertyAccessorUtils;
-import org.springframework.beans.PropertyEditorRegistry;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.support.ConvertingPropertyEditorAdapter;
-import org.springframework.util.Assert;
+import play.data.internal.binding.beans.BeanUtils;
+import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
+import play.data.internal.binding.beans.PropertyAccessorUtils;
+import play.data.internal.binding.beans.PropertyEditorRegistry;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.support.ConvertingPropertyEditorAdapter;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Abstract base class for {@link BindingResult} implementations that work with

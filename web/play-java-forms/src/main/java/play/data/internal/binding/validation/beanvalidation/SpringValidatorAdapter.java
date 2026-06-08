@@ -34,18 +34,18 @@ import jakarta.validation.metadata.BeanDescriptor;
 import jakarta.validation.metadata.ConstraintDescriptor;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.InvalidPropertyException;
-import org.springframework.beans.NotReadablePropertyException;
-import org.springframework.context.MessageSourceResolvable;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
-import org.springframework.validation.SmartValidator;
+import play.data.internal.binding.beans.InvalidPropertyException;
+import play.data.internal.binding.beans.NotReadablePropertyException;
+import play.data.internal.binding.context.MessageSourceResolvable;
+import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ClassUtils;
+import play.data.internal.binding.util.StringUtils;
+import play.data.internal.binding.validation.BindingResult;
+import play.data.internal.binding.validation.Errors;
+import play.data.internal.binding.validation.FieldError;
+import play.data.internal.binding.validation.ObjectError;
+import play.data.internal.binding.validation.SmartValidator;
 
 /**
  * Adapter that takes a JSR-303 {@code javax.validator.Validator} and

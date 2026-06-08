@@ -18,9 +18,9 @@ package org.springframework.core.convert.support;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
-import org.springframework.util.NumberUtils;
+import play.data.internal.binding.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.ConverterFactory;
+import play.data.internal.binding.util.NumberUtils;
 
 /**
  * Converts from a String any JDK-standard Number implementation.

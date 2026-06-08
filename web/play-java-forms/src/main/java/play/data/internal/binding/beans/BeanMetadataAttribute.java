@@ -18,8 +18,8 @@ package org.springframework.beans;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Holder for a key-value style attribute that is part of a bean definition.

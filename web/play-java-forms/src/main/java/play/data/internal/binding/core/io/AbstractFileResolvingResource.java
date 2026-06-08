@@ -31,7 +31,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.springframework.util.ResourceUtils;
+import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * Abstract base class for resources which resolve URLs into File references,

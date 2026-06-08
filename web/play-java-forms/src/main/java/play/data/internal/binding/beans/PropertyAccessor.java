@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.TypeDescriptor;
 
 /**
  * Common interface for classes that can access named properties

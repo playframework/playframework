@@ -19,10 +19,10 @@ package org.springframework.format.support;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.format.Formatter;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.context.i18n.LocaleContextHolder;
+import play.data.internal.binding.format.Formatter;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Adapter that bridges between {@link Formatter} and {@link PropertyEditor}.

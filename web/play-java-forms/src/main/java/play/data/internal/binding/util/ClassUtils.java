@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Contract;
+import play.data.internal.binding.lang.Contract;
 
 /**
  * Miscellaneous {@code java.lang.Class} utility methods.

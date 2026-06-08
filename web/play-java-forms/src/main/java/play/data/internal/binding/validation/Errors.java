@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.PropertyAccessor;
+import play.data.internal.binding.beans.PropertyAccessor;
 
 /**
  * Stores and exposes information about data-binding and validation errors

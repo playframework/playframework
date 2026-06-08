@@ -28,9 +28,9 @@ import java.util.TreeMap;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.ResolvableType;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.ResolvableType;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Common delegate methods for Spring's internal {@link PropertyDescriptor} implementations.

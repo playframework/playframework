@@ -26,7 +26,7 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Default implementation of the {@link MessageCodesResolver} interface.

@@ -18,8 +18,8 @@ package org.springframework.validation;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Encapsulates a field error, that is, a reason for rejecting a specific

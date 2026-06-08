@@ -16,8 +16,8 @@
 
 package org.springframework.context;
 
-import org.springframework.beans.factory.Aware;
-import org.springframework.util.StringValueResolver;
+import play.data.internal.binding.beans.factory.Aware;
+import play.data.internal.binding.util.StringValueResolver;
 
 /**
  * Interface to be implemented by any object that wishes to be notified of a

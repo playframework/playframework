@@ -24,10 +24,10 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceEditor;
-import org.springframework.util.Assert;
-import org.springframework.util.ResourceUtils;
+import play.data.internal.binding.core.io.Resource;
+import play.data.internal.binding.core.io.ResourceEditor;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * Editor for {@code java.nio.file.Path}, to directly populate a Path

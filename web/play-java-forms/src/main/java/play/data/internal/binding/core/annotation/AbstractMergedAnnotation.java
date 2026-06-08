@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Abstract base class for {@link MergedAnnotation} implementations.

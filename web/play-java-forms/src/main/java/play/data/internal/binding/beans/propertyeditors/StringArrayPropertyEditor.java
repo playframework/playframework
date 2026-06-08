@@ -20,8 +20,8 @@ import java.beans.PropertyEditorSupport;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Custom {@link java.beans.PropertyEditor} for String arrays.

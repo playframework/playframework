@@ -26,11 +26,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.SpringProperties;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.core.SpringProperties;
+import play.data.internal.binding.core.convert.support.ConfigurableConversionService;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Abstract base class for {@link Environment} implementations. Supports the notion of

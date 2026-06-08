@@ -20,7 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Simple converter from Java's {@link java.time.ZonedDateTime} to {@link java.util.Calendar}.

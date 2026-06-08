@@ -16,10 +16,10 @@
 
 package org.springframework.core.convert.support;
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalConverter;
-import org.springframework.util.ClassUtils;
+import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalConverter;
+import play.data.internal.binding.util.ClassUtils;
 
 /**
  * A {@link ConditionalConverter} base implementation for enum-based converters.

@@ -19,7 +19,7 @@ package org.springframework.core.convert.support;
 import java.time.Instant;
 import java.util.Date;
 
-import org.springframework.core.convert.converter.Converter;
+import play.data.internal.binding.core.convert.converter.Converter;
 
 /**
  * Convert a {@link java.util.Date} to a {@link java.time.Instant}.

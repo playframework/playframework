@@ -22,8 +22,8 @@ import java.util.StringJoiner;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.Assert;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * Combined exception, composed of individual PropertyAccessException instances.

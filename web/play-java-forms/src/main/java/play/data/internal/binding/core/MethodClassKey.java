@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.ObjectUtils;
+import play.data.internal.binding.util.ObjectUtils;
 
 /**
  * A common key class for a method against a specific target class,

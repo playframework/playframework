@@ -28,9 +28,9 @@ import java.util.stream.Collector.Characteristics;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.annotation.MergedAnnotation.Adapt;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import play.data.internal.binding.core.annotation.MergedAnnotation.Adapt;
+import play.data.internal.binding.util.LinkedMultiValueMap;
+import play.data.internal.binding.util.MultiValueMap;
 
 /**
  * {@link Collector} implementations that provide various reduction operations for

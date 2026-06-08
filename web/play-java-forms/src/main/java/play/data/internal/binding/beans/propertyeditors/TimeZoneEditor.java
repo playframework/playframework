@@ -19,7 +19,7 @@ package org.springframework.beans.propertyeditors;
 import java.beans.PropertyEditorSupport;
 import java.util.TimeZone;
 
-import org.springframework.util.StringUtils;
+import play.data.internal.binding.util.StringUtils;
 
 /**
  * Editor for {@code java.util.TimeZone}, translating timezone IDs into

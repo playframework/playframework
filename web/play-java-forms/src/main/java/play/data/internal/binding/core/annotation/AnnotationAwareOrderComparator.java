@@ -22,9 +22,9 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.DecoratingProxy;
-import org.springframework.core.OrderComparator;
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
+import play.data.internal.binding.core.DecoratingProxy;
+import play.data.internal.binding.core.OrderComparator;
+import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrategy;
 
 /**
  * {@code AnnotationAwareOrderComparator} is an extension of

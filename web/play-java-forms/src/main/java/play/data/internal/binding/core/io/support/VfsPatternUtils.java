@@ -23,7 +23,7 @@ import java.net.URL;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.io.VfsUtils;
+import play.data.internal.binding.core.io.VfsUtils;
 
 /**
  * Artificial class used for accessing the {@link VfsUtils} methods

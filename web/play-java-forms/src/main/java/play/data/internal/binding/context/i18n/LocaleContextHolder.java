@@ -21,8 +21,8 @@ import java.util.TimeZone;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.core.NamedInheritableThreadLocal;
-import org.springframework.core.NamedThreadLocal;
+import play.data.internal.binding.core.NamedInheritableThreadLocal;
+import play.data.internal.binding.core.NamedThreadLocal;
 
 /**
  * Simple holder class that associates a LocaleContext instance
