@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.annotation;
+package play.data.internal.binding.core.annotation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

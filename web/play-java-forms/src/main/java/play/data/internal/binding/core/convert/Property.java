@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.convert;
+package play.data.internal.binding.core.convert;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

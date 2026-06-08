@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core;
+package play.data.internal.binding.core;
 
 import play.data.internal.binding.util.Assert;
 

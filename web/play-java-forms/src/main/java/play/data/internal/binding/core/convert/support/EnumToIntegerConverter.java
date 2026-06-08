@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.convert.support;
+package play.data.internal.binding.core.convert.support;
 
 import play.data.internal.binding.core.convert.ConversionService;
 import play.data.internal.binding.core.convert.converter.Converter;

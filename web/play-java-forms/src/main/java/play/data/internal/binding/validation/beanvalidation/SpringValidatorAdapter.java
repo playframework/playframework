@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.validation.beanvalidation;
+package play.data.internal.binding.validation.beanvalidation;
 
 import java.io.Serializable;
 import java.util.ArrayList;

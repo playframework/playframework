@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core;
+package play.data.internal.binding.core;
 
 /**
  * {@code Ordered} is an interface that can be implemented by objects that

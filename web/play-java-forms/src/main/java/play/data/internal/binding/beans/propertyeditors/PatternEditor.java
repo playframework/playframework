@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans.propertyeditors;
+package play.data.internal.binding.beans.propertyeditors;
 
 import java.beans.PropertyEditorSupport;
 import java.util.regex.Pattern;

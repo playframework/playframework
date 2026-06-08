@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.context.support;
+package play.data.internal.binding.context.support;
 
 import java.io.Serializable;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.format;
+package play.data.internal.binding.format;
 
 import java.text.ParseException;
 import java.util.Locale;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans;
+package play.data.internal.binding.beans;
 
 /**
  * Simple factory facade for obtaining {@link PropertyAccessor} instances,

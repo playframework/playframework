@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.env;
+package play.data.internal.binding.core.env;
 
 /**
  * {@link Environment} implementation suitable for use in 'standard' (i.e. non-web)

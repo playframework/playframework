@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.io.support;
+package play.data.internal.binding.core.io.support;
 
 import java.io.IOException;
 

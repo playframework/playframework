@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.validation;
+package play.data.internal.binding.validation;
 
 import java.util.List;
 import java.util.Optional;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.context.i18n;
+package play.data.internal.binding.context.i18n;
 
 import java.util.Locale;
 import java.util.TimeZone;

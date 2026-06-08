@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.convert.converter;
+package play.data.internal.binding.core.convert.converter;
 
 import org.jspecify.annotations.Nullable;
 

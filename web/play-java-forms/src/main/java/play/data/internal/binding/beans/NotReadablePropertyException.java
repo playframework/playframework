@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans;
+package play.data.internal.binding.beans;
 
 /**
  * Exception thrown on an attempt to get the value of a property

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.log;
+package play.data.internal.binding.core.log;
 
 import java.util.function.Supplier;
 

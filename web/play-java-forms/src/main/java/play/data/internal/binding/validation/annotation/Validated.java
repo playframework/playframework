@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.validation.annotation;
+package play.data.internal.binding.validation.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

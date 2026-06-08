@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core;
+package play.data.internal.binding.core;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;

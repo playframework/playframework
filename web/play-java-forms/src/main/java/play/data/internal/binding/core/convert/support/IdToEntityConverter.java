@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.convert.support;
+package play.data.internal.binding.core.convert.support;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

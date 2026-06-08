@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans;
+package play.data.internal.binding.beans;
 
 /**
  * Exception thrown when navigation of a valid nested property

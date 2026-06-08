@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans.factory;
+package play.data.internal.binding.beans.factory;
 
 /**
  * A marker superinterface indicating that a bean is eligible to be notified by the

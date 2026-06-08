@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.context;
+package play.data.internal.binding.context;
 
 import play.data.internal.binding.beans.factory.Aware;
 import play.data.internal.binding.util.StringValueResolver;

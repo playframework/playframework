@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.lang;
+package play.data.internal.binding.lang;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

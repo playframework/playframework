@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.format.support;
+package play.data.internal.binding.format.support;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;

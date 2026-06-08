@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.util;
+package play.data.internal.binding.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

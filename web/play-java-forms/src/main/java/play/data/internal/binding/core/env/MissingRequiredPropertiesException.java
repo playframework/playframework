@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.env;
+package play.data.internal.binding.core.env;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

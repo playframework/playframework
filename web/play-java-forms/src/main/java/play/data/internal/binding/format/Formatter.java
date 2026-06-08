@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.format;
+package play.data.internal.binding.format;
 
 /**
  * Formats objects of type T.

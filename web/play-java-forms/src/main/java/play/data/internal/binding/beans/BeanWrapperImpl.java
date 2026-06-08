@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans;
+package play.data.internal.binding.beans;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;

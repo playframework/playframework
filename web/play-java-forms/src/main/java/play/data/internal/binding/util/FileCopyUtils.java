@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.util;
+package play.data.internal.binding.util;
 
 import java.io.File;
 import java.io.IOException;

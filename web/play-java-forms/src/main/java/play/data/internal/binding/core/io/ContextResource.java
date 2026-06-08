@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.io;
+package play.data.internal.binding.core.io;
 
 /**
  * Extended interface for a resource that is loaded from an enclosing

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.util;
+package play.data.internal.binding.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

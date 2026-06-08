@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core.annotation;
+package play.data.internal.binding.core.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.core;
+package play.data.internal.binding.core;
 
 /**
  * Interface to be implemented by decorating proxies, in particular Spring AOP

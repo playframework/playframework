@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.beans;
+package play.data.internal.binding.beans;
 
 /**
  * Interface for strategies that register custom
