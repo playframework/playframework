@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
 import org.hibernate.validator.spi.messageinterpolation.LocaleResolverContext;
-import org.springframework.context.i18n.LocaleContextHolder;
+import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.i18n.Lang;
 import play.i18n.Langs;
 import play.inject.ApplicationLifecycle;

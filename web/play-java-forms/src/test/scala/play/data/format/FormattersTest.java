@@ -6,7 +6,7 @@ package play.data.format;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.core.convert.ConverterNotFoundException;
+import play.data.internal.binding.core.convert.ConverterNotFoundException;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -44,26 +44,26 @@ import org.hibernate.validator.HibernateValidatorFactory;
 import org.hibernate.validator.engine.HibernateConstraintViolation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.ConfigurablePropertyAccessor;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.InvalidPropertyException;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.NotReadablePropertyException;
-import org.springframework.beans.PropertyAccessException;
-import org.springframework.beans.PropertyValue;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.AbstractPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.DataBinder;
-import org.springframework.validation.DefaultBindingErrorProcessor;
-import org.springframework.validation.DirectFieldBindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.FieldError;
 import play.data.format.Formatters;
+import play.data.internal.binding.beans.BeanWrapperImpl;
+import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
+import play.data.internal.binding.beans.DirectFieldAccessor;
+import play.data.internal.binding.beans.InvalidPropertyException;
+import play.data.internal.binding.beans.MutablePropertyValues;
+import play.data.internal.binding.beans.NotReadablePropertyException;
+import play.data.internal.binding.beans.PropertyAccessException;
+import play.data.internal.binding.beans.PropertyValue;
+import play.data.internal.binding.context.i18n.LocaleContextHolder;
+import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
+import play.data.internal.binding.util.ObjectUtils;
+import play.data.internal.binding.util.StringUtils;
+import play.data.internal.binding.validation.AbstractPropertyBindingResult;
+import play.data.internal.binding.validation.BindingResult;
+import play.data.internal.binding.validation.DataBinder;
+import play.data.internal.binding.validation.DefaultBindingErrorProcessor;
+import play.data.internal.binding.validation.DirectFieldBindingResult;
+import play.data.internal.binding.validation.Errors;
+import play.data.internal.binding.validation.FieldError;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.ValidationPayload;
 import play.data.validation.ValidationError;
@@ -1359,11 +1359,7 @@ public class Form<T> {
     }
     List<Object> converted =
         Arrays.stream(arguments)
-            .filter(
-                arg ->
-                    !(arg
-                        instanceof
-                        org.springframework.context.support.DefaultMessageSourceResolvable))
+            .filter(arg -> !(arg instanceof DefaultMessageSourceResolvable))
             .collect(Collectors.toList());
     return Collections.unmodifiableList(converted);
   }

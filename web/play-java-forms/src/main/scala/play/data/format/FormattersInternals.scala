@@ -4,7 +4,7 @@
 
 package play.data.format
 
-import org.springframework.validation.DataBinder
+import play.data.internal.binding.validation.DataBinder
 
 private[data] object FormattersInternals {
 

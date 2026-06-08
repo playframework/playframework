@@ -9,11 +9,14 @@ import jakarta.inject.Singleton;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
-import org.springframework.context.i18n.*;
-import org.springframework.core.*;
-import org.springframework.core.convert.*;
-import org.springframework.core.convert.converter.*;
-import org.springframework.format.support.*;
+import play.data.internal.binding.context.i18n.LocaleContextHolder;
+import play.data.internal.binding.core.GenericTypeResolver;
+import play.data.internal.binding.core.convert.ConversionFailedException;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.core.convert.converter.GenericConverter;
+import play.data.internal.binding.format.Formatter;
+import play.data.internal.binding.format.support.FormattingConversionService;
 import play.i18n.MessagesApi;
 
 /** Formatters helper. */
@@ -216,7 +219,7 @@ public class Formatters {
   public <T> Formatters register(final Class<T> clazz, final SimpleFormatter<T> formatter) {
     conversion.addFormatterForFieldType(
         clazz,
-        new org.springframework.format.Formatter<T>() {
+        new Formatter<T>() {
 
           public T parse(String text, Locale locale) throws java.text.ParseException {
             return formatter.parse(text, locale);
