@@ -44,8 +44,8 @@ import play.data.internal.binding.util.ReflectionUtils;
  * @since 2.0
  * @see #setExtractOldValueForEditor
  * @see BeanWrapper
- * @see org.springframework.validation.DirectFieldBindingResult
- * @see org.springframework.validation.DataBinder#initDirectFieldAccess()
+ * @see play.data.internal.binding.validation.DirectFieldBindingResult
+ * @see play.data.internal.binding.validation.DataBinder#initDirectFieldAccess()
  */
 public class DirectFieldAccessor extends AbstractNestablePropertyAccessor {
 

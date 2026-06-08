@@ -44,7 +44,7 @@ import org.jspecify.annotations.Nullable;
  * @author Arjen Poutsma
  * @since 3.2
  * @see CachedIntrospectionResults
- * @see org.springframework.core.io.support.SpringFactoriesLoader
+ * @see play.data.internal.binding.core.io.support.SpringFactoriesLoader
  */
 public interface BeanInfoFactory {
 

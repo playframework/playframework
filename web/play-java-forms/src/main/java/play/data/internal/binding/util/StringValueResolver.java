@@ -24,8 +24,8 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Juergen Hoeller
  * @since 2.5
- * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#resolveAliases
- * @see org.springframework.beans.factory.config.BeanDefinitionVisitor#BeanDefinitionVisitor(StringValueResolver)
+ * @see play.data.internal.binding.beans.factory.config.ConfigurableBeanFactory#resolveAliases
+ * @see play.data.internal.binding.beans.factory.config.BeanDefinitionVisitor#BeanDefinitionVisitor(StringValueResolver)
  */
 @FunctionalInterface
 public interface StringValueResolver {

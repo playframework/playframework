@@ -312,7 +312,7 @@ public class UrlResource extends AbstractFileResolvingResource {
 	/**
 	 * This implementation returns a File reference for the underlying URL/URI,
 	 * provided that it refers to a file in the file system.
-	 * @see org.springframework.util.ResourceUtils#getFile(java.net.URL, String)
+	 * @see play.data.internal.binding.util.ResourceUtils#getFile(java.net.URL, String)
 	 */
 	@Override
 	public File getFile() throws IOException {

@@ -300,7 +300,7 @@ public final class CollectionFactory {
 	 * @since 4.1.3
 	 * @see java.util.LinkedHashMap
 	 * @see java.util.TreeMap
-	 * @see org.springframework.util.LinkedMultiValueMap
+	 * @see play.data.internal.binding.util.LinkedMultiValueMap
 	 * @see java.util.EnumMap
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})

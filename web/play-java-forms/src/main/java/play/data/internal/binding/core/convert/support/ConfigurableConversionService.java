@@ -30,9 +30,9 @@ import play.data.internal.binding.core.convert.converter.ConverterRegistry;
  *
  * @author Chris Beams
  * @since 3.1
- * @see org.springframework.core.env.ConfigurablePropertyResolver#getConversionService()
- * @see org.springframework.core.env.ConfigurableEnvironment
- * @see org.springframework.context.ConfigurableApplicationContext#getEnvironment()
+ * @see play.data.internal.binding.core.env.ConfigurablePropertyResolver#getConversionService()
+ * @see play.data.internal.binding.core.env.ConfigurableEnvironment
+ * @see play.data.internal.binding.context.ConfigurableApplicationContext#getEnvironment()
  */
 public interface ConfigurableConversionService extends ConversionService, ConverterRegistry {
 

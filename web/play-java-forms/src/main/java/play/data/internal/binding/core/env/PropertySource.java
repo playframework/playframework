@@ -57,7 +57,7 @@ import play.data.internal.binding.util.ObjectUtils;
  * @see PropertyResolver
  * @see PropertySourcesPropertyResolver
  * @see MutablePropertySources
- * @see org.springframework.context.annotation.PropertySource
+ * @see play.data.internal.binding.context.annotation.PropertySource
  */
 public abstract class PropertySource<T> {
 
@@ -203,9 +203,9 @@ public abstract class PropertySource<T> {
 	 * {@code ApplicationContext}.  In such cases, a stub should be used to hold the
 	 * intended default position/order of the property source, then be replaced
 	 * during context refresh.
-	 * @see org.springframework.context.support.AbstractApplicationContext#initPropertySources()
-	 * @see org.springframework.web.context.support.StandardServletEnvironment
-	 * @see org.springframework.web.context.support.ServletContextPropertySource
+	 * @see play.data.internal.binding.context.support.AbstractApplicationContext#initPropertySources()
+	 * @see play.data.internal.binding.web.context.support.StandardServletEnvironment
+	 * @see play.data.internal.binding.web.context.support.ServletContextPropertySource
 	 */
 	public static class StubPropertySource extends PropertySource<Object> {
 

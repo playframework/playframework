@@ -35,7 +35,7 @@ import play.data.internal.binding.util.StringUtils;
  * @author Rick Evans
  * @since 13.05.2003
  * @see Class#forName
- * @see org.springframework.util.ClassUtils#forName(String, ClassLoader)
+ * @see play.data.internal.binding.util.ClassUtils#forName(String, ClassLoader)
  */
 public class ClassEditor extends PropertyEditorSupport {
 

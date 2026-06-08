@@ -43,11 +43,11 @@ import play.data.internal.binding.lang.Contract;
  *
  * @author Juergen Hoeller
  * @since 1.1.5
- * @see org.springframework.core.io.Resource
- * @see org.springframework.core.io.ClassPathResource
- * @see org.springframework.core.io.FileSystemResource
- * @see org.springframework.core.io.UrlResource
- * @see org.springframework.core.io.ResourceLoader
+ * @see play.data.internal.binding.core.io.Resource
+ * @see play.data.internal.binding.core.io.ClassPathResource
+ * @see play.data.internal.binding.core.io.FileSystemResource
+ * @see play.data.internal.binding.core.io.UrlResource
+ * @see play.data.internal.binding.core.io.ResourceLoader
  */
 public abstract class ResourceUtils {
 

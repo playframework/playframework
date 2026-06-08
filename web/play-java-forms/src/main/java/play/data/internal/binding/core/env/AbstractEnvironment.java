@@ -235,7 +235,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 * not problematic; it is only attempting to read default values that must be avoided.
 	 * @see MutablePropertySources
 	 * @see PropertySourcesPropertyResolver
-	 * @see org.springframework.context.ApplicationContextInitializer
+	 * @see play.data.internal.binding.context.ApplicationContextInitializer
 	 */
 	protected void customizePropertySources(MutablePropertySources propertySources) {
 	}

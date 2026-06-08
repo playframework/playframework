@@ -30,7 +30,7 @@ import play.data.internal.binding.util.StringUtils;
  * @author Juergen Hoeller
  * @since 26.05.2003
  * @see java.util.Locale
- * @see org.springframework.util.StringUtils#parseLocale
+ * @see play.data.internal.binding.util.StringUtils#parseLocale
  */
 public class LocaleEditor extends PropertyEditorSupport {
 

@@ -24,10 +24,10 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Rob Harrop
  * @since 2.0
- * @see org.springframework.beans.factory.support.ManagedSet
- * @see org.springframework.beans.factory.support.ManagedList
- * @see org.springframework.beans.factory.support.ManagedMap
- * @see org.springframework.beans.factory.support.ManagedProperties
+ * @see play.data.internal.binding.beans.factory.support.ManagedSet
+ * @see play.data.internal.binding.beans.factory.support.ManagedList
+ * @see play.data.internal.binding.beans.factory.support.ManagedMap
+ * @see play.data.internal.binding.beans.factory.support.ManagedProperties
  */
 public interface Mergeable {
 

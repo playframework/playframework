@@ -42,9 +42,9 @@ import java.beans.PropertyDescriptor;
  * @see PropertyAccessor
  * @see PropertyEditorRegistry
  * @see PropertyAccessorFactory#forBeanPropertyAccess
- * @see org.springframework.beans.factory.BeanFactory
- * @see org.springframework.validation.BeanPropertyBindingResult
- * @see org.springframework.validation.DataBinder#initBeanPropertyAccess()
+ * @see play.data.internal.binding.beans.factory.BeanFactory
+ * @see play.data.internal.binding.validation.BeanPropertyBindingResult
+ * @see play.data.internal.binding.validation.DataBinder#initBeanPropertyAccess()
  */
 public interface BeanWrapper extends ConfigurablePropertyAccessor {
 

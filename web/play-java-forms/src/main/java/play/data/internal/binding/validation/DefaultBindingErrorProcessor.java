@@ -43,9 +43,9 @@ import play.data.internal.binding.util.StringUtils;
  * @see DataBinder#setBindingErrorProcessor
  * @see BeanPropertyBindingResult#addError
  * @see BeanPropertyBindingResult#resolveMessageCodes
- * @see org.springframework.beans.PropertyAccessException#getErrorCode
- * @see org.springframework.beans.TypeMismatchException#ERROR_CODE
- * @see org.springframework.beans.MethodInvocationException#ERROR_CODE
+ * @see play.data.internal.binding.beans.PropertyAccessException#getErrorCode
+ * @see play.data.internal.binding.beans.TypeMismatchException#ERROR_CODE
+ * @see play.data.internal.binding.beans.MethodInvocationException#ERROR_CODE
  */
 public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
 
@@ -90,8 +90,8 @@ public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
 	 * @param objectName the name of the target object
 	 * @param field the field that caused the binding error
 	 * @return the Object array that represents the FieldError arguments
-	 * @see org.springframework.validation.FieldError#getArguments
-	 * @see org.springframework.context.support.DefaultMessageSourceResolvable
+	 * @see play.data.internal.binding.validation.FieldError#getArguments
+	 * @see play.data.internal.binding.context.support.DefaultMessageSourceResolvable
 	 */
 	protected Object[] getArgumentsForBindError(String objectName, String field) {
 		String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};

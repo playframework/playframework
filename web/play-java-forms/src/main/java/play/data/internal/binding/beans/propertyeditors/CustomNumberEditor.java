@@ -42,7 +42,7 @@ import play.data.internal.binding.util.StringUtils;
  * @since 06.06.2003
  * @see Number
  * @see java.text.NumberFormat
- * @see org.springframework.validation.DataBinder#registerCustomEditor
+ * @see play.data.internal.binding.validation.DataBinder#registerCustomEditor
  */
 public class CustomNumberEditor extends PropertyEditorSupport {
 
@@ -63,7 +63,7 @@ public class CustomNumberEditor extends PropertyEditorSupport {
 	 * @param numberClass the Number subclass to generate
 	 * @param allowEmpty if empty strings should be allowed
 	 * @throws IllegalArgumentException if an invalid numberClass has been specified
-	 * @see org.springframework.util.NumberUtils#parseNumber(String, Class)
+	 * @see play.data.internal.binding.util.NumberUtils#parseNumber(String, Class)
 	 * @see Integer#valueOf
 	 * @see Integer#toString
 	 */
@@ -81,7 +81,7 @@ public class CustomNumberEditor extends PropertyEditorSupport {
 	 * @param numberFormat the NumberFormat to use for parsing and rendering
 	 * @param allowEmpty if empty strings should be allowed
 	 * @throws IllegalArgumentException if an invalid numberClass has been specified
-	 * @see org.springframework.util.NumberUtils#parseNumber(String, Class, java.text.NumberFormat)
+	 * @see play.data.internal.binding.util.NumberUtils#parseNumber(String, Class, java.text.NumberFormat)
 	 * @see java.text.NumberFormat#parse
 	 * @see java.text.NumberFormat#format
 	 */

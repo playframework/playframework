@@ -37,8 +37,8 @@ package play.data.internal.binding.core;
  * @since 07.04.2003
  * @see PriorityOrdered
  * @see OrderComparator
- * @see org.springframework.core.annotation.Order
- * @see org.springframework.core.annotation.AnnotationAwareOrderComparator
+ * @see play.data.internal.binding.core.annotation.Order
+ * @see play.data.internal.binding.core.annotation.AnnotationAwareOrderComparator
  */
 public interface Ordered {
 

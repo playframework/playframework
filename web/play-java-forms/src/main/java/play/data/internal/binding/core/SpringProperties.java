@@ -39,18 +39,18 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Juergen Hoeller
  * @since 3.2.7
- * @see org.springframework.aot.AotDetector#AOT_ENABLED
- * @see org.springframework.beans.StandardBeanInfoFactory#IGNORE_BEANINFO_PROPERTY_NAME
- * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#STRICT_LOCKING_PROPERTY_NAME
- * @see org.springframework.core.env.AbstractEnvironment#IGNORE_GETENV_PROPERTY_NAME
- * @see org.springframework.expression.spel.SpelParserConfiguration#SPRING_EXPRESSION_COMPILER_MODE_PROPERTY_NAME
- * @see org.springframework.jdbc.core.StatementCreatorUtils#IGNORE_GETPARAMETERTYPE_PROPERTY_NAME
- * @see org.springframework.jndi.JndiLocatorDelegate#IGNORE_JNDI_PROPERTY_NAME
- * @see org.springframework.objenesis.SpringObjenesis#IGNORE_OBJENESIS_PROPERTY_NAME
- * @see org.springframework.test.context.NestedTestConfiguration#ENCLOSING_CONFIGURATION_PROPERTY_NAME
- * @see org.springframework.test.context.TestConstructor#TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME
- * @see org.springframework.test.context.cache.ContextCache#MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME
- * @see org.springframework.test.context.cache.ContextCache#CONTEXT_CACHE_PAUSE_PROPERTY_NAME
+ * @see play.data.internal.binding.aot.AotDetector#AOT_ENABLED
+ * @see play.data.internal.binding.beans.StandardBeanInfoFactory#IGNORE_BEANINFO_PROPERTY_NAME
+ * @see play.data.internal.binding.beans.factory.support.DefaultListableBeanFactory#STRICT_LOCKING_PROPERTY_NAME
+ * @see play.data.internal.binding.core.env.AbstractEnvironment#IGNORE_GETENV_PROPERTY_NAME
+ * @see play.data.internal.binding.expression.spel.SpelParserConfiguration#SPRING_EXPRESSION_COMPILER_MODE_PROPERTY_NAME
+ * @see play.data.internal.binding.jdbc.core.StatementCreatorUtils#IGNORE_GETPARAMETERTYPE_PROPERTY_NAME
+ * @see play.data.internal.binding.jndi.JndiLocatorDelegate#IGNORE_JNDI_PROPERTY_NAME
+ * @see play.data.internal.binding.objenesis.SpringObjenesis#IGNORE_OBJENESIS_PROPERTY_NAME
+ * @see play.data.internal.binding.test.context.NestedTestConfiguration#ENCLOSING_CONFIGURATION_PROPERTY_NAME
+ * @see play.data.internal.binding.test.context.TestConstructor#TEST_CONSTRUCTOR_AUTOWIRE_MODE_PROPERTY_NAME
+ * @see play.data.internal.binding.test.context.cache.ContextCache#MAX_CONTEXT_CACHE_SIZE_PROPERTY_NAME
+ * @see play.data.internal.binding.test.context.cache.ContextCache#CONTEXT_CACHE_PAUSE_PROPERTY_NAME
  */
 public final class SpringProperties {
 

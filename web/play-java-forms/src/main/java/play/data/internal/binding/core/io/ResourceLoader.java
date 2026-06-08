@@ -36,9 +36,9 @@ import play.data.internal.binding.util.ResourceUtils;
  * @author Juergen Hoeller
  * @since 10.03.2004
  * @see Resource
- * @see org.springframework.core.io.support.ResourcePatternResolver
- * @see org.springframework.context.ApplicationContext
- * @see org.springframework.context.ResourceLoaderAware
+ * @see play.data.internal.binding.core.io.support.ResourcePatternResolver
+ * @see play.data.internal.binding.context.ApplicationContext
+ * @see play.data.internal.binding.context.ResourceLoaderAware
  */
 public interface ResourceLoader {
 
@@ -74,8 +74,8 @@ public interface ResourceLoader {
 	 * on the thread context {@code ClassLoader}.
 	 * @return the {@code ClassLoader}
 	 * (only {@code null} if even the system {@code ClassLoader} isn't accessible)
-	 * @see org.springframework.util.ClassUtils#getDefaultClassLoader()
-	 * @see org.springframework.util.ClassUtils#forName(String, ClassLoader)
+	 * @see play.data.internal.binding.util.ClassUtils#getDefaultClassLoader()
+	 * @see play.data.internal.binding.util.ClassUtils#forName(String, ClassLoader)
 	 */
 	@Nullable ClassLoader getClassLoader();
 

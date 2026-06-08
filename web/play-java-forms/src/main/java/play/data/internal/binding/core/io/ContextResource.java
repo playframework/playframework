@@ -25,7 +25,7 @@ package play.data.internal.binding.core.io;
  *
  * @author Juergen Hoeller
  * @since 2.5
- * @see org.springframework.web.context.support.ServletContextResource
+ * @see play.data.internal.binding.web.context.support.ServletContextResource
  */
 public interface ContextResource extends Resource {
 

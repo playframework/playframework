@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
  * @see DataBinder#setMessageCodesResolver
  * @see ObjectError
  * @see FieldError
- * @see org.springframework.context.MessageSourceResolvable#getCodes()
+ * @see play.data.internal.binding.context.MessageSourceResolvable#getCodes()
  */
 public interface MessageCodesResolver {
 

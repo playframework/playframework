@@ -209,8 +209,8 @@ import play.data.internal.binding.util.StringUtils;
  * @author Dave Syer
  * @since 1.0.2
  * @see #CLASSPATH_ALL_URL_PREFIX
- * @see org.springframework.util.AntPathMatcher
- * @see org.springframework.core.io.ResourceLoader#getResource(String)
+ * @see play.data.internal.binding.util.AntPathMatcher
+ * @see play.data.internal.binding.core.io.ResourceLoader#getResource(String)
  * @see ClassLoader#getResources(String)
  */
 public class PathMatchingResourcePatternResolver implements ResourcePatternResolver {
@@ -296,7 +296,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @param classLoader the ClassLoader to load class path resources with,
 	 * or {@code null} for using the thread context class loader
 	 * at the time of actual resource access
-	 * @see org.springframework.core.io.DefaultResourceLoader
+	 * @see play.data.internal.binding.core.io.DefaultResourceLoader
 	 */
 	public PathMatchingResourcePatternResolver(@Nullable ClassLoader classLoader) {
 		this.resourceLoader = new DefaultResourceLoader(classLoader);
@@ -679,7 +679,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @see #isJarResource(Resource)
 	 * @see #doFindPathMatchingJarResources(Resource, URL, String)
 	 * @see #doFindPathMatchingFileResources(Resource, String)
-	 * @see org.springframework.util.PathMatcher
+	 * @see play.data.internal.binding.util.PathMatcher
 	 */
 	protected Resource[] findPathMatchingResources(String locationPattern) throws IOException {
 		String rootDirPath = determineRootDir(locationPattern);
@@ -843,7 +843,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @throws IOException in case of I/O errors
 	 * @see #findPathMatchingResources(String)
 	 * @see #doFindPathMatchingJarResources(Resource, URL, String)
-	 * @see org.springframework.util.ResourceUtils#isJarURL
+	 * @see play.data.internal.binding.util.ResourceUtils#isJarURL
 	 */
 	protected boolean isJarResource(Resource resource) throws IOException {
 		return false;
@@ -859,7 +859,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @throws IOException in case of I/O errors
 	 * @since 4.3
 	 * @see java.net.JarURLConnection
-	 * @see org.springframework.util.PathMatcher
+	 * @see play.data.internal.binding.util.PathMatcher
 	 */
 	protected Set<Resource> doFindPathMatchingJarResources(Resource rootDirResource, URL rootDirUrl, String subPattern)
 			throws IOException {
@@ -1006,7 +1006,7 @@ public class PathMatchingResourcePatternResolver implements ResourcePatternResol
 	 * @param subPattern the sub pattern to match (below the root directory)
 	 * @return a mutable Set of matching Resource instances
 	 * @throws IOException in case of I/O errors
-	 * @see org.springframework.util.PathMatcher
+	 * @see play.data.internal.binding.util.PathMatcher
 	 */
 	protected Set<Resource> doFindPathMatchingFileResources(Resource rootDirResource, String subPattern)
 			throws IOException {

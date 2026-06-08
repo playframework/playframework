@@ -367,7 +367,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	/**
 	 * This implementation creates a FileSystemResource, applying the given path
 	 * relative to the path of the underlying file of this resource descriptor.
-	 * @see org.springframework.util.StringUtils#applyRelativePath(String, String)
+	 * @see play.data.internal.binding.util.StringUtils#applyRelativePath(String, String)
 	 */
 	@Override
 	public Resource createRelative(String relativePath) {

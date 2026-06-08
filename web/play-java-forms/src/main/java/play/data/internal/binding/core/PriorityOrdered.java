@@ -41,7 +41,7 @@ package play.data.internal.binding.core;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @since 2.5
- * @see org.springframework.beans.factory.config.PropertyOverrideConfigurer
+ * @see play.data.internal.binding.beans.factory.config.PropertyOverrideConfigurer
  */
 public interface PriorityOrdered extends Ordered {
 }

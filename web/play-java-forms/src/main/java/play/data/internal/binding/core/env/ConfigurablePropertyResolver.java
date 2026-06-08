@@ -42,7 +42,7 @@ public interface ConfigurablePropertyResolver extends PropertyResolver {
 	 * cs.addConverter(new FooConverter());
 	 * </pre>
 	 * @see PropertyResolver#getProperty(String, Class)
-	 * @see org.springframework.core.convert.converter.ConverterRegistry#addConverter
+	 * @see play.data.internal.binding.core.convert.converter.ConverterRegistry#addConverter
 	 */
 	ConfigurableConversionService getConversionService();
 
@@ -55,7 +55,7 @@ public interface ConfigurablePropertyResolver extends PropertyResolver {
 	 * and calling methods such as {@code #addConverter}.
 	 * @see PropertyResolver#getProperty(String, Class)
 	 * @see #getConversionService()
-	 * @see org.springframework.core.convert.converter.ConverterRegistry#addConverter
+	 * @see play.data.internal.binding.core.convert.converter.ConverterRegistry#addConverter
 	 */
 	void setConversionService(ConfigurableConversionService conversionService);
 

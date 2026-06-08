@@ -55,7 +55,7 @@ import play.data.internal.binding.core.Ordered;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @since 2.0
- * @see org.springframework.core.Ordered
+ * @see play.data.internal.binding.core.Ordered
  * @see AnnotationAwareOrderComparator
  * @see OrderUtils
  * @see jakarta.annotation.Priority

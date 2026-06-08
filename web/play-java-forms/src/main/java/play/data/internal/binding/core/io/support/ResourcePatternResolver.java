@@ -50,10 +50,10 @@ import play.data.internal.binding.core.io.ResourceLoader;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @since 1.0.2
- * @see org.springframework.core.io.Resource
- * @see org.springframework.core.io.ResourceLoader
- * @see org.springframework.context.ApplicationContext
- * @see org.springframework.context.ResourceLoaderAware
+ * @see play.data.internal.binding.core.io.Resource
+ * @see play.data.internal.binding.core.io.ResourceLoader
+ * @see play.data.internal.binding.context.ApplicationContext
+ * @see play.data.internal.binding.context.ResourceLoaderAware
  */
 public interface ResourcePatternResolver extends ResourceLoader {
 
@@ -65,7 +65,7 @@ public interface ResourcePatternResolver extends ResourceLoader {
 	 * files you can use the location pattern {@code "classpath*:/beans.xml"}.
 	 * <p>As of Spring Framework 6.0, the semantics for the {@code "classpath*:"}
 	 * prefix have been expanded to include the module path as well as the class path.
-	 * @see org.springframework.core.io.ResourceLoader#CLASSPATH_URL_PREFIX
+	 * @see play.data.internal.binding.core.io.ResourceLoader#CLASSPATH_URL_PREFIX
 	 */
 	String CLASSPATH_ALL_URL_PREFIX = "classpath*:";
 

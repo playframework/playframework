@@ -32,8 +32,8 @@ import play.data.internal.binding.util.StringUtils;
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Dave Syer
- * @see org.springframework.util.StringUtils#delimitedListToStringArray
- * @see org.springframework.util.StringUtils#arrayToDelimitedString
+ * @see play.data.internal.binding.util.StringUtils#delimitedListToStringArray
+ * @see play.data.internal.binding.util.StringUtils#arrayToDelimitedString
  */
 public class StringArrayPropertyEditor extends PropertyEditorSupport {
 

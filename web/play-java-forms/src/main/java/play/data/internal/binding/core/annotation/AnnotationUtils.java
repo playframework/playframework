@@ -245,7 +245,7 @@ public abstract class AnnotationUtils {
 	 * @param method the method to look for annotations on
 	 * @param annotationType the annotation type to look for
 	 * @return the first matching annotation, or {@code null} if not found
-	 * @see org.springframework.core.BridgeMethodResolver#findBridgedMethod(Method)
+	 * @see play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod(Method)
 	 * @see #getAnnotation(AnnotatedElement, Class)
 	 */
 	public static <A extends Annotation> @Nullable A getAnnotation(Method method, Class<A> annotationType) {
@@ -285,7 +285,7 @@ public abstract class AnnotationUtils {
 	 * @return the annotations found, an empty array, or {@code null} if not
 	 * resolvable (for example, because nested Class values in annotation attributes
 	 * failed to resolve at runtime)
-	 * @see org.springframework.core.BridgeMethodResolver#findBridgedMethod(Method)
+	 * @see play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod(Method)
 	 * @see AnnotatedElement#getAnnotations()
 	 * @deprecated since it is superseded by the {@link MergedAnnotations} API
 	 */
@@ -323,7 +323,7 @@ public abstract class AnnotationUtils {
 	 * @see #getRepeatableAnnotations(AnnotatedElement, Class, Class)
 	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class, Class)
 	 * @see AnnotatedElementUtils#getMergedRepeatableAnnotations(AnnotatedElement, Class)
-	 * @see org.springframework.core.BridgeMethodResolver#findBridgedMethod
+	 * @see play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod
 	 * @see java.lang.annotation.Repeatable
 	 * @see java.lang.reflect.AnnotatedElement#getAnnotationsByType
 	 * @deprecated since it is superseded by the {@link MergedAnnotations} API
@@ -360,7 +360,7 @@ public abstract class AnnotationUtils {
 	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class)
 	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class, Class)
 	 * @see AnnotatedElementUtils#getMergedRepeatableAnnotations(AnnotatedElement, Class, Class)
-	 * @see org.springframework.core.BridgeMethodResolver#findBridgedMethod
+	 * @see play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod
 	 * @see java.lang.annotation.Repeatable
 	 * @see java.lang.reflect.AnnotatedElement#getAnnotationsByType
 	 * @deprecated since it is superseded by the {@link MergedAnnotations} API
@@ -404,7 +404,7 @@ public abstract class AnnotationUtils {
 	 * @see #getRepeatableAnnotations(AnnotatedElement, Class, Class)
 	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class, Class)
 	 * @see AnnotatedElementUtils#getMergedRepeatableAnnotations(AnnotatedElement, Class)
-	 * @see org.springframework.core.BridgeMethodResolver#findBridgedMethod
+	 * @see play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod
 	 * @see java.lang.annotation.Repeatable
 	 * @see java.lang.reflect.AnnotatedElement#getDeclaredAnnotationsByType
 	 * @deprecated since it is superseded by the {@link MergedAnnotations} API
@@ -441,7 +441,7 @@ public abstract class AnnotationUtils {
 	 * @see #getRepeatableAnnotations(AnnotatedElement, Class, Class)
 	 * @see #getDeclaredRepeatableAnnotations(AnnotatedElement, Class)
 	 * @see AnnotatedElementUtils#getMergedRepeatableAnnotations(AnnotatedElement, Class, Class)
-	 * @see org.springframework.core.BridgeMethodResolver#findBridgedMethod
+	 * @see play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod
 	 * @see java.lang.annotation.Repeatable
 	 * @see java.lang.reflect.AnnotatedElement#getDeclaredAnnotationsByType
 	 * @deprecated since it is superseded by the {@link MergedAnnotations} API

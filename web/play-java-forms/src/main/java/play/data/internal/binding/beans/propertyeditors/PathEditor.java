@@ -46,7 +46,7 @@ import play.data.internal.binding.util.ResourceUtils;
  * @see java.nio.file.Path
  * @see Paths#get(URI)
  * @see ResourceEditor
- * @see org.springframework.core.io.ResourceLoader
+ * @see play.data.internal.binding.core.io.ResourceLoader
  * @see FileEditor
  * @see URLEditor
  */

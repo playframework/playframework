@@ -38,8 +38,8 @@ import play.data.internal.binding.util.Assert;
  * @author Juergen Hoeller
  * @since 2.0
  * @see #getPropertyAccessor()
- * @see org.springframework.beans.PropertyAccessor
- * @see org.springframework.beans.ConfigurablePropertyAccessor
+ * @see play.data.internal.binding.beans.PropertyAccessor
+ * @see play.data.internal.binding.beans.ConfigurablePropertyAccessor
  */
 @SuppressWarnings("serial")
 public abstract class AbstractPropertyBindingResult extends AbstractBindingResult {
@@ -76,7 +76,7 @@ public abstract class AbstractPropertyBindingResult extends AbstractBindingResul
 
 	/**
 	 * Returns the canonical property name.
-	 * @see org.springframework.beans.PropertyAccessorUtils#canonicalPropertyName
+	 * @see play.data.internal.binding.beans.PropertyAccessorUtils#canonicalPropertyName
 	 */
 	@Override
 	protected String canonicalFieldName(String field) {

@@ -64,10 +64,10 @@ package play.data.internal.binding.core.env;
  * @see ConfigurableEnvironment
  * @see AbstractEnvironment
  * @see StandardEnvironment
- * @see org.springframework.context.EnvironmentAware
- * @see org.springframework.context.ConfigurableApplicationContext#getEnvironment
- * @see org.springframework.context.ConfigurableApplicationContext#setEnvironment
- * @see org.springframework.context.support.AbstractApplicationContext#createEnvironment
+ * @see play.data.internal.binding.context.EnvironmentAware
+ * @see play.data.internal.binding.context.ConfigurableApplicationContext#getEnvironment
+ * @see play.data.internal.binding.context.ConfigurableApplicationContext#setEnvironment
+ * @see play.data.internal.binding.context.support.AbstractApplicationContext#createEnvironment
  */
 public interface Environment extends PropertyResolver {
 

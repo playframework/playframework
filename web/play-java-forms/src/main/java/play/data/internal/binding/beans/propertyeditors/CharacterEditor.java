@@ -40,7 +40,7 @@ import play.data.internal.binding.util.StringUtils;
  * @author Rick Evans
  * @since 1.2
  * @see Character
- * @see org.springframework.beans.BeanWrapperImpl
+ * @see play.data.internal.binding.beans.BeanWrapperImpl
  */
 public class CharacterEditor extends PropertyEditorSupport {
 

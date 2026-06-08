@@ -49,8 +49,8 @@ public interface TypeConverter {
 	 * @throws TypeMismatchException if type conversion failed
 	 * @see java.beans.PropertyEditor#setAsText(String)
 	 * @see java.beans.PropertyEditor#getValue()
-	 * @see org.springframework.core.convert.ConversionService
-	 * @see org.springframework.core.convert.converter.Converter
+	 * @see play.data.internal.binding.core.convert.ConversionService
+	 * @see play.data.internal.binding.core.convert.converter.Converter
 	 */
 	<T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType) throws TypeMismatchException;
 
@@ -67,8 +67,8 @@ public interface TypeConverter {
 	 * @throws TypeMismatchException if type conversion failed
 	 * @see java.beans.PropertyEditor#setAsText(String)
 	 * @see java.beans.PropertyEditor#getValue()
-	 * @see org.springframework.core.convert.ConversionService
-	 * @see org.springframework.core.convert.converter.Converter
+	 * @see play.data.internal.binding.core.convert.ConversionService
+	 * @see play.data.internal.binding.core.convert.converter.Converter
 	 */
 	<T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
 			@Nullable MethodParameter methodParam) throws TypeMismatchException;
@@ -86,8 +86,8 @@ public interface TypeConverter {
 	 * @throws TypeMismatchException if type conversion failed
 	 * @see java.beans.PropertyEditor#setAsText(String)
 	 * @see java.beans.PropertyEditor#getValue()
-	 * @see org.springframework.core.convert.ConversionService
-	 * @see org.springframework.core.convert.converter.Converter
+	 * @see play.data.internal.binding.core.convert.ConversionService
+	 * @see play.data.internal.binding.core.convert.converter.Converter
 	 */
 	<T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType, @Nullable Field field)
 			throws TypeMismatchException;
@@ -105,8 +105,8 @@ public interface TypeConverter {
 	 * @since 5.1.4
 	 * @see java.beans.PropertyEditor#setAsText(String)
 	 * @see java.beans.PropertyEditor#getValue()
-	 * @see org.springframework.core.convert.ConversionService
-	 * @see org.springframework.core.convert.converter.Converter
+	 * @see play.data.internal.binding.core.convert.ConversionService
+	 * @see play.data.internal.binding.core.convert.converter.Converter
 	 */
 	default <T> @Nullable T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
 			@Nullable TypeDescriptor typeDescriptor) throws TypeMismatchException {

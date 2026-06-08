@@ -60,7 +60,7 @@ import play.data.internal.binding.util.ObjectUtils;
  * @author Sebastien Deleuze
  * @author Phillip Webb
  * @since 2.0
- * @see org.springframework.core.annotation.SynthesizingMethodParameter
+ * @see play.data.internal.binding.core.annotation.SynthesizingMethodParameter
  */
 public class MethodParameter {
 

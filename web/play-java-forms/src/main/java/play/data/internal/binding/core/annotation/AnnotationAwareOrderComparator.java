@@ -41,8 +41,8 @@ import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrate
  * @author Oliver Gierke
  * @author Stephane Nicoll
  * @since 2.0.1
- * @see org.springframework.core.Ordered
- * @see org.springframework.core.annotation.Order
+ * @see play.data.internal.binding.core.Ordered
+ * @see play.data.internal.binding.core.annotation.Order
  * @see jakarta.annotation.Priority
  */
 public class AnnotationAwareOrderComparator extends OrderComparator {

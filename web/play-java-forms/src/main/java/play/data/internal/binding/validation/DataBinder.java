@@ -125,7 +125,7 @@ import play.data.internal.binding.validation.annotation.ValidationAnnotationUtil
  * @see #getBindingResult
  * @see DefaultMessageCodesResolver
  * @see DefaultBindingErrorProcessor
- * @see org.springframework.context.MessageSource
+ * @see play.data.internal.binding.context.MessageSource
  */
 public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 
@@ -254,7 +254,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * <p>Used for setter/field injection via {@link #bind(PropertyValues)}, and not
 	 * applicable to constructor binding via {@link #construct}.
 	 * @see #initBeanPropertyAccess()
-	 * @see org.springframework.beans.BeanWrapper#setAutoGrowNestedPaths
+	 * @see play.data.internal.binding.beans.BeanWrapper#setAutoGrowNestedPaths
 	 */
 	public void setAutoGrowNestedPaths(boolean autoGrowNestedPaths) {
 		Assert.state(this.bindingResult == null,
@@ -276,7 +276,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * <p>Used for setter/field injection via {@link #bind(PropertyValues)}, and not
 	 * applicable to constructor binding via {@link #construct}.
 	 * @see #initBeanPropertyAccess()
-	 * @see org.springframework.beans.BeanWrapper#setAutoGrowCollectionLimit
+	 * @see play.data.internal.binding.beans.BeanWrapper#setAutoGrowCollectionLimit
 	 */
 	public void setAutoGrowCollectionLimit(int autoGrowCollectionLimit) {
 		Assert.state(this.bindingResult == null,
@@ -1280,7 +1280,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * @return {@code true} if the field is allowed
 	 * @see #setAllowedFields
 	 * @see #setDisallowedFields
-	 * @see org.springframework.util.PatternMatchUtils#simpleMatch(String, String)
+	 * @see play.data.internal.binding.util.PatternMatchUtils#simpleMatch(String, String)
 	 */
 	protected boolean isAllowed(String field) {
 		String[] allowed = getAllowedFields();

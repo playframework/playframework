@@ -47,9 +47,9 @@ import java.lang.annotation.Target;
  * @author Juergen Hoeller
  * @since 3.1
  * @see jakarta.validation.Validator#validate(Object, Class[])
- * @see org.springframework.validation.SmartValidator#validate(Object, org.springframework.validation.Errors, Object...)
- * @see org.springframework.validation.beanvalidation.SpringValidatorAdapter
- * @see org.springframework.validation.beanvalidation.MethodValidationPostProcessor
+ * @see play.data.internal.binding.validation.SmartValidator#validate(Object, org.springframework.validation.Errors, Object...)
+ * @see play.data.internal.binding.validation.beanvalidation.SpringValidatorAdapter
+ * @see play.data.internal.binding.validation.beanvalidation.MethodValidationPostProcessor
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)

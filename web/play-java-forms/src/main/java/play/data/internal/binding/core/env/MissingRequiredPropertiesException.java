@@ -26,7 +26,7 @@ import java.util.Set;
  * @since 3.1
  * @see ConfigurablePropertyResolver#setRequiredProperties(String...)
  * @see ConfigurablePropertyResolver#validateRequiredProperties()
- * @see org.springframework.context.support.AbstractApplicationContext#prepareRefresh()
+ * @see play.data.internal.binding.context.support.AbstractApplicationContext#prepareRefresh()
  */
 @SuppressWarnings("serial")
 public class MissingRequiredPropertiesException extends IllegalStateException {

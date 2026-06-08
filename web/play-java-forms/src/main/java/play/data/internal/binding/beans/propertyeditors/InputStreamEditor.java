@@ -38,8 +38,8 @@ import play.data.internal.binding.util.Assert;
  * @author Juergen Hoeller
  * @since 1.0.1
  * @see java.io.InputStream
- * @see org.springframework.core.io.ResourceEditor
- * @see org.springframework.core.io.ResourceLoader
+ * @see play.data.internal.binding.core.io.ResourceEditor
+ * @see play.data.internal.binding.core.io.ResourceLoader
  * @see URLEditor
  * @see FileEditor
  */

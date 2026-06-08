@@ -54,7 +54,7 @@ import play.data.internal.binding.util.StringUtils;
  * @author Yanming Zhou
  * @author Stephane Nicoll
  * @since 1.1.2
- * @see org.springframework.core.io.Resource
+ * @see play.data.internal.binding.core.io.Resource
  * @see ResourcePatternResolver
  * @see PathMatchingResourcePatternResolver
  */

@@ -84,7 +84,7 @@ public final class BridgeMethodResolver {
 	 * (can be the original method if no more specific one could be found)
 	 * @since 6.1.3
 	 * @see #findBridgedMethod
-	 * @see org.springframework.util.ClassUtils#getMostSpecificMethod
+	 * @see play.data.internal.binding.util.ClassUtils#getMostSpecificMethod
 	 */
 	public static Method getMostSpecificMethod(Method bridgeMethod, @Nullable Class<?> targetClass) {
 		if (targetClass != null &&

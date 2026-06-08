@@ -26,8 +26,8 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Juergen Hoeller
  * @see MessageSource#getMessage(MessageSourceResolvable, java.util.Locale)
- * @see org.springframework.validation.ObjectError
- * @see org.springframework.validation.FieldError
+ * @see play.data.internal.binding.validation.ObjectError
+ * @see play.data.internal.binding.validation.FieldError
  */
 @FunctionalInterface
 public interface MessageSourceResolvable {

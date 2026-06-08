@@ -45,7 +45,7 @@ import play.data.internal.binding.util.StringUtils;
  * @author Juergen Hoeller
  * @since 10.03.2004
  * @see FileSystemResourceLoader
- * @see org.springframework.context.support.ClassPathXmlApplicationContext
+ * @see play.data.internal.binding.context.support.ClassPathXmlApplicationContext
  */
 public class DefaultResourceLoader implements ResourceLoader {
 
@@ -179,8 +179,8 @@ public class DefaultResourceLoader implements ResourceLoader {
 	 * @param path the path to the resource
 	 * @return the corresponding Resource handle
 	 * @see ClassPathResource
-	 * @see org.springframework.context.support.FileSystemXmlApplicationContext#getResourceByPath
-	 * @see org.springframework.web.context.support.XmlWebApplicationContext#getResourceByPath
+	 * @see play.data.internal.binding.context.support.FileSystemXmlApplicationContext#getResourceByPath
+	 * @see play.data.internal.binding.web.context.support.XmlWebApplicationContext#getResourceByPath
 	 */
 	protected Resource getResourceByPath(String path) {
 		return new ClassPathContextResource(path, getClassLoader());

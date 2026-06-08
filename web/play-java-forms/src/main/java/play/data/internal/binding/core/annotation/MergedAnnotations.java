@@ -573,7 +573,7 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * @see #withRepeatableContainers(RepeatableContainers)
 		 * @see #withAnnotationFilter(AnnotationFilter)
 		 * @see #from(AnnotatedElement)
-		 * @see org.springframework.test.context.TestContextAnnotationUtils#searchEnclosingClass(Class)
+		 * @see play.data.internal.binding.test.context.TestContextAnnotationUtils#searchEnclosingClass(Class)
 		 */
 		public Search withEnclosingClasses(Predicate<Class<?>> searchEnclosingClass) {
 			Assert.notNull(searchEnclosingClass, "Predicate must not be null");

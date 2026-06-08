@@ -35,7 +35,7 @@ import play.data.internal.binding.util.StringUtils;
  *
  * @author Juergen Hoeller
  * @since 10.06.2003
- * @see org.springframework.validation.DataBinder#registerCustomEditor
+ * @see play.data.internal.binding.validation.DataBinder#registerCustomEditor
  */
 public class CustomBooleanEditor extends PropertyEditorSupport {
 

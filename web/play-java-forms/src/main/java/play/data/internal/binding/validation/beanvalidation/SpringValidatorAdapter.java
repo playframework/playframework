@@ -204,7 +204,7 @@ public class SpringValidatorAdapter implements SmartValidator, jakarta.validatio
 	 * @return the Spring-reported field (for use with {@link Errors})
 	 * @since 4.2
 	 * @see jakarta.validation.ConstraintViolation#getPropertyPath()
-	 * @see org.springframework.validation.FieldError#getField()
+	 * @see play.data.internal.binding.validation.FieldError#getField()
 	 */
 	protected String determineField(ConstraintViolation<Object> violation) {
 		Path path = violation.getPropertyPath();
@@ -244,7 +244,7 @@ public class SpringValidatorAdapter implements SmartValidator, jakarta.validatio
 	 * @return a corresponding error code (for use with {@link Errors})
 	 * @since 4.2
 	 * @see jakarta.validation.metadata.ConstraintDescriptor#getAnnotation()
-	 * @see org.springframework.validation.MessageCodesResolver
+	 * @see play.data.internal.binding.validation.MessageCodesResolver
 	 */
 	protected String determineErrorCode(ConstraintDescriptor<?> descriptor) {
 		return descriptor.getAnnotation().annotationType().getSimpleName();
@@ -262,9 +262,9 @@ public class SpringValidatorAdapter implements SmartValidator, jakarta.validatio
 	 * @param field the field that caused the binding error
 	 * @param descriptor the JSR-303 constraint descriptor
 	 * @return the Object array that represents the FieldError arguments
-	 * @see org.springframework.validation.FieldError#getArguments
-	 * @see org.springframework.context.support.DefaultMessageSourceResolvable
-	 * @see org.springframework.validation.DefaultBindingErrorProcessor#getArgumentsForBindError
+	 * @see play.data.internal.binding.validation.FieldError#getArguments
+	 * @see play.data.internal.binding.context.support.DefaultMessageSourceResolvable
+	 * @see play.data.internal.binding.validation.DefaultBindingErrorProcessor#getArgumentsForBindError
 	 */
 	protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
 		List<Object> arguments = new ArrayList<>();
@@ -312,7 +312,7 @@ public class SpringValidatorAdapter implements SmartValidator, jakarta.validatio
 	 * @return the invalid value to expose as part of the field error
 	 * @since 4.2
 	 * @see jakarta.validation.ConstraintViolation#getInvalidValue()
-	 * @see org.springframework.validation.FieldError#getRejectedValue()
+	 * @see play.data.internal.binding.validation.FieldError#getRejectedValue()
 	 */
 	protected @Nullable Object getRejectedValue(String field, ConstraintViolation<Object> violation, BindingResult bindingResult) {
 		Object invalidValue = violation.getInvalidValue();

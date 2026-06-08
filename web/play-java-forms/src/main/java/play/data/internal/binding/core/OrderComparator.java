@@ -47,7 +47,7 @@ import play.data.internal.binding.util.ObjectUtils;
  * @since 07.04.2003
  * @see Ordered
  * @see PriorityOrdered
- * @see org.springframework.core.annotation.AnnotationAwareOrderComparator
+ * @see play.data.internal.binding.core.annotation.AnnotationAwareOrderComparator
  * @see java.util.List#sort(java.util.Comparator)
  * @see java.util.Arrays#sort(Object[], java.util.Comparator)
  */

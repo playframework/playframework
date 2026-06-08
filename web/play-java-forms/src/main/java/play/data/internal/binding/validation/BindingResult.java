@@ -73,8 +73,8 @@ public interface BindingResult extends Errors {
 	 * the attributes from the model Map returned by this method.
 	 * @see #getObjectName()
 	 * @see #MODEL_KEY_PREFIX
-	 * @see org.springframework.web.servlet.ModelAndView
-	 * @see org.springframework.web.servlet.tags.BindTag
+	 * @see play.data.internal.binding.web.servlet.ModelAndView
+	 * @see play.data.internal.binding.web.servlet.tags.BindTag
 	 */
 	Map<String, Object> getModel();
 

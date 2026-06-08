@@ -32,7 +32,7 @@ import org.jspecify.annotations.Nullable;
  * @see java.beans.PropertyEditor
  * @see PropertyEditorRegistrar
  * @see BeanWrapper
- * @see org.springframework.validation.DataBinder
+ * @see play.data.internal.binding.validation.DataBinder
  */
 public interface PropertyEditorRegistry {
 

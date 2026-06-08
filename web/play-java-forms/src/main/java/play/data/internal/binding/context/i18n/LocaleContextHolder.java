@@ -40,8 +40,8 @@ import play.data.internal.binding.core.NamedThreadLocal;
  * @author Nicholas Williams
  * @since 1.2
  * @see LocaleContext
- * @see org.springframework.context.support.MessageSourceAccessor
- * @see org.springframework.web.servlet.DispatcherServlet
+ * @see play.data.internal.binding.context.support.MessageSourceAccessor
+ * @see play.data.internal.binding.web.servlet.DispatcherServlet
  */
 public final class LocaleContextHolder {
 

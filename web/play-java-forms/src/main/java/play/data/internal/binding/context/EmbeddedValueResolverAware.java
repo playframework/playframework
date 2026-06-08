@@ -29,9 +29,9 @@ import play.data.internal.binding.util.StringValueResolver;
  * @author Juergen Hoeller
  * @author Chris Beams
  * @since 3.0.3
- * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#resolveEmbeddedValue(String)
- * @see org.springframework.beans.factory.config.ConfigurableBeanFactory#getBeanExpressionResolver()
- * @see org.springframework.beans.factory.config.EmbeddedValueResolver
+ * @see play.data.internal.binding.beans.factory.config.ConfigurableBeanFactory#resolveEmbeddedValue(String)
+ * @see play.data.internal.binding.beans.factory.config.ConfigurableBeanFactory#getBeanExpressionResolver()
+ * @see play.data.internal.binding.beans.factory.config.EmbeddedValueResolver
  */
 public interface EmbeddedValueResolverAware extends Aware {
 

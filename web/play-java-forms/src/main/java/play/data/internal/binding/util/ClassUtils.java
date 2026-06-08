@@ -945,7 +945,7 @@ public abstract class ClassUtils {
 	/**
 	 * Check whether the given object is a CGLIB proxy.
 	 * @param object the object to check
-	 * @see org.springframework.aop.support.AopUtils#isCglibProxy(Object)
+	 * @see play.data.internal.binding.aop.support.AopUtils#isCglibProxy(Object)
 	 * @deprecated in favor of custom (possibly narrower) checks
 	 * such as for a Spring AOP proxy
 	 */
