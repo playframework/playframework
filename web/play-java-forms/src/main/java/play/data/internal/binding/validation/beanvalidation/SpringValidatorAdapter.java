@@ -49,7 +49,7 @@ import play.data.internal.binding.validation.SmartValidator;
 
 /**
  * Adapter that takes a JSR-303 {@code javax.validator.Validator} and
- * exposes it as a Spring {@link org.springframework.validation.Validator}
+ * exposes it as a Spring {@link play.data.internal.binding.validation.Validator}
  * while also exposing the original JSR-303 Validator interface itself.
  *
  * <p>Can be used as a programmatic wrapper. Also serves as base class for
@@ -238,7 +238,7 @@ public class SpringValidatorAdapter implements SmartValidator, jakarta.validatio
 	 * Determine a Spring-reported error code for the given constraint descriptor.
 	 * <p>The default implementation returns the simple class name of the descriptor's
 	 * annotation type. Note that the configured
-	 * {@link org.springframework.validation.MessageCodesResolver} will automatically
+	 * {@link play.data.internal.binding.validation.MessageCodesResolver} will automatically
 	 * generate error code variations which include the object name and the field name.
 	 * @param descriptor the JSR-303 ConstraintDescriptor for the current violation
 	 * @return a corresponding error code (for use with {@link Errors})

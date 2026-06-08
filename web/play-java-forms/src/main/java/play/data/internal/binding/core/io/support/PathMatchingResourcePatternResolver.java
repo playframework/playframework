@@ -83,7 +83,7 @@ import play.data.internal.binding.util.StringUtils;
  * specified resource location path into one or more matching Resources.
  *
  * <p>The source path may be a simple path which has a one-to-one mapping to a
- * target {@link org.springframework.core.io.Resource}, or alternatively may
+ * target {@link play.data.internal.binding.core.io.Resource}, or alternatively may
  * contain the special "{@code classpath*:}" prefix and/or internal Ant-style
  * path patterns (matched using Spring's {@link AntPathMatcher} utility). Both
  * of the latter are effectively wildcards.

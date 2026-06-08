@@ -49,7 +49,7 @@ import play.data.internal.binding.util.ObjectUtils;
  * {@link Method} or {@link Constructor} plus a parameter index and a nested type
  * index for a declared generic type. Useful as a specification object to pass along.
  *
- * <p>There is also a {@link org.springframework.core.annotation.SynthesizingMethodParameter}
+ * <p>There is also a {@link play.data.internal.binding.core.annotation.SynthesizingMethodParameter}
  * subclass available which synthesizes annotations with attribute aliases. That
  * subclass is used for web and message endpoint processing, in particular.
  *

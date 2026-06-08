@@ -22,9 +22,9 @@ import play.data.internal.binding.util.ResourceUtils;
 
 /**
  * Strategy interface for loading resources (for example, class path or file system
- * resources). An {@link org.springframework.context.ApplicationContext}
+ * resources). An {@link play.data.internal.binding.context.ApplicationContext}
  * is required to provide this functionality plus extended
- * {@link org.springframework.core.io.support.ResourcePatternResolver} support.
+ * {@link play.data.internal.binding.core.io.support.ResourcePatternResolver} support.
  *
  * <p>{@link DefaultResourceLoader} is a standalone implementation that is
  * usable outside an ApplicationContext and is also used by {@link ResourceEditor}.

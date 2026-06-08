@@ -29,7 +29,7 @@ import play.data.internal.binding.util.StringUtils;
  *
  * <p>Note that the JDK does not contain a default
  * {@link java.beans.PropertyEditor property editor} for {@code char}!
- * {@link org.springframework.beans.BeanWrapperImpl} will register this
+ * {@link play.data.internal.binding.beans.BeanWrapperImpl} will register this
  * editor by default.
  *
  * <p>Also supports conversion from a Unicode character sequence; for example,

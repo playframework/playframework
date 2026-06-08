@@ -33,7 +33,7 @@ import play.data.internal.binding.util.StringUtils;
  * {@code Resource} properties instead of using a {@code String} location property.
  *
  * <p>The path may contain {@code ${...}} placeholders, to be
- * resolved as {@link org.springframework.core.env.Environment} properties:
+ * resolved as {@link play.data.internal.binding.core.env.Environment} properties:
  * for example, {@code ${user.dir}}. Unresolvable placeholders are ignored by default.
  *
  * <p>Delegates to a {@link ResourceLoader} to do the heavy lifting,

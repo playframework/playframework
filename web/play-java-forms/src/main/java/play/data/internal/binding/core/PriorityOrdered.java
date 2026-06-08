@@ -31,7 +31,7 @@ package org.springframework.core;
  * itself for objects where it is particularly important to recognize
  * <em>prioritized</em> objects first, potentially without even obtaining the
  * remaining objects. A typical example: prioritized post-processors in a Spring
- * {@link org.springframework.context.ApplicationContext}.
+ * {@link play.data.internal.binding.context.ApplicationContext}.
  *
  * <p>Note: {@code PriorityOrdered} post-processor beans are initialized in
  * a special phase, ahead of other post-processor beans. This subtly

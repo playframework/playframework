@@ -35,7 +35,7 @@ import play.data.internal.binding.util.StringUtils;
  * Default implementation of the {@link ResourceLoader} interface.
  *
  * <p>Used by {@link ResourceEditor}, and serves as base class for
- * {@link org.springframework.context.support.AbstractApplicationContext}.
+ * {@link play.data.internal.binding.context.support.AbstractApplicationContext}.
  * Can also be used standalone.
  *
  * <p>Will return a {@link UrlResource} if the location value is a URL,

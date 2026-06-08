@@ -563,7 +563,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
-	 * Delegate for {@link org.springframework.beans.BeanUtils#isSimpleValueType}.
+	 * Delegate for {@link play.data.internal.binding.beans.BeanUtils#isSimpleValueType}.
 	 * Also used by {@link ObjectUtils#nullSafeConciseToString}.
 	 * <p>Check if the given type represents a common "simple" value type:
 	 * primitive or primitive wrapper, {@link Enum}, {@link String} or other
@@ -668,7 +668,7 @@ public abstract class ClassUtils {
 	 * if necessary, and concatenating the specified resource name to this.
 	 * <br/>As such, this function may be used to build a path suitable for
 	 * loading a resource file that is in the same package as a class file,
-	 * although {@link org.springframework.core.io.ClassPathResource} is usually
+	 * although {@link play.data.internal.binding.core.io.ClassPathResource} is usually
 	 * even more convenient.
 	 * @param clazz the Class whose package will be used as the base
 	 * @param resourceName the resource name to append. A leading slash is optional.
@@ -1348,9 +1348,9 @@ public abstract class ClassUtils {
 	 * if there is one &mdash; for example, the method may be {@code IFoo.bar()},
 	 * and the target class may be {@code DefaultFoo}. In this case, the method may be
 	 * {@code DefaultFoo.bar()}. This enables attributes on that method to be found.
-	 * <p><b>NOTE:</b> In contrast to {@link org.springframework.aop.support.AopUtils#getMostSpecificMethod},
+	 * <p><b>NOTE:</b> In contrast to {@link play.data.internal.binding.aop.support.AopUtils#getMostSpecificMethod},
 	 * this method does <i>not</i> resolve bridge methods automatically.
-	 * Call {@link org.springframework.core.BridgeMethodResolver#findBridgedMethod}
+	 * Call {@link play.data.internal.binding.core.BridgeMethodResolver#findBridgedMethod}
 	 * if bridge method resolution is desirable &mdash; for example, to obtain
 	 * metadata from the original method definition.
 	 * <p><b>NOTE:</b> If Java security settings disallow reflective access &mdash;

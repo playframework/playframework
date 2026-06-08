@@ -36,8 +36,8 @@ import play.data.internal.binding.lang.Contract;
  *
  * <p>Consider using Spring's Resource abstraction in the core package
  * for handling all kinds of file resources in a uniform manner.
- * {@link org.springframework.core.io.ResourceLoader}'s {@code getResource()}
- * method can resolve any location to a {@link org.springframework.core.io.Resource}
+ * {@link play.data.internal.binding.core.io.ResourceLoader}'s {@code getResource()}
+ * method can resolve any location to a {@link play.data.internal.binding.core.io.Resource}
  * object, which in turn allows one to obtain a {@code java.io.File} in the
  * file system through its {@code getFile()} method.
  *

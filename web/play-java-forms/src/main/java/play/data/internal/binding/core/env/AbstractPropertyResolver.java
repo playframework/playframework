@@ -58,7 +58,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 	 * <p>If the property is not set, {@code '\'} will be used as the default
 	 * escape character.
 	 * <p>May alternatively be configured via a
-	 * {@link org.springframework.core.SpringProperties spring.properties} file
+	 * {@link play.data.internal.binding.core.SpringProperties spring.properties} file
 	 * in the root of the classpath.
 	 * @since 6.2.7
 	 * @see #getDefaultEscapeCharacter()

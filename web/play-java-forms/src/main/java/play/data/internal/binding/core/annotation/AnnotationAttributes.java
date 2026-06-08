@@ -31,7 +31,7 @@ import play.data.internal.binding.util.StringUtils;
  * {@link LinkedHashMap} subclass representing annotation attribute
  * <em>key-value</em> pairs as read by {@link AnnotationUtils},
  * {@link AnnotatedElementUtils}, and Spring's reflection- and ASM-based
- * {@link org.springframework.core.type.AnnotationMetadata} implementations.
+ * {@link play.data.internal.binding.core.type.AnnotationMetadata} implementations.
  *
  * <p>Provides 'pseudo-reification' to avoid noisy Map generics in the calling
  * code as well as convenience methods for looking up annotation attributes

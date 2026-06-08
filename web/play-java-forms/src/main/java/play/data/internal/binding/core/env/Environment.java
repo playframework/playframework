@@ -25,7 +25,7 @@ package org.springframework.core.env;
  * <p>A <em>profile</em> is a named, logical group of bean definitions to be registered
  * with the container only if the given profile is <em>active</em>. Beans may be assigned
  * to a profile whether defined in XML or via annotations; see the spring-beans 3.1 schema
- * or the {@link org.springframework.context.annotation.Profile @Profile} annotation for
+ * or the {@link play.data.internal.binding.context.annotation.Profile @Profile} annotation for
  * syntax details. The role of the {@code Environment} object with relation to profiles is
  * in determining which profiles (if any) are currently {@linkplain #getActiveProfiles
  * active}, and which profiles (if any) should be {@linkplain #getDefaultProfiles active
@@ -45,7 +45,7 @@ package org.springframework.core.env;
  * <p>In most cases, however, application-level beans should not need to interact with the
  * {@code Environment} directly but instead may request to have {@code ${...}} property
  * values replaced by a property placeholder configurer such as
- * {@link org.springframework.context.support.PropertySourcesPlaceholderConfigurer
+ * {@link play.data.internal.binding.context.support.PropertySourcesPlaceholderConfigurer
  * PropertySourcesPlaceholderConfigurer}, which itself is {@code EnvironmentAware} and
  * registered by default when using {@code <context:property-placeholder/>}.
  *

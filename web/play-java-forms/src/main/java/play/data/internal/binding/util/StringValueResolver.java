@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Simple strategy interface for resolving a String value.
- * Used by {@link org.springframework.beans.factory.config.ConfigurableBeanFactory}.
+ * Used by {@link play.data.internal.binding.beans.factory.config.ConfigurableBeanFactory}.
  *
  * @author Juergen Hoeller
  * @since 2.5

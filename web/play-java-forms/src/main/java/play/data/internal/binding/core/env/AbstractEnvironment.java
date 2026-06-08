@@ -215,7 +215,7 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	 *
 	 * <p>Note that clients of any {@link ConfigurableEnvironment} may further customize
 	 * property sources via the {@link #getPropertySources()} accessor, typically within
-	 * an {@link org.springframework.context.ApplicationContextInitializer
+	 * an {@link play.data.internal.binding.context.ApplicationContextInitializer
 	 * ApplicationContextInitializer}. For example:
 	 *
 	 * <pre class="code">

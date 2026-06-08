@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
  * This is the central interface that a {@link PropertyEditorRegistrar} operates on.
  *
  * <p>Extended by {@link BeanWrapper}; implemented by {@link BeanWrapperImpl}
- * and {@link org.springframework.validation.DataBinder}.
+ * and {@link play.data.internal.binding.validation.DataBinder}.
  *
  * @author Juergen Hoeller
  * @since 1.2.6

@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
  * languages on the JVM) or more efficient {@link BeanInfo} retrieval algorithms.
  *
  * <p>BeanInfoFactories are instantiated by the {@link CachedIntrospectionResults},
- * by using the {@link org.springframework.core.io.support.SpringFactoriesLoader}
+ * by using the {@link play.data.internal.binding.core.io.support.SpringFactoriesLoader}
  * utility class.
  *
  * When a {@link BeanInfo} is to be created, the {@code CachedIntrospectionResults}
@@ -36,9 +36,9 @@ import org.jspecify.annotations.Nullable;
  * If none of the factories support the class, a standard {@link BeanInfo} will be
  * created as a default.
  *
- * <p>Note that the {@link org.springframework.core.io.support.SpringFactoriesLoader}
+ * <p>Note that the {@link play.data.internal.binding.core.io.support.SpringFactoriesLoader}
  * sorts the {@code BeanInfoFactory} instances by
- * {@link org.springframework.core.annotation.Order @Order}, so that ones with a
+ * {@link play.data.internal.binding.core.annotation.Order @Order}, so that ones with a
  * higher precedence come first.
  *
  * @author Arjen Poutsma

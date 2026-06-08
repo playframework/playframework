@@ -65,7 +65,7 @@ public interface BindingResult extends Errors {
 	 * <p>Note that the Map is constructed every time you're calling this method.
 	 * Adding things to the map and then re-calling this method will not work.
 	 * <p>The attributes in the model Map returned by this method are usually
-	 * included in the {@link org.springframework.web.servlet.ModelAndView}
+	 * included in the {@link play.data.internal.binding.web.servlet.ModelAndView}
 	 * for a form view that uses Spring's {@code bind} tag in a JSP,
 	 * which needs access to the BindingResult instance. Spring's pre-built
 	 * form controllers will do this for you when rendering a form view.

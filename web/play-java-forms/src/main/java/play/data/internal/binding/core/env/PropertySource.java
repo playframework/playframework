@@ -46,7 +46,7 @@ import play.data.internal.binding.util.ObjectUtils;
  *
  * <p>Note that when working with @{@link
  * org.springframework.context.annotation.Configuration Configuration} classes that
- * the @{@link org.springframework.context.annotation.PropertySource PropertySource}
+ * the @{@link play.data.internal.binding.context.annotation.PropertySource PropertySource}
  * annotation provides a convenient and declarative way of adding property sources to the
  * enclosing {@code Environment}.
  *

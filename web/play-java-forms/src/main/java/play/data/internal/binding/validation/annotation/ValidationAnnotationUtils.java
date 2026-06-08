@@ -44,7 +44,7 @@ public abstract class ValidationAnnotationUtils {
 	/**
 	 * Determine any validation hints for the given annotation.
 	 * <p>This implementation checks for Spring's
-	 * {@link org.springframework.validation.annotation.Validated},
+	 * {@link play.data.internal.binding.validation.annotation.Validated},
 	 * {@code @jakarta.validation.Valid}, and custom annotations whose
 	 * name starts with "Valid" which may optionally declare validation
 	 * hints through the "value" attribute.
@@ -84,7 +84,7 @@ public abstract class ValidationAnnotationUtils {
 
 	/**
 	 * Determine the applicable validation groups from an
-	 * {@link org.springframework.validation.annotation.Validated @Validated}
+	 * {@link play.data.internal.binding.validation.annotation.Validated @Validated}
 	 * annotation either on the method, or on the containing target class of
 	 * the method, or for an AOP proxy without a target (with all behavior in
 	 * advisors), also check on proxied interfaces.

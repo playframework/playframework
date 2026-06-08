@@ -23,7 +23,7 @@ import play.data.internal.binding.core.convert.support.ConfigurableConversionSer
 /**
  * Configuration interface to be implemented by most if not all {@link PropertyResolver}
  * types. Provides facilities for accessing and customizing the
- * {@link org.springframework.core.convert.ConversionService ConversionService}
+ * {@link play.data.internal.binding.core.convert.ConversionService ConversionService}
  * used when converting property values from one type to another.
  *
  * @author Chris Beams

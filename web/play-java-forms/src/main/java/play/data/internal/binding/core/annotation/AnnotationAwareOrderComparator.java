@@ -29,7 +29,7 @@ import play.data.internal.binding.core.annotation.MergedAnnotations.SearchStrate
 /**
  * {@code AnnotationAwareOrderComparator} is an extension of
  * {@link OrderComparator} that supports Spring's
- * {@link org.springframework.core.Ordered} interface as well as the
+ * {@link play.data.internal.binding.core.Ordered} interface as well as the
  * {@link Order @Order} and {@link jakarta.annotation.Priority @Priority}
  * annotations, with an order value provided by an {@code Ordered}
  * instance overriding a statically defined annotation value (if any).
@@ -56,7 +56,7 @@ public class AnnotationAwareOrderComparator extends OrderComparator {
 	/**
 	 * This implementation checks for {@link Order @Order} or
 	 * {@link jakarta.annotation.Priority @Priority} on various kinds of
-	 * elements, in addition to the {@link org.springframework.core.Ordered}
+	 * elements, in addition to the {@link play.data.internal.binding.core.Ordered}
 	 * check in the superclass.
 	 */
 	@Override

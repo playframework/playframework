@@ -785,7 +785,7 @@ public abstract class AnnotationUtils {
 	 * However, the {@code Map} signature has been preserved for binary compatibility.
 	 * @param annotation the annotation to retrieve the attributes for
 	 * @param classValuesAsString whether to convert Class references into Strings (for
-	 * compatibility with {@link org.springframework.core.type.AnnotationMetadata})
+	 * compatibility with {@link play.data.internal.binding.core.type.AnnotationMetadata})
 	 * or to preserve them as Class references
 	 * @return the Map of annotation attributes, with attribute names as keys and
 	 * corresponding attribute values as values (never {@code null})
@@ -800,14 +800,14 @@ public abstract class AnnotationUtils {
 	/**
 	 * Retrieve the given annotation's attributes as an {@link AnnotationAttributes} map.
 	 * <p>This method provides fully recursive annotation reading capabilities on par with
-	 * the reflection-based {@link org.springframework.core.type.StandardAnnotationMetadata}.
+	 * the reflection-based {@link play.data.internal.binding.core.type.StandardAnnotationMetadata}.
 	 * @param annotation the annotation to retrieve the attributes for
 	 * @param classValuesAsString whether to convert Class references into Strings (for
-	 * compatibility with {@link org.springframework.core.type.AnnotationMetadata})
+	 * compatibility with {@link play.data.internal.binding.core.type.AnnotationMetadata})
 	 * or to preserve them as Class references
 	 * @param nestedAnnotationsAsMap whether to convert nested annotations into
 	 * {@link AnnotationAttributes} maps (for compatibility with
-	 * {@link org.springframework.core.type.AnnotationMetadata}) or to preserve them as
+	 * {@link play.data.internal.binding.core.type.AnnotationMetadata}) or to preserve them as
 	 * {@code Annotation} instances
 	 * @return the annotation attributes (a specialized Map) with attribute names as keys
 	 * and corresponding attribute values as values (never {@code null})
@@ -841,16 +841,16 @@ public abstract class AnnotationUtils {
 	/**
 	 * Retrieve the given annotation's attributes as an {@link AnnotationAttributes} map.
 	 * <p>This method provides fully recursive annotation reading capabilities on par with
-	 * the reflection-based {@link org.springframework.core.type.StandardAnnotationMetadata}.
+	 * the reflection-based {@link play.data.internal.binding.core.type.StandardAnnotationMetadata}.
 	 * @param annotatedElement the element that is annotated with the supplied annotation;
 	 * may be {@code null} if unknown
 	 * @param annotation the annotation to retrieve the attributes for
 	 * @param classValuesAsString whether to convert Class references into Strings (for
-	 * compatibility with {@link org.springframework.core.type.AnnotationMetadata})
+	 * compatibility with {@link play.data.internal.binding.core.type.AnnotationMetadata})
 	 * or to preserve them as Class references
 	 * @param nestedAnnotationsAsMap whether to convert nested annotations into
 	 * {@link AnnotationAttributes} maps (for compatibility with
-	 * {@link org.springframework.core.type.AnnotationMetadata}) or to preserve them as
+	 * {@link play.data.internal.binding.core.type.AnnotationMetadata}) or to preserve them as
 	 * {@code Annotation} instances
 	 * @return the annotation attributes (a specialized Map) with attribute names as keys
 	 * and corresponding attribute values as values (never {@code null})
@@ -929,7 +929,7 @@ public abstract class AnnotationUtils {
 	 * may be {@code null} if unknown
 	 * @param attributes the annotation attributes to post-process
 	 * @param classValuesAsString whether to convert Class references into Strings (for
-	 * compatibility with {@link org.springframework.core.type.AnnotationMetadata})
+	 * compatibility with {@link play.data.internal.binding.core.type.AnnotationMetadata})
 	 * or to preserve them as Class references
 	 * @since 4.3.2
 	 * @see #getDefaultValue(Class, String)

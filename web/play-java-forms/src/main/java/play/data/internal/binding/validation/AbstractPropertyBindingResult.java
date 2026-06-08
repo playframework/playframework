@@ -31,7 +31,7 @@ import play.data.internal.binding.util.Assert;
 
 /**
  * Abstract base class for {@link BindingResult} implementations that work with
- * Spring's {@link org.springframework.beans.PropertyAccessor} mechanism.
+ * Spring's {@link play.data.internal.binding.beans.PropertyAccessor} mechanism.
  * Pre-implements field access through delegation to the corresponding
  * PropertyAccessor methods.
  *

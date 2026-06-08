@@ -36,14 +36,14 @@ import play.data.internal.binding.util.Assert;
 import play.data.internal.binding.util.StringUtils;
 
 /**
- * Editor for {@link org.springframework.core.io.Resource} arrays, to
+ * Editor for {@link play.data.internal.binding.core.io.Resource} arrays, to
  * automatically convert {@code String} location patterns
  * (for example, {@code "file:C:/my*.txt"} or {@code "classpath*:myfile.txt"})
  * to {@code Resource} array properties. Can also translate a collection
  * or array of location patterns into a merged Resource array.
  *
  * <p>A path may contain {@code ${...}} placeholders, to be
- * resolved as {@link org.springframework.core.env.Environment} properties:
+ * resolved as {@link play.data.internal.binding.core.env.Environment} properties:
  * for example, {@code ${user.dir}}. Unresolvable placeholders are ignored by default.
  *
  * <p>Delegates to a {@link ResourcePatternResolver},

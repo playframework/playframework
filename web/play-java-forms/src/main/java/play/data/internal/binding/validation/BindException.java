@@ -33,7 +33,7 @@ import play.data.internal.binding.util.Assert;
  * <p>As of Spring 2.0, this is a special-purpose class. Normally,
  * application code will work with the {@link BindingResult} interface,
  * or with a {@link DataBinder} that in turn exposes a BindingResult via
- * {@link org.springframework.validation.DataBinder#getBindingResult()}.
+ * {@link play.data.internal.binding.validation.DataBinder#getBindingResult()}.
  *
  * @author Rod Johnson
  * @author Juergen Hoeller

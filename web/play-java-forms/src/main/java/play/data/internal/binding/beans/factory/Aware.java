@@ -24,8 +24,8 @@ package org.springframework.beans.factory;
  *
  * <p>Note that merely implementing {@link Aware} provides no default functionality.
  * Rather, processing must be done explicitly, for example in a
- * {@link org.springframework.beans.factory.config.BeanPostProcessor}.
- * Refer to {@link org.springframework.context.support.ApplicationContextAwareProcessor}
+ * {@link play.data.internal.binding.beans.factory.config.BeanPostProcessor}.
+ * Refer to {@link play.data.internal.binding.context.support.ApplicationContextAwareProcessor}
  * for an example of processing specific {@code *Aware} interface callbacks.
  *
  * @author Chris Beams

@@ -27,7 +27,7 @@ import play.data.internal.binding.util.StringUtils;
 /**
  * Spring's default implementation of the {@link MessageSourceResolvable} interface.
  * Offers an easy way to store all the necessary values needed to resolve
- * a message via a {@link org.springframework.context.MessageSource}.
+ * a message via a {@link play.data.internal.binding.context.MessageSource}.
  *
  * @author Juergen Hoeller
  * @since 13.02.2004

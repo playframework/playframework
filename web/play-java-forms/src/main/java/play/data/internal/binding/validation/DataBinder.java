@@ -100,9 +100,9 @@ import play.data.internal.binding.validation.annotation.ValidationAnnotationUtil
  *
  * <p>Custom validation errors can be added afterwards. You will typically want to resolve
  * such error codes into proper user-visible error messages; this can be achieved through
- * resolving each error via a {@link org.springframework.context.MessageSource}, which is
+ * resolving each error via a {@link play.data.internal.binding.context.MessageSource}, which is
  * able to resolve an {@link ObjectError}/{@link FieldError} through its
- * {@link org.springframework.context.MessageSource#getMessage(org.springframework.context.MessageSourceResolvable, java.util.Locale)}
+ * {@link play.data.internal.binding.context.MessageSource#getMessage(org.springframework.context.MessageSourceResolvable, java.util.Locale)}
  * method. The list of message codes can be customized through the {@link MessageCodesResolver}
  * strategy: see the {@link #setMessageCodesResolver} method. {@link DefaultMessageCodesResolver}'s
  * javadoc states details on the default resolution rules.
@@ -607,7 +607,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 	 * Configure a resolver to determine the name of the value to bind to a
 	 * constructor parameter in {@link #construct}.
 	 * <p>If not configured, or if the name cannot be resolved, by default
-	 * {@link org.springframework.core.DefaultParameterNameDiscoverer} is used.
+	 * {@link play.data.internal.binding.core.DefaultParameterNameDiscoverer} is used.
 	 * @param nameResolver the resolver to use
 	 * @since 6.1
 	 */
@@ -1426,7 +1426,7 @@ public class DataBinder implements PropertyEditorRegistry, TypeConverter {
 		/**
 		 * Return the name to use for the given method parameter, or {@code null}
 		 * if unresolved. For constructor parameters, the name is determined via
-		 * {@link org.springframework.core.DefaultParameterNameDiscoverer} if unresolved.
+		 * {@link play.data.internal.binding.core.DefaultParameterNameDiscoverer} if unresolved.
 		 */
 		@Nullable String resolveName(MethodParameter parameter);
 	}

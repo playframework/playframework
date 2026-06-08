@@ -49,7 +49,7 @@ import play.data.internal.binding.core.Ordered;
  * through the {@link Ordered} interface, allowing for configuration-determined
  * instance values instead of hard-coded values attached to a particular class.
  *
- * <p>Consult the javadoc for {@link org.springframework.core.OrderComparator
+ * <p>Consult the javadoc for {@link play.data.internal.binding.core.OrderComparator
  * OrderComparator} for details on the sort semantics for non-ordered objects.
  *
  * @author Rod Johnson

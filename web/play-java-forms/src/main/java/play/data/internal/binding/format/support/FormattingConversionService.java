@@ -44,7 +44,7 @@ import play.data.internal.binding.util.StringUtils;
 import play.data.internal.binding.util.StringValueResolver;
 
 /**
- * A {@link org.springframework.core.convert.ConversionService} implementation
+ * A {@link play.data.internal.binding.core.convert.ConversionService} implementation
  * designed to be configured as a {@link FormatterRegistry}.
  *
  * @author Keith Donald

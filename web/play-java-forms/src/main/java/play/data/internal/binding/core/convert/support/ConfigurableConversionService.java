@@ -23,9 +23,9 @@ import play.data.internal.binding.core.convert.converter.ConverterRegistry;
  * Configuration interface to be implemented by most if not all {@link ConversionService}
  * types. Consolidates the read-only operations exposed by {@link ConversionService} and
  * the mutating operations of {@link ConverterRegistry} to allow for convenient ad-hoc
- * addition and removal of {@link org.springframework.core.convert.converter.Converter
+ * addition and removal of {@link play.data.internal.binding.core.convert.converter.Converter
  * Converters} through. The latter is particularly useful when working against a
- * {@link org.springframework.core.env.ConfigurableEnvironment ConfigurableEnvironment}
+ * {@link play.data.internal.binding.core.env.ConfigurableEnvironment ConfigurableEnvironment}
  * instance in application context bootstrapping code.
  *
  * @author Chris Beams

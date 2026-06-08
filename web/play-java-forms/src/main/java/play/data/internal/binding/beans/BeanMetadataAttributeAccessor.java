@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 import play.data.internal.binding.core.AttributeAccessorSupport;
 
 /**
- * Extension of {@link org.springframework.core.AttributeAccessorSupport},
+ * Extension of {@link play.data.internal.binding.core.AttributeAccessorSupport},
  * holding attributes as {@link BeanMetadataAttribute} objects in order
  * to keep track of the definition source.
  *

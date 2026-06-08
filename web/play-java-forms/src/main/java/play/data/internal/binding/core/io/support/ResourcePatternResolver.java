@@ -25,10 +25,10 @@ import play.data.internal.binding.core.io.ResourceLoader;
  * Strategy interface for resolving a location pattern (for example,
  * an Ant-style path pattern) into {@link Resource} objects.
  *
- * <p>This is an extension to the {@link org.springframework.core.io.ResourceLoader}
+ * <p>This is an extension to the {@link play.data.internal.binding.core.io.ResourceLoader}
  * interface. A passed-in {@code ResourceLoader} (for example, an
- * {@link org.springframework.context.ApplicationContext} passed in via
- * {@link org.springframework.context.ResourceLoaderAware} when running in a context)
+ * {@link play.data.internal.binding.context.ApplicationContext} passed in via
+ * {@link play.data.internal.binding.context.ResourceLoaderAware} when running in a context)
  * can be checked whether it implements this extended interface too.
  *
  * <p>{@link PathMatchingResourcePatternResolver} is a standalone implementation

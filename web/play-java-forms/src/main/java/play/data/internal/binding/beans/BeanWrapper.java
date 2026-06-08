@@ -22,8 +22,8 @@ import java.beans.PropertyDescriptor;
  * The central interface of Spring's low-level JavaBeans infrastructure.
  *
  * <p>Typically not used directly but rather implicitly via a
- * {@link org.springframework.beans.factory.BeanFactory} or a
- * {@link org.springframework.validation.DataBinder}.
+ * {@link play.data.internal.binding.beans.factory.BeanFactory} or a
+ * {@link play.data.internal.binding.validation.DataBinder}.
  *
  * <p>Provides operations to analyze and manipulate standard JavaBeans:
  * the ability to get and set property values (individually or in bulk),

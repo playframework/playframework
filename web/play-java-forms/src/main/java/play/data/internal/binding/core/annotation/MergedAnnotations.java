@@ -551,10 +551,10 @@ public interface MergedAnnotations extends Iterable<MergedAnnotation<Annotation>
 		 * {@code static} nested classes.
 		 * <ul>
 		 * <li>To limit the enclosing class search to inner classes, provide
-		 * {@link org.springframework.util.ClassUtils#isInnerClass(Class) ClassUtils::isInnerClass}
+		 * {@link play.data.internal.binding.util.ClassUtils#isInnerClass(Class) ClassUtils::isInnerClass}
 		 * as the predicate.</li>
 		 * <li>To limit the enclosing class search to static nested classes, provide
-		 * {@link org.springframework.util.ClassUtils#isStaticClass(Class) ClassUtils::isStaticClass}
+		 * {@link play.data.internal.binding.util.ClassUtils#isStaticClass(Class) ClassUtils::isStaticClass}
 		 * as the predicate.</li>
 		 * <li>To force the algorithm to always search enclosing classes, provide
 		 * {@code clazz -> true} as the predicate.</li>
