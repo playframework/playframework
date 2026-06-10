@@ -37,6 +37,32 @@ This form can generate a `User` result value from a `HashMap<String,String>` for
 
 @[bind](code/javaguide/forms/JavaForms.java)
 
+By default, Play Java forms can bind common scalar types, including their primitive equivalents where applicable:
+
+* `byte[]`
+* `char[]`
+* `Character`
+* `Boolean`
+* `Byte`
+* `Short`
+* `Integer`
+* `Long`
+* `Float`
+* `Double`
+* `java.math.BigDecimal`
+* `java.math.BigInteger`
+* `java.nio.charset.Charset`
+* `java.util.Currency`
+* `java.util.Locale`
+* `java.util.regex.Pattern`
+* `java.util.TimeZone`
+* `java.net.URI`
+* `java.net.URL`
+* `java.util.UUID`
+* `java.time.ZoneId`
+
+Concrete enum types, `java.util.Date`, `java.util.Optional`, arrays, collections, and maps using supported element, key, or value types can also be bound.
+
 If you have a request available in the scope, you can bind directly from the request content:
 
 @[bind-from-request](code/javaguide/forms/JavaForms.java)
