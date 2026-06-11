@@ -259,6 +259,8 @@ object Docs {
     scaladoc(sources, classpath, outputDir, options, 10, log)
     if (scalaBinaryVersion.value == "2.13") {
       cleanUpInvalidScala2SourceLinks(outputDir)
+    } else {
+      fixScala3Specs2Links(outputDir)
     }
   }
 
@@ -357,6 +359,70 @@ object Docs {
     (apiTarget ** "*.html").get().foreach { f =>
       val content    = IO.read(f)
       val newContent = generatedSourceLinkRegex.replaceAllIn(content, "")
+      if (newContent != content) {
+        IO.write(f, newContent)
+      }
+    }
+  }
+
+  // Scala 3 Scaladoc emits local relative links for Specs2 members inherited by PlaySpecification,
+  // even though the org.specs2 package is intentionally excluded from Play API docs. Rewrite links
+  // that have exact pages in Specs2's published API docs and disable the generated links that do not.
+  private def fixScala3Specs2Links(apiTarget: File): Unit = {
+    val specs2Version = Dependencies.specs2Version
+
+    val unpublishedSpecs2LinkPrefixes = Seq(
+      "org/specs2/matcher/EitherBeHaveMatchers$",
+      "org/specs2/matcher/ExceptionBaseMatchers$",
+      "org/specs2/matcher/ExceptionBeHaveMatchers$",
+      "org/specs2/matcher/MapBeHaveMatchers$",
+      "org/specs2/matcher/NumericBeHaveMatchers$",
+      "org/specs2/matcher/OptionBeHaveMatchers$",
+      "org/specs2/matcher/StringBaseMatchers$",
+      "org/specs2/matcher/StringBeHaveMatchers$",
+      "org/specs2/matcher/TraversableBeHaveMatchers$",
+      "org/specs2/matcher/TryBeHaveMatchers$",
+      "org/specs2/specification/dsl/SpecStructureDsl1$",
+      "org/specs2/specification/dsl/SpecStructureDslLowImplicits$",
+      "org/specs2/specification/dsl/mutable/ExampleDsl0$",
+      "org/specs2/specification/dsl/mutable/ExampleDsl1$"
+    )
+
+    def moduleFor(path: String): Option[String] =
+      if (unpublishedSpecs2LinkPrefixes.exists(path.startsWith)) {
+        None
+      } else if (path.startsWith("org/specs2/control/")) {
+        Some("specs2-common_3")
+      } else if (path.startsWith("org/specs2/execute/ResultLogicalCombinators$")) {
+        Some("specs2-common_3")
+      } else if (path.startsWith("org/specs2/execute/")) {
+        Some("specs2-core_3")
+      } else if (path.startsWith("org/specs2/specification/")) {
+        Some("specs2-core_3")
+      } else if (path.startsWith("org/specs2/matcher/")) {
+        Some("specs2-matcher_3")
+      } else {
+        None
+      }
+
+    val specs2LinkRegex = """href="(?:\.\./)+(?=org/specs2/)(org/specs2/[^"]+)"""".r
+
+    (apiTarget ** "*.html").get().foreach { f =>
+      val content    = IO.read(f)
+      val newContent = specs2LinkRegex.replaceAllIn(
+        content,
+        m => {
+          val path = m.group(1)
+          moduleFor(path) match {
+            case Some(module) =>
+              val replacement =
+                s"""href="https://javadoc.io/doc/org.specs2/$module/$specs2Version/$path""""
+              scala.util.matching.Regex.quoteReplacement(replacement)
+            case None =>
+              """data-unresolved-link="""""
+          }
+        }
+      )
       if (newContent != content) {
         IO.write(f, newContent)
       }
