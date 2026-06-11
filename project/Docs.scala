@@ -258,6 +258,9 @@ object Docs {
     val log       = streams.value.log
 
     scaladoc(sources, classpath, outputDir, options, 10, log)
+    if (scalaBinaryVersion.value == "2.13") {
+      cleanUpInvalidScala2SourceLinks(outputDir)
+    }
   }
 
   def genApiJavadocs = Def.task {
@@ -341,6 +344,23 @@ object Docs {
           javadocLinkRegex(javadocURL).replaceAllIn(oldContent, fixJavaLinks)
       }
       IO.write(f, newContent)
+    }
+  }
+
+  // Removes Scala 2 Scaladoc source links to generated target files, such as Twirl output
+  // and managed sources. Those files do not exist in the GitHub repository. Scala 3
+  // Scaladoc does not emit source links for those generated files, so it does not need
+  // this cleanup.
+  private def cleanUpInvalidScala2SourceLinks(apiTarget: File): Unit = {
+    val generatedSourceLinkRegex =
+      """<dt>Source</dt><dd><a href="https://github\.com/playframework/playframework/tree/[^"]+/[^"]*/target/[^"]+" target="_blank">[^<]+</a></dd>""".r
+
+    (apiTarget ** "*.html").get().foreach { f =>
+      val content    = IO.read(f)
+      val newContent = generatedSourceLinkRegex.replaceAllIn(content, "")
+      if (newContent != content) {
+        IO.write(f, newContent)
+      }
     }
   }
 
