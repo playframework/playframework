@@ -176,8 +176,6 @@ object Docs {
       "-notimestamp",
       "-Xmaxwarns",
       "1000",
-      "-exclude",
-      "play.api:play.core",
       "-source",
       "17"
     )
