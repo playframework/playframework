@@ -175,7 +175,7 @@ object Docs {
       "https://pekko.apache.org/japi/pekko-http/1.0/",
       "-notimestamp",
       "-Xmaxwarns",
-      "1000",
+      "99999",
       "-source",
       "17"
     )
