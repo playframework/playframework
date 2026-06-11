@@ -2,6 +2,7 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import java.net.URL
 import java.net.URLClassLoader
 import java.util.Locale
 import java.util.Optional
@@ -122,34 +123,137 @@ object Docs {
   val apiDocsDir                 = Def.setting(crossTarget.value / "apidocs")
   def apiDocsCache(name: String) = Def.setting(CacheStoreFactory(crossTarget.value / name))
 
+  private val InternalApiPathSegment        = "/internal/"
+  private val AllowedTopLevelApiPackages    = Seq("controllers", "play", "views")
+  private val ExcludedTopLevelScalaPackages = Seq("org", "models")
+
+  private def isNotInternalApiSource(source: File): Boolean = {
+    val path = source.getPath.replace(java.io.File.separatorChar, '/')
+
+    !path.contains(InternalApiPathSegment)
+  }
+
+  // Keeps javadoc input limited to Play's public Java package roots.
+  // Javadoc's -exclude option is not enough for this build because sources are passed explicitly.
+  private def isPublicJavaApiSource(source: File): Boolean = {
+    val path = source.getPath.replace(java.io.File.separatorChar, '/')
+
+    isNotInternalApiSource(source) &&
+    AllowedTopLevelApiPackages.exists(packageName => path.contains(s"/src/main/java/$packageName/"))
+  }
+
+  // Keeps Scala 3 Scaladoc input limited to public Play TASTy files.
+  // Scala 3 docs are generated from classpath TASTy, so filtering has to happen on compiled relative paths.
+  private def isPublicScala3TastyFile(classpathDirectory: File, tastyFile: File): Boolean = {
+    val path = classpathDirectory.toPath.relativize(tastyFile.toPath).toString.replace(java.io.File.separatorChar, '/')
+
+    !path.contains(InternalApiPathSegment) &&
+    !ExcludedTopLevelScalaPackages.exists(packageName => path.startsWith(s"$packageName/"))
+  }
+
+  private def scala3TastyFiles(classpath: Seq[File], baseDirectory: File): Seq[File] = {
+    val basePath = baseDirectory.getAbsolutePath.replace(java.io.File.separatorChar, '/')
+
+    classpath
+      .filter(_.isDirectory)
+      .filter(_.getAbsolutePath.replace(java.io.File.separatorChar, '/').startsWith(basePath))
+      .flatMap(dir => (dir ** "*.tasty").get.filter(isPublicScala3TastyFile(dir, _)))
+      .distinct
+  }
+
+  // Builds Scala 3 source-link options for actual Play source roots.
+  // This avoids invalid links for generated Twirl sources or dependency/library sources.
+  private def scala3SourceLinkMappings(scalaSources: Seq[File], rootDirectory: File, commitish: String): Seq[String] = {
+    val rootPath = rootDirectory.toPath
+
+    scalaSources
+      .filter(isNotInternalApiSource)
+      .flatMap { source =>
+        val path = source.getPath.replace(java.io.File.separatorChar, '/')
+
+        Seq("/src/main/scala/", "/src/main/scala-3/").collectFirst {
+          case marker if path.contains(marker) =>
+            new File(path.substring(0, path.indexOf(marker) + marker.length - 1))
+        }
+      }
+      .distinct
+      .map { sourceRoot =>
+        val relativePath = rootPath.relativize(sourceRoot.toPath).toString.replace(java.io.File.separatorChar, '/')
+        s"-source-links:$relativePath=https://github.com/playframework/playframework/tree/${commitish}/$relativePath€{FILE_PATH_EXT}"
+      }
+  }
+
+  // Converts sbt apiMappings into Scala 3 Scaladoc external mapping options.
+  // Scala 3 needs explicit mapping format tags, unlike the Scala 2 -doc-external-doc option.
+  private def scala3ExternalMappings(mappings: Map[File, URL]): Seq[String] = {
+    // Scala 3 external mappings expect the API base URL, not the index.html page used by sbt apiMappings.
+    def apiBase(url: URL): String =
+      url.toString.stripSuffix("index.html")
+
+    mappings.toSeq.sortBy { case (jar, _) => jar.getAbsolutePath }.map {
+      case (jar, url) =>
+        val name = jar.getName
+
+        val (format, apiUrl) =
+          if (name.startsWith("scala-library-") || name.startsWith("scala3-library_3-")) {
+            "scaladoc3" -> "https://www.scala-lang.org/api/3.x/"
+          } else if (url.toString.startsWith("https://pekko.apache.org/api/pekko/")) {
+            "scaladoc3" -> apiBase(url)
+          } else {
+            "javadoc" -> apiBase(url)
+          }
+
+        val jarPattern = name.stripSuffix(".jar").replace(".", "\\.")
+        s"-external-mappings:.*$jarPattern.*::$format::$apiUrl"
+    }
+  }
+
   def genApiScaladocs = Def.task {
     val version = Keys.version.value
     val label   = s"Play $version"
 
     val commitish   = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
+    val mappings    = apiMappings.value
     val externalDoc =
-      Opts.doc.externalAPI(apiMappings.value).head.replace("-doc-external-doc:", "") // from the "doc" task
+      Opts.doc.externalAPI(mappings).head.replace("-doc-external-doc:", "") // from the "doc" task
+    val rootDirectory = (ThisBuild / baseDirectory).value
+    val scalaSources  = apiDocsScalaSources.value
 
-    val options = Seq(
-      // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
-      // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
-      // into the FILE_SOURCE variable below, which is definitely not what we want.
-      // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
-      "-sourcepath",
-      (ThisBuild / baseDirectory).value.getAbsolutePath,
-      "-doc-source-url",
-      s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
-      s"-doc-external-doc:$externalDoc",
-      "-Xsource:3"
-    )
+    val options =
+      if (scalaBinaryVersion.value == "2.13") {
+        Seq(
+          // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
+          // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
+          // into the FILE_SOURCE variable below, which is definitely not what we want.
+          // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
+          "-sourcepath",
+          rootDirectory.getAbsolutePath,
+          "-doc-source-url",
+          s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
+          s"-doc-external-doc:$externalDoc",
+          "-skip-packages",
+          ExcludedTopLevelScalaPackages.mkString(":"),
+          "-Xsource:3"
+        )
+      } else {
+        Seq(
+          s"-sourceroot:${rootDirectory.getAbsolutePath}"
+        ) ++ scala3ExternalMappings(mappings) ++ scala3SourceLinkMappings(
+          scalaSources,
+          rootDirectory,
+          commitish
+        )
+      }
 
     val cache  = apiDocsCache("scalaapidocs.cache").value
     val scalac = (Compile / doc / compilers).value.scalac().asInstanceOf[AnalyzingCompiler]
 
     val scaladoc = Doc.scaladoc(label, cache, scalac)
 
-    val sources   = apiDocsScalaSources.value
     val classpath = apiDocsClasspath.value.toList
+    val sources   =
+      if (scalaBinaryVersion.value == "3") scala3TastyFiles(classpath, rootDirectory)
+      else scalaSources.filter(isNotInternalApiSource)
     val outputDir = apiDocsDir.value / "scala"
     val log       = streams.value.log
 
@@ -185,7 +289,7 @@ object Docs {
 
     val javadoc = sbt.inc.Doc.cachedJavadoc(label, cache, javaTools)
 
-    val sources    = apiDocsJavaSources.value.toList
+    val sources    = apiDocsJavaSources.value.toList.filter(isPublicJavaApiSource)
     val classpath  = apiDocsClasspath.value.toList
     val outputDir  = apiDocsDir.value / "java"
     val incToolOpt = IncToolOptions.create(Optional.empty[ClassFileManager](), false)
