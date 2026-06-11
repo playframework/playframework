@@ -275,7 +275,7 @@ object Accumulator {
    */
   def source[E]: Accumulator[E, Source[E, ?]] = {
     // If Pekko streams ever provides Sink.source(), we should use that instead.
-    // https://github.com/akka/akka/issues/18406
+    // https://github.com/akka/akka-core/issues/18406
     new SinkAccumulator(
       Sink
         .asPublisher[E](fanout = false)

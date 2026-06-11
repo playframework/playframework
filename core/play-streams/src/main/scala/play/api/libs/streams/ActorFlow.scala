@@ -16,7 +16,7 @@ import org.apache.pekko.stream.OverflowStrategy
 /**
  * Provides a flow that is handled by an actor.
  *
- * See https://github.com/akka/akka/issues/16985.
+ * See https://github.com/akka/akka-core/issues/16985.
  */
 object ActorFlow {
 

@@ -16,7 +16,7 @@ import scala.runtime.AbstractFunction1;
 /**
  * Provides a flow that is handled by an actor.
  *
- * <p>See https://github.com/akka/akka/issues/16985.
+ * <p>See https://github.com/akka/akka-core/issues/16985.
  */
 public class ActorFlow {
 

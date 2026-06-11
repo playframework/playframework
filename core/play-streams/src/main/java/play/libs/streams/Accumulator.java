@@ -158,7 +158,7 @@ public abstract class Accumulator<E, A> {
    */
   public static <E> Accumulator<E, Source<E, ?>> source() {
     // If Pekko streams ever provides Sink.source(), we should use that instead.
-    // https://github.com/akka/akka/issues/18406
+    // https://github.com/akka/akka-core/issues/18406
     return new SinkAccumulator<>(
         Sink.<E>asPublisher(AsPublisher.WITHOUT_FANOUT)
             .mapMaterializedValue(
