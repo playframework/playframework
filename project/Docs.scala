@@ -26,12 +26,14 @@ object Docs {
   val apiDocsInclude        = settingKey[Boolean]("Whether this sub project should be included in the API docs")
   val apiDocsIncludeManaged =
     settingKey[Boolean]("Whether managed sources from this project should be included in the API docs")
-  val apiDocsScalaSources = taskKey[Seq[File]]("All the scala sources for all projects")
-  val apiDocsJavaSources  = taskKey[Seq[File]]("All the Java sources for all projects")
-  val apiDocsClasspath    = taskKey[Seq[File]]("The classpath for API docs generation")
-  val apiDocs             = taskKey[File]("Generate the API docs")
-  val extractWebjars      = taskKey[File]("Extract webjar contents")
-  val allConfs            = taskKey[Seq[(String, File)]]("Gather all configuration files")
+  val apiDocsScalaSources     = taskKey[Seq[File]]("All the scala sources for all projects")
+  val apiDocsJavaSources      = taskKey[Seq[File]]("All the Java sources for all projects")
+  val apiDocsClasspath        = taskKey[Seq[File]]("The classpath for API docs generation")
+  val apiDocs                 = taskKey[File]("Generate the API docs")
+  val checkApiDocsPackageTree =
+    taskKey[Unit]("Check the generated API docs top-level package directory tree")
+  val extractWebjars = taskKey[File]("Extract webjar contents")
+  val allConfs       = taskKey[Seq[(String, File)]]("Gather all configuration files")
 
   lazy val settings = Seq(
     apiDocsInclude        := false,
@@ -56,7 +58,8 @@ object Docs {
       val bs = buildStructure.value
       Def.task(allConfsTask(pr, bs).value)
     }.value,
-    apiDocs := apiDocsTask.value,
+    apiDocs                 := apiDocsTask.value,
+    checkApiDocsPackageTree := checkApiDocsPackageTreeTask.value,
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
     (Compile / packageBin / mappings) ++= {
@@ -121,6 +124,50 @@ object Docs {
 
   val apiDocsDir                 = Def.setting(crossTarget.value / "apidocs")
   def apiDocsCache(name: String) = Def.setting(CacheStoreFactory(crossTarget.value / name))
+
+  // Returns the first generated directory level under java/ and scala/ API docs.
+  // This is used by the check task to catch accidental publication of internal or third-party packages.
+  private def apiDocsTopLevelPackageTree(base: File): Seq[String] = {
+    val scalaDocAssetDirectories = Set("fonts", "hljs", "images", "lib", "scripts", "styles", "webfonts")
+
+    def children(dir: File): Seq[String] =
+      IO.listFiles(dir).filter(_.isDirectory).map(_.getName).sorted
+
+    children(base / "java").map(name => s"java/$name") ++
+      children(base / "scala").filterNot(scalaDocAssetDirectories).map(name => s"scala/$name")
+  }
+
+  // Verifies the generated API docs only expose the intended top-level package roots.
+  // This protects against regressions where javadoc/scaladoc starts documenting internal or dependency packages again.
+  def checkApiDocsPackageTreeTask = Def.task {
+    val apiDocsDir = apiDocs.value
+    val log        = streams.value.log
+
+    val actual                = apiDocsTopLevelPackageTree(apiDocsDir)
+    val expectedScalaPackages = AllowedTopLevelApiPackages.map(packageName => s"scala/$packageName").sorted
+    val expected              = Seq(
+      "java/legal",
+      "java/play",
+      "java/resources",
+      "java/script-dir"
+    ) ++ expectedScalaPackages
+
+    if (actual != expected) {
+      sys.error(
+        "Generated API docs top-level package tree differs from the expected tree." +
+          System.lineSeparator() +
+          "Expected:" +
+          System.lineSeparator() +
+          expected.mkString(System.lineSeparator()) +
+          System.lineSeparator() +
+          "Actual:" +
+          System.lineSeparator() +
+          actual.mkString(System.lineSeparator())
+      )
+    } else {
+      log.info("Generated API docs top-level package tree matches the expected tree")
+    }
+  }
 
   private val InternalApiPathSegment        = "/internal/"
   private val AllowedTopLevelApiPackages    = Seq("controllers", "play", "views")
