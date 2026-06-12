@@ -149,9 +149,46 @@ object BuildSettings {
       // https://github.com/ThoughtWorksInc/sbt-api-mappings/blob/master/src/main/scala/com/thoughtworks/sbtApiMappings/ApiMappings.scala#L34
 
       val ScalaLibraryRegex  = """^.*[/\\]scala-library-([\d\.]+)\.jar$""".r
+      val Scala3LibraryRegex = """^.*[/\\]scala3-library_3-([\d\.]+)\.jar$""".r
       val JakartaInjectRegex = """^.*[/\\]jakarta.inject-api-([\d\.]+)\.jar$""".r
 
       val IvyRegex = """^.*[/\\]([\.\-_\w]+)[/\\]([\.\-_\w]+)[/\\](?:jars|bundles)[/\\]([\.\-_\w]+)\.jar$""".r
+
+      def docsUrl(apiOrganization: String, apiName: String, apiVersion: String, jarBaseFile: String) =
+        apiOrganization match {
+          case "org.apache.pekko" =>
+            Some(url(raw"https://pekko.apache.org/api/pekko/$apiVersion/"))
+
+          case default =>
+            val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
+            Some(url(link))
+        }
+
+      def coursierMavenCoordinates(path: String): Option[(String, String, String, String)] = {
+        val normalizedPath = path.replace(java.io.File.separatorChar, '/')
+        val marker         = "/maven2/"
+        val markerIndex    = normalizedPath.indexOf(marker)
+        if (markerIndex < 0) {
+          None
+        } else {
+          val parts = normalizedPath.substring(markerIndex + marker.length).split('/').toSeq
+          if (parts.length < 4) {
+            None
+          } else {
+            val jarFileName       = parts.last
+            val jarBaseFile       = jarFileName.stripSuffix(".jar")
+            val apiVersion        = parts(parts.length - 2)
+            val apiName           = parts(parts.length - 3)
+            val organizationParts = parts.dropRight(3)
+
+            if (jarFileName.endsWith(".jar") && organizationParts.nonEmpty && jarBaseFile == s"$apiName-$apiVersion") {
+              Some((organizationParts.mkString("."), apiName, apiVersion, jarBaseFile))
+            } else {
+              None
+            }
+          }
+        }
+      }
 
       (for {
         jar <- (Compile / doc / dependencyClasspath).value.toSet ++ (Test / doc / dependencyClasspath).value
@@ -160,23 +197,22 @@ object BuildSettings {
           case ScalaLibraryRegex(v) =>
             Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
 
+          case Scala3LibraryRegex(v) =>
+            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+
           case JakartaInjectRegex(v) =>
             // the jar file doesn't match up with $apiName-
             Some(url(Docs.jakartaInjectUrl))
 
           case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
             val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)
-            apiOrganization match {
-              case "org.apache.pekko" =>
-                Some(url(raw"https://pekko.apache.org/api/pekko/$apiVersion/"))
-
-              case default =>
-                val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
-                Some(url(link))
-            }
+            docsUrl(apiOrganization, apiName, apiVersion, jarBaseFile)
 
           case other =>
-            None
+            coursierMavenCoordinates(other).flatMap {
+              case (apiOrganization, apiName, apiVersion, jarBaseFile) =>
+                docsUrl(apiOrganization, apiName, apiVersion, jarBaseFile)
+            }
         }
         url <- urlOption
       } yield fullyFile -> url).toMap

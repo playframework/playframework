@@ -455,7 +455,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       // If we expect 100 continue, then we must not feed the source into the accumulator until the accumulator
       // requests demand.  This is due to a semantic mismatch between Play and Pekko-HTTP, Play signals to continue
       // by requesting demand, Pekko-HTTP signals to continue by attaching a sink to the source. See
-      // https://github.com/akka/akka/issues/17782 for more details.
+      // https://github.com/akka/akka-core/issues/17782 for more details.
       requestBodySource.map(source => Source.lazySource(() => source))
     } else {
       requestBodySource

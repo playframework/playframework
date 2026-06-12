@@ -16,7 +16,7 @@ import org.apache.pekko.stream.OverflowStrategy
 /**
  * Provides a flow that is handled by an actor.
  *
- * See https://github.com/akka/akka/issues/16985.
+ * See https://github.com/akka/akka-core/issues/16985.
  */
 object ActorFlow {
 
@@ -34,7 +34,8 @@ object ActorFlow {
    * Create a flow that is handled by an actor.
    *
    * Messages can be sent downstream by sending them to the actor passed into the props function.  This actor meets
-   * the contract of the actor returned by [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/stream/scaladsl/Source$.html#actorRef[T](bufferSize:Int,overflowStrategy:org.apache.pekko.stream.OverflowStrategy):org.apache.pekko.stream.scaladsl.Source[T,org.apache.pekko.actor.ActorRef]] org.apache.pekko.stream.scaladsl.Source.actorRef]].
+   * the contract of the actor returned by
+   * [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/stream/scaladsl/Source$.html#actorRef org.apache.pekko.stream.scaladsl.Source.actorRef]].
    *
    * The props function should return the props for an actor to handle the flow. This actor will be created using the
    * passed in [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/actor/ActorRefFactory.html org.apache.pekko.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,

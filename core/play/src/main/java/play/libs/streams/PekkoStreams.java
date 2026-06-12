@@ -71,7 +71,7 @@ public class PekkoStreams {
                   // finishes, the merge
                   // will result in a cancel flowing up through the bypasser, which could lead to
                   // dropped messages.
-                  // Using scaladsl here because of https://github.com/akka/akka/issues/18384
+                  // Using scaladsl here because of https://github.com/akka/akka-core/issues/18384
                   UniformFanOutShape<F.Either<FlowIn, Out>, F.Either<FlowIn, Out>> broadcast =
                       builder.add(Broadcast.create(2, true));
                   UniformFanInShape<Out, Out> merge = builder.add(mergeStrategy);
