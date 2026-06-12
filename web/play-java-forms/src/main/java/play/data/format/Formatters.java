@@ -9,11 +9,14 @@ import jakarta.inject.Singleton;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
-import org.springframework.context.i18n.*;
-import org.springframework.core.*;
-import org.springframework.core.convert.*;
-import org.springframework.core.convert.converter.*;
-import org.springframework.format.support.*;
+import play.data.internal.binding.context.i18n.LocaleContextHolder;
+import play.data.internal.binding.core.GenericTypeResolver;
+import play.data.internal.binding.core.convert.ConversionFailedException;
+import play.data.internal.binding.core.convert.TypeDescriptor;
+import play.data.internal.binding.core.convert.converter.ConditionalGenericConverter;
+import play.data.internal.binding.core.convert.converter.GenericConverter;
+import play.data.internal.binding.format.Formatter;
+import play.data.internal.binding.format.support.FormattingConversionService;
 import play.i18n.MessagesApi;
 
 /** Formatters helper. */
@@ -23,6 +26,7 @@ public class Formatters {
   @Inject
   public Formatters(MessagesApi messagesApi) {
     // By default, we always register some common and useful Formatters
+    register(new Formats.DefaultStringConverter());
     register(Date.class, new Formats.DateFormatter(messagesApi));
     register(Date.class, new Formats.AnnotationDateFormatter(messagesApi));
     register(String.class, new Formats.AnnotationNonEmptyFormatter());
@@ -92,7 +96,7 @@ public class Formatters {
    * @param <T> the type to print
    * @return the formatted string
    */
-  public <T> String print(TypeDescriptor desc, T t) {
+  <T> String print(TypeDescriptor desc, T t) {
     if (t == null) {
       return "";
     }
@@ -168,6 +172,41 @@ public class Formatters {
     public abstract String print(A annotation, T value, Locale locale);
   }
 
+  /**
+   * Super-type for converters that parse strings into values and print values as strings.
+   *
+   * <p>This is useful for converters that support multiple target types and therefore do not fit
+   * the one-type {@link SimpleFormatter} API.
+   */
+  public interface StringFormatConverter {
+
+    /**
+     * Returns the value types this converter can parse from strings and print to strings.
+     *
+     * @return supported value types
+     */
+    Set<Class<?>> supportedTypes();
+
+    /**
+     * Parses the given text into the requested target type.
+     *
+     * @param text the field text
+     * @param targetType the requested target type
+     * @return the parsed value
+     * @throws Exception if the text could not be parsed into the requested type
+     */
+    Object parse(String text, Class<?> targetType) throws Exception;
+
+    /**
+     * Prints the given value as a string.
+     *
+     * @param value the value to print
+     * @return printable version of the value
+     * @throws Exception if the value could not be printed
+     */
+    String print(Object value) throws Exception;
+  }
+
   /** Converter for String -> Optional and Optional -> String */
   private Formatters registerOptional() {
     conversion.addConverter(
@@ -216,7 +255,7 @@ public class Formatters {
   public <T> Formatters register(final Class<T> clazz, final SimpleFormatter<T> formatter) {
     conversion.addFormatterForFieldType(
         clazz,
-        new org.springframework.format.Formatter<T>() {
+        new Formatter<T>() {
 
           public T parse(String text, Locale locale) throws java.text.ParseException {
             return formatter.parse(text, locale);
@@ -235,6 +274,17 @@ public class Formatters {
   }
 
   /**
+   * Registers a converter that can parse strings into values and print values as strings.
+   *
+   * @param converter the converter to register
+   * @return the modified Formatters object.
+   */
+  public Formatters register(final StringFormatConverter converter) {
+    conversion.addConverter(new StringFormatConverterAdapter(converter));
+    return this;
+  }
+
+  /**
    * Unregisters all formatters for the given class.
    *
    * <p>This removes both directions used by Play formatters: parsing from {@link String} to the
@@ -247,6 +297,40 @@ public class Formatters {
     conversion.removeConvertible(clazz, String.class);
     conversion.removeConvertible(String.class, clazz);
     return this;
+  }
+
+  private static class StringFormatConverterAdapter implements GenericConverter {
+
+    private final StringFormatConverter converter;
+
+    StringFormatConverterAdapter(StringFormatConverter converter) {
+      this.converter = converter;
+    }
+
+    @Override
+    public Set<ConvertiblePair> getConvertibleTypes() {
+      Set<ConvertiblePair> types = new HashSet<>();
+      for (Class<?> supportedType : converter.supportedTypes()) {
+        types.add(new ConvertiblePair(String.class, supportedType));
+        types.add(new ConvertiblePair(supportedType, String.class));
+      }
+      return types;
+    }
+
+    @Override
+    public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+      try {
+        if (sourceType.getType() == String.class) {
+          return converter.parse((String) source, targetType.getType());
+        }
+        if (targetType.getType() == String.class) {
+          return converter.print(source);
+        }
+        return null;
+      } catch (Exception ex) {
+        throw new ConversionFailedException(sourceType, targetType, source, ex);
+      }
+    }
   }
 
   /**

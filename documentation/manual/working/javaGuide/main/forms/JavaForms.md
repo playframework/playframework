@@ -8,7 +8,7 @@ By default, Play includes the Java forms module (`play-java-forms`) when enablin
 
 The forms module is also available in `PlayImport` as `javaForms`, which can be used with `libraryDependencies += javaForms` in your `build.sbt`.
 
-> **Note:** If you are not using forms, you can remove the forms dependency by using the `PlayMinimalJava` sbt plugin instead of `PlayJava`. This also allows you to remove several transitive dependencies only used by the forms module, including several Spring modules and the Hibernate validator.
+> **Note:** If you are not using forms, you can remove the forms dependency by using the `PlayMinimalJava` sbt plugin instead of `PlayJava`. This also allows you to remove transitive dependencies only used by the forms module, including Hibernate validator.
     
 ## Defining a form
 
@@ -31,11 +31,35 @@ Instead of enabling "direct field access" for all forms, you can enable it only 
 
 @[create](code/javaguide/forms/JavaFormsDirectFieldAccess.java)
 
-> **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring-framework/reference/6.1/core/validation.html).
-
 This form can generate a `User` result value from a `HashMap<String,String>` for the text data and from a `Map<String, FilePart<?>>` for the file data:
 
 @[bind](code/javaguide/forms/JavaForms.java)
+
+By default, Play Java forms can bind common scalar types, including their primitive equivalents where applicable:
+
+* `byte[]`
+* `char[]`
+* `Character`
+* `Boolean`
+* `Byte`
+* `Short`
+* `Integer`
+* `Long`
+* `Float`
+* `Double`
+* `java.math.BigDecimal`
+* `java.math.BigInteger`
+* `java.nio.charset.Charset`
+* `java.util.Currency`
+* `java.util.Locale`
+* `java.util.regex.Pattern`
+* `java.util.TimeZone`
+* `java.net.URI`
+* `java.net.URL`
+* `java.util.UUID`
+* `java.time.ZoneId`
+
+Concrete enum types, `java.util.Date`, `java.util.Optional`, arrays, collections, and maps using supported element, key, or value types can also be bound.
 
 If you have a request available in the scope, you can bind directly from the request content:
 
@@ -101,8 +125,6 @@ Finally you have to disable Play's default `FormattersModule` and instead enable
 When the binding fails an array of errors keys is created, the first one defined in the messages file will be used. This array will generally contain:
 
     ["error.invalid.<fieldName>", "error.invalid.<type>", "error.invalid"]
-
-The errors keys are created by [Spring DefaultMessageCodesResolver](https://docs.spring.io/spring-framework/docs/6.1.6/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html), the root "typeMismatch" is replaced by "error.invalid".
 
 ## Advanced validation
 

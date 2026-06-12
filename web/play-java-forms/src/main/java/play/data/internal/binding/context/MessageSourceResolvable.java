@@ -1,0 +1,64 @@
+/*
+ * Copyright 2002-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Modified from the original Spring Framework source for Play Framework form binding by the Play Framework contributors.
+ */
+
+package play.data.internal.binding.context;
+
+/**
+ * Interface for objects that are suitable for message resolution.
+ *
+ * <p>Validation error classes implement this interface.
+ *
+ * @author Juergen Hoeller
+ * @see play.data.internal.binding.validation.ObjectError
+ * @see play.data.internal.binding.validation.FieldError
+ */
+@FunctionalInterface
+public interface MessageSourceResolvable {
+
+	/**
+	 * Return the codes to be used to resolve this message, in the order that
+	 * they should get tried. The last code will therefore be the default one.
+	 * @return a String array of codes which are associated with this message
+	 */
+	String [] getCodes();
+
+	/**
+	 * Return the array of arguments to be used to resolve this message.
+	 * <p>The default implementation simply returns {@code null}.
+	 * @return an array of objects to be used as parameters to replace
+	 * placeholders within the message text
+	 * @see java.text.MessageFormat
+	 */
+	default Object [] getArguments() {
+		return null;
+	}
+
+	/**
+	 * Return the default message to be used to resolve this message.
+	 * <p>The default implementation simply returns {@code null}.
+	 * Note that the default message may be identical to the primary
+	 * message code ({@link #getCodes()}).
+	 * @return the default message, or {@code null} if no default
+	 */
+	default String getDefaultMessage() {
+		return null;
+	}
+
+}

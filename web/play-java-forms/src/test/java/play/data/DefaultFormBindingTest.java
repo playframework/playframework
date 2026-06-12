@@ -18,11 +18,11 @@ import java.util.Collection;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -32,6 +32,9 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.junit.Test;
+import play.data.internal.binding.beans.MutablePropertyValues;
+import play.data.internal.binding.validation.DataBinder;
+import play.data.internal.binding.validation.FieldError;
 import play.data.validation.Constraints;
 import play.data.validation.ValidationError;
 import play.i18n.Lang;
@@ -86,6 +89,38 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(error.arguments()).isEmpty();
   }
 
+  private static DataBinder bindObjectValues(Object target, Map<String, Object> values) {
+    return bindObjectValues(target, values, false);
+  }
+
+  private static DataBinder bindObjectValuesDirect(Object target, Map<String, Object> values) {
+    return bindObjectValues(target, values, true);
+  }
+
+  private static DataBinder bindObjectValues(
+      Object target, Map<String, Object> values, boolean directFieldAccess) {
+    DataBinder binder = new DataBinder(target);
+    if (directFieldAccess) {
+      binder.initDirectFieldAccess();
+    }
+    binder.bind(new MutablePropertyValues(values));
+    return binder;
+  }
+
+  private static void assertTypeMismatch(DataBinder binder, String field, Object rejectedValue) {
+    assertThat(
+            binder.getBindingResult().getFieldErrors().stream()
+                .filter(error -> field.equals(error.getField()))
+                .toList())
+        .hasSize(1);
+    FieldError error = binder.getBindingResult().getFieldError(field);
+    assertThat(error).isNotNull();
+    assertThat(error.getField()).isEqualTo(field);
+    assertThat(error.getCode()).isEqualTo("typeMismatch");
+    assertThat(error.isBindingFailure()).isTrue();
+    assertThat(error.getRejectedValue()).isSameAs(rejectedValue);
+  }
+
   @Test
   public void shouldBindSimpleDefaultTypes() {
     FormFactory formFactory = instanceOf(FormFactory.class);
@@ -106,25 +141,17 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uriMailto", "mailto:forms@example.test");
     data.put("uriCustomScheme", "widget:/catalog/items/42");
     data.put("uriRelative", "docs/releases/notes.txt");
-    // TODO: Decide whether Play should intentionally preserve classpath: URI values.
-    // data.put("uriClasspath", "classpath:play/forms/sample.txt");
+    data.put("uriClasspath", "classpath:play/forms/sample.txt");
     data.put("uriWithFragment", "https://example.net/docs#chapter-7");
     data.put("uriWithEncodedFragment", "https://example.net/docs path#chapter 7");
     data.put("uriWithNonAscii", "https://example.com/café and £");
     data.put("uriAlreadyEncoded", "https://example.com/a%20path%20and%20%C2%A3");
     data.put("url", "https://example.com/index.html");
     data.put("urlMailto", "mailto:forms@example.test");
-    // TODO: Decide whether Play should intentionally preserve Spring's classpath: URL resolution.
-    // data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("uuid", "5801519c-a3e7-4cb2-b9eb-872c68586042");
     data.put("zoneId", "Europe/Vienna");
     data.put("zoneIdOffset", "+02:00");
     data.put("objectValue", "opaque text");
-    data.put("constructedValue", "constructed text");
-    data.put("constructedValueArray", "constructed array text");
-    data.put("constructedValueList", "constructed list text");
-    data.put("constructedValueMap[first]", "constructed map text");
-    data.put("constructedValueKeyMap[constructed-key]", "constructed key text");
     data.put("staticValue", "ALPHA");
 
     Form<FormData> form = bind(formFactory, data);
@@ -151,7 +178,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getUriMailto()).isEqualTo(URI.create("mailto:forms@example.test"));
     assertThat(bean.getUriCustomScheme()).isEqualTo(URI.create("widget:/catalog/items/42"));
     assertThat(bean.getUriRelative()).isEqualTo(URI.create("docs/releases/notes.txt"));
-    // assertThat(bean.getUriClasspath()).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
+    assertThat(bean.getUriClasspath()).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
     assertThat(bean.getUriWithFragment())
         .isEqualTo(URI.create("https://example.net/docs#chapter-7"));
     assertThat(bean.getUriWithEncodedFragment())
@@ -162,21 +189,10 @@ public class DefaultFormBindingTest extends WithApplication {
         .isEqualTo("https://example.com/a%2520path%2520and%2520%25C2%25A3");
     assertThat(bean.getUrl().toExternalForm()).isEqualTo("https://example.com/index.html");
     assertThat(bean.getUrlMailto().toExternalForm()).isEqualTo("mailto:forms@example.test");
-    // assertThat(bean.getUrlClasspath().getProtocol()).doesNotStartWith("classpath");
-    // assertThat(bean.getUrlClasspath().toExternalForm()).contains("DefaultFormBindingTest.class");
     assertThat(bean.getUuid()).isEqualTo(UUID.fromString("5801519c-a3e7-4cb2-b9eb-872c68586042"));
     assertThat(bean.getZoneId()).isEqualTo(ZoneId.of("Europe/Vienna"));
     assertThat(bean.getZoneIdOffset()).isEqualTo(ZoneId.of("+02:00"));
     assertThat(bean.getObjectValue()).isEqualTo("opaque text");
-    assertThat(bean.getConstructedValue().value()).isEqualTo("constructed text");
-    assertThat(bean.getConstructedValueArray()).hasSize(1);
-    assertThat(bean.getConstructedValueArray()[0].value()).isEqualTo("constructed array text");
-    assertThat(bean.getConstructedValueList()).hasSize(1);
-    assertThat(bean.getConstructedValueList().get(0).value()).isEqualTo("constructed list text");
-    assertThat(bean.getConstructedValueMap().get("first").value())
-        .isEqualTo("constructed map text");
-    assertThat(bean.getConstructedValueKeyMap())
-        .containsEntry(new ConstructedValue("constructed-key"), "constructed key text");
     assertThat(bean.getStaticValue()).isSameAs(StaticValue.ALPHA);
   }
 
@@ -200,25 +216,17 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uriMailto", "mailto:forms@example.test");
     data.put("uriCustomScheme", "widget:/catalog/items/42");
     data.put("uriRelative", "docs/releases/notes.txt");
-    // TODO: Decide whether Play should intentionally preserve classpath: URI values.
-    // data.put("uriClasspath", "classpath:play/forms/sample.txt");
+    data.put("uriClasspath", "classpath:play/forms/sample.txt");
     data.put("uriWithFragment", "https://example.net/docs#chapter-7");
     data.put("uriWithEncodedFragment", "https://example.net/docs path#chapter 7");
     data.put("uriWithNonAscii", "https://example.com/café and £");
     data.put("uriAlreadyEncoded", "https://example.com/a%20path%20and%20%C2%A3");
     data.put("url", "https://example.com/index.html");
     data.put("urlMailto", "mailto:forms@example.test");
-    // TODO: Decide whether Play should intentionally preserve Spring's classpath: URL resolution.
-    // data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("uuid", "5801519c-a3e7-4cb2-b9eb-872c68586042");
     data.put("zoneId", "Europe/Vienna");
     data.put("zoneIdOffset", "+02:00");
     data.put("objectValue", "opaque text");
-    data.put("constructedValue", "constructed text");
-    data.put("constructedValueArray", "constructed array text");
-    data.put("constructedValueList", "constructed list text");
-    data.put("constructedValueMap[first]", "constructed map text");
-    data.put("constructedValueKeyMap[constructed-key]", "constructed key text");
     data.put("staticValue", "ALPHA");
 
     Form<FormData> form = bindDirect(formFactory, data);
@@ -244,7 +252,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.uriMailto).isEqualTo(URI.create("mailto:forms@example.test"));
     assertThat(bean.uriCustomScheme).isEqualTo(URI.create("widget:/catalog/items/42"));
     assertThat(bean.uriRelative).isEqualTo(URI.create("docs/releases/notes.txt"));
-    // assertThat(bean.uriClasspath).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
+    assertThat(bean.uriClasspath).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
     assertThat(bean.uriWithFragment).isEqualTo(URI.create("https://example.net/docs#chapter-7"));
     assertThat(bean.uriWithEncodedFragment)
         .isEqualTo(URI.create("https://example.net/docs%20path#chapter%207"));
@@ -254,20 +262,10 @@ public class DefaultFormBindingTest extends WithApplication {
         .isEqualTo("https://example.com/a%2520path%2520and%2520%25C2%25A3");
     assertThat(bean.url.toExternalForm()).isEqualTo("https://example.com/index.html");
     assertThat(bean.urlMailto.toExternalForm()).isEqualTo("mailto:forms@example.test");
-    // assertThat(bean.urlClasspath.getProtocol()).doesNotStartWith("classpath");
-    // assertThat(bean.urlClasspath.toExternalForm()).contains("DefaultFormBindingTest.class");
     assertThat(bean.uuid).isEqualTo(UUID.fromString("5801519c-a3e7-4cb2-b9eb-872c68586042"));
     assertThat(bean.zoneId).isEqualTo(ZoneId.of("Europe/Vienna"));
     assertThat(bean.zoneIdOffset).isEqualTo(ZoneId.of("+02:00"));
     assertThat(bean.objectValue).isEqualTo("opaque text");
-    assertThat(bean.constructedValue.value()).isEqualTo("constructed text");
-    assertThat(bean.constructedValueArray).hasSize(1);
-    assertThat(bean.constructedValueArray[0].value()).isEqualTo("constructed array text");
-    assertThat(bean.constructedValueList).hasSize(1);
-    assertThat(bean.constructedValueList.get(0).value()).isEqualTo("constructed list text");
-    assertThat(bean.constructedValueMap.get("first").value()).isEqualTo("constructed map text");
-    assertThat(bean.constructedValueKeyMap)
-        .containsEntry(new ConstructedValue("constructed-key"), "constructed key text");
     assertThat(bean.staticValue).isSameAs(StaticValue.ALPHA);
   }
 
@@ -1395,7 +1393,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", " SECOND ");
     data.put("sampleEnumAlias", "ALIAS");
-    data.put("rawEnum", " " + SampleEnum.class.getName() + ".FIRST ");
     data.put("sampleEnumMap[FIRST]", "THIRD");
 
     Form<FormData> form = bind(formFactory, data);
@@ -1404,7 +1401,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.getSampleEnum()).isEqualTo(SampleEnum.SECOND);
     assertThat(bean.getSampleEnumAlias()).isEqualTo(SampleEnum.SECOND);
-    assertThat(bean.getRawEnum()).isEqualTo(SampleEnum.FIRST);
     assertThat(bean.getSampleEnumMap()).containsEntry(SampleEnum.FIRST, SampleEnum.THIRD);
   }
 
@@ -1414,7 +1410,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", " SECOND ");
     data.put("sampleEnumAlias", "ALIAS");
-    data.put("rawEnum", " " + SampleEnum.class.getName() + ".FIRST ");
     data.put("sampleEnumMap[FIRST]", "THIRD");
 
     Form<FormData> form = bindDirect(formFactory, data);
@@ -1423,7 +1418,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.sampleEnum).isEqualTo(SampleEnum.SECOND);
     assertThat(bean.sampleEnumAlias).isEqualTo(SampleEnum.SECOND);
-    assertThat(bean.rawEnum).isEqualTo(SampleEnum.FIRST);
     assertThat(bean.sampleEnumMap).containsEntry(SampleEnum.FIRST, SampleEnum.THIRD);
   }
 
@@ -1433,12 +1427,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnumArray", "FIRST,SECOND");
     data.put("sampleEnumList", "SECOND,THIRD");
-    data.put(
-        "rawEnumArray",
-        SampleEnum.class.getName() + ".FIRST," + SampleEnum.class.getName() + ".SECOND");
-    data.put(
-        "rawEnumList",
-        SampleEnum.class.getName() + ".SECOND," + SampleEnum.class.getName() + ".THIRD");
 
     Form<FormData> form = bind(formFactory, data);
 
@@ -1446,8 +1434,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.getSampleEnumArray()).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
     assertThat(bean.getSampleEnumList()).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
-    assertThat(bean.getRawEnumArray()).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
-    assertThat(bean.getRawEnumList()).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
   }
 
   @Test
@@ -1456,12 +1442,6 @@ public class DefaultFormBindingTest extends WithApplication {
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnumArray", "FIRST,SECOND");
     data.put("sampleEnumList", "SECOND,THIRD");
-    data.put(
-        "rawEnumArray",
-        SampleEnum.class.getName() + ".FIRST," + SampleEnum.class.getName() + ".SECOND");
-    data.put(
-        "rawEnumList",
-        SampleEnum.class.getName() + ".SECOND," + SampleEnum.class.getName() + ".THIRD");
 
     Form<FormData> form = bindDirect(formFactory, data);
 
@@ -1469,8 +1449,28 @@ public class DefaultFormBindingTest extends WithApplication {
     FormData bean = form.get();
     assertThat(bean.sampleEnumArray).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
     assertThat(bean.sampleEnumList).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
-    assertThat(bean.rawEnumArray).containsExactly(SampleEnum.FIRST, SampleEnum.SECOND);
-    assertThat(bean.rawEnumList).containsExactly(SampleEnum.SECOND, SampleEnum.THIRD);
+  }
+
+  @Test
+  public void shouldRejectClassCollectionBinding() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Form<FormData> form =
+        bind(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
+
+    assertThat(form.hasErrors()).isTrue();
+    assertThat(form.errors()).hasSize(1);
+    assertInvalidError(form, "classList");
+  }
+
+  @Test
+  public void shouldRejectClassCollectionBindingWithDirectFieldAccess() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Form<FormData> form =
+        bindDirect(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
+
+    assertThat(form.hasErrors()).isTrue();
+    assertThat(form.errors()).hasSize(1);
+    assertInvalidError(form, "classList");
   }
 
   @Test
@@ -1478,17 +1478,14 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "");
-    data.put("rawEnum", "");
     data.put("sampleEnumArray[0]", "");
     data.put("sampleEnumList[0]", "");
 
     Form<FormData> form = bind(formFactory, data);
 
-    assertThat(form.hasErrors()).isTrue();
-    assertInvalidError(form, "rawEnum");
+    assertThat(form.errors()).isEmpty();
     FormData bean = form.discardingErrors().get();
     assertThat(bean.getSampleEnum()).isNull();
-    assertThat(bean.getRawEnum()).isNull();
     assertThat(bean.getSampleEnumArray()).containsNull();
     assertThat(bean.getSampleEnumList()).containsNull();
   }
@@ -1498,17 +1495,14 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "");
-    data.put("rawEnum", "");
     data.put("sampleEnumArray[0]", "");
     data.put("sampleEnumList[0]", "");
 
     Form<FormData> form = bindDirect(formFactory, data);
 
-    assertThat(form.hasErrors()).isTrue();
-    assertInvalidError(form, "rawEnum");
+    assertThat(form.errors()).isEmpty();
     FormData bean = form.discardingErrors().get();
     assertThat(bean.sampleEnum).isNull();
-    assertThat(bean.rawEnum).isNull();
     assertThat(bean.sampleEnumArray).containsNull();
     assertThat(bean.sampleEnumList).containsNull();
   }
@@ -1518,9 +1512,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "NO_SUCH_ENUM");
-    data.put("rawEnum", SampleEnum.class.getName() + ".NO_SUCH_ENUM");
-    data.put("rawEnumWithoutType", "FIRST");
-    data.put("rawEnumWithUnknownType", "no.such.EnumType.FIRST");
     data.put("sampleEnumArray[0]", "NO_SUCH_ENUM");
     data.put("sampleEnumList[0]", "NO_SUCH_ENUM");
 
@@ -1528,9 +1519,6 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "sampleEnum");
-    assertInvalidError(form, "rawEnum");
-    assertInvalidError(form, "rawEnumWithoutType");
-    assertInvalidError(form, "rawEnumWithUnknownType");
     assertInvalidError(form, "sampleEnumArray[0]");
     assertInvalidError(form, "sampleEnumList[0]");
   }
@@ -1540,9 +1528,6 @@ public class DefaultFormBindingTest extends WithApplication {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("sampleEnum", "NO_SUCH_ENUM");
-    data.put("rawEnum", SampleEnum.class.getName() + ".NO_SUCH_ENUM");
-    data.put("rawEnumWithoutType", "FIRST");
-    data.put("rawEnumWithUnknownType", "no.such.EnumType.FIRST");
     data.put("sampleEnumArray[0]", "NO_SUCH_ENUM");
     data.put("sampleEnumList[0]", "NO_SUCH_ENUM");
 
@@ -1550,9 +1535,6 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "sampleEnum");
-    assertInvalidError(form, "rawEnum");
-    assertInvalidError(form, "rawEnumWithoutType");
-    assertInvalidError(form, "rawEnumWithUnknownType");
     assertInvalidError(form, "sampleEnumArray[0]");
     assertInvalidError(form, "sampleEnumList[0]");
   }
@@ -1749,10 +1731,10 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uri", "http://[invalid");
     data.put("uriRelative", "docs/releases with spaces.txt");
     data.put("url", "http://[invalid");
+    data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("urlUnknownProtocol", "unknown-protocol:/missing/resource");
     data.put("uuid", "not-a-uuid");
     data.put("zoneId", "No/SuchZone");
-    data.put("failingConstructedValue", "cannot construct");
     data.put("dateValue", "not-a-date");
     data.put("staticValueWithWrongFieldType", "WRONG_FIELD_TYPE");
 
@@ -1768,10 +1750,10 @@ public class DefaultFormBindingTest extends WithApplication {
     assertInvalidError(form, "uri");
     assertInvalidError(form, "uriRelative");
     assertInvalidError(form, "url");
+    assertInvalidError(form, "urlClasspath");
     assertInvalidError(form, "urlUnknownProtocol");
     assertInvalidError(form, "uuid");
     assertInvalidError(form, "zoneId");
-    assertInvalidError(form, "failingConstructedValue");
     assertInvalidDateError(form, "dateValue");
     assertInvalidError(form, "staticValueWithWrongFieldType");
   }
@@ -1789,10 +1771,10 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("uri", "http://[invalid");
     data.put("uriRelative", "docs/releases with spaces.txt");
     data.put("url", "http://[invalid");
+    data.put("urlClasspath", "classpath:play/data/DefaultFormBindingTest.class");
     data.put("urlUnknownProtocol", "unknown-protocol:/missing/resource");
     data.put("uuid", "not-a-uuid");
     data.put("zoneId", "No/SuchZone");
-    data.put("failingConstructedValue", "cannot construct");
     data.put("dateValue", "not-a-date");
     data.put("staticValueWithWrongFieldType", "WRONG_FIELD_TYPE");
 
@@ -1808,10 +1790,10 @@ public class DefaultFormBindingTest extends WithApplication {
     assertInvalidError(form, "uri");
     assertInvalidError(form, "uriRelative");
     assertInvalidError(form, "url");
+    assertInvalidError(form, "urlClasspath");
     assertInvalidError(form, "urlUnknownProtocol");
     assertInvalidError(form, "uuid");
     assertInvalidError(form, "zoneId");
-    assertInvalidError(form, "failingConstructedValue");
     assertInvalidDateError(form, "dateValue");
     assertInvalidError(form, "staticValueWithWrongFieldType");
   }
@@ -2955,6 +2937,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerList", "71");
     data.put("stringSet", "green");
     data.put("sortedStringSet", "blue");
+    data.put("rawCollection", "raw-teal");
     data.put("uuidCollection", "73eef03b-86e0-456f-b0eb-78a5541aaee2");
     data.put("uuidList", "18b396f2-066f-4c26-9629-2c5d963040ef");
     data.put("uuidSet", "a92afee8-60d0-4e74-82ab-9ea43c849160");
@@ -2968,6 +2951,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getIntegerList()).containsExactly(71);
     assertThat(bean.getStringSet()).containsExactly("green");
     assertThat(bean.getSortedStringSet()).containsExactly("blue");
+    assertThat(bean.getRawCollection()).containsExactly("raw-teal");
     assertThat(bean.getUuidCollection())
         .containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
     assertThat(bean.getUuidList())
@@ -2986,6 +2970,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerList", "71");
     data.put("stringSet", "green");
     data.put("sortedStringSet", "blue");
+    data.put("rawCollection", "raw-cyan");
     data.put("uuidCollection", "73eef03b-86e0-456f-b0eb-78a5541aaee2");
     data.put("uuidList", "18b396f2-066f-4c26-9629-2c5d963040ef");
     data.put("uuidSet", "a92afee8-60d0-4e74-82ab-9ea43c849160");
@@ -2999,6 +2984,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.integerList).containsExactly(71);
     assertThat(bean.stringSet).containsExactly("green");
     assertThat(bean.sortedStringSet).containsExactly("blue");
+    assertThat(bean.rawCollection).containsExactly("raw-cyan");
     assertThat(bean.uuidCollection)
         .containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
     assertThat(bean.uuidList)
@@ -3727,6 +3713,182 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
+  public void shouldRejectUnsupportedObjectCollectionValues() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = List.of("unsupported-collection");
+    Object unreadable = new ThrowingIteratorCollection<>("unreadable-collection");
+    Object unknownSize = new ThrowingSizeCollection<>("unknown-size-collection");
+    Object throwingConstructor = List.of("throwing-constructor-collection");
+    Object rejecting = List.of("rejecting-collection");
+
+    DataBinder binder =
+        bindObjectValues(
+            target,
+            Map.of(
+                "unsupportedCollection", unsupported,
+                "unreadableCollection", unreadable,
+                "unknownSizeCollection", unknownSize,
+                "throwingConstructorCollection", throwingConstructor,
+                "rejectingCollection", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedCollection", unsupported);
+    assertTypeMismatch(binder, "unreadableCollection", unreadable);
+    assertTypeMismatch(binder, "unknownSizeCollection", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorCollection", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingCollection", rejecting);
+    assertThat(target.getUnsupportedCollection()).isNull();
+    assertThat(target.getUnreadableCollection()).isNull();
+    assertThat(target.getUnknownSizeCollection()).isNull();
+    assertThat(target.getThrowingConstructorCollection()).isNull();
+    assertThat(target.getRejectingCollection()).isNull();
+  }
+
+  @Test
+  public void shouldRejectUnsupportedObjectCollectionValuesWithDirectFieldAccess() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = List.of("unsupported-direct-collection");
+    Object unreadable = new ThrowingIteratorCollection<>("unreadable-direct-collection");
+    Object unknownSize = new ThrowingSizeCollection<>("unknown-size-direct-collection");
+    Object throwingConstructor = List.of("throwing-constructor-direct-collection");
+    Object rejecting = List.of("rejecting-direct-collection");
+
+    DataBinder binder =
+        bindObjectValuesDirect(
+            target,
+            Map.of(
+                "unsupportedCollection", unsupported,
+                "unreadableCollection", unreadable,
+                "unknownSizeCollection", unknownSize,
+                "throwingConstructorCollection", throwingConstructor,
+                "rejectingCollection", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedCollection", unsupported);
+    assertTypeMismatch(binder, "unreadableCollection", unreadable);
+    assertTypeMismatch(binder, "unknownSizeCollection", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorCollection", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingCollection", rejecting);
+    assertThat(target.unsupportedCollection).isNull();
+    assertThat(target.unreadableCollection).isNull();
+    assertThat(target.unknownSizeCollection).isNull();
+    assertThat(target.throwingConstructorCollection).isNull();
+    assertThat(target.rejectingCollection).isNull();
+  }
+
+  @Test
+  public void shouldRejectUnsupportedObjectMapValues() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = Map.of("unsupported-map", "value");
+    Object unreadable = new ThrowingEntrySetMap<>("unreadable-map", "value");
+    Object unknownSize = new ThrowingSizeMap<>("unknown-size-map", "value");
+    Object throwingConstructor = Map.of("throwing-constructor-map", "value");
+    Object rejecting = Map.of("rejecting-map", "value");
+
+    DataBinder binder =
+        bindObjectValues(
+            target,
+            Map.of(
+                "unsupportedMap", unsupported,
+                "unreadableMap", unreadable,
+                "unknownSizeMap", unknownSize,
+                "throwingConstructorMap", throwingConstructor,
+                "rejectingMap", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedMap", unsupported);
+    assertTypeMismatch(binder, "unreadableMap", unreadable);
+    assertTypeMismatch(binder, "unknownSizeMap", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorMap", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingMap", rejecting);
+    assertThat(target.getUnsupportedMap()).isNull();
+    assertThat(target.getUnreadableMap()).isNull();
+    assertThat(target.getUnknownSizeMap()).isNull();
+    assertThat(target.getThrowingConstructorMap()).isNull();
+    assertThat(target.getRejectingMap()).isNull();
+  }
+
+  @Test
+  public void shouldRejectUnsupportedObjectMapValuesWithDirectFieldAccess() {
+    CollectionFallbackData target = new CollectionFallbackData();
+    Object unsupported = Map.of("unsupported-direct-map", "value");
+    Object unreadable = new ThrowingEntrySetMap<>("unreadable-direct-map", "value");
+    Object unknownSize = new ThrowingSizeMap<>("unknown-size-direct-map", "value");
+    Object throwingConstructor = Map.of("throwing-constructor-direct-map", "value");
+    Object rejecting = Map.of("rejecting-direct-map", "value");
+
+    DataBinder binder =
+        bindObjectValuesDirect(
+            target,
+            Map.of(
+                "unsupportedMap", unsupported,
+                "unreadableMap", unreadable,
+                "unknownSizeMap", unknownSize,
+                "throwingConstructorMap", throwingConstructor,
+                "rejectingMap", rejecting));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(5);
+    assertTypeMismatch(binder, "unsupportedMap", unsupported);
+    assertTypeMismatch(binder, "unreadableMap", unreadable);
+    assertTypeMismatch(binder, "unknownSizeMap", unknownSize);
+    assertTypeMismatch(binder, "throwingConstructorMap", throwingConstructor);
+    assertTypeMismatch(binder, "rejectingMap", rejecting);
+    assertThat(target.unsupportedMap).isNull();
+    assertThat(target.unreadableMap).isNull();
+    assertThat(target.unknownSizeMap).isNull();
+    assertThat(target.throwingConstructorMap).isNull();
+    assertThat(target.rejectingMap).isNull();
+  }
+
+  @Test
+  public void shouldRejectObjectNumberToNumberConversion() {
+    NumberFallbackData target = new NumberFallbackData();
+    Object integerValue = Integer.valueOf(12);
+    Object longValue = Long.valueOf(13L);
+    Object doubleValue = Double.valueOf(14.5d);
+
+    DataBinder binder =
+        bindObjectValues(
+            target,
+            Map.of(
+                "longValue", integerValue,
+                "integerValue", longValue,
+                "bigDecimal", doubleValue));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(3);
+    assertTypeMismatch(binder, "longValue", integerValue);
+    assertTypeMismatch(binder, "integerValue", longValue);
+    assertTypeMismatch(binder, "bigDecimal", doubleValue);
+    assertThat(target.getLongValue()).isNull();
+    assertThat(target.getIntegerValue()).isNull();
+    assertThat(target.getBigDecimal()).isNull();
+  }
+
+  @Test
+  public void shouldRejectObjectNumberToNumberConversionWithDirectFieldAccess() {
+    NumberFallbackData target = new NumberFallbackData();
+    Object integerValue = Integer.valueOf(15);
+    Object longValue = Long.valueOf(16L);
+    Object doubleValue = Double.valueOf(17.5d);
+
+    DataBinder binder =
+        bindObjectValuesDirect(
+            target,
+            Map.of(
+                "longValue", integerValue,
+                "integerValue", longValue,
+                "bigDecimal", doubleValue));
+
+    assertThat(binder.getBindingResult().getFieldErrors()).hasSize(3);
+    assertTypeMismatch(binder, "longValue", integerValue);
+    assertTypeMismatch(binder, "integerValue", longValue);
+    assertTypeMismatch(binder, "bigDecimal", doubleValue);
+    assertThat(target.longValue).isNull();
+    assertThat(target.integerValue).isNull();
+    assertThat(target.bigDecimal).isNull();
+  }
+
+  @Test
   public void shouldBindIndexedNestedBeanProperties() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
@@ -4134,6 +4296,222 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.discardingErrors().get().getUpload()).isSameAs(upload);
   }
 
+  public static class CollectionFallbackData {
+
+    private NoDefaultConstructorCollection<String> unsupportedCollection;
+    private List<String> unreadableCollection;
+    private List<String> unknownSizeCollection;
+    private ThrowingConstructorCollection<String> throwingConstructorCollection;
+    private RejectingCollection<String> rejectingCollection;
+    private NoDefaultConstructorMap<String, String> unsupportedMap;
+    private Map<String, String> unreadableMap;
+    private Map<String, String> unknownSizeMap;
+    private ThrowingConstructorMap<String, String> throwingConstructorMap;
+    private RejectingMap<String, String> rejectingMap;
+
+    public NoDefaultConstructorCollection<String> getUnsupportedCollection() {
+      return unsupportedCollection;
+    }
+
+    public void setUnsupportedCollection(
+        NoDefaultConstructorCollection<String> unsupportedCollection) {
+      this.unsupportedCollection = unsupportedCollection;
+    }
+
+    public List<String> getUnreadableCollection() {
+      return unreadableCollection;
+    }
+
+    public void setUnreadableCollection(List<String> unreadableCollection) {
+      this.unreadableCollection = unreadableCollection;
+    }
+
+    public List<String> getUnknownSizeCollection() {
+      return unknownSizeCollection;
+    }
+
+    public void setUnknownSizeCollection(List<String> unknownSizeCollection) {
+      this.unknownSizeCollection = unknownSizeCollection;
+    }
+
+    public ThrowingConstructorCollection<String> getThrowingConstructorCollection() {
+      return throwingConstructorCollection;
+    }
+
+    public void setThrowingConstructorCollection(
+        ThrowingConstructorCollection<String> throwingConstructorCollection) {
+      this.throwingConstructorCollection = throwingConstructorCollection;
+    }
+
+    public RejectingCollection<String> getRejectingCollection() {
+      return rejectingCollection;
+    }
+
+    public void setRejectingCollection(RejectingCollection<String> rejectingCollection) {
+      this.rejectingCollection = rejectingCollection;
+    }
+
+    public NoDefaultConstructorMap<String, String> getUnsupportedMap() {
+      return unsupportedMap;
+    }
+
+    public void setUnsupportedMap(NoDefaultConstructorMap<String, String> unsupportedMap) {
+      this.unsupportedMap = unsupportedMap;
+    }
+
+    public Map<String, String> getUnreadableMap() {
+      return unreadableMap;
+    }
+
+    public void setUnreadableMap(Map<String, String> unreadableMap) {
+      this.unreadableMap = unreadableMap;
+    }
+
+    public Map<String, String> getUnknownSizeMap() {
+      return unknownSizeMap;
+    }
+
+    public void setUnknownSizeMap(Map<String, String> unknownSizeMap) {
+      this.unknownSizeMap = unknownSizeMap;
+    }
+
+    public ThrowingConstructorMap<String, String> getThrowingConstructorMap() {
+      return throwingConstructorMap;
+    }
+
+    public void setThrowingConstructorMap(
+        ThrowingConstructorMap<String, String> throwingConstructorMap) {
+      this.throwingConstructorMap = throwingConstructorMap;
+    }
+
+    public RejectingMap<String, String> getRejectingMap() {
+      return rejectingMap;
+    }
+
+    public void setRejectingMap(RejectingMap<String, String> rejectingMap) {
+      this.rejectingMap = rejectingMap;
+    }
+  }
+
+  public static class NoDefaultConstructorCollection<E> extends ArrayList<E> {
+
+    public NoDefaultConstructorCollection(String ignored) {}
+  }
+
+  public static class ThrowingIteratorCollection<E> extends ArrayList<E> {
+
+    public ThrowingIteratorCollection(E value) {
+      add(value);
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+      throw new UnsupportedOperationException("iterator unavailable");
+    }
+  }
+
+  public static class ThrowingSizeCollection<E> extends ArrayList<E> {
+
+    public ThrowingSizeCollection(E value) {
+      add(value);
+    }
+
+    @Override
+    public int size() {
+      throw new UnsupportedOperationException("size unavailable");
+    }
+  }
+
+  public static class ThrowingConstructorCollection<E> extends ArrayList<E> {
+
+    public ThrowingConstructorCollection() {
+      throw new UnsupportedOperationException("constructor unavailable");
+    }
+  }
+
+  public static class RejectingCollection<E> extends ArrayList<E> {
+
+    @Override
+    public boolean add(E value) {
+      throw new UnsupportedOperationException("collection is read-only");
+    }
+  }
+
+  public static class NoDefaultConstructorMap<K, V> extends LinkedHashMap<K, V> {
+
+    public NoDefaultConstructorMap(String ignored) {}
+  }
+
+  public static class ThrowingEntrySetMap<K, V> extends LinkedHashMap<K, V> {
+
+    public ThrowingEntrySetMap(K key, V value) {
+      put(key, value);
+    }
+
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+      throw new UnsupportedOperationException("entrySet unavailable");
+    }
+  }
+
+  public static class ThrowingSizeMap<K, V> extends LinkedHashMap<K, V> {
+
+    public ThrowingSizeMap(K key, V value) {
+      put(key, value);
+    }
+
+    @Override
+    public int size() {
+      throw new UnsupportedOperationException("size unavailable");
+    }
+  }
+
+  public static class ThrowingConstructorMap<K, V> extends LinkedHashMap<K, V> {
+
+    public ThrowingConstructorMap() {
+      throw new UnsupportedOperationException("constructor unavailable");
+    }
+  }
+
+  public static class RejectingMap<K, V> extends LinkedHashMap<K, V> {
+
+    @Override
+    public V put(K key, V value) {
+      throw new UnsupportedOperationException("map is read-only");
+    }
+  }
+
+  public static class NumberFallbackData {
+
+    private Long longValue;
+    private Integer integerValue;
+    private BigDecimal bigDecimal;
+
+    public Long getLongValue() {
+      return longValue;
+    }
+
+    public void setLongValue(Long longValue) {
+      this.longValue = longValue;
+    }
+
+    public Integer getIntegerValue() {
+      return integerValue;
+    }
+
+    public void setIntegerValue(Integer integerValue) {
+      this.integerValue = integerValue;
+    }
+
+    public BigDecimal getBigDecimal() {
+      return bigDecimal;
+    }
+
+    public void setBigDecimal(BigDecimal bigDecimal) {
+      this.bigDecimal = bigDecimal;
+    }
+  }
+
   public static class FormData {
 
     private byte[] byteArray;
@@ -4190,25 +4568,15 @@ public class DefaultFormBindingTest extends WithApplication {
     private Optional<String> optionalValue;
     private Date dateValue;
     private Object objectValue;
-    private ConstructedValue constructedValue;
-    private ConstructedValue[] constructedValueArray;
-    private List<ConstructedValue> constructedValueList;
-    private Map<String, ConstructedValue> constructedValueMap;
-    private Map<ConstructedValue, String> constructedValueKeyMap;
-    private FailingConstructedValue failingConstructedValue;
     private StaticValue staticValue;
     private StaticValue staticValueWithWrongFieldType;
     private SampleEnum sampleEnum;
     private SampleEnum sampleEnumAlias;
-    private Enum<?> rawEnum;
-    private Enum<?> rawEnumWithoutType;
-    private Enum<?> rawEnumWithUnknownType;
     private String stringValue;
     private SampleEnum[] sampleEnumArray;
     private List<SampleEnum> sampleEnumList;
     private Map<SampleEnum, SampleEnum> sampleEnumMap;
-    private Enum<?>[] rawEnumArray;
-    private List<Enum<?>> rawEnumList;
+    private List<Class<?>> classList;
     private String[] stringArray;
     private Character[] characterArray;
     private Boolean[] booleanArray;
@@ -4690,54 +5058,6 @@ public class DefaultFormBindingTest extends WithApplication {
       this.objectValue = objectValue;
     }
 
-    public ConstructedValue getConstructedValue() {
-      return constructedValue;
-    }
-
-    public void setConstructedValue(ConstructedValue constructedValue) {
-      this.constructedValue = constructedValue;
-    }
-
-    public ConstructedValue[] getConstructedValueArray() {
-      return constructedValueArray;
-    }
-
-    public void setConstructedValueArray(ConstructedValue[] constructedValueArray) {
-      this.constructedValueArray = constructedValueArray;
-    }
-
-    public List<ConstructedValue> getConstructedValueList() {
-      return constructedValueList;
-    }
-
-    public void setConstructedValueList(List<ConstructedValue> constructedValueList) {
-      this.constructedValueList = constructedValueList;
-    }
-
-    public Map<String, ConstructedValue> getConstructedValueMap() {
-      return constructedValueMap;
-    }
-
-    public void setConstructedValueMap(Map<String, ConstructedValue> constructedValueMap) {
-      this.constructedValueMap = constructedValueMap;
-    }
-
-    public Map<ConstructedValue, String> getConstructedValueKeyMap() {
-      return constructedValueKeyMap;
-    }
-
-    public void setConstructedValueKeyMap(Map<ConstructedValue, String> constructedValueKeyMap) {
-      this.constructedValueKeyMap = constructedValueKeyMap;
-    }
-
-    public FailingConstructedValue getFailingConstructedValue() {
-      return failingConstructedValue;
-    }
-
-    public void setFailingConstructedValue(FailingConstructedValue failingConstructedValue) {
-      this.failingConstructedValue = failingConstructedValue;
-    }
-
     public StaticValue getStaticValue() {
       return staticValue;
     }
@@ -4770,30 +5090,6 @@ public class DefaultFormBindingTest extends WithApplication {
       this.sampleEnumAlias = sampleEnumAlias;
     }
 
-    public Enum<?> getRawEnum() {
-      return rawEnum;
-    }
-
-    public void setRawEnum(Enum<?> rawEnum) {
-      this.rawEnum = rawEnum;
-    }
-
-    public Enum<?> getRawEnumWithoutType() {
-      return rawEnumWithoutType;
-    }
-
-    public void setRawEnumWithoutType(Enum<?> rawEnumWithoutType) {
-      this.rawEnumWithoutType = rawEnumWithoutType;
-    }
-
-    public Enum<?> getRawEnumWithUnknownType() {
-      return rawEnumWithUnknownType;
-    }
-
-    public void setRawEnumWithUnknownType(Enum<?> rawEnumWithUnknownType) {
-      this.rawEnumWithUnknownType = rawEnumWithUnknownType;
-    }
-
     public String getStringValue() {
       return stringValue;
     }
@@ -4818,28 +5114,20 @@ public class DefaultFormBindingTest extends WithApplication {
       this.sampleEnumList = sampleEnumList;
     }
 
+    public List<Class<?>> getClassList() {
+      return classList;
+    }
+
+    public void setClassList(List<Class<?>> classList) {
+      this.classList = classList;
+    }
+
     public Map<SampleEnum, SampleEnum> getSampleEnumMap() {
       return sampleEnumMap;
     }
 
     public void setSampleEnumMap(Map<SampleEnum, SampleEnum> sampleEnumMap) {
       this.sampleEnumMap = sampleEnumMap;
-    }
-
-    public Enum<?>[] getRawEnumArray() {
-      return rawEnumArray;
-    }
-
-    public void setRawEnumArray(Enum<?>[] rawEnumArray) {
-      this.rawEnumArray = rawEnumArray;
-    }
-
-    public List<Enum<?>> getRawEnumList() {
-      return rawEnumList;
-    }
-
-    public void setRawEnumList(List<Enum<?>> rawEnumList) {
-      this.rawEnumList = rawEnumList;
     }
 
     public String[] getStringArray() {
@@ -5234,34 +5522,6 @@ public class DefaultFormBindingTest extends WithApplication {
     THIRD;
 
     public static final SampleEnum ALIAS = SECOND;
-  }
-
-  public static class ConstructedValue {
-    private final String value;
-
-    public ConstructedValue(String value) {
-      this.value = value;
-    }
-
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof ConstructedValue that && Objects.equals(this.value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(value);
-    }
-  }
-
-  public static class FailingConstructedValue {
-    public FailingConstructedValue(String value) {
-      throw new IllegalArgumentException(value);
-    }
   }
 
   public static class StaticValue {
