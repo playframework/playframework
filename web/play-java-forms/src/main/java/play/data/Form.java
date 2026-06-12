@@ -1667,7 +1667,8 @@ public class Form<T> {
                     withRequestLocale(
                         lang,
                         () ->
-                            formatters.print(
+                            play.data.format.FormattersInternals$.MODULE$.print(
+                                formatters,
                                 propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal),
                                 oValue));
               } else {

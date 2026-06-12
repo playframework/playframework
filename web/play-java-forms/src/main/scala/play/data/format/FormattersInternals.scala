@@ -4,11 +4,16 @@
 
 package play.data.format
 
+import play.data.internal.binding.core.convert.TypeDescriptor
 import play.data.internal.binding.validation.DataBinder
 
 private[data] object FormattersInternals {
 
   def configureDataBinder(formatters: Formatters, dataBinder: DataBinder): Unit = {
     dataBinder.setConversionService(formatters.conversion)
+  }
+
+  def print(formatters: Formatters, descriptor: TypeDescriptor, value: AnyRef): String = {
+    formatters.print(descriptor, value)
   }
 }

@@ -550,6 +550,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.Form.this"),
       // Make Java's Formatter.conversion package private to hide spring implementation
       ProblemFilters.exclude[InaccessibleFieldProblem]("play.data.format.Formatters.conversion"),
+      // Make Java's Formatters.print(TypeDescriptor desc, ...) package private to hide spring implementation
+      // (It leaks the now internal play.data.internal.binding.core.convert.TypeDescriptor)
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.data.format.Formatters.print"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

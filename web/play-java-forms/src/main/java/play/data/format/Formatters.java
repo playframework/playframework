@@ -96,7 +96,7 @@ public class Formatters {
    * @param <T> the type to print
    * @return the formatted string
    */
-  public <T> String print(TypeDescriptor desc, T t) {
+  <T> String print(TypeDescriptor desc, T t) {
     if (t == null) {
       return "";
     }
