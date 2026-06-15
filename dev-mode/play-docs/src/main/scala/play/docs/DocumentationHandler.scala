@@ -55,8 +55,28 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository, toClos
     )
   }
 
+  // The docs manual loads these assets through basename lookup, but Scaladoc generates API doc
+  // assets with the same names. Prefer the versioned WebJar copies for the manual UI assets.
+  private def webJarPath(name: String): Option[String] = {
+    val webJarAssets = Map(
+      "jquery.min.js" -> "jquery",
+      "prettify.css"  -> "prettify",
+      "prettify.js"   -> "prettify",
+      "lang-scala.js" -> "prettify"
+    )
+
+    webJarAssets.get(name).map(module => s"webjars/${PlayVersion.current}/$module/$name").filter { path =>
+      repo
+        .handleFile(path)(handle => handle.close())
+        .orElse(apiRepo.handleFile(path)(handle => handle.close()))
+        .nonEmpty
+    }
+  }
+
   val locator: String => String =
-    new Memoise(name => repo.findFileWithName(name).orElse(apiRepo.findFileWithName(name)).getOrElse(name))
+    new Memoise(name =>
+      webJarPath(name).orElse(repo.findFileWithName(name)).orElse(apiRepo.findFileWithName(name)).getOrElse(name)
+    )
 
   // Method without Scala types. Required by BuildDocHandler to allow communication
   // between code compiled by different versions of Scala
