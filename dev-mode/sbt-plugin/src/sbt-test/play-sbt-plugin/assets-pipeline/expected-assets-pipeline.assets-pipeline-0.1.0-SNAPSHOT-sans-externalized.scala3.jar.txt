@@ -6,17 +6,17 @@ Archive:  target/universal/stage/lib/assets-pipeline.assets-pipeline-0.1.0-SNAPS
         0  2010-01-01 00:00   controllers/javascript/
         0  2010-01-01 00:00   router/
       449  2010-01-01 00:00   controllers/Application.class
-     1186  2010-01-01 00:00   controllers/ReverseApplication.class
-      860  2010-01-01 00:00   controllers/ReverseApplication.tasty
-     1816  2010-01-01 00:00   controllers/javascript/ReverseApplication.class
-     1066  2010-01-01 00:00   controllers/javascript/ReverseApplication.tasty
+     1207  2010-01-01 00:00   controllers/ReverseApplication.class
+      868  2010-01-01 00:00   controllers/ReverseApplication.tasty
+     1829  2010-01-01 00:00   controllers/javascript/ReverseApplication.class
+     1074  2010-01-01 00:00   controllers/javascript/ReverseApplication.tasty
       669  2010-01-01 00:00   controllers/routes$javascript.class
       641  2010-01-01 00:00   controllers/routes.class
      3589  2010-01-01 00:00   router/Routes$$anon$1.class
-     9734  2010-01-01 00:00   router/Routes.class
-     3971  2010-01-01 00:00   router/Routes.tasty
-     2071  2010-01-01 00:00   router/RoutesPrefix$.class
-      540  2010-01-01 00:00   router/RoutesPrefix.class
-      808  2010-01-01 00:00   router/RoutesPrefix.tasty
+     9756  2010-01-01 00:00   router/Routes.class
+     3979  2010-01-01 00:00   router/Routes.tasty
+     2092  2010-01-01 00:00   router/RoutesPrefix$.class
+      532  2010-01-01 00:00   router/RoutesPrefix.class
+      816  2010-01-01 00:00   router/RoutesPrefix.tasty
 ---------                     -------
-    27703                     17 files
+    27804                     17 files
