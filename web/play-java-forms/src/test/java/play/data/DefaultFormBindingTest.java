@@ -103,7 +103,7 @@ public class DefaultFormBindingTest extends WithApplication {
     if (directFieldAccess) {
       binder.initDirectFieldAccess();
     }
-    binder.bind(new MutablePropertyValues(values));
+    binder.bind(new MutablePropertyValues(values), Locale.getDefault());
     return binder;
   }
 
