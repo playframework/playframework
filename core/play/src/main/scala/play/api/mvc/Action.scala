@@ -314,7 +314,7 @@ trait ActionFunction[-R[_], +P[_]] {
 /**
  * Provides helpers for creating [[Action]] values.
  */
-trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] {
+trait ActionBuilder[+R[_], B] extends ActionFunction[Request, R] with ActionBuilderMethods[R, B] {
   self =>
 
   /**
