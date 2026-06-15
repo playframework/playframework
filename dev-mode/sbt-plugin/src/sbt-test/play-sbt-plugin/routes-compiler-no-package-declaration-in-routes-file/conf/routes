@@ -20,7 +20,7 @@ GET         /take-ticked-params     Application.takeTickedParams(`b[]`: List[Int
 
 GET         /urlcoding/:d/*s        Application.urlcoding(d, s, q)
 
-GET         /ident/:è27             πø$7ß.ôü65$t(è27: Int)
+GET         /ident/:è27             πø7ß.ôü65t(è27: Int)
 
 GET         /hello                  Application.hello
 GET         /hello2                 Application.hello

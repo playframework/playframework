@@ -6,8 +6,8 @@ package controllers;
 
 import play.mvc.*;
 
-public class πø$7ß extends Controller {
-  public Result ôü65$t(Http.Request req, Integer i) {
+public class πø7ß extends Controller {
+  public Result ôü65t(Http.Request req, Integer i) {
     return ok(req.uri());
   }
 }

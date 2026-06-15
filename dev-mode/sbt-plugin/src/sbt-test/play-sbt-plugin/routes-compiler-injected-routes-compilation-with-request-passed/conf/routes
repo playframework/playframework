@@ -18,7 +18,7 @@ GET         /take-java-list         controllers.Application.takeJavaList(x: java
 
 GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, req: Request, q)
 
-GET         /ident/:è27             controllers.πø$7ß.ôü65$t(req: Request, è27: Integer)
+GET         /ident/:è27             controllers.πø7ß.ôü65t(req: Request, è27: Integer)
 
 GET         /hello                  controllers.Application.hello(req: Request)
 GET         /hello2                 controllers.Application.hello(req: Request)
