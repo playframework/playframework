@@ -20,7 +20,7 @@ GET         /take-ticked-params     controllers.Application.takeTickedParams(`b[
 
 GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
 
-GET         /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
+GET         /ident/:è27             controllers.πø7ß.ôü65t(è27: Int)
 
 GET         /hello                  controllers.Application.hello
 GET         /hello2                 controllers.Application.hello
