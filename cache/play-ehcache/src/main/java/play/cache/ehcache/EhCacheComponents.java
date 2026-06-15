@@ -4,7 +4,7 @@
 
 package play.cache.ehcache;
 
-import net.sf.ehcache.CacheManager;
+import org.ehcache.CacheManager;
 import play.Environment;
 import play.api.cache.ehcache.CacheManagerProvider;
 import play.api.cache.ehcache.EhCacheApi;

@@ -691,6 +691,17 @@ object BuildSettings {
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
+      // EhCache3 upgrade
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.cache.ehcache.CacheManagerProvider.get"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.cache.ehcache.EhCacheApi.<init>"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.cache.ehcache.EhCacheComponents.ehCacheManager"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.cache.ehcache.EhCacheApi.this"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.cache.ehcache.SyncEhCacheApi.this"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.cache.ehcache.EhCacheComponents.ehCacheManager"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.cache.ehcache.EhCacheApi.cache"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.cache.ehcache.SyncEhCacheApi.cache"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.cache.caffeine.ExpirableCacheValue"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.cache.caffeine.ExpirableCacheValue$")
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

@@ -9,6 +9,7 @@ import scala.concurrent.duration.Duration
 
 import com.github.benmanes.caffeine.cache.Expiry
 import org.apache.pekko.annotation.InternalApi
+import play.api.cache.ExpirableCacheValue
 
 @InternalApi
 private[caffeine] class DefaultCaffeineExpiry extends Expiry[String, ExpirableCacheValue[Any]] {
