@@ -408,17 +408,20 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       case (action: EssentialAction, _) =>
         runAction(tryApp, request, taggedRequestHeader, requestBodySource, action, errorHandler(tryApp), true)
       case (websocket: WebSocket, Some(upgrade)) =>
-        websocket(taggedRequestHeader).fast.flatMap {
+        websocket.applyWithOptions(taggedRequestHeader).fast.flatMap {
           case Left(result) =>
             modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler(tryApp))
-          case Right(flow) =>
-            // For now, like Netty, select an arbitrary subprotocol from the list of subprotocols proposed by the client
-            // Eventually it would be better to allow the handler to specify the protocol it selected
-            // See also https://github.com/playframework/playframework/issues/7895
-            val selectedSubprotocol = upgrade.requestedProtocols.headOption
+          case Right(accepted) =>
             Future.successful(
               WebSocketHandler
-                .handleWebSocket(upgrade, flow, wsBufferLimit, selectedSubprotocol, wsKeepAliveMode, wsKeepAliveMaxIdle)
+                .handleWebSocket(
+                  upgrade,
+                  accepted.flow,
+                  wsBufferLimit,
+                  accepted.subprotocol,
+                  wsKeepAliveMode,
+                  wsKeepAliveMaxIdle
+                )
             )
         }
 

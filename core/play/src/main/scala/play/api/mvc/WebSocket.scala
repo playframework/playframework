@@ -28,15 +28,41 @@ trait WebSocket extends Handler {
    * a flow to handle the WebSocket messages.
    */
   def apply(request: RequestHeader): Future[Either[Result, Flow[Message, Message, ?]]]
+
+  /**
+   * Execute the WebSocket, including WebSocket handshake metadata.
+   *
+   * The return value is either a result to reject the WebSocket with (or otherwise respond in a different way), or
+   * an accepted WebSocket containing a flow to handle the WebSocket messages and optional handshake metadata.
+   */
+  def applyWithOptions(request: RequestHeader): Future[Either[Result, WebSocket.Accepted[Message, Message]]] = {
+    apply(request).map(_.map(flow => WebSocket.Accepted(flow, WebSocket.firstRequestedSubprotocol(request))))
+  }
 }
 
 /**
  * Helper utilities to generate WebSocket results.
  */
 object WebSocket {
+  private[play] def firstRequestedSubprotocol(request: RequestHeader): Option[String] = {
+    request.headers
+      .get("Sec-WebSocket-Protocol")
+      .toSeq
+      .flatMap(_.split(",").iterator.map(_.trim).filter(_.nonEmpty))
+      .headOption
+  }
+
   def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, ?]]]): WebSocket = {
     (request: RequestHeader) => f(request)
   }
+
+  /**
+   * An accepted WebSocket, including the flow that handles WebSocket messages and optional handshake metadata.
+   *
+   * @param flow the flow that handles WebSocket messages
+   * @param subprotocol the WebSocket subprotocol selected by the application, if any
+   */
+  case class Accepted[In, Out](flow: Flow[In, Out, ?], subprotocol: Option[String] = None)
 
   /**
    * Transforms WebSocket message flows into message flows of another type.
@@ -175,6 +201,15 @@ object WebSocket {
   }
 
   /**
+   * Accepts a WebSocket using the given flow and handshake metadata.
+   */
+  def acceptWithOptions[In, Out](
+      f: RequestHeader => Accepted[In, Out]
+  )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
+    acceptOrResultWithOptions(f.andThen(accepted => Future.successful(Right(accepted))))
+  }
+
+  /**
    * Creates an action that will either accept the websocket, using the given flow to handle the in and out stream, or
    * return a result to reject the Websocket.
    */
@@ -182,6 +217,26 @@ object WebSocket {
       f: RequestHeader => Future[Either[Result, Flow[In, Out, ?]]]
   )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
     WebSocket { request => f(request).map(_.map(transformer.transform)) }
+  }
+
+  /**
+   * Creates an action that will either accept the websocket, using the given flow and handshake metadata, or return a
+   * result to reject the Websocket.
+   */
+  def acceptOrResultWithOptions[In, Out](
+      f: RequestHeader => Future[Either[Result, Accepted[In, Out]]]
+  )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
+    new WebSocket {
+      override def apply(request: RequestHeader): Future[Either[Result, Flow[Message, Message, ?]]] = {
+        applyWithOptions(request).map(_.map(_.flow))
+      }
+
+      override def applyWithOptions(request: RequestHeader): Future[Either[Result, Accepted[Message, Message]]] = {
+        f(request).map(_.map { accepted =>
+          Accepted(transformer.transform(accepted.flow), accepted.subprotocol)
+        })
+      }
+    }
   }
 
   /**

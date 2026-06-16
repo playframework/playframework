@@ -291,6 +291,51 @@ trait WebSocketSpec
         }
       }
 
+      "select the first subprotocol proposed by the client for flow-only handlers" in {
+        withServer(app =>
+          WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(Nil)) }
+        ) { (app, port) =>
+          import app.materializer
+          val (_, headers) = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+            },
+            Some("first-protocol, second-protocol, third-protocol"),
+            c => c
+          )
+          (headers
+            .map { case (key, value) => (key.toLowerCase, value) }
+            .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
+            .head must be).equalTo("first-protocol")
+        }
+      }
+
+      "allow the application to select a subprotocol proposed by the client" in {
+        withServer(app =>
+          WebSocket.acceptWithOptions[String, String] { req =>
+            WebSocket.Accepted(
+              Flow.fromSinkAndSource(Sink.ignore, Source(Nil)),
+              Some("graphql-transport-ws")
+            )
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val (_, headers) = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+            },
+            Some("graphql-ws, graphql-transport-ws"),
+            c => c
+          )
+          (headers
+            .map { case (key, value) => (key.toLowerCase, value) }
+            .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
+            .head must be).equalTo("graphql-transport-ws")
+        }
+      }
+
       // we keep getting timeouts on this test
       // java.util.concurrent.TimeoutException: Futures timed out after [5 seconds] (Helpers.scala:186)
       "close the websocket when the wrong type of frame is received" in {
@@ -432,6 +477,24 @@ trait WebSocketSpec
 
       "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
         WebSocketSpecJavaActions.allowRejectingAWebSocketWithAResult(statusCode)
+      }
+
+      "allow selecting a subprotocol" in {
+        withServer(_ => WebSocketSpecJavaActions.selectSubprotocol()) { (app, port) =>
+          import app.materializer
+          val (_, headers) = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+            },
+            Some("graphql-ws, graphql-transport-ws"),
+            c => c
+          )
+          (headers
+            .map { case (key, value) => (key.toLowerCase, value) }
+            .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
+            .head must be).equalTo("graphql-transport-ws")
+        }
       }
     }
   }

@@ -370,3 +370,40 @@ class Controller8 {
   }
   // #streams3
 }
+
+class Controller9 {
+  // #subprotocol
+  import scala.concurrent.Future
+
+  import org.apache.pekko.stream.scaladsl._
+  import play.api.mvc._
+  import play.api.mvc.Results._
+
+  private val supportedProtocols = Seq(
+    "graphql-transport-ws" -> Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]),
+    "graphql-ws"           -> Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+  )
+
+  def socket = WebSocket.acceptOrResultWithOptions[String, String] { request =>
+    val offered = request.headers
+      .get("Sec-WebSocket-Protocol")
+      .toSeq
+      .flatMap(_.split(",").iterator.map(_.trim).filter(_.nonEmpty))
+
+    supportedProtocols.find { case (protocol, _) => offered.contains(protocol) } match {
+      case Some((protocol, flow)) =>
+        Future.successful {
+          Right(
+            WebSocket.Accepted(
+              flow = flow,
+              subprotocol = Some(protocol)
+            )
+          )
+        }
+
+      case None =>
+        Future.successful(Left(BadRequest("Unsupported WebSocket subprotocol")))
+    }
+  }
+  // #subprotocol
+}

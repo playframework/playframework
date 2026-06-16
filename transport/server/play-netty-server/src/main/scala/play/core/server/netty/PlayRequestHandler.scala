@@ -154,9 +154,8 @@ private[play] class PlayRequestHandler(
         val app        = tryApp.get // Guaranteed to be Success for a WebSocket handler
         val wsProtocol = if (requestHeader.secure) "wss" else "ws"
         val wsUrl      = s"$wsProtocol://${requestHeader.host}${requestHeader.path}"
-        val factory    = new WebSocketServerHandshakerFactory(wsUrl, "*", true, wsBufferLimit)
 
-        val executed = Future(ws(requestHeader))(using app.actorSystem.dispatcher)
+        val executed = Future(ws.applyWithOptions(requestHeader))(using app.actorSystem.dispatcher)
 
         import play.core.Execution.Implicits.trampoline
         executed
@@ -166,10 +165,17 @@ private[play] class PlayRequestHandler(
               // WebSocket was rejected, send result
               val action = EssentialAction(_ => Accumulator.done(result))
               handleAction(action, requestHeader, request, tryApp)
-            case Right(flow) =>
+            case Right(accepted) =>
               import app.materializer
               val processor =
-                WebSocketHandler.messageFlowToFrameProcessor(flow, wsBufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle)
+                WebSocketHandler.messageFlowToFrameProcessor(
+                  accepted.flow,
+                  wsBufferLimit,
+                  wsKeepAliveMode,
+                  wsKeepAliveMaxIdle
+                )
+              val factory =
+                new WebSocketServerHandshakerFactory(wsUrl, accepted.subprotocol.orNull, true, wsBufferLimit)
               Future.successful(
                 new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
               )
