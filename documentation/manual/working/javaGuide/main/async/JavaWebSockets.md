@@ -100,6 +100,14 @@ A client can offer one or more WebSocket subprotocols using the `Sec-WebSocket-P
 
 If no offered subprotocol is acceptable, use `acceptOrResultWithOptions` to reject the upgrade with a normal HTTP result. If a specific client or protocol requires the handshake to complete without a selected subprotocol, return `new WebSocket.Accepted<>(flow, Optional.empty())` and use a flow that closes the WebSocket.
 
+## Setting WebSocket handshake headers and cookies
+
+`acceptWithOptions` and `acceptOrResultWithOptions` also let applications add headers and cookies to the successful `101 Switching Protocols` response:
+
+@[handshake-options](code/javaguide/async/JavaWebSockets.java)
+
+These headers and cookies are sent only with the opening WebSocket handshake response. Protocol-owned headers such as `Upgrade`, `Connection`, `Sec-WebSocket-Accept`, and `Sec-WebSocket-Protocol` are controlled by Play and the selected `subprotocol`.
+
 ## Accessing a WebSocket
 
 To send data or access a websocket you need to add a route for your websocket in your routes file. For Example

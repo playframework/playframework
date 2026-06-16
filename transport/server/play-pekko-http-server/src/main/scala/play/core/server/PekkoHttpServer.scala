@@ -412,17 +412,26 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
           case Left(result) =>
             modelConversion(tryApp).convertResult(taggedRequestHeader, result, request.protocol, errorHandler(tryApp))
           case Right(accepted) =>
-            Future.successful(
-              WebSocketHandler
-                .handleWebSocket(
-                  upgrade,
-                  accepted.flow,
-                  wsBufferLimit,
-                  accepted.subprotocol,
-                  wsKeepAliveMode,
-                  wsKeepAliveMaxIdle
-                )
-            )
+            val handshakeHeaders = resultUtils(tryApp)
+              .prepareWebSocketHandshakeHeaders(accepted)
+              .flatMap {
+                case (HeaderNames.SET_COOKIE, value) =>
+                  resultUtils(tryApp).splitSetCookieHeaderValue(value).map(headers.RawHeader(HeaderNames.SET_COOKIE, _))
+                case (name, value) =>
+                  resultUtils(tryApp).validateHeaderNameChars(name)
+                  resultUtils(tryApp).validateHeaderValueChars(value)
+                  headers.RawHeader(name, value) :: Nil
+              }
+            val response = WebSocketHandler
+              .handleWebSocket(
+                upgrade,
+                accepted.flow,
+                wsBufferLimit,
+                accepted.subprotocol,
+                wsKeepAliveMode,
+                wsKeepAliveMaxIdle
+              )
+            Future.successful(response.withHeaders(response.headers ++ handshakeHeaders))
         }
 
       case (websocket: WebSocket, None) =>

@@ -9,6 +9,7 @@ import java.util.concurrent.CompletionStage
 import java.util.Optional
 
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 import scala.jdk.FutureConverters._
 import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
@@ -218,7 +219,9 @@ object HandlerInvokerFactory {
                             case close: JMessage.Close   =>
                               CloseMessage(close.code.toScala.asInstanceOf[Option[Int]], close.reason)
                           },
-                        accepted.subprotocol().toScala
+                        accepted.subprotocol().toScala,
+                        Headers(accepted.headers().asScala.map(header => header.getKey -> header.getValue).toSeq*),
+                        accepted.cookies().asScala.map(_.asScala()).toSeq
                       )
                     )
                   }

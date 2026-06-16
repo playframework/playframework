@@ -5,10 +5,18 @@
 package play.mvc;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.util.ByteString;
 import play.api.http.websocket.CloseCodes;
@@ -156,10 +164,22 @@ public abstract class WebSocket {
   public static class Accepted<In, Out> {
     private final Flow<In, Out, ?> flow;
     private final Optional<String> subprotocol;
+    private final List<Map.Entry<String, String>> headers;
+    private final List<Http.Cookie> cookies;
 
     public Accepted(Flow<In, Out, ?> flow, Optional<String> subprotocol) {
+      this(flow, subprotocol, Collections.emptyList(), Collections.emptyList());
+    }
+
+    public Accepted(
+        Flow<In, Out, ?> flow,
+        Optional<String> subprotocol,
+        List<Map.Entry<String, String>> headers,
+        List<Http.Cookie> cookies) {
       this.flow = flow;
       this.subprotocol = subprotocol;
+      this.headers = Collections.unmodifiableList(new ArrayList<>(headers));
+      this.cookies = Collections.unmodifiableList(new ArrayList<>(cookies));
     }
 
     public Accepted(Flow<In, Out, ?> flow, String subprotocol) {
@@ -176,6 +196,116 @@ public abstract class WebSocket {
 
     public Optional<String> subprotocol() {
       return subprotocol;
+    }
+
+    public List<Map.Entry<String, String>> headers() {
+      return headers;
+    }
+
+    public List<Http.Cookie> cookies() {
+      return cookies;
+    }
+
+    /**
+     * Return a copy of this accepted WebSocket with the given handshake response header.
+     *
+     * @param name the header name
+     * @param value the header value
+     * @return the transformed copy
+     */
+    public Accepted<In, Out> withHeader(String name, String value) {
+      List<Map.Entry<String, String>> newHeaders = new ArrayList<>(headers);
+      newHeaders.add(new AbstractMap.SimpleImmutableEntry<>(name, value));
+      return new Accepted<>(flow, subprotocol, newHeaders, cookies);
+    }
+
+    /**
+     * Return a copy of this accepted WebSocket with the given handshake response headers.
+     *
+     * <p>The headers are processed in pairs, so nameValues(0) is the first header's name, and
+     * nameValues(1) is the first header's value, nameValues(2) is second header's name, and so on.
+     *
+     * @param nameValues the array of names and values.
+     * @return the transformed copy
+     */
+    public Accepted<In, Out> withHeaders(String... nameValues) {
+      if (nameValues.length % 2 != 0) {
+        throw new IllegalArgumentException(
+            "Headers must be supplied as alternating name and value strings");
+      }
+
+      List<Map.Entry<String, String>> newHeaders = new ArrayList<>(headers);
+      for (int i = 0; i < nameValues.length; i += 2) {
+        newHeaders.add(new AbstractMap.SimpleImmutableEntry<>(nameValues[i], nameValues[i + 1]));
+      }
+      return new Accepted<>(flow, subprotocol, newHeaders, cookies);
+    }
+
+    /**
+     * Discard a handshake response header.
+     *
+     * @param name the header name
+     * @return the transformed copy
+     */
+    public Accepted<In, Out> withoutHeader(String name) {
+      String lowerName = name.toLowerCase(Locale.ROOT);
+      List<Map.Entry<String, String>> newHeaders =
+          headers.stream()
+              .filter(header -> !header.getKey().toLowerCase(Locale.ROOT).equals(lowerName))
+              .collect(Collectors.toList());
+      return new Accepted<>(flow, subprotocol, newHeaders, cookies);
+    }
+
+    /**
+     * Returns a copy of this accepted WebSocket with the given cookies.
+     *
+     * @param newCookies the cookies to add to the handshake response.
+     * @return the transformed copy.
+     */
+    public Accepted<In, Out> withCookies(Http.Cookie... newCookies) {
+      List<Http.Cookie> finalCookies =
+          Stream.concat(
+                  cookies.stream()
+                      .filter(
+                          cookie -> {
+                            for (Http.Cookie newCookie : newCookies) {
+                              if (cookie.name().equals(newCookie.name())) return false;
+                            }
+                            return true;
+                          }),
+                  Stream.of(newCookies))
+              .collect(Collectors.toList());
+      return new Accepted<>(flow, subprotocol, headers, finalCookies);
+    }
+
+    /**
+     * Discard a cookie on the default path ("/") with no domain and that's not secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     */
+    public Accepted<In, Out> discardingCookie(String name) {
+      return discardingCookie(name, "/");
+    }
+
+    /**
+     * Discard a cookie on the given path with no domain and not that's secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie to discard, may be null
+     */
+    public Accepted<In, Out> discardingCookie(String name, String path) {
+      return discardingCookie(name, path, null);
+    }
+
+    /**
+     * Discard a cookie on the given path and domain that's not secure.
+     *
+     * @param name The name of the cookie to discard, must not be null
+     * @param path The path of the cookie te discard, may be null
+     * @param domain The domain of the cookie to discard, may be null
+     */
+    public Accepted<In, Out> discardingCookie(String name, String path, String domain) {
+      return withCookies(new Http.Cookie(name, "", 0, path, domain, false, true, null, false));
     }
   }
 
@@ -316,7 +446,9 @@ public abstract class WebSocket {
                             Flow.<Message>create().collect(inMapper),
                             play.api.libs.streams.PekkoStreams.onlyFirstCanFinishMerge(2),
                             accepted.flow().map(outMapper::apply));
-                    return F.Either.Right(new Accepted<>(flow, accepted.subprotocol()));
+                    return F.Either.Right(
+                        new Accepted<>(
+                            flow, accepted.subprotocol(), accepted.headers(), accepted.cookies()));
                   }
                 });
       }
