@@ -18,7 +18,6 @@ import scala.reflect.ClassTag
 import scala.util.Try
 
 import org.apache.pekko.stream._
-import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.testkit.NoMaterializer
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.util.Timeout
@@ -308,8 +307,14 @@ trait EssentialActionCaller {
    * Execute an [[play.api.mvc.EssentialAction]].
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialize it.
+   *
+   * For body parsers that require stream materialization (e.g. `parse.multipartFormData`), an explicit
+   * `Materializer` must be provided.
    */
-  def call[T](action: EssentialAction, req: Request[T])(implicit w: Writeable[T], mat: Materializer): Future[Result] =
+  def call[T](action: EssentialAction, req: Request[T])(
+      implicit w: Writeable[T],
+      mat: Materializer = NoMaterializer
+  ): Future[Result] =
     call(action, req, req.body)
 
   /**
@@ -328,7 +333,7 @@ trait EssentialActionCaller {
     val contentLength = rh.headers.get(CONTENT_LENGTH).orElse(Some(bytes.length.toString)).map(CONTENT_LENGTH -> _)
     val newHeaders    = rh.headers.replace(contentLength.toSeq ++ contentType.toSeq: _*)
 
-    action(rh.withHeaders(newHeaders)).run(Source.single(bytes))
+    action(rh.withHeaders(newHeaders)).run(bytes)
   }
 }
 

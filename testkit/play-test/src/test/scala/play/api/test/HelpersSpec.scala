@@ -33,6 +33,14 @@ class HelpersSpec extends Specification {
     }
   }
 
+  "call" should {
+    "execute an action with parse.ignore body parser without a Materializer" in {
+      val result = call(ctrl.abcAction, FakeRequest())
+      status(result) must_== OK
+      contentAsString(result) must_== "abc"
+    }
+  }
+
   "inMemoryDatabase" should {
     "change database with a name argument" in {
       val inMemoryDatabaseConfiguration = inMemoryDatabase("test")
