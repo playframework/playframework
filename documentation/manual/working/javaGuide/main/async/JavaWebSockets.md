@@ -92,6 +92,14 @@ Here is another example in which the input data is logged to standard out and th
 
 @[streams3](code/javaguide/async/JavaWebSockets.java)
 
+## Selecting a WebSocket subprotocol
+
+A client can offer one or more WebSocket subprotocols using the `Sec-WebSocket-Protocol` header. Play handles the WebSocket transport, but your application is responsible for deciding which application-level subprotocol it supports. Use `acceptWithOptions` or `acceptOrResultWithOptions` to select one of the protocols offered by the client and have Play announce it in the upgrade response:
+
+@[subprotocol](code/javaguide/async/JavaWebSockets.java)
+
+If no offered subprotocol is acceptable, use `acceptOrResultWithOptions` to reject the upgrade with a normal HTTP result. If a specific client or protocol requires the handshake to complete without a selected subprotocol, return `new WebSocket.Accepted<>(flow, Optional.empty())` and use a flow that closes the WebSocket.
+
 ## Accessing a WebSocket
 
 To send data or access a websocket you need to add a route for your websocket in your routes file. For Example

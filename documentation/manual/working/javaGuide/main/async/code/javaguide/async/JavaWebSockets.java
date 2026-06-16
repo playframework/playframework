@@ -18,6 +18,9 @@ import org.apache.pekko.stream.javadsl.*;
 import play.mvc.Controller;
 
 import java.io.Closeable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class JavaWebSockets {
@@ -176,5 +179,37 @@ public class JavaWebSockets {
           });
     }
     // #streams3
+  }
+
+  public static class Controller4 extends Controller {
+    // #subprotocol
+    private final List<Map.Entry<String, Flow<String, String, ?>>> supportedProtocols =
+        List.of(
+            Map.entry(
+                "graphql-transport-ws", Flow.fromSinkAndSource(Sink.ignore(), Source.maybe())),
+            Map.entry("graphql-ws", Flow.fromSinkAndSource(Sink.ignore(), Source.maybe())));
+
+    public WebSocket socket() {
+      return WebSocket.Text.acceptOrResultWithOptions(
+          request -> {
+            String header = request.header("Sec-WebSocket-Protocol").orElse("");
+            java.util.List<String> offered =
+                Arrays.stream(header.split(",")).map(String::trim).toList();
+
+            return supportedProtocols.stream()
+                .filter(entry -> offered.contains(entry.getKey()))
+                .findFirst()
+                .<CompletableFuture<F.Either<Result, WebSocket.Accepted<String, String>>>>map(
+                    entry ->
+                        CompletableFuture.completedFuture(
+                            F.Either.Right(
+                                new WebSocket.Accepted<>(entry.getValue(), entry.getKey()))))
+                .orElseGet(
+                    () ->
+                        CompletableFuture.completedFuture(
+                            F.Either.Left(badRequest("Unsupported WebSocket subprotocol"))));
+          });
+    }
+    // #subprotocol
   }
 }

@@ -5,6 +5,7 @@
 package play.mvc;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
@@ -29,6 +30,27 @@ public abstract class WebSocket {
    */
   public abstract CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(
       Http.RequestHeader request);
+
+  /**
+   * Invoke the WebSocket, including WebSocket handshake metadata.
+   *
+   * @param request The request for the WebSocket.
+   * @return A future of either a result to reject the WebSocket connection with, or an accepted
+   *     WebSocket with the flow and handshake metadata.
+   */
+  public CompletionStage<F.Either<Result, Accepted<Message, Message>>> applyWithOptions(
+      Http.RequestHeader request) {
+    return apply(request)
+        .thenApply(
+            resultOrFlow -> {
+              if (resultOrFlow.left.isPresent()) {
+                return F.Either.Left(resultOrFlow.left.get());
+              } else {
+                return F.Either.Right(
+                    new Accepted<>(resultOrFlow.right.get(), firstRequestedSubprotocol(request)));
+              }
+            });
+  }
 
   /** Acceptor for WebSockets to directly handle Play's Message objects. */
   public static final MappedWebSocketAcceptor<Message, Message> Message =
@@ -125,6 +147,39 @@ public abstract class WebSocket {
   }
 
   /**
+   * An accepted WebSocket, including the flow that handles WebSocket messages and optional
+   * handshake metadata.
+   *
+   * @param <In> the type the websocket reads from clients
+   * @param <Out> the type the websocket outputs back to remote clients
+   */
+  public static class Accepted<In, Out> {
+    private final Flow<In, Out, ?> flow;
+    private final Optional<String> subprotocol;
+
+    public Accepted(Flow<In, Out, ?> flow, Optional<String> subprotocol) {
+      this.flow = flow;
+      this.subprotocol = subprotocol;
+    }
+
+    public Accepted(Flow<In, Out, ?> flow, String subprotocol) {
+      this(flow, Optional.of(subprotocol));
+    }
+
+    public Accepted(Flow<In, Out, ?> flow) {
+      this(flow, Optional.empty());
+    }
+
+    public Flow<In, Out, ?> flow() {
+      return flow;
+    }
+
+    public Optional<String> subprotocol() {
+      return subprotocol;
+    }
+  }
+
+  /**
    * Utility class for creating WebSockets.
    *
    * @param <In> the type the websocket reads from clients (e.g. String, JsonNode)
@@ -154,6 +209,19 @@ public abstract class WebSocket {
     }
 
     /**
+     * Accept a WebSocket with handshake metadata.
+     *
+     * @param f A function that takes the request header, and returns a future of either the result
+     *     to reject the WebSocket connection with, or an accepted WebSocket with its flow and
+     *     handshake metadata.
+     * @return The WebSocket handler.
+     */
+    public WebSocket acceptOrResultWithOptions(
+        Function<Http.RequestHeader, CompletionStage<F.Either<Result, Accepted<In, Out>>>> f) {
+      return WebSocket.acceptOrResultWithOptions(inMapper, f, outMapper);
+    }
+
+    /**
      * Accept a WebSocket.
      *
      * @param f A function that takes the request header, and returns a flow to handle the WebSocket
@@ -162,6 +230,18 @@ public abstract class WebSocket {
      */
     public WebSocket accept(Function<Http.RequestHeader, Flow<In, Out, ?>> f) {
       return acceptOrResult(
+          request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
+    }
+
+    /**
+     * Accept a WebSocket with handshake metadata.
+     *
+     * @param f A function that takes the request header, and returns an accepted WebSocket with its
+     *     flow and handshake metadata.
+     * @return The WebSocket handler.
+     */
+    public WebSocket acceptWithOptions(Function<Http.RequestHeader, Accepted<In, Out>> f) {
+      return acceptOrResultWithOptions(
           request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
     }
   }
@@ -200,5 +280,61 @@ public abstract class WebSocket {
                 });
       }
     };
+  }
+
+  private static <In, Out> WebSocket acceptOrResultWithOptions(
+      PartialFunction<Message, F.Either<In, Message>> inMapper,
+      Function<Http.RequestHeader, CompletionStage<F.Either<Result, Accepted<In, Out>>>> f,
+      Function<Out, Message> outMapper) {
+    return new WebSocket() {
+      @Override
+      public CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(
+          Http.RequestHeader request) {
+        return applyWithOptions(request)
+            .thenApply(
+                resultOrAccepted -> {
+                  if (resultOrAccepted.left.isPresent()) {
+                    return F.Either.Left(resultOrAccepted.left.get());
+                  } else {
+                    return F.Either.Right(resultOrAccepted.right.get().flow());
+                  }
+                });
+      }
+
+      @Override
+      public CompletionStage<F.Either<Result, Accepted<Message, Message>>> applyWithOptions(
+          Http.RequestHeader request) {
+        return f.apply(request)
+            .thenApply(
+                resultOrAccepted -> {
+                  if (resultOrAccepted.left.isPresent()) {
+                    return F.Either.Left(resultOrAccepted.left.get());
+                  } else {
+                    Accepted<In, Out> accepted = resultOrAccepted.right.get();
+                    Flow<Message, Message, ?> flow =
+                        PekkoStreams.bypassWith(
+                            Flow.<Message>create().collect(inMapper),
+                            play.api.libs.streams.PekkoStreams.onlyFirstCanFinishMerge(2),
+                            accepted.flow().map(outMapper::apply));
+                    return F.Either.Right(new Accepted<>(flow, accepted.subprotocol()));
+                  }
+                });
+      }
+    };
+  }
+
+  private static Optional<String> firstRequestedSubprotocol(Http.RequestHeader request) {
+    return request
+        .header("Sec-WebSocket-Protocol")
+        .flatMap(
+            header -> {
+              for (String protocol : header.split(",")) {
+                String trimmed = protocol.trim();
+                if (!trimmed.isEmpty()) {
+                  return Optional.of(trimmed);
+                }
+              }
+              return Optional.empty();
+            });
   }
 }

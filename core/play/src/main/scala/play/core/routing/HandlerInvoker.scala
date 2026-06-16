@@ -191,33 +191,38 @@ object HandlerInvokerFactory {
 
         def call(wsCall: => JWebSocket): Handler = new JavaHandler {
           def withComponents(handlerComponents: JavaHandlerComponents): WebSocket = {
-            WebSocket.acceptOrResult[Message, Message] { request =>
-              def callWebSocketAction(req: RequestHeader) = wsCall(req.asJava).asScala.map { resultOrFlow =>
-                if (resultOrFlow.left.isPresent) {
-                  Left(resultOrFlow.left.get.asScala())
-                } else {
-                  Right(
-                    Flow[Message]
-                      .map {
-                        case TextMessage(text)          => new JMessage.Text(text)
-                        case BinaryMessage(data)        => new JMessage.Binary(data)
-                        case PingMessage(data)          => new JMessage.Ping(data)
-                        case PongMessage(data)          => new JMessage.Pong(data)
-                        case CloseMessage(code, reason) =>
-                          new JMessage.Close(code.toJava.asInstanceOf[Optional[Integer]], reason)
-                      }
-                      .via(resultOrFlow.right.get.asScala)
-                      .map {
-                        case text: JMessage.Text     => TextMessage(text.data)
-                        case binary: JMessage.Binary => BinaryMessage(binary.data)
-                        case ping: JMessage.Ping     => PingMessage(ping.data)
-                        case pong: JMessage.Pong     => PongMessage(pong.data)
-                        case close: JMessage.Close   =>
-                          CloseMessage(close.code.toScala.asInstanceOf[Option[Int]], close.reason)
-                      }
-                  )
+            WebSocket.acceptOrResultWithOptions[Message, Message] { request =>
+              def callWebSocketAction(req: RequestHeader) =
+                wsCall.applyWithOptions(req.asJava).asScala.map { resultOrAccepted =>
+                  if (resultOrAccepted.left.isPresent) {
+                    Left(resultOrAccepted.left.get.asScala())
+                  } else {
+                    val accepted = resultOrAccepted.right.get
+                    Right(
+                      WebSocket.Accepted(
+                        Flow[Message]
+                          .map[JMessage] {
+                            case TextMessage(text)          => new JMessage.Text(text)
+                            case BinaryMessage(data)        => new JMessage.Binary(data)
+                            case PingMessage(data)          => new JMessage.Ping(data)
+                            case PongMessage(data)          => new JMessage.Pong(data)
+                            case CloseMessage(code, reason) =>
+                              new JMessage.Close(code.toJava.asInstanceOf[Optional[Integer]], reason)
+                          }
+                          .via(accepted.flow().asScala)
+                          .map[Message] {
+                            case text: JMessage.Text     => TextMessage(text.data)
+                            case binary: JMessage.Binary => BinaryMessage(binary.data)
+                            case ping: JMessage.Ping     => PingMessage(ping.data)
+                            case pong: JMessage.Pong     => PongMessage(pong.data)
+                            case close: JMessage.Close   =>
+                              CloseMessage(close.code.toScala.asInstanceOf[Option[Int]], close.reason)
+                          },
+                        accepted.subprotocol().toScala
+                      )
+                    )
+                  }
                 }
-              }
               if (handlerComponents.httpConfiguration.actionComposition.includeWebSocketActions) {
                 new play.core.j.JavaAction(handlerComponents) {
                   override def invocation(req: JRequest): CompletionStage[JResult] = // Simulates called action method

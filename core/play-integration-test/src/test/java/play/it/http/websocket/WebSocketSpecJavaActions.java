@@ -52,4 +52,11 @@ public class WebSocketSpecJavaActions {
     return WebSocket.Text.acceptOrResult(
         request -> CompletableFuture.completedFuture(F.Either.Left(Results.status(statusCode))));
   }
+
+  public static WebSocket selectSubprotocol() {
+    return WebSocket.Text.acceptWithOptions(
+        request ->
+            new WebSocket.Accepted<>(
+                Flow.fromSinkAndSource(Sink.ignore(), Source.empty()), "graphql-transport-ws"));
+  }
 }
