@@ -225,7 +225,8 @@ public class JavaWebSockets {
                 .withCookies(
                     play.mvc.Http.Cookie.builder("ws-session", "connected")
                         .withHttpOnly(true)
-                        .build());
+                        .build())
+                .addingToSession(request, "websocket", "connected");
           });
     }
     // #handshake-options

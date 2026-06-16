@@ -84,7 +84,8 @@ object WebSocket {
       flow: Flow[In, Out, ?],
       subprotocol: Option[String] = None,
       headers: Headers = Headers(),
-      newCookies: Seq[Cookie] = Seq.empty
+      newCookies: Seq[Cookie] = Seq.empty,
+      newSession: Option[Session] = None
   ) {
 
     /**
@@ -117,13 +118,51 @@ object WebSocket {
       withCookies(cookies.map(_.toCookie)*)
     }
 
+    /**
+     * Sets a new session for this WebSocket upgrade response, discarding the existing session.
+     */
+    def withSession(session: Session): Accepted[In, Out] = copy(newSession = Some(session))
+
+    /**
+     * Sets a new session for this WebSocket upgrade response, discarding the existing session.
+     */
+    def withSession(session: (String, String)*): Accepted[In, Out] = withSession(Session(session.toMap))
+
+    /**
+     * Discards the existing session for this WebSocket upgrade response.
+     */
+    def withNewSession: Accepted[In, Out] = withSession(Session())
+
+    /**
+     * @param request Current request
+     * @return The session carried by this WebSocket upgrade response. Reads the request's session if this response does
+     *         not modify the session.
+     */
+    def session(implicit request: RequestHeader): Session = newSession.getOrElse(request.session)
+
+    /**
+     * Adds values to this WebSocket upgrade response's session.
+     */
+    def addingToSession(values: (String, String)*)(implicit request: RequestHeader): Accepted[In, Out] =
+      withSession(new Session(session.data ++ values.toMap))
+
+    /**
+     * Removes values from this WebSocket upgrade response's session.
+     */
+    def removingFromSession(keys: String*)(implicit request: RequestHeader): Accepted[In, Out] =
+      withSession(new Session(session.data -- keys))
+
     private[play] def bakeCookies(
-        cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding()
+        cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
+        sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker()
     ): Accepted[In, Out] = {
       val allCookies = {
         val setCookieCookies =
           cookieHeaderEncoding.decodeSetCookieHeader(headers.get(HeaderNames.SET_COOKIE).getOrElse(""))
-        setCookieCookies ++ newCookies
+        val session = newSession.map { data =>
+          if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
+        }
+        setCookieCookies ++ session ++ newCookies
       }
 
       if (allCookies.isEmpty) {
@@ -303,7 +342,13 @@ object WebSocket {
 
       override def applyWithOptions(request: RequestHeader): Future[Either[Result, Accepted[Message, Message]]] = {
         f(request).map(_.map { accepted =>
-          Accepted(transformer.transform(accepted.flow), accepted.subprotocol, accepted.headers, accepted.newCookies)
+          Accepted(
+            transformer.transform(accepted.flow),
+            accepted.subprotocol,
+            accepted.headers,
+            accepted.newCookies,
+            accepted.newSession
+          )
         })
       }
     }

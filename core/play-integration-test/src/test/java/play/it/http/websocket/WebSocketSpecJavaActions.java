@@ -68,7 +68,8 @@ public class WebSocketSpecJavaActions {
               Flow.fromSinkAndSource(Sink.ignore(), Source.<String>empty());
           return new WebSocket.Accepted<>(flow)
               .withHeader("X-WebSocket-Trace", "java-trace")
-              .withCookies(Http.Cookie.builder("java-ws-cookie", "cookie-value").build());
+              .withCookies(Http.Cookie.builder("java-ws-cookie", "cookie-value").build())
+              .addingToSession(request, "websocket", "connected");
         });
   }
 }

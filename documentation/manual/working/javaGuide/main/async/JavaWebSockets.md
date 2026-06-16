@@ -102,11 +102,11 @@ If no offered subprotocol is acceptable, use `acceptOrResultWithOptions` to reje
 
 ## Setting WebSocket handshake headers and cookies
 
-`acceptWithOptions` and `acceptOrResultWithOptions` also let applications add headers and cookies to the successful `101 Switching Protocols` response:
+`acceptWithOptions` and `acceptOrResultWithOptions` also let applications add headers, cookies, and session data to the successful `101 Switching Protocols` response:
 
 @[handshake-options](code/javaguide/async/JavaWebSockets.java)
 
-These headers and cookies are sent only with the opening WebSocket handshake response. Protocol-owned headers such as `Upgrade`, `Connection`, `Sec-WebSocket-Accept`, and `Sec-WebSocket-Protocol` are controlled by Play and the selected `subprotocol`.
+These headers, cookies, and session updates are sent only with the opening WebSocket handshake response. Protocol-owned headers such as `Upgrade`, `Connection`, `Sec-WebSocket-Accept`, and `Sec-WebSocket-Protocol` are controlled by Play and the selected `subprotocol`.
 
 ## Accessing a WebSocket
 

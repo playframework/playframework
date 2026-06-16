@@ -419,6 +419,7 @@ class Controller10 {
       .Accepted(flow)
       .withHeaders("X-WebSocket-Trace" -> request.id.toString)
       .withCookies(Cookie("ws-session", "connected", httpOnly = true))
+      .withSession(request.session + ("websocket" -> "connected"))
   }
   // #handshake-options
 }
