@@ -108,7 +108,10 @@ object BuildSettings {
     (Test / fork)                 := true,
     (Test / parallelExecution)    := false,
     (Test / test / testListeners) := Nil,
-    (Test / javaOptions) ++= Seq("-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m"),
+    (Test / javaOptions) ++= Seq(
+      "-XX:MaxMetaspaceSize=384m", "-Xmx512m", "-Xms128m",
+      // add-opens required by Agrona (dependency of pekko-remote)
+      "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED"),
     testOptions ++= Seq(
       Tests.Argument(TestFrameworks.Specs2, "showtimes"),
       Tests.Argument(TestFrameworks.JUnit, "-v")
