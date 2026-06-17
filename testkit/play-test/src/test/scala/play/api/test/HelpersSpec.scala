@@ -13,6 +13,7 @@ import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import org.specs2.mutable._
+import play.api.libs.json.Json
 import play.api.mvc._
 import play.api.mvc.Results._
 import play.api.test.Helpers._
@@ -23,19 +24,31 @@ class HelpersSpec extends Specification {
   sequential // needed because we read/write sys.props in differents tests below
 
   val ctrl = new HelpersTest
-  class HelpersTest extends ControllerHelpers {
-    lazy val Action: ActionBuilder[Request, AnyContent] = ActionBuilder.ignoringBody
-    def abcAction: EssentialAction                      = Action {
+  class HelpersTest extends BaseControllerHelpers {
+    protected override val controllerComponents: ControllerComponents = stubControllerComponents()
+    lazy val Action: ActionBuilder[Request, AnyContent]               = ActionBuilder.ignoringBody
+    def abcAction: EssentialAction                                    = Action {
       Ok("abc").as("text/plain")
     }
     def jsonAction: EssentialAction = Action {
       Ok("""{"content": "abc"}""").as("application/json")
+    }
+    def parseJsonAction: EssentialAction = Action(parse.json) { request =>
+      Ok((request.body \ "content").as[String])
     }
   }
 
   "call" should {
     "execute an action with parse.ignore body parser without a Materializer" in {
       val result = call(ctrl.abcAction, FakeRequest())
+      status(result) must_== OK
+      contentAsString(result) must_== "abc"
+    }
+
+    "execute an action with parse.json body parser without a Materializer" in {
+      val request = FakeRequest(POST, "/").withJsonBody(Json.obj("content" -> "abc"))
+      val result  = call(ctrl.parseJsonAction, request)
+
       status(result) must_== OK
       contentAsString(result) must_== "abc"
     }
