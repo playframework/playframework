@@ -81,7 +81,12 @@ lazy val main = Project("Play-Documentation", file("."))
     crossScalaVersions                        := Seq("2.13.18", "3.9.0-RC1"),
     scalaVersion                              := "2.13.18",
     Test / fork                               := true,
-    Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
+    Test / javaOptions ++= Seq(
+      "-Xmx512m",
+      "-Xms128m",
+      // add-opens required by Agrona (dependency of pekko-remote)
+      "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED"
+    ),
     headerLicense := Some(
       HeaderLicense.Custom(
         "Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>"
