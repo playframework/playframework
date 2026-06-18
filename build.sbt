@@ -119,7 +119,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     },
     Docs.apiDocsIncludeManaged := true
   )
-  .settings(Docs.playdocSettings: _*)
+  .settings(Docs.playdocSettings *)
   .dependsOn(
     PlayBuildLinkProject,
     PlayStreamsProject,
@@ -234,7 +234,7 @@ lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "web/pl
   )
 
 lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-docs")
-  .settings(Docs.settings: _*)
+  .settings(Docs.settings *)
   .settings(
     libraryDependencies ++= playDocsDependencies
   )
@@ -527,7 +527,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
   )
   .aggregate((userProjects ++ nonUserProjects): _*)
 
-val _ = sys.props += ("sbt_validateCode" -> List(
+val sbtValidateCodeProp = sys.props += ("sbt_validateCode" -> List(
   "+pekkoVersionCheck",
 ).mkString(";"))
 
