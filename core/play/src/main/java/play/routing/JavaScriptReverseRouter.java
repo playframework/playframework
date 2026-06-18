@@ -15,12 +15,27 @@ public class JavaScriptReverseRouter {
    * Generates a JavaScript reverse router.
    *
    * @param name the router's name
+   * @param host the host to use for the reverse route
+   * @param routes the reverse routes for this router
+   * @return the router
+   */
+  public static JavaScript create(String name, String host, JavaScriptReverseRoute... routes) {
+    return play.api.routing.JavaScriptReverseRouter.apply(name, host, Scala.varargs(routes));
+  }
+
+  /**
+   * Generates a JavaScript reverse router.
+   *
+   * @param name the router's name
    * @param ajaxMethod which asynchronous call method the user's browser will use (e.g.
    *     "jQuery.ajax")
    * @param host the host to use for the reverse route
    * @param routes the reverse routes for this router
    * @return the router
+   * @deprecated Deprecated as of 2.9.0 Use {@link #create(String, String,
+   *     JavaScriptReverseRoute...)} instead.
    */
+  @Deprecated
   public static JavaScript create(
       String name, String ajaxMethod, String host, JavaScriptReverseRoute... routes) {
     return play.api.routing.JavaScriptReverseRouter.apply(
