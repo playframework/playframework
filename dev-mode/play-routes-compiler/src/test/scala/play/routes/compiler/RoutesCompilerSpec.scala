@@ -83,7 +83,7 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
     "check if routes with reserved words as method name are compiled" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("reservedWords.routes").toURI)
       RoutesCompiler.compile(
-        RoutesCompilerTask(file, Seq.empty, true, true, false),
+        RoutesCompilerTask(file, Seq.empty, true, true, false, false),
         InjectedRoutesGenerator,
         tmp
       ) must beRight
