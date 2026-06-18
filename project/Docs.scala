@@ -203,7 +203,7 @@ object Docs {
     classpath
       .filter(_.isDirectory)
       .filter(_.getAbsolutePath.replace(java.io.File.separatorChar, '/').startsWith(basePath))
-      .flatMap(dir => (dir ** "*.tasty").get.filter(isPublicScala3TastyFile(dir, _)))
+      .flatMap(dir => (dir ** "*.tasty").get().filter(isPublicScala3TastyFile(dir, _)))
       .distinct
   }
 
