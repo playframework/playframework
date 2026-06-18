@@ -41,6 +41,15 @@ trait SyncCacheApi {
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => A): A
 
   /**
+   * Retrieve a value from the cache, or set it from a default function.
+   *
+   * @param key        Item key.
+   * @param expiration function that returns the expiration period in seconds.
+   * @param orElse     The default function to invoke if the value was not found in cache.
+   */
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A
+
+  /**
    * Retrieve a value from the cache for the given type
    *
    * @param key Item key.
@@ -65,6 +74,10 @@ class DefaultSyncCacheApi @Inject() (val cacheApi: AsyncCacheApi) extends SyncCa
 
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
     Await.result(cacheApi.getOrElseUpdate(key, expiration)(Future.successful(orElse)), awaitTimeout)
+  }
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
+    Await.result(cacheApi.getOrElseUpdate[A](key, value => expiration(value))(Future.successful(orElse)), awaitTimeout)
   }
 
   def remove(key: String): Unit = {

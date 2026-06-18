@@ -6,6 +6,7 @@ package play.cache;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 /** A synchronous API to access a Cache. */
 public interface SyncCacheApi {
@@ -41,6 +42,17 @@ public interface SyncCacheApi {
    * @return the value
    */
   <T> T getOrElseUpdate(String key, Callable<T> block, int expiration);
+
+  /**
+   * Retrieve a value from the cache, or set it from a default Callable function.
+   *
+   * @param <T> the type of the value
+   * @param key Item key.
+   * @param block block returning value to set if key does not exist
+   * @param expiration function that returns expiration period in seconds.
+   * @return the value
+   */
+  <T> T getOrElseUpdate(String key, Callable<T> block, Function<T, Integer> expiration);
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.

@@ -44,6 +44,15 @@ trait AsyncCacheApi {
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => Future[A]): Future[A]
 
   /**
+   * Retrieve a value from the cache, or set it from a default function.
+   *
+   * @param key        Item key.
+   * @param expiration Function that returns the expiration period in seconds.
+   * @param orElse     The default function to invoke if the value was not found in cache.
+   */
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A]
+
+  /**
    * Retrieve a value from the cache for the given type
    *
    * @param key Item key.
