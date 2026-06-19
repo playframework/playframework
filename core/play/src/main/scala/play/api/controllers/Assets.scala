@@ -819,7 +819,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
    */
   def at(path: String, file: String, aggressiveCaching: Boolean, fallback: String): Action[AnyContent] = Action.async {
     implicit request =>
-    assetAt(path, file, aggressiveCaching, fallback)
+      assetAt(path, file, aggressiveCaching, fallback)
   }
 
   def at(path: String, file: String, fallback: String): Action[AnyContent] = at(path, file, false, fallback)
@@ -866,7 +866,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
           })
         }
       case None =>
-        if (fallback.isEmpty) {
+        if ("".eq(fallback)) {
           notFound
         } else {
           assetAt(path, fallback, aggressiveCaching)
