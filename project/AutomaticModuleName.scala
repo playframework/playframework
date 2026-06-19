@@ -54,8 +54,22 @@ object AutomaticModuleName {
     "Sbt-Routes-Compiler"        -> "org.playframework.sbt.routes.compiler"
   )
 
+  private val excluded = Set(
+    "Play-Bom",
+    "Play-Microbenchmark",
+    "Sbt-Plugin",
+    "Sbt-Scripted-Tools"
+  )
+
   def settings(projectName: String): Seq[Def.Setting[Task[Seq[PackageOption]]]] =
-    names.get(projectName).toSeq.map { moduleName =>
-      Compile / packageBin / packageOptions += Package.ManifestAttributes(Header -> moduleName)
+    names.get(projectName) match {
+      case Some(moduleName) =>
+        Seq(
+          Compile / packageBin / packageOptions += Package.ManifestAttributes(Header -> moduleName)
+        )
+      case None if excluded(projectName) =>
+        Seq.empty
+      case None =>
+        throw new MessageOnlyException(s"Missing Automatic-Module-Name for project $projectName")
     }
 }
