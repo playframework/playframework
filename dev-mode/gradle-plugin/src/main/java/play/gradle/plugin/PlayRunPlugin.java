@@ -4,6 +4,7 @@
 package play.gradle.plugin;
 
 import static org.gradle.api.plugins.ApplicationPlugin.APPLICATION_GROUP;
+import static org.gradle.api.plugins.JavaPlugin.CLASSES_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
@@ -30,7 +31,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +103,7 @@ public class PlayRunPlugin implements Plugin<Project> {
             playRun -> {
               playRun.setDescription("Runs the Play application for local development.");
               playRun.setGroup(APPLICATION_GROUP);
-              playRun.dependsOn(project.getTasks().findByName(JavaPlugin.CLASSES_TASK_NAME));
+              playRun.dependsOn(project.getTasks().findByName(CLASSES_TASK_NAME));
               playRun.getOutputs().upToDateWhen(task -> ((PlayRun) task).isUpToDate());
               playRun.getWorkingDir().convention(project.getLayout().getProjectDirectory());
               playRun.getClasses().from(findClasspathDirectories(project));
@@ -124,7 +124,7 @@ public class PlayRunPlugin implements Plugin<Project> {
                         Project child = project.findProject(path);
                         if (child == null) return;
                         playRun.getClasses().from(findClasspathDirectories(child));
-                        playRun.dependsOn(child.getTasks().findByName(PROCESS_RESOURCES_TASK_NAME));
+                        playRun.dependsOn(child.getTasks().findByName(CLASSES_TASK_NAME));
                         if (isPlayProject(child)) {
                           playRun.getAssetsDirs().from(findAssetsDirectories(child));
                           playRun.dependsOn(child.getTasks().findByName(PROCESS_ASSETS_TASK_NAME));
