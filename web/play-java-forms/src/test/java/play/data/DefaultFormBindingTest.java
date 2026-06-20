@@ -5,6 +5,8 @@
 package play.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,6 +34,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import org.junit.Test;
+import play.data.internal.binding.beans.AutoGrowBudget;
 import play.data.internal.binding.beans.MutablePropertyValues;
 import play.data.internal.binding.validation.DataBinder;
 import play.data.internal.binding.validation.FieldError;
@@ -3994,6 +3997,80 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.list.get(1).nested.list.get(1).name).isEqualTo("nested-list-one");
     assertThat(bean.map.get("key1").nested.map.get("key1").name).isEqualTo("nested-map-one");
     assertThat(bean.map.get("key2").nested.map.get("key2").name).isEqualTo("nested-map-two");
+  }
+
+  @Test
+  public void shouldRejectIndexedBindingBeyondMaxAutoGrowOperations() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Map<String, String> data = new HashMap<>();
+    data.put("list[2].nested.list[2].name", "too-much-growth");
+
+    Form<IndexedFormData> form =
+        formFactory
+            .form(IndexedFormData.class)
+            .withMaxAutoGrowOperations(6)
+            .bind(Lang.defaultLang(), TypedMap.empty(), data);
+
+    assertThat(form.hasErrors()).isTrue();
+    assertThat(form.errors())
+        .anySatisfy(error -> assertThat(error.key()).isEqualTo("list[2].nested.list"));
+  }
+
+  @Test
+  public void shouldRejectDirectFieldIndexedBindingBeyondMaxAutoGrowOperations() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Map<String, String> data = new HashMap<>();
+    data.put("list[2].nested.list[2].name", "too-much-growth");
+
+    Form<IndexedFormData> form =
+        formFactory
+            .form(IndexedFormData.class)
+            .withDirectFieldAccess(true)
+            .withMaxAutoGrowOperations(6)
+            .bind(Lang.defaultLang(), TypedMap.empty(), data);
+
+    assertThat(form.hasErrors()).isTrue();
+    assertThat(form.errors())
+        .anySatisfy(error -> assertThat(error.key()).isEqualTo("list[2].nested.list"));
+  }
+
+  @Test
+  public void shouldBindIndexedPropertiesWithinMaxAutoGrowOperations() {
+    FormFactory formFactory = instanceOf(FormFactory.class);
+    Map<String, String> data = new HashMap<>();
+    data.put("list[2].nested.list[2].name", "within-budget");
+
+    Form<IndexedFormData> form =
+        formFactory
+            .form(IndexedFormData.class)
+            .withMaxAutoGrowOperations(9)
+            .bind(Lang.defaultLang(), TypedMap.empty(), data);
+
+    assertThat(form.errors()).isEmpty();
+    assertThat(form.get().getList().get(2).getNested().getList().get(2).getName())
+        .isEqualTo("within-budget");
+  }
+
+  @Test
+  public void shouldTrackAutoGrowBudgetConsumption() {
+    AutoGrowBudget budget = new AutoGrowBudget(3);
+
+    assertThat(budget.canConsume(2)).isTrue();
+    budget.consume(2);
+
+    assertThat(budget.getOperations()).isEqualTo(2);
+    assertThat(budget.canConsume(1)).isTrue();
+    assertThat(budget.canConsume(2)).isFalse();
+    budget.consume(1);
+    assertThat(budget.getOperations()).isEqualTo(3);
+    assertThatIllegalStateException().isThrownBy(() -> budget.consume(1));
+  }
+
+  @Test
+  public void shouldRejectInvalidAutoGrowBudgetAmounts() {
+    assertThatIllegalArgumentException().isThrownBy(() -> new AutoGrowBudget(-1));
+    assertThatIllegalArgumentException().isThrownBy(() -> new AutoGrowBudget(1).canConsume(-1));
+    assertThatIllegalArgumentException().isThrownBy(() -> new AutoGrowBudget(1).consume(-1));
   }
 
   @Test

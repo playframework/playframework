@@ -98,6 +98,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		setWrappedInstance(object, nestedPath, parent.getWrappedInstance());
 		setAutoGrowNestedPaths(parent.isAutoGrowNestedPaths());
 		setAutoGrowCollectionLimit(parent.getAutoGrowCollectionLimit());
+		setAutoGrowBudget(parent.getAutoGrowBudget());
 		setConversionService(parent.getConversionService());
 	}
 
@@ -226,6 +227,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 						componentType, ph.nested(tokens.keys.length));
 				int length = Array.getLength(propValue);
 				if (arrayIndex >= length && arrayIndex < getAutoGrowCollectionLimit()) {
+					consumeAutoGrowBudget(arrayIndex + 1 - length, tokens.canonicalName);
 					Object newArray = Array.newInstance(componentType, arrayIndex + 1);
 					System.arraycopy(propValue, 0, newArray, 0, length);
 					int lastKeyIndex = tokens.canonicalName.lastIndexOf('[');
@@ -248,6 +250,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 					requiredType.getResolvableType().resolve(), requiredType);
 			int size = list.size();
 			if (index >= size && index < getAutoGrowCollectionLimit()) {
+				consumeAutoGrowBudget(index + 1 - size, tokens.canonicalName);
 				for (int i = size; i < index; i++) {
 					try {
 						list.add(null);
@@ -280,6 +283,9 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 					mapKeyType.getResolvableType().resolve(), mapKeyType);
 			Object convertedMapValue = convertIfNecessary(tokens.canonicalName, pv.getValue(),
 					mapValueType.getResolvableType().resolve(), mapValueType);
+			if (!map.containsKey(convertedMapKey)) {
+				consumeAutoGrowBudget(1, tokens.canonicalName);
+			}
 			map.put(convertedMapKey, convertedMapValue);
 		}
 
@@ -617,12 +623,22 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	protected abstract NotWritablePropertyException createNotWritablePropertyException(String propertyName);
 
 
+	private void consumeAutoGrowBudget(int amount, String propertyName) {
+		AutoGrowBudget budget = getAutoGrowBudget();
+		if (!budget.canConsume(amount)) {
+			throw new InvalidPropertyException(getRootClass(), this.nestedPath + propertyName,
+					"Auto-grow operation limit of " + budget.getLimit() + " exceeded");
+		}
+		budget.consume(amount);
+	}
+
 	private Object growArrayIfNecessary(Object array, int index, String name) {
 		if (!isAutoGrowNestedPaths()) {
 			return array;
 		}
 		int length = Array.getLength(array);
 		if (index >= length && index < getAutoGrowCollectionLimit()) {
+			consumeAutoGrowBudget(index + 1 - length, name);
 			Class<?> componentType = array.getClass().componentType();
 			Object newArray = Array.newInstance(componentType, index + 1);
 			System.arraycopy(array, 0, newArray, 0, length);
@@ -649,6 +665,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 		if (index >= size && index < getAutoGrowCollectionLimit()) {
 			Class<?> elementType = ph.getResolvableType().getNested(nestingLevel).asCollection().resolveGeneric();
 			if (elementType != null) {
+				consumeAutoGrowBudget(index + 1 - size, name);
 				for (int i = collection.size(); i < index + 1; i++) {
 					collection.add(newValue(elementType, null, name));
 				}
@@ -733,6 +750,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	}
 
 	private Object setDefaultValue(PropertyTokenHolder tokens) {
+		consumeAutoGrowBudget(1, tokens.canonicalName);
 		PropertyValue pv = createDefaultPropertyValue(tokens);
 		setPropertyValue(tokens, pv);
 		Object defaultValue = getPropertyValue(tokens);
