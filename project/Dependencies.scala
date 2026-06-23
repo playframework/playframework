@@ -113,7 +113,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "9.1.0.Final"
+    "org.hibernate.validator" % "hibernate-validator" % "9.1.1.Final"
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
