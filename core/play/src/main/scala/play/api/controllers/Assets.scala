@@ -815,12 +815,19 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
    * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
    * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
+   * @param fallback the file to serve if the requested asset cannot be found. Defaults to no fallback.
    */
-  def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async {
-    implicit request => assetAt(path, file, aggressiveCaching)
+  def at(path: String, file: String, aggressiveCaching: Boolean, fallback: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      assetAt(path, file, aggressiveCaching, fallback)
   }
 
-  private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(
+  def at(path: String, file: String, fallback: String): Action[AnyContent] = at(path, file, false, fallback)
+
+  def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] =
+    at(path, file, aggressiveCaching, "")
+
+  private def assetAt(path: String, file: String, aggressiveCaching: Boolean, fallback: String = "")(
       implicit request: RequestHeader
   ): Future[Result] = {
     val assetName: Option[String]                                    = resourceNameAt(path, file)
@@ -858,7 +865,12 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
             )
           })
         }
-      case None => notFound
+      case None =>
+        if ("".eq(fallback)) {
+          notFound
+        } else {
+          assetAt(path, fallback, aggressiveCaching)
+        }
     }
 
     pendingResult.recoverWith {
