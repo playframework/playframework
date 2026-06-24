@@ -512,11 +512,11 @@ public interface WSRequest extends StandaloneWSRequest {
   WSRequest setVirtualHost(String virtualHost);
 
   /**
-  * Sets the request timeout.
-  *
-  * @param timeout the request timeout duration
-  * @return the modified WSRequest.
-  */
+   * Sets the request timeout.
+   *
+   * @param timeout the request timeout duration
+   * @return the modified WSRequest.
+   */
   @Override
   WSRequest setRequestTimeout(Duration timeout);
 
