@@ -34,6 +34,7 @@ import play.api.mvc.request.RequestTarget
 import play.api.routing.Router
 import play.api.ApplicationLoader.Context
 import play.core._
+import play.core.parsers.FormUrlEncodedParser
 import play.routing.{ Router => JRouter }
 
 trait WebSocketable {
@@ -167,7 +168,10 @@ object Server {
       val withoutQueryString = withoutHost.split('?').head
       if (withoutQueryString.isEmpty) "/" else withoutQueryString
     }
+    // TODO_QUERY
     override lazy val queryMap: Map[String, Seq[String]] = {
+      FormUrlEncodedParser.parse(requestUri)
+      /*
       // Very rough parse of query string that doesn't decode
       if (requestUri.contains("?")) {
         requestUri
@@ -186,6 +190,7 @@ object Server {
       } else {
         Map.empty
       }
+      */
     }
   }
 
