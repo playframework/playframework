@@ -267,6 +267,30 @@ trait WebSocketSpec
         }
       }
 
+      "close the websocket with the exception close code when the application source fails" in {
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(
+              Sink.ignore,
+              Source.failed[Message](WebSocketCloseException(CloseMessage(4001, "Application close")))
+            )
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(4001)
+            )
+          )
+        }
+      }
+
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.cancelled, Source.maybe[String]) }
       }
@@ -491,7 +515,7 @@ trait WebSocketSpec
         }
       }
 
-      "close the websocket with the exception close code when JSON validation fails" in {
+      "close the websocket with 1003 when JSON validation fails" in {
         withServer(app =>
           WebSocket.accept[JsonMessage, JsValue] { req =>
             Flow.fromSinkAndSource(Sink.ignore, Source.maybe[JsValue])
