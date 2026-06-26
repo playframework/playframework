@@ -407,3 +407,19 @@ class Controller9 {
   }
   // #subprotocol
 }
+
+class Controller10 {
+  // #handshake-options
+  import org.apache.pekko.stream.scaladsl._
+  import play.api.mvc._
+
+  def socket = WebSocket.acceptWithOptions[String, String] { request =>
+    val flow: Flow[String, String, ?] = Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String])
+    WebSocket
+      .Accepted(flow)
+      .withHeaders("X-WebSocket-Trace" -> request.id.toString)
+      .withCookies(Cookie("ws-session", "connected", httpOnly = true))
+      .withSession(request.session + ("websocket" -> "connected"))
+  }
+  // #handshake-options
+}

@@ -12,6 +12,7 @@ import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.stream.javadsl.Sink;
 import org.apache.pekko.stream.javadsl.Source;
 import play.libs.F;
+import play.mvc.Http;
 import play.mvc.Results;
 import play.mvc.WebSocket;
 import scala.concurrent.Promise;
@@ -58,5 +59,17 @@ public class WebSocketSpecJavaActions {
         request ->
             new WebSocket.Accepted<>(
                 Flow.fromSinkAndSource(Sink.ignore(), Source.empty()), "graphql-transport-ws"));
+  }
+
+  public static WebSocket addHandshakeHeadersAndCookies() {
+    return WebSocket.Text.acceptWithOptions(
+        request -> {
+          Flow<String, String, ?> flow =
+              Flow.fromSinkAndSource(Sink.ignore(), Source.<String>empty());
+          return new WebSocket.Accepted<>(flow)
+              .withHeader("X-WebSocket-Trace", "java-trace")
+              .withCookies(Http.Cookie.builder("java-ws-cookie", "cookie-value").build())
+              .addingToSession(request, "websocket", "connected");
+        });
   }
 }

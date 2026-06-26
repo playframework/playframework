@@ -12,6 +12,7 @@ import org.apache.pekko.actor.Props
 import org.apache.pekko.stream.scaladsl.Flow
 import org.apache.pekko.util.ByteString
 import play.api.http.websocket._
+import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.libs.streams.PekkoStreams
 import play.core.Execution.Implicits.trampoline
@@ -44,12 +45,27 @@ trait WebSocket extends Handler {
  * Helper utilities to generate WebSocket results.
  */
 object WebSocket {
+  private val ReservedHandshakeResponseHeaders = Set(
+    "connection",
+    "sec-websocket-accept",
+    "sec-websocket-extensions",
+    "sec-websocket-protocol",
+    "upgrade"
+  )
+
   private[play] def firstRequestedSubprotocol(request: RequestHeader): Option[String] = {
     request.headers
       .get("Sec-WebSocket-Protocol")
       .toSeq
       .flatMap(_.split(",").iterator.map(_.trim).filter(_.nonEmpty))
       .headOption
+  }
+
+  private[play] def allowedHandshakeResponseHeaders(headers: Headers): Seq[(String, String)] = {
+    headers.headers.filterNot {
+      case (name, _) =>
+        ReservedHandshakeResponseHeaders(name.toLowerCase(java.util.Locale.ROOT))
+    }
   }
 
   def apply(f: RequestHeader => Future[Either[Result, Flow[Message, Message, ?]]]): WebSocket = {
@@ -61,8 +77,101 @@ object WebSocket {
    *
    * @param flow the flow that handles WebSocket messages
    * @param subprotocol the WebSocket subprotocol selected by the application, if any
+   * @param headers additional HTTP headers to send with the WebSocket upgrade response
+   * @param newCookies additional cookies to send with the WebSocket upgrade response
    */
-  case class Accepted[In, Out](flow: Flow[In, Out, ?], subprotocol: Option[String] = None)
+  case class Accepted[In, Out](
+      flow: Flow[In, Out, ?],
+      subprotocol: Option[String] = None,
+      headers: Headers = Headers(),
+      newCookies: Seq[Cookie] = Seq.empty,
+      newSession: Option[Session] = None
+  ) {
+
+    /**
+     * Adds headers to this WebSocket upgrade response.
+     */
+    def withHeaders(headers: (String, String)*): Accepted[In, Out] = {
+      copy(headers = this.headers.add(headers*))
+    }
+
+    /**
+     * Discards a header from this WebSocket upgrade response.
+     */
+    def discardingHeader(name: String): Accepted[In, Out] = {
+      copy(headers = headers.remove(name))
+    }
+
+    /**
+     * Adds cookies to this WebSocket upgrade response. If the response already contains cookies then cookies with the
+     * same name in the new list will override existing ones.
+     */
+    def withCookies(cookies: Cookie*): Accepted[In, Out] = {
+      val filteredCookies = newCookies.filter(cookie => !cookies.exists(_.name == cookie.name))
+      if (cookies.isEmpty) this else copy(newCookies = filteredCookies ++ cookies)
+    }
+
+    /**
+     * Discards cookies along this WebSocket upgrade response.
+     */
+    def discardingCookies(cookies: DiscardingCookie*): Accepted[In, Out] = {
+      withCookies(cookies.map(_.toCookie)*)
+    }
+
+    /**
+     * Sets a new session for this WebSocket upgrade response, discarding the existing session.
+     */
+    def withSession(session: Session): Accepted[In, Out] = copy(newSession = Some(session))
+
+    /**
+     * Sets a new session for this WebSocket upgrade response, discarding the existing session.
+     */
+    def withSession(session: (String, String)*): Accepted[In, Out] = withSession(Session(session.toMap))
+
+    /**
+     * Discards the existing session for this WebSocket upgrade response.
+     */
+    def withNewSession: Accepted[In, Out] = withSession(Session())
+
+    /**
+     * @param request Current request
+     * @return The session carried by this WebSocket upgrade response. Reads the request's session if this response does
+     *         not modify the session.
+     */
+    def session(implicit request: RequestHeader): Session = newSession.getOrElse(request.session)
+
+    /**
+     * Adds values to this WebSocket upgrade response's session.
+     */
+    def addingToSession(values: (String, String)*)(implicit request: RequestHeader): Accepted[In, Out] =
+      withSession(new Session(session.data ++ values.toMap))
+
+    /**
+     * Removes values from this WebSocket upgrade response's session.
+     */
+    def removingFromSession(keys: String*)(implicit request: RequestHeader): Accepted[In, Out] =
+      withSession(new Session(session.data -- keys))
+
+    private[play] def bakeCookies(
+        cookieHeaderEncoding: CookieHeaderEncoding = new DefaultCookieHeaderEncoding(),
+        sessionBaker: CookieBaker[Session] = new DefaultSessionCookieBaker()
+    ): Accepted[In, Out] = {
+      val allCookies = {
+        val setCookieCookies =
+          cookieHeaderEncoding.decodeSetCookieHeader(headers.get(HeaderNames.SET_COOKIE).getOrElse(""))
+        val session = newSession.map { data =>
+          if (data.isEmpty) sessionBaker.discard.toCookie else sessionBaker.encodeAsCookie(data)
+        }
+        setCookieCookies ++ session ++ newCookies
+      }
+
+      if (allCookies.isEmpty) {
+        this
+      } else {
+        withHeaders(HeaderNames.SET_COOKIE -> cookieHeaderEncoding.encodeSetCookieHeader(allCookies))
+      }
+    }
+  }
 
   /**
    * Transforms WebSocket message flows into message flows of another type.
@@ -233,7 +342,13 @@ object WebSocket {
 
       override def applyWithOptions(request: RequestHeader): Future[Either[Result, Accepted[Message, Message]]] = {
         f(request).map(_.map { accepted =>
-          Accepted(transformer.transform(accepted.flow), accepted.subprotocol)
+          Accepted(
+            transformer.transform(accepted.flow),
+            accepted.subprotocol,
+            accepted.headers,
+            accepted.newCookies,
+            accepted.newSession
+          )
         })
       }
     }

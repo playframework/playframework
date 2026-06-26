@@ -212,4 +212,23 @@ public class JavaWebSockets {
     }
     // #subprotocol
   }
+
+  public static class Controller5 extends Controller {
+    // #handshake-options
+    public WebSocket socket() {
+      return WebSocket.Text.acceptWithOptions(
+          request -> {
+            Flow<String, String, ?> flow =
+                Flow.fromSinkAndSource(Sink.ignore(), Source.<String>maybe());
+            return new WebSocket.Accepted<>(flow)
+                .withHeader("X-WebSocket-Trace", request.id().toString())
+                .withCookies(
+                    play.mvc.Http.Cookie.builder("ws-session", "connected")
+                        .withHttpOnly(true)
+                        .build())
+                .addingToSession(request, "websocket", "connected");
+          });
+    }
+    // #handshake-options
+  }
 }

@@ -16,7 +16,7 @@ import scala.util.Try
 
 import io.netty.channel._
 import io.netty.handler.codec.http._
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
+import io.netty.handler.codec.http.websocketx.WebSocketDecoderConfig
 import io.netty.handler.codec.TooLongFrameException
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -175,7 +175,25 @@ private[play] class PlayRequestHandler(
                   wsKeepAliveMaxIdle
                 )
               val factory =
-                new WebSocketServerHandshakerFactory(wsUrl, accepted.subprotocol.orNull, true, wsBufferLimit)
+                new PlayWebSocketServerHandshakerFactory(
+                  wsUrl,
+                  accepted.subprotocol.orNull,
+                  WebSocketDecoderConfig
+                    .newBuilder()
+                    .allowExtensions(true)
+                    .maxFramePayloadLength(wsBufferLimit)
+                    .build(),
+                  resultUtils(tryApp)
+                    .prepareWebSocketHandshakeHeaders(accepted)
+                    .flatMap {
+                      case (HeaderNames.SET_COOKIE, value) =>
+                        resultUtils(tryApp).splitSetCookieHeaderValue(value).map(HeaderNames.SET_COOKIE -> _)
+                      case (name, value) =>
+                        resultUtils(tryApp).validateHeaderNameChars(name)
+                        resultUtils(tryApp).validateHeaderValueChars(value)
+                        (name -> value) :: Nil
+                    }
+                )
               Future.successful(
                 new DefaultWebSocketHttpResponse(request.protocolVersion(), HttpResponseStatus.OK, processor, factory)
               )
