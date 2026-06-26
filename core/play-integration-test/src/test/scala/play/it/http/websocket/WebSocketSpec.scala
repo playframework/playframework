@@ -27,6 +27,9 @@ import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
+import play.api.libs.json.Reads
 import play.api.libs.streams.ActorFlow
 import play.api.libs.ws.WSClient
 import play.api.mvc.Handler
@@ -150,6 +153,12 @@ trait WebSocketSpec
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
+  case class JsonMessage(name: String)
+
+  implicit val jsonMessageReads: Reads[JsonMessage]                                               = Json.reads[JsonMessage]
+  implicit val jsonMessageFlowTransformer: WebSocket.MessageFlowTransformer[JsonMessage, JsValue] =
+    WebSocket.MessageFlowTransformer.jsonMessageFlowTransformer[JsonMessage, JsValue]
+
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
    * and fail tests seemingly at random.
@@ -425,6 +434,29 @@ trait WebSocketSpec
               sendFrames(
                 BinaryMessage(ByteString("first")),
                 TextMessage("foo")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close the websocket with the exception close code when JSON validation fails" in {
+        withServer(app =>
+          WebSocket.accept[JsonMessage, JsValue] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[JsValue])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("""{"unknown":"value"}""")
               ).via(flow).runWith(consumeFrames)
             }
           )
