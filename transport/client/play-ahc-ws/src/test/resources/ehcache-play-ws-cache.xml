@@ -2,14 +2,19 @@
    Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 -->
 
-<ehcache
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
-        name="play-ws-cache"
-        updateCheck="false"
->
+<config
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xmlns='http://www.ehcache.org/v3'
+  xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd">
 
-  <cache name="play-ws-cache" maxEntriesLocalHeap="10000" eternal="false"
-         timeToIdleSeconds="360" timeToLiveSeconds="1000" overflowToDisk="false" />
-
-</ehcache>
+  <cache alias="play-ws-cache">
+    <key-type>java.lang.String</key-type>
+    <value-type>play.api.cache.ExpirableCacheValue</value-type>
+    <expiry>
+      <tti unit="seconds">360</tti>
+    </expiry>
+    <resources>
+      <heap unit="entries">10000</heap>
+    </resources>
+  </cache>
+</config>
