@@ -225,7 +225,7 @@ public class HttpFormsTest {
           List<Object> args = new ArrayList<>();
           args.add("error.customarg");
           List<ValidationError> errors = new ArrayList<>();
-          errors.add(new ValidationError("foo", msgs, args));
+          errors.add(new ValidationError("amount", msgs, args));
 
           Form<Money> form =
               new Form<>(
@@ -242,7 +242,7 @@ public class HttpFormsTest {
                   config,
                   lang);
 
-          assertThat(form.errorsAsJson().get("foo").toString())
+          assertThat(form.errorsAsJson().get("amount").toString())
               .isEqualTo("[\"It looks like something was not correct\"]");
         });
   }
