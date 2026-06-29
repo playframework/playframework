@@ -130,9 +130,12 @@ object Dependencies {
   ).map(_ % Test)
 
   val guiceVersion = "7.0.0"
+  val asmVersion   = "9.10.1"
   val guiceDeps    = Seq(
-    "com.google.inject"            % "guice"                % guiceVersion,
-    "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
+    ("com.google.inject" % "guice" % guiceVersion).classifier("classes"),
+    // Keep assistedinject from pulling the default shaded Guice jar alongside the unshaded classes classifier.
+    ("com.google.inject.extensions" % "guice-assistedinject" % guiceVersion).exclude("com.google.inject", "guice"),
+    "org.ow2.asm"                   % "asm"                  % asmVersion
   )
 
   def runtime(scalaVersion: String) =
