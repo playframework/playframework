@@ -44,6 +44,10 @@ trait WebSocket extends Handler {
  * Helper utilities to generate WebSocket results.
  */
 object WebSocket {
+  private def closeOnException(flow: Flow[Message, Message, ?]): Flow[Message, Message, ?] = {
+    flow.recover { case WebSocketCloseException(close) => close }
+  }
+
   private[play] def firstRequestedSubprotocol(request: RequestHeader): Option[String] = {
     request.headers
       .get("Sec-WebSocket-Protocol")
@@ -174,20 +178,26 @@ object WebSocket {
      * serialised to JSON.
      */
     def jsonMessageFlowTransformer[In: Reads, Out: Writes]: MessageFlowTransformer[In, Out] = {
-      jsonMessageFlowTransformer.map(
-        json =>
-          Json
-            .fromJson[In](json)
-            .fold(
-              { errors =>
-                throw WebSocketCloseException(
-                  CloseMessage(Some(CloseCodes.Unacceptable), Json.stringify(JsError.toJson(errors)))
+      (flow: Flow[In, Out, ?]) =>
+        {
+          def closeOnParseOrValidationError(block: => JsValue): Either[In, Message] =
+            try {
+              val json = block
+              Json
+                .fromJson[In](json)
+                .fold(
+                  errors => Right(CloseMessage(Some(CloseCodes.Unacceptable), Json.stringify(JsError.toJson(errors)))),
+                  in => Left(in)
                 )
-              },
-              identity
-            ),
-        out => Json.toJson(out)
-      )
+            } catch {
+              case NonFatal(_) => Right(CloseMessage(Some(CloseCodes.Unacceptable), "Unable to parse json message"))
+            }
+
+          PekkoStreams.bypassWith[Message, In, Message](Flow[Message].collect {
+            case BinaryMessage(data) => closeOnParseOrValidationError(Json.parse(data.asInputStream))
+            case TextMessage(text)   => closeOnParseOrValidationError(Json.parse(text))
+          })(flow.map(out => TextMessage(Json.stringify(Json.toJson(out)))))
+        }
     }
   }
 
@@ -216,7 +226,7 @@ object WebSocket {
   def acceptOrResult[In, Out](
       f: RequestHeader => Future[Either[Result, Flow[In, Out, ?]]]
   )(implicit transformer: MessageFlowTransformer[In, Out]): WebSocket = {
-    WebSocket { request => f(request).map(_.map(transformer.transform)) }
+    WebSocket { request => f(request).map(_.map(flow => closeOnException(transformer.transform(flow)))) }
   }
 
   /**
@@ -233,7 +243,7 @@ object WebSocket {
 
       override def applyWithOptions(request: RequestHeader): Future[Either[Result, Accepted[Message, Message]]] = {
         f(request).map(_.map { accepted =>
-          Accepted(transformer.transform(accepted.flow), accepted.subprotocol)
+          Accepted(closeOnException(transformer.transform(accepted.flow)), accepted.subprotocol)
         })
       }
     }

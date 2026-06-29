@@ -18,6 +18,9 @@ import scala.concurrent.Promise;
 
 /** Java actions for WebSocket spec */
 public class WebSocketSpecJavaActions {
+  public static class JavaJsonMessage {
+    public int count;
+  }
 
   private static <A> Sink<A, ?> getChunks(Consumer<List<A>> onDone) {
     return Sink.<List<A>, A>fold(
@@ -58,5 +61,22 @@ public class WebSocketSpecJavaActions {
         request ->
             new WebSocket.Accepted<>(
                 Flow.fromSinkAndSource(Sink.ignore(), Source.empty()), "graphql-transport-ws"));
+  }
+
+  public static WebSocket acceptText() {
+    return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.ignore(), emptySource()));
+  }
+
+  public static WebSocket acceptBinary() {
+    return WebSocket.Binary.accept(request -> Flow.fromSinkAndSource(Sink.ignore(), emptySource()));
+  }
+
+  public static WebSocket acceptJson() {
+    return WebSocket.Json.accept(request -> Flow.fromSinkAndSource(Sink.ignore(), emptySource()));
+  }
+
+  public static WebSocket acceptJsonClass() {
+    return WebSocket.json(JavaJsonMessage.class)
+        .accept(request -> Flow.fromSinkAndSource(Sink.ignore(), emptySource()));
   }
 }

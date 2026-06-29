@@ -27,6 +27,9 @@ import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
+import play.api.libs.json.Reads
 import play.api.libs.streams.ActorFlow
 import play.api.libs.ws.WSClient
 import play.api.mvc.Handler
@@ -150,6 +153,12 @@ trait WebSocketSpec
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
+  case class JsonMessage(name: String)
+
+  implicit val jsonMessageReads: Reads[JsonMessage]                                               = Json.reads[JsonMessage]
+  implicit val jsonMessageFlowTransformer: WebSocket.MessageFlowTransformer[JsonMessage, JsValue] =
+    WebSocket.MessageFlowTransformer.jsonMessageFlowTransformer[JsonMessage, JsValue]
+
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
    * and fail tests seemingly at random.
@@ -255,6 +264,30 @@ trait WebSocketSpec
             }
           )
           result must beEmpty
+        }
+      }
+
+      "close the websocket with the exception close code when the application source fails" in {
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(
+              Sink.ignore,
+              Source.failed[Message](WebSocketCloseException(CloseMessage(4001, "Application close")))
+            )
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(4001)
+            )
+          )
         }
       }
 
@@ -435,6 +468,75 @@ trait WebSocketSpec
           )
         }
       }
+
+      "close a binary websocket when a text frame is received" in {
+        withServer(app =>
+          WebSocket.accept[ByteString, ByteString] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[ByteString])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("first")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a JSON websocket when the message is not valid JSON" in {
+        withServer(app =>
+          WebSocket.accept[JsValue, JsValue] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[JsValue])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("{")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close the websocket with 1003 when JSON validation fails" in {
+        withServer(app =>
+          WebSocket.accept[JsonMessage, JsValue] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[JsValue])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("""{"unknown":"value"}""")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
     }
 
     "allow handling a WebSocket with an actor" in {
@@ -570,6 +672,82 @@ trait WebSocketSpec
             .map { case (key, value) => (key.toLowerCase, value) }
             .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
             .head must be).equalTo("graphql-transport-ws")
+        }
+      }
+
+      "close a text websocket when a binary frame is received" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptText()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                BinaryMessage(ByteString("first"))
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a binary websocket when a text frame is received" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptBinary()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("first")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a JSON websocket when the message is not valid JSON" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptJson()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("{")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a typed JSON websocket when JSON decoding fails" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptJsonClass()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("""{"count":"not-a-number"}""")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
         }
       }
     }

@@ -358,8 +358,13 @@ object WebSocketFlowHandler {
             override def onUpstreamFailure(ex: Throwable) = {
               if (state == Open) {
                 appInitiatedClose = true
-                serverInitiatedClose(CloseMessage(Some(CloseCodes.UnexpectedCondition)))
-                logger.error("WebSocket flow threw exception", ex)
+                ex match {
+                  case WebSocketCloseException(close) =>
+                    serverInitiatedClose(close)
+                  case _ =>
+                    serverInitiatedClose(CloseMessage(Some(CloseCodes.UnexpectedCondition)))
+                    logger.error("WebSocket flow threw exception", ex)
+                }
               } else {
                 logger.debug("WebSocket flow threw exception after the WebSocket was closed", ex)
               }
