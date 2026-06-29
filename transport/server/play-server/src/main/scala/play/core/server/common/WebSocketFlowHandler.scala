@@ -4,6 +4,12 @@
 
 package play.core.server.common
 
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
+
 import scala.concurrent.duration._
 
 import org.apache.pekko.stream._
@@ -103,19 +109,21 @@ object WebSocketFlowHandler {
         // The lowest priority is pong messages.
 
         def serverInitiatedClose(close: CloseMessage) = {
+          val closeToSend = toValidCloseFrame(close)
+
           // Cancel appIn, because we must not send any more messages once we initiate a close.
           cancel(appIn)
 
           if (state == Open || state.isInstanceOf[ServerInitiatingClose]) {
             if (isAvailable(remoteOut)) {
               state = ServerInitiatedClose
-              push(remoteOut, close)
+              push(remoteOut, closeToSend)
               // If appOut is closed, then we may need to do our own pull so that we can get the ack
               if (isClosed(appOut) && !isClosed(remoteIn) && !hasBeenPulled(remoteIn)) {
                 pull(remoteIn)
               }
             } else {
-              state = ServerInitiatingClose(close)
+              state = ServerInitiatingClose(closeToSend)
             }
           } else {
             // Initiating close when we've already sent a close message means we must have encountered an error in
@@ -303,7 +311,7 @@ object WebSocketFlowHandler {
                         // This is a client initiated close, so send back
                         if (isAvailable(remoteOut)) {
                           // We can send the close frame
-                          push(remoteOut, close)
+                          push(remoteOut, toValidCloseFrame(close))
                           // And complete both remote out and remote in
                           complete(remoteOut)
                           cancel(remoteIn)
@@ -379,7 +387,7 @@ object WebSocketFlowHandler {
               state match {
                 case ClientInitiatedClose(close) =>
                   // Acknowledge the client close, and then complete
-                  push(remoteOut, close)
+                  push(remoteOut, toValidCloseFrame(close))
                   completeStage()
                 case ServerInitiatingClose(close) =>
                   // If there is a buffered message, send that first
@@ -451,6 +459,88 @@ object WebSocketFlowHandler {
       invalid("close code must be length 2 but was 1")
     } else {
       CloseMessage(CloseCodes.NoStatus)
+    }
+  }
+
+  private def toValidCloseFrame(close: CloseMessage): CloseMessage = {
+    close.statusCode match {
+      case Some(CloseCodes.NoStatus) if close.reason.isEmpty =>
+        CloseMessage(None)
+      case Some(code) =>
+        invalidCloseStatusCodeReason(code).foreach { reason =>
+          logger.warn(s"Application sent WebSocket close frame with invalid status code $code: $reason")
+        }
+        CloseMessage(Some(code), toValidCloseReason(close.reason))
+      case None if close.reason.isEmpty =>
+        close
+      case None =>
+        logger.warn("Application sent WebSocket close frame with a reason but no status code; dropping close reason")
+        CloseMessage(None)
+    }
+  }
+
+  private def invalidCloseStatusCodeReason(code: Int): Option[String] = {
+    code match {
+      case CloseCodes.NoStatus =>
+        Some("close code 1005 must not be sent")
+      case CloseCodes.ConnectionAbort =>
+        Some("close code 1006 must not be sent")
+      case CloseCodes.TLSHandshakeFailure =>
+        Some("close code 1015 must not be sent")
+      case 1004 =>
+        Some("close code 1004 is reserved")
+      case code if code < 1000 || code >= 5000 =>
+        Some(s"close code must be between 1000 and 4999 but was $code")
+      case _ =>
+        None
+    }
+  }
+
+  private def toValidCloseReason(reason: String): String = {
+    encodeUtf8(reason) match {
+      case Left(reason) =>
+        logger.warn(s"Application sent WebSocket close frame with invalid close reason: $reason; dropping close reason")
+        ""
+      case Right(bytes) if bytes.remaining() > 123 =>
+        logger.warn(
+          s"Application sent WebSocket close reason longer than 123 UTF-8 bytes (${bytes.remaining()} bytes); truncating close reason"
+        )
+        truncateUtf8(reason, 123)
+      case Right(_) =>
+        reason
+    }
+  }
+
+  private def truncateUtf8(value: String, maxBytes: Int): String = {
+    val builder = new StringBuilder
+    var index   = 0
+    var bytes   = 0
+
+    while (index < value.length) {
+      val codePoint = value.codePointAt(index)
+      val chars     = new String(Character.toChars(codePoint))
+      val charBytes = chars.getBytes(StandardCharsets.UTF_8).length
+      if (bytes + charBytes > maxBytes) {
+        return builder.toString
+      }
+      builder.append(chars)
+      bytes += charBytes
+      index += Character.charCount(codePoint)
+    }
+
+    builder.toString
+  }
+
+  private def encodeUtf8(value: String): Either[String, ByteBuffer] = {
+    val encoder = StandardCharsets.UTF_8
+      .newEncoder()
+      .onMalformedInput(CodingErrorAction.REPORT)
+      .onUnmappableCharacter(CodingErrorAction.REPORT)
+
+    try {
+      Right(encoder.encode(CharBuffer.wrap(value)))
+    } catch {
+      case _: CharacterCodingException => Left("close reason must be valid UTF-8")
     }
   }
 }
