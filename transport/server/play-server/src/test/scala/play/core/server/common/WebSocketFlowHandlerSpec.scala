@@ -48,11 +48,57 @@ class WebSocketFlowHandlerSpec extends Specification {
       messages must contain(exactly(closeMessage(CloseCodes.GoingAway)))
     }
 
+    "parse an empty close frame as application-visible 1005" in {
+      WebSocketFlowHandler.parseCloseMessage(ByteString.empty) must beEqualTo(CloseMessage(CloseCodes.NoStatus))
+    }
+
+    "preserve a remote close frame with a reserved status code for application visibility" in {
+      WebSocketFlowHandler.parseCloseMessage(rawCloseData(CloseCodes.ConnectionAbort)) must beEqualTo(
+        CloseMessage(CloseCodes.ConnectionAbort)
+      )
+    }
+
+    "preserve a remote close frame with an invalid status code range for application visibility" in {
+      WebSocketFlowHandler.parseCloseMessage(rawCloseData(999)) must beEqualTo(CloseMessage(999))
+    }
+
     "send 1006 after remote input completes even when the application has no immediate demand" in withActorSystem {
       implicit materializer =>
         val messages = runCompletedRemoteInputWithoutInitialAppDemand()
 
         messages must contain(exactly(closeMessage(CloseCodes.ConnectionAbort)))
+    }
+
+    "send a reserved application close status code to the remote peer" in withActorSystem { implicit materializer =>
+      val message = runAppClose(CloseMessage(CloseCodes.ConnectionAbort))
+
+      message must beEqualTo(CloseMessage(CloseCodes.ConnectionAbort))
+    }
+
+    "truncate an oversized application close reason before sending it to the remote peer" in withActorSystem {
+      implicit materializer =>
+        val message = runAppClose(CloseMessage(CloseCodes.Regular, "x" * 124))
+
+        message must beEqualTo(CloseMessage(CloseCodes.Regular, "x" * 123))
+    }
+
+    "truncate an oversized application close reason to a valid UTF-8 prefix" in withActorSystem {
+      implicit materializer =>
+        val message = runAppClose(CloseMessage(CloseCodes.Regular, ("x" * 122) + "\u20ac"))
+
+        message must beEqualTo(CloseMessage(CloseCodes.Regular, "x" * 122))
+    }
+
+    "drop an application close reason when no close status code is sent" in withActorSystem { implicit materializer =>
+      val message = runAppClose(CloseMessage(None, "reason"))
+
+      message must beEqualTo(CloseMessage(None))
+    }
+
+    "echo an empty remote close frame without serializing 1005" in withActorSystem { implicit materializer =>
+      val (_, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(rawClose(None))
+
+      remoteMessages must contain(exactly(beEqualTo(CloseMessage(None))))
     }
   }
 
@@ -76,13 +122,49 @@ class WebSocketFlowHandlerSpec extends Specification {
       remoteIn: Source[WebSocketFlowHandler.RawMessage, ?],
       appIn: Source[Message, ?]
   )(implicit materializer: Materializer): Seq[Message] = {
+    runRemoteInputAndCollectAppAndRemoteMessages(remoteIn, appIn)._1
+  }
+
+  private def runRemoteInputAndCollectAppAndRemoteMessages(
+      remoteIn: Source[WebSocketFlowHandler.RawMessage, ?],
+      appIn: Source[Message, ?] = Source.maybe[Message]
+  )(implicit materializer: Materializer): (Seq[Message], Seq[Message]) = {
     val appFlow = Flow.fromSinkAndSourceMat(Sink.seq[Message], appIn)(Keep.left)
     val flow    = protocol.joinMat(appFlow)(Keep.right)
 
-    val (appMessages, remoteOutDone) = remoteIn.viaMat(flow)(Keep.right).toMat(Sink.ignore)(Keep.both).run()
+    val (appMessages, remoteMessages) = remoteIn.viaMat(flow)(Keep.right).toMat(Sink.seq[Message])(Keep.both).run()
 
-    awaitRemoteOut(remoteOutDone)
+    (Await.result(appMessages, 5.seconds), Await.result(remoteMessages, 5.seconds))
+  }
+
+  private def runRemoteInputAndCollectAppAndRemoteMessages(
+      messages: WebSocketFlowHandler.RawMessage*
+  )(implicit materializer: Materializer): (Seq[Message], Seq[Message]) = {
+    runRemoteInputAndCollectAppAndRemoteMessages(Source(messages.toList))
+  }
+
+  private def runAppClose(close: CloseMessage)(implicit materializer: Materializer): Message = {
+    val appFlow = Flow.fromSinkAndSourceMat(
+      Sink.seq[Message],
+      Source.single(close)
+    )(Keep.left)
+    val flow = protocol.joinMat(appFlow)(Keep.right)
+
+    val ((remoteIn, appMessages), remoteMessage) =
+      Source
+        .queue[WebSocketFlowHandler.RawMessage](1)
+        .viaMat(flow)(Keep.both)
+        .toMat(Sink.head[Message])(Keep.both)
+        .run()
+
+    val closeSent = Await.result(remoteMessage, 5.seconds)
+    try {
+      remoteIn.fail(new RuntimeException("connection failed"))
+    } catch {
+      case _: IllegalStateException =>
+    }
     Await.result(appMessages, 5.seconds)
+    closeSent
   }
 
   private def runAppInitiatedCloseThenFailedRemoteInput()(implicit materializer: Materializer): Seq[Message] = {
@@ -129,11 +211,19 @@ class WebSocketFlowHandlerSpec extends Specification {
     )
 
   private def rawClose(statusCode: Int): WebSocketFlowHandler.RawMessage = {
+    rawClose(Some(statusCode))
+  }
+
+  private def rawClose(statusCode: Option[Int]): WebSocketFlowHandler.RawMessage = {
     WebSocketFlowHandler.RawMessage(
       WebSocketFlowHandler.MessageType.Close,
-      ByteString((statusCode >> 8).toByte, statusCode.toByte),
+      statusCode.fold(ByteString.empty)(rawCloseData),
       isFinal = true
     )
+  }
+
+  private def rawCloseData(statusCode: Int): ByteString = {
+    ByteString((statusCode >> 8).toByte, statusCode.toByte)
   }
 
   private def awaitRemoteOut(done: Future[Done]): Unit = {
