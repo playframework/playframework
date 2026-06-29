@@ -33,8 +33,10 @@ import io.netty.channel.unix.UnixChannelOption
 import io.netty.channel.uring.IoUringChannelOption
 import io.netty.channel.uring.IoUringIoHandler
 import io.netty.channel.uring.IoUringServerSocketChannel
+import io.netty.handler.codec.compression.ZlibCodecFactory
 import io.netty.handler.codec.http._
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler
+import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker
+import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
@@ -96,6 +98,8 @@ class NettyServer(
   private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
   private val wsKeepAliveMode     = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
   private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsCompression       = serverConfig.get[Boolean]("websocket.compression.enabled")
+  private val wsCompressionConfig = nettyConfig.get[Configuration]("websocket.compression")
   private val deferBodyParsing    = serverConfig.underlying.getBoolean("deferBodyParsing")
 
   private lazy val osName                   = sys.props("os.name").toLowerCase(Locale.ENGLISH)
@@ -246,6 +250,45 @@ class NettyServer(
       deferBodyParsing
     )
 
+  private def getAutoBoolean(config: Configuration, path: String, auto: => Boolean): Boolean = {
+    config.underlying.getValue(path).unwrapped() match {
+      case value: java.lang.Boolean                         => value.booleanValue()
+      case value: String if value.equalsIgnoreCase("auto")  => auto
+      case value: String if value.equalsIgnoreCase("true")  => true
+      case value: String if value.equalsIgnoreCase("false") => false
+      case value                                            =>
+        throw ServerStartException(
+          s"Netty WebSocket compression configuration value $path should be true, false or auto, but was $value"
+        )
+    }
+  }
+
+  private def newWebSocketCompressionHandler(): Option[ChannelHandler] = {
+    if (!wsCompression) {
+      None
+    } else {
+      val maxAllocation           = wsCompressionConfig.get[ConfigMemorySize]("maxAllocation").toBytes.toInt
+      val perMessageDeflateConfig = wsCompressionConfig.get[Configuration]("perMessageDeflate")
+
+      Some(
+        new WebSocketServerExtensionHandler(
+          new PerMessageDeflateServerExtensionHandshaker(
+            perMessageDeflateConfig.get[Int]("compressionLevel"),
+            getAutoBoolean(
+              perMessageDeflateConfig,
+              "allowServerWindowSize",
+              ZlibCodecFactory.isSupportingWindowSizeAndMemLevel()
+            ),
+            perMessageDeflateConfig.get[Int]("preferredClientWindowSize"),
+            perMessageDeflateConfig.get[Boolean]("allowServerNoContext"),
+            perMessageDeflateConfig.get[Boolean]("preferredClientNoContext"),
+            maxAllocation
+          )
+        )
+      )
+    }
+  }
+
   /**
    * Create a sink for the incoming connection channels.
    */
@@ -275,7 +318,7 @@ class NettyServer(
       pipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       pipeline.addLast("encoder", new HttpResponseEncoder())
       pipeline.addLast("decompressor", new HttpContentDecompressor())
-      pipeline.addLast("ws-compressor", new WebSocketServerCompressionHandler(wsBufferLimit))
+      newWebSocketCompressionHandler().foreach(pipeline.addLast("ws-compressor", _))
       if (logWire) {
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }

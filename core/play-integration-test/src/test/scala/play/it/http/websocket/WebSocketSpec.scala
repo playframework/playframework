@@ -4,8 +4,10 @@
 
 package play.it.http.websocket
 
+import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
+import java.util.zip.Inflater
 
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -104,17 +106,83 @@ class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecificatio
         val frames = runWebSocket(
           port,
           { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) },
-          compressionMode = CompressionMode.RequestOnly
+          compressionMode = CompressionMode.RequestOnly()
         )
 
         frames.collectFirst {
           case RawWebSocketFrame("text", data, rsv, true) => (data, rsv)
         } must beSome[(ByteString, Int)].which {
           case (data, rsv) =>
-            data.nonEmpty && (rsv & 4) == 4
+            data.nonEmpty &&
+            (rsv & 4) == 4 &&
+            data != ByteString("compressed server message") &&
+            inflatePerMessageDeflate(data).utf8String == "compressed server message"
         }
       }
     }
+
+    "not negotiate compression when websocket compression is disabled" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map("play.server.websocket.compression.enabled" -> false)
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.RequestOnly()
+        )
+
+        headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        } must beNone
+      }
+    }
+
+    "use configured Netty permessage-deflate negotiation settings" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map(
+          "play.server.netty.websocket.compression.perMessageDeflate.allowServerWindowSize"     -> true,
+          "play.server.netty.websocket.compression.perMessageDeflate.preferredClientWindowSize" -> 11,
+          "play.server.netty.websocket.compression.perMessageDeflate.allowServerNoContext"      -> true,
+          "play.server.netty.websocket.compression.perMessageDeflate.preferredClientNoContext"  -> true,
+          "play.server.netty.websocket.compression.perMessageDeflate.compressionLevel"          -> 5
+        )
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.RequestOnly(
+            "permessage-deflate; client_max_window_bits; server_max_window_bits=15; " +
+              "client_no_context_takeover; server_no_context_takeover"
+          )
+        )
+
+        val extension = headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        }
+
+        extension must beSome[String].which { value =>
+          value.contains("permessage-deflate") &&
+          value.contains("client_max_window_bits=11") &&
+          value.contains("server_no_context_takeover") &&
+          value.contains("client_no_context_takeover")
+        }
+      }
+    }
+
   }
 }
 class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
@@ -888,6 +956,23 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
         )
       )
       (await(innerResult.future), await(responseHeaders.future))
+    }
+  }
+
+  def inflatePerMessageDeflate(data: ByteString): ByteString = {
+    val inflater = new Inflater(true)
+    try {
+      inflater.setInput((data ++ ByteString(0x00, 0x00, 0xff.toByte, 0xff.toByte)).toArray)
+      val output = new ByteArrayOutputStream()
+      val buffer = new Array[Byte](256)
+      var count  = inflater.inflate(buffer)
+      while (count > 0) {
+        output.write(buffer, 0, count)
+        count = inflater.inflate(buffer)
+      }
+      ByteString.fromArray(output.toByteArray)
+    } finally {
+      inflater.end()
     }
   }
 

@@ -84,9 +84,9 @@ object WebSocketClient {
 
   sealed trait CompressionMode
   object CompressionMode {
-    case object Disabled                           extends CompressionMode
-    case class Enabled(maxAllocation: Int = 65536) extends CompressionMode
-    case object RequestOnly                        extends CompressionMode
+    case object Disabled                                              extends CompressionMode
+    case class Enabled(maxAllocation: Int = 65536)                    extends CompressionMode
+    case class RequestOnly(extensions: String = "permessage-deflate") extends CompressionMode
   }
 
   def create(): WebSocketClient = new DefaultWebSocketClient
@@ -148,12 +148,14 @@ object WebSocketClient {
           compressionMode match {
             case CompressionMode.Enabled(maxAllocation) =>
               channel.pipeline().addLast("ws-compressor", new WebSocketClientCompressionHandler(maxAllocation))
-            case CompressionMode.Disabled | CompressionMode.RequestOnly =>
+            case CompressionMode.Disabled | _: CompressionMode.RequestOnly =>
           }
 
           val headers = new DefaultHttpHeaders()
-          if (compressionMode == CompressionMode.RequestOnly) {
-            headers.add(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS, "permessage-deflate")
+          compressionMode match {
+            case CompressionMode.RequestOnly(extensions) =>
+              headers.add(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS, extensions)
+            case CompressionMode.Disabled | _: CompressionMode.Enabled =>
           }
 
           val handshaker = WebSocketClientHandshakerFactory.newHandshaker(
