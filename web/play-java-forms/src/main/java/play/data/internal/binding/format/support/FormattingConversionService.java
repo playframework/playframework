@@ -21,9 +21,9 @@
 package play.data.internal.binding.format.support;
 
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
 
-import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.data.internal.binding.core.GenericTypeResolver;
 import play.data.internal.binding.core.convert.ConversionService;
 import play.data.internal.binding.core.convert.TypeDescriptor;
@@ -74,14 +74,14 @@ public class FormattingConversionService extends GenericConversionService {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
 			if (!sourceType.isAssignableTo(this.printerObjectType)) {
-				source = this.conversionService.convert(source, sourceType, this.printerObjectType);
+				source = this.conversionService.convert(source, sourceType, this.printerObjectType, locale);
 			}
 			if (source == null) {
 				return "";
 			}
-			return this.printer.print(source, LocaleContextHolder.getLocale());
+			return this.printer.print(source, locale);
 		}
 
 		private Class<?> resolvePrinterObjectType(Printer<?> printer) {
@@ -115,14 +115,14 @@ public class FormattingConversionService extends GenericConversionService {
 		}
 
 		@Override
-		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
 			String text = (String) source;
 			if (!StringUtils.hasText(text)) {
 				return null;
 			}
 			Object result;
 			try {
-				result = this.parser.parse(text, LocaleContextHolder.getLocale());
+				result = this.parser.parse(text, locale);
 			}
 			catch (IllegalArgumentException ex) {
 				throw ex;
@@ -132,7 +132,7 @@ public class FormattingConversionService extends GenericConversionService {
 			}
 			TypeDescriptor resultType = TypeDescriptor.valueOf(result.getClass());
 			if (!resultType.isAssignableTo(targetType)) {
-				result = this.conversionService.convert(result, resultType, targetType);
+				result = this.conversionService.convert(result, resultType, targetType, locale);
 			}
 			return result;
 		}
