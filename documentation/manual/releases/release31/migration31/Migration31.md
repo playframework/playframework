@@ -57,6 +57,12 @@ This can happen when the network connection is interrupted, the client disconnec
 
 Because abnormal WebSocket termination is now reported as a `CloseMessage` before the stream completes, raw `Message` handlers that previously relied on `watchTermination` seeing a failed stream for transport loss should instead inspect `CloseMessage(Some(1006), ...)`.
 
+Scala
+: @[abnormal-closure](code/WebSocketCloseMigration.scala)
+
+Java
+: @[abnormal-closure](code/WebSocketCloseMigration.java)
+
 Handlers using typed APIs such as `WebSocket.accept[String, String]` still do not receive close control frames as typed messages. Use a raw `Message` flow if your application needs to inspect WebSocket close status codes directly.
 
 ### WebSocket close messages from typed transformers and application failures are more consistent

@@ -7,11 +7,33 @@ package javadoc.websocketmigration;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.stream.javadsl.Sink;
 import org.apache.pekko.stream.javadsl.Source;
+import play.api.http.websocket.CloseCodes;
+import play.http.websocket.Message;
 import play.mvc.WebSocket;
 
 public class WebSocketCloseMigration {
   public static class In {
     public int count;
+  }
+
+  private void recordAbnormalClosure() {}
+
+  public WebSocket abnormalClosureWebSocket() {
+    // #abnormal-closure
+    // Before: an abrupt transport close could complete the stream without a close message.
+    // After: raw Message handlers receive Message.Close with code 1006.
+    return WebSocket.Message.accept(
+        request ->
+            Flow.fromSinkAndSource(
+                Sink.foreach(
+                    message -> {
+                      if (message instanceof Message.Close close
+                          && close.code().orElse(0) == CloseCodes.ConnectionAbort()) {
+                        recordAbnormalClosure();
+                      }
+                    }),
+                Source.maybe()));
+    // #abnormal-closure
   }
 
   public WebSocket typedJsonWebSocket() {
