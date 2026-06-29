@@ -366,6 +366,37 @@ trait FormSpec extends CommonFormSpec {
       myForm.hasErrors() must beEqualTo(true)
       myForm.errors("emails[1]").size must beEqualTo(1)
     }
+    "reject indexed binding beyond max auto-grow operations configured for Java forms" in new WithApplication(
+      application("play.forms.binding.maxAutoGrowOperations" -> "1")
+    ) {
+      override def running() = {
+        val req = FormSpec.dummyRequest(
+          Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))
+        )
+
+        val myForm = formFactory.form(classOf[AnotherUser]).bindFromRequest(req)
+        myForm.hasErrors() must beEqualTo(true)
+        myForm.errors("emails[1]").size must beEqualTo(1)
+      }
+    }
+    "reject indexed binding beyond max auto-grow operations set on a Java form" in {
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))
+      )
+
+      val myForm = formFactory.form(classOf[AnotherUser]).withMaxAutoGrowOperations(1).bindFromRequest(req)
+      myForm.hasErrors() must beEqualTo(true)
+      myForm.errors("emails[1]").size must beEqualTo(1)
+    }
+    "bind indexed fields within max auto-grow operations set on a Java form" in {
+      val req = FormSpec.dummyRequest(
+        Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com"))
+      )
+
+      val myForm = formFactory.form(classOf[AnotherUser]).withMaxAutoGrowOperations(2).bindFromRequest(req)
+      myForm.hasErrors() must beEqualTo(false)
+      myForm.get().getEmails must beEqualTo(List("kiki@gmail.com", "kiki@zen.com").asJava)
+    }
     "reject direct field indexed binding beyond auto-grow collection limit configured for Java forms" in new WithApplication(
       application("play.forms.binding.directFieldAccess" -> "true", "play.forms.binding.autoGrowCollectionLimit" -> "1")
     ) {

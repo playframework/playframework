@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.validation;
 
+import play.data.internal.binding.beans.AutoGrowBudget;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.DirectFieldAccessor;
 
@@ -44,6 +45,8 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 
 	private final int autoGrowCollectionLimit;
 
+	private final AutoGrowBudget autoGrowBudget;
+
 	private transient ConfigurablePropertyAccessor directFieldAccessor;
 
 	/**
@@ -52,14 +55,16 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 	 * @param objectName the name of the target object
 	 * @param autoGrowNestedPaths whether to "auto-grow" a nested path that contains a null value
 	 * @param autoGrowCollectionLimit the limit for array and collection auto-growing
+	 * @param autoGrowBudget the budget for cumulative auto-growing
 	 */
 	public DirectFieldBindingResult(Object target, String objectName,
-			boolean autoGrowNestedPaths, int autoGrowCollectionLimit) {
+			boolean autoGrowNestedPaths, int autoGrowCollectionLimit, AutoGrowBudget autoGrowBudget) {
 
 		super(objectName);
 		this.target = target;
 		this.autoGrowNestedPaths = autoGrowNestedPaths;
 		this.autoGrowCollectionLimit = autoGrowCollectionLimit;
+		this.autoGrowBudget = autoGrowBudget;
 	}
 
 
@@ -79,6 +84,7 @@ public class DirectFieldBindingResult extends AbstractPropertyBindingResult {
 			this.directFieldAccessor = createDirectFieldAccessor();
 			this.directFieldAccessor.setAutoGrowNestedPaths(this.autoGrowNestedPaths);
 			this.directFieldAccessor.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
+			this.directFieldAccessor.setAutoGrowBudget(this.autoGrowBudget);
 		}
 		return this.directFieldAccessor;
 	}
