@@ -145,7 +145,14 @@ public abstract class Message {
     }
   }
 
-  /** A close WebSocket message */
+  /**
+   * A close WebSocket message.
+   *
+   * <p>RFC 6455 reserves close status codes 1005, 1006, and 1015 for application-visible state.
+   * Applications should not send those values as the status code in a WebSocket Close frame. When a
+   * status code is present, the Close reason must fit in the remaining 123 UTF-8 bytes of the Close
+   * frame payload. Play truncates longer Close reasons before sending them.
+   */
   public static class Close extends Message {
     private final Optional<Integer> statusCode;
     private final String reason;
