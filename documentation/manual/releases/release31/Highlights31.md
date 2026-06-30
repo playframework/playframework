@@ -6,6 +6,20 @@ This section highlights the new features of Play 3.1. If you want to learn about
 
 ## Other Additions
 
+### Netty WebSocket Compression
+
+The Play Netty server backend now supports WebSocket compression using the RFC 7692 `permessage-deflate` extension.
+
+Compression is enabled by default and is negotiated during the WebSocket handshake when the client offers `permessage-deflate` in the `Sec-WebSocket-Extensions` header. Applications can disable WebSocket compression for all server backends with:
+
+```hocon
+play.server.websocket.compression.enabled = false
+```
+
+The Netty backend also exposes Netty-specific tuning options under `play.server.netty.websocket.compression`, including the compression level, negotiated window-size behavior, context-takeover behavior, and the decompression allocation limit. By default, the allocation limit follows `play.server.websocket.frame.maxLength`.
+
+For more details, see the [[Scala WebSocket documentation|ScalaWebSockets#Configuring-WebSocket-compression]] and [[Java WebSocket documentation|JavaWebSockets#Configuring-WebSocket-compression]].
+
 ### WebSocket Subprotocol Selection
 
 Play now lets applications explicitly select the WebSocket subprotocol that is sent back in the successful `101 Switching Protocols` response.

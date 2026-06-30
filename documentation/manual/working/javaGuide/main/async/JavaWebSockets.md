@@ -120,6 +120,20 @@ This configuration gives you more control of WebSocket frame length and can be a
 
 The configuration above applies to WebSocket data frames. WebSocket Close frames, on the other hand, are control frames and have a smaller payload limit defined by [RFC 6455 section 5.5](https://www.rfc-editor.org/rfc/rfc6455#section-5.5). If a Close frame includes a status code, the status code uses 2 bytes, leaving at most 123 UTF-8 bytes for the close reason. Play truncates longer close reasons before sending them. Status codes `1005`, `1006`, and `1015` are reserved by [RFC 6455 section 7.4.1](https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1) and should not be sent by application code as WebSocket Close frame status codes.
 
+## Configuring WebSocket compression
+
+The Netty server backend supports WebSocket compression using the RFC 7692 `permessage-deflate` extension. Compression is enabled by default and is negotiated during the WebSocket handshake when the client offers `permessage-deflate` in the `Sec-WebSocket-Extensions` header.
+
+You can disable WebSocket compression for all server backends with:
+
+```
+play.server.websocket.compression.enabled = false
+```
+
+When using the Netty backend, Netty-specific compression settings are available under `play.server.netty.websocket.compression`. These settings include the compression level, negotiated window-size behavior, context-takeover behavior, and the maximum decompression allocation. By default, `play.server.netty.websocket.compression.maxAllocation` uses `play.server.websocket.frame.maxLength`, so the same limit applies to decompressed WebSocket messages.
+
+> **Note:** WebSocket compression can increase CPU and memory usage. If messages include secrets alongside attacker-controlled data, consider whether compression is appropriate for that endpoint. Under the `play.server.netty.websocket` config parent, Netty's default context-takeover settings are `compression.perMessageDeflate.allowServerNoContext = false` and `compression.perMessageDeflate.preferredClientNoContext = false`. For a more conservative setup, set them to `true` so the server may accept `server_no_context_takeover` when the client requests it, and so Netty requests `client_no_context_takeover` when the client supports it.
+
 ## Configuring keep-alive Frames
 
 First of all, if a client sends a `ping` Frame to the Play backend server, it automatically answers with a `pong` frame. This is a requirement according to [RFC 6455 Section 5.5.2](https://www.rfc-editor.org/rfc/rfc6455#section-5.5.2), therefore this is hardcoded within Play, you don't need to set up or configure anything.
