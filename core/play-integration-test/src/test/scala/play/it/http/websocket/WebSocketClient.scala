@@ -27,6 +27,7 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx._
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler
 import io.netty.util.ReferenceCountUtil
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.stage._
@@ -52,7 +53,12 @@ trait WebSocketClient {
    *
    * @return A future that will be redeemed when the connection is closed.
    */
-  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13, subprotocol: Option[String] = None)(
+  def connect(
+      url: URI,
+      version: WebSocketVersion = WebSocketVersion.V13,
+      subprotocol: Option[String] = None,
+      compressionMode: WebSocketClient.CompressionMode = WebSocketClient.CompressionMode.Disabled
+  )(
       onConnect: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
   ): Future[?]
 
@@ -73,6 +79,15 @@ object WebSocketClient {
   }
   case class SimpleMessage(message: Message, finalFragment: Boolean)       extends ExtendedMessage
   case class ContinuationMessage(data: ByteString, finalFragment: Boolean) extends ExtendedMessage
+  case class RawWebSocketFrame(frameType: String, data: ByteString, rsv: Int, finalFragment: Boolean)
+      extends ExtendedMessage
+
+  sealed trait CompressionMode
+  object CompressionMode {
+    case object Disabled                           extends CompressionMode
+    case class Enabled(maxAllocation: Int = 65536) extends CompressionMode
+    case object RequestOnly                        extends CompressionMode
+  }
 
   def create(): WebSocketClient = new DefaultWebSocketClient
 
@@ -116,7 +131,7 @@ object WebSocketClient {
     /**
      * Connect to the given URI
      */
-    def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String])(
+    def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String], compressionMode: CompressionMode)(
         onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
     ): Future[?] = {
       val normalized = url.normalize()
@@ -130,12 +145,23 @@ object WebSocketClient {
         .connect(tgt.getHost, tgt.getPort)
         .toScala
         .map { channel =>
+          compressionMode match {
+            case CompressionMode.Enabled(maxAllocation) =>
+              channel.pipeline().addLast("ws-compressor", new WebSocketClientCompressionHandler(maxAllocation))
+            case CompressionMode.Disabled | CompressionMode.RequestOnly =>
+          }
+
+          val headers = new DefaultHttpHeaders()
+          if (compressionMode == CompressionMode.RequestOnly) {
+            headers.add(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS, "permessage-deflate")
+          }
+
           val handshaker = WebSocketClientHandshakerFactory.newHandshaker(
             tgt,
             version,
             subprotocol.orNull,
-            false,
-            new DefaultHttpHeaders()
+            compressionMode != CompressionMode.Disabled,
+            headers
           )
           channel.pipeline().addLast("supervisor", new WebSocketSupervisor(disconnected, handshaker, onConnected))
           handshaker.handshake(channel)
@@ -233,6 +259,17 @@ object WebSocketClient {
 
       val framesToMessages = Flow[WebSocketFrame].map { frame =>
         val message = frame match {
+          case text: TextWebSocketFrame if text.rsv() != 0 =>
+            RawWebSocketFrame("text", toByteString(text), text.rsv(), text.isFinalFragment)
+          case binary: BinaryWebSocketFrame if binary.rsv() != 0 =>
+            RawWebSocketFrame("binary", toByteString(binary), binary.rsv(), binary.isFinalFragment)
+          case continuation: ContinuationWebSocketFrame if continuation.rsv() != 0 =>
+            RawWebSocketFrame(
+              "continuation",
+              toByteString(continuation),
+              continuation.rsv(),
+              continuation.isFinalFragment
+            )
           case text: TextWebSocketFrame     => SimpleMessage(TextMessage(text.text()), text.isFinalFragment)
           case binary: BinaryWebSocketFrame =>
             SimpleMessage(BinaryMessage(toByteString(binary)), binary.isFinalFragment)
