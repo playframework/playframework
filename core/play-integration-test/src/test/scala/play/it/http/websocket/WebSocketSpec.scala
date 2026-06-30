@@ -4,8 +4,10 @@
 
 package play.it.http.websocket
 
+import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
+import java.util.zip.Inflater
 
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -40,11 +42,149 @@ import play.api.test._
 import play.api.Application
 import play.api.Configuration
 import play.it._
+import play.it.http.websocket.WebSocketClient.CompressionMode
 import play.it.http.websocket.WebSocketClient.ContinuationMessage
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
+import play.it.http.websocket.WebSocketClient.RawWebSocketFrame
 import play.it.http.websocket.WebSocketClient.SimpleMessage
 
-class NettyWebSocketSpec     extends WebSocketSpec with NettyIntegrationSpecification
+class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification {
+  "Plays WebSockets using netty backend with compression" should {
+    "negotiate permessage-deflate" in {
+      withServer(app =>
+        WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.Enabled()
+        )
+
+        headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        } must beSome(contain("permessage-deflate"))
+      }
+    }
+
+    "decompress inbound permessage-deflate frames before passing them to the application" in {
+      val consumed = Promise[List[String]]()
+      withServer(app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
+        }
+      ) { (app, port) =>
+        import app.materializer
+        val result = runWebSocket(
+          port,
+          { flow =>
+            sendFrames(
+              TextMessage("compressed client message"),
+              CloseMessage(1000)
+            ).via(flow).runWith(Sink.ignore)
+            consumed.future
+          },
+          compressionMode = CompressionMode.Enabled()
+        )
+
+        result must_== Seq("compressed client message")
+      }
+    }
+
+    "compress outbound permessage-deflate frames sent by the application" in {
+      withServer(app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.single("compressed server message"))
+        }
+      ) { (app, port) =>
+        import app.materializer
+        val frames = runWebSocket(
+          port,
+          { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) },
+          compressionMode = CompressionMode.RequestOnly()
+        )
+
+        frames.collectFirst {
+          case RawWebSocketFrame("text", data, rsv, true) => (data, rsv)
+        } must beSome[(ByteString, Int)].which {
+          case (data, rsv) =>
+            data.nonEmpty &&
+            (rsv & 4) == 4 &&
+            data != ByteString("compressed server message") &&
+            inflatePerMessageDeflate(data).utf8String == "compressed server message"
+        }
+      }
+    }
+
+    "not negotiate compression when websocket compression is disabled" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map("play.server.websocket.compression.enabled" -> false)
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.RequestOnly()
+        )
+
+        headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        } must beNone
+      }
+    }
+
+    "use configured Netty permessage-deflate negotiation settings" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map(
+          "play.server.netty.websocket.compression.perMessageDeflate.allowServerWindowSize"     -> true,
+          "play.server.netty.websocket.compression.perMessageDeflate.preferredClientWindowSize" -> 11,
+          "play.server.netty.websocket.compression.perMessageDeflate.allowServerNoContext"      -> true,
+          "play.server.netty.websocket.compression.perMessageDeflate.preferredClientNoContext"  -> true,
+          "play.server.netty.websocket.compression.perMessageDeflate.compressionLevel"          -> 5
+        )
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.RequestOnly(
+            "permessage-deflate; client_max_window_bits; server_max_window_bits=15; " +
+              "client_no_context_takeover; server_no_context_takeover"
+          )
+        )
+
+        val extension = headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        }
+
+        extension must beSome[String].which { value =>
+          value.contains("permessage-deflate") &&
+          value.contains("client_max_window_bits=11") &&
+          value.contains("server_no_context_takeover") &&
+          value.contains("client_no_context_takeover")
+        }
+      }
+    }
+
+  }
+}
 class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
   "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
@@ -391,7 +531,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("my_crazy_subprotocol"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -411,7 +552,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("first-protocol, second-protocol, third-protocol"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -436,7 +578,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("graphql-ws, graphql-transport-ws"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -666,7 +809,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("graphql-ws, graphql-transport-ws"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -784,29 +928,51 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   def runWebSocket[A](
       port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
-      handleConnect: Future[?] => Future[?] = c => c
+      handleConnect: Future[?] => Future[?] = c => c,
+      compressionMode: CompressionMode = CompressionMode.Disabled
   ): A =
-    runWebSocket(port, handler, subprotocol = None, handleConnect) match { case (result, _) => result }
+    runWebSocket(port, handler, subprotocol = None, handleConnect, compressionMode) match { case (result, _) => result }
 
   def runWebSocket[A](
       port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
       subprotocol: Option[String],
-      handleConnect: Future[?] => Future[?]
+      handleConnect: Future[?] => Future[?],
+      compressionMode: CompressionMode
   ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult     = Promise[A]()
       val responseHeaders = Promise[immutable.Seq[(String, String)]]()
       await(
         handleConnect(
-          client.connect(URI.create("ws://localhost:" + port + "/stream"), subprotocol = subprotocol) {
-            (headers, flow) =>
-              innerResult.completeWith(handler(flow))
-              responseHeaders.success(headers)
+          client.connect(
+            URI.create("ws://localhost:" + port + "/stream"),
+            subprotocol = subprotocol,
+            compressionMode = compressionMode
+          ) { (headers, flow) =>
+            innerResult.completeWith(handler(flow))
+            responseHeaders.success(headers)
           }
         )
       )
       (await(innerResult.future), await(responseHeaders.future))
+    }
+  }
+
+  def inflatePerMessageDeflate(data: ByteString): ByteString = {
+    val inflater = new Inflater(true)
+    try {
+      inflater.setInput((data ++ ByteString(0x00, 0x00, 0xff.toByte, 0xff.toByte)).toArray)
+      val output = new ByteArrayOutputStream()
+      val buffer = new Array[Byte](256)
+      var count  = inflater.inflate(buffer)
+      while (count > 0) {
+        output.write(buffer, 0, count)
+        count = inflater.inflate(buffer)
+      }
+      ByteString.fromArray(output.toByteArray)
+    } finally {
+      inflater.end()
     }
   }
 
