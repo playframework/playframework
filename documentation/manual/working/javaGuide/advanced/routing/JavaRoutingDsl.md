@@ -22,7 +22,7 @@ A simple example of the DSL's use is:
 
 @[simple](code/javaguide/advanced/routing/JavaRoutingDsl.java)
 
-The first parameter to the action block is an [Http.Request](api/java/play/mvc/Http.Request.html). Then the `:to` parameter is extracted out and passed as the first parameter to the router.  Note that the name you give to parameters in the path pattern is irrelevant, the important thing is that parameters in the path are in the same order as parameters in your lambda.  You can have anywhere from 0 to 3 parameters in the path pattern, and other HTTP methods, such as `POST`, `PUT` and `DELETE` are supported.
+The first parameter to the action block is an [Http.Request](api/java/play/mvc/Http.Request.html). Then the `:to` parameter is extracted out and passed as the first parameter to the router.  Note that the name you give to parameters in the path pattern is irrelevant, the important thing is that parameters in the path are in the same order as parameters in your lambda.  You can have anywhere from 0 to 3 parameters in the path pattern, and other HTTP methods, such as `POST`, `PUT`, `DELETE` and `QUERY` are supported.
 
 > **Note**: it is important to notice that when using the DSL, the first parameter will always be the `Http.Request`. The next parameters are the ones you actually declared at your route pattern.
 
