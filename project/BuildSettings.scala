@@ -417,6 +417,20 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.DefaultTestServerFactory.optionalGlobalLock"),
       // Rename runSynchronized to maybeRunSynchronized (which is and was private[play] anyway...)
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.Helpers.runSynchronized"),
+      // Change request-id to UUID (from long)
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.id"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.test.FakeRequest.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.test.FakeRequestFactory.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.mvc.Http#RequestBuilder.id"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.mvc.WrappedRequest.id"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.apply$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequestFactory.apply$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.id"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.j.RequestHeaderImpl.id"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#RequestBuilder.id"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.mvc.Http#RequestHeader.id"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.system.RequestIdProvider"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.system.RequestIdProvider$"),
       // Add setSameSite setter to Cookie interface
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.core.cookie.encoding.Cookie.setSameSite"),
       // Add Partitioned attribute to cookies

@@ -200,6 +200,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def version: String       = header.version
   override def remoteAddress: String = header.remoteAddress
   override def secure: Boolean       = header.secure
+  override def id: util.UUID         = header.id
 
   override def attrs: TypedMap                                                                   = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader                                     = header.withAttrs(newAttrs.asScala).asJava
