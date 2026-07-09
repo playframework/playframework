@@ -335,10 +335,11 @@ public class RequestBuilderTest {
 
   @Test
   public void testQuery_emptyParam() {
-    final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&").build();
+    final Request req = new Http.RequestBuilder().uri("/path?one=&two=a+b&=").build();
     assertEquals(Optional.of(""), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
     assertEquals(Optional.empty(), req.queryString("three"));
+    assertEquals(Optional.of(""), req.queryString("")); // because last query part is like <empty_string>=<empty_string>
   }
 
   @Test
@@ -347,6 +348,7 @@ public class RequestBuilderTest {
     assertEquals(Optional.of(""), req.queryString("one"));
     assertEquals(Optional.of("a b"), req.queryString("two"));
     assertEquals(Optional.empty(), req.queryString("three"));
+    assertEquals(Optional.of(""), req.queryString("")); // because last query part is like <empty_string> (which needs to be handled the same as e.g. string "one" and gets expanded to <empty_string>=<empty_string>)
   }
 
   @Test
@@ -355,6 +357,14 @@ public class RequestBuilderTest {
     assertEquals(Optional.of(""), req.queryString("one?+"));
     assertEquals(Optional.of(""), req.queryString("two="));
     assertEquals(Optional.empty(), req.queryString("three"));
+    assertEquals(Optional.empty(), req.queryString("")); // correct, because there is no empty & part
+  }
+
+  @Test
+  public void testQuery_multipleEmptyKeyAndValues() {
+    final Request req = new Http.RequestBuilder().uri("/path?&&&&").build();
+    assertEquals(Optional.of(""), req.queryString("")); // expected:<Optional[]> but was:<Optional.empty>, took 0.001 sec
+    assertEquals(5, req.queryString().get("").length); // Cannot read the array length because the return value of "java.util.Map.get(Object)" is null
   }
 
   @Test
