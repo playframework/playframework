@@ -48,8 +48,12 @@ import play.it.http.websocket.WebSocketClient.ExtendedMessage
 import play.it.http.websocket.WebSocketClient.RawWebSocketFrame
 import play.it.http.websocket.WebSocketClient.SimpleMessage
 
-class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification {
-  "Plays WebSockets using netty backend with compression" should {
+trait WebSocketCompressionSpec extends WebSocketSpecMethods {
+  def backendName: String
+  def extraConfiguredCompressionConfig: Map[String, Any] = Map.empty
+  def expectedServerMaxWindowBits: Option[Int]           = None
+
+  "Plays WebSockets using " + backendName + " with compression" should {
     "negotiate permessage-deflate" in {
       withServer(app =>
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
@@ -144,18 +148,15 @@ class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecificatio
       }
     }
 
-    "use configured Netty permessage-deflate negotiation settings" in {
+    "use configured permessage-deflate negotiation settings" in {
       withServer(
         app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
         Map(
-          "play.server.netty.websocket.compression.perMessageDeflate.allowServerWindowSize"     -> true,
-          "play.server.netty.websocket.compression.perMessageDeflate.serverWindowSize"          -> 12,
-          "play.server.netty.websocket.compression.perMessageDeflate.memLevel"                  -> 7,
-          "play.server.netty.websocket.compression.perMessageDeflate.preferredClientWindowSize" -> 11,
-          "play.server.netty.websocket.compression.perMessageDeflate.allowServerNoContext"      -> true,
-          "play.server.netty.websocket.compression.perMessageDeflate.preferredClientNoContext"  -> true,
-          "play.server.netty.websocket.compression.perMessageDeflate.compressionLevel"          -> 5
-        )
+          "play.server.websocket.compression.perMessageDeflate.preferredClientWindowSize" -> 11,
+          "play.server.websocket.compression.perMessageDeflate.allowServerNoContext"      -> true,
+          "play.server.websocket.compression.perMessageDeflate.preferredClientNoContext"  -> true,
+          "play.server.websocket.compression.perMessageDeflate.compressionLevel"          -> 5
+        ) ++ extraConfiguredCompressionConfig
       ) { (app, port) =>
         import app.materializer
         val (_, headers) = runWebSocket(
@@ -178,30 +179,47 @@ class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecificatio
 
         extension must beSome[String].which { value =>
           value.contains("permessage-deflate") &&
-          value.contains("server_max_window_bits=12") &&
+          expectedServerMaxWindowBits.forall(bits => value.contains(s"server_max_window_bits=$bits")) &&
           value.contains("client_max_window_bits=11") &&
           value.contains("server_no_context_takeover") &&
           value.contains("client_no_context_takeover")
         }
       }
     }
+  }
+}
+class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification with WebSocketCompressionSpec {
+  override def backendName: String                                = "netty backend"
+  override def extraConfiguredCompressionConfig: Map[String, Any] =
+    Map(
+      "play.server.netty.websocket.compression.perMessageDeflate.allowServerWindowSize" -> true,
+      "play.server.netty.websocket.compression.perMessageDeflate.serverWindowSize"      -> 12,
+      "play.server.netty.websocket.compression.perMessageDeflate.memLevel"              -> 7
+    )
+  override def expectedServerMaxWindowBits: Option[Int] = Some(12)
 
+  "Plays WebSockets using netty backend with compression" should {
     "fail clearly when Netty websocket compression maxAllocation exceeds Netty's integer limit" in {
       withServer(
         app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
-        Map("play.server.netty.websocket.compression.maxAllocation" -> "3g")
+        Map("play.server.websocket.compression.maxAllocation" -> "3g")
       ) { (_, _) =>
         ()
       } must throwA[RuntimeException].like {
         case exception =>
           (exception.getCause must beAnInstanceOf[play.core.server.ServerStartException])
-            .and(exception.getMessage must contain("play.server.netty.websocket.compression.maxAllocation"))
+            .and(exception.getMessage must contain("play.server.websocket.compression.maxAllocation"))
       }
     }
-
   }
 }
-class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
+
+class PekkoHttpWebSocketSpec
+    extends WebSocketSpec
+    with PekkoHttpIntegrationSpecification
+    with WebSocketCompressionSpec {
+  override def backendName: String = "pekko-http backend"
+
   "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
       delay = 5.seconds, // connection times out before something gets send

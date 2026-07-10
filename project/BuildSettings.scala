@@ -316,6 +316,16 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.this"),
       ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
+      // ForwardedHeaderHandlerConfig is a private server-internal configuration model.
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.this"
+      ),
       // Switch to Jakarta DI
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpErrorHandler.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpRequestHandler.this"),
@@ -573,6 +583,45 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.sird.RequestMethodExtractors.QUERY"),
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.routing.sird.RequestMethodExtractors.play$api$routing$sird$RequestMethodExtractors$_setter_$QUERY_="
+      ),
+      // ForwardedHeaderHandler parser models are private server internals.
+      // Their signatures changed to carry forwarded port values and RFC 7239 remote identities.
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.parseEntry"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedEntry.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedEntry.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedEntry.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.this"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.copy$default$2"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.copy$default$1"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry._1"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry._2"
+      ),
+      ProblemFilters.exclude[MissingTypesProblem]("play.core.server.common.ForwardedHeaderHandler$ForwardedEntry$"),
+      ProblemFilters.exclude[MissingTypesProblem](
+        "play.core.server.common.ForwardedHeaderHandler$ParsedForwardedEntry$"
       ),
     ),
     (Compile / unmanagedSourceDirectories) += {

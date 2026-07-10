@@ -99,14 +99,15 @@ class NettyServer(
   private val wsKeepAliveMode            = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
   private val wsKeepAliveMaxIdle         = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
   private val wsCompression              = serverConfig.get[Boolean]("websocket.compression.enabled")
-  private val wsCompressionConfig        = nettyConfig.get[Configuration]("websocket.compression")
+  private val wsCompressionConfig        = serverConfig.get[Configuration]("websocket.compression")
+  private val nettyWsCompressionConfig   = nettyConfig.get[Configuration]("websocket.compression")
   private val wsCompressionMaxAllocation =
     if (wsCompression) {
       Some(
         getMemorySizeAsInt(
           wsCompressionConfig,
           "maxAllocation",
-          "play.server.netty.websocket.compression.maxAllocation"
+          "play.server.websocket.compression.maxAllocation"
         )
       )
     } else {
@@ -291,23 +292,24 @@ class NettyServer(
     if (!wsCompression) {
       None
     } else {
-      val maxAllocation           = wsCompressionMaxAllocation.get
-      val perMessageDeflateConfig = wsCompressionPerMessageDeflateConfig.get
+      val maxAllocation                = wsCompressionMaxAllocation.get
+      val perMessageDeflateConfig      = wsCompressionPerMessageDeflateConfig.get
+      val nettyPerMessageDeflateConfig = nettyWsCompressionConfig.get[Configuration]("perMessageDeflate")
 
       Some(
         new WebSocketServerExtensionHandler(
           new PerMessageDeflateServerExtensionHandshaker(
             perMessageDeflateConfig.get[Int]("compressionLevel"),
             getAutoBoolean(
-              perMessageDeflateConfig,
+              nettyPerMessageDeflateConfig,
               "allowServerWindowSize",
               ZlibCodecFactory.isSupportingWindowSizeAndMemLevel()
             ),
             perMessageDeflateConfig.get[Int]("preferredClientWindowSize"),
             perMessageDeflateConfig.get[Boolean]("allowServerNoContext"),
             perMessageDeflateConfig.get[Boolean]("preferredClientNoContext"),
-            perMessageDeflateConfig.get[Int]("serverWindowSize"),
-            perMessageDeflateConfig.get[Int]("memLevel"),
+            nettyPerMessageDeflateConfig.get[Int]("serverWindowSize"),
+            nettyPerMessageDeflateConfig.get[Int]("memLevel"),
             maxAllocation
           )
         )

@@ -420,8 +420,9 @@ object RangeResult {
 
     RangeSet(entityLength, rangeHeader) match {
       case rangeSet: SatisfiableRangeSet =>
-        val firstRange = rangeSet.first
-        val byteRange  = firstRange.byteRange
+        val firstRange    = rangeSet.first
+        val byteRange     = firstRange.byteRange
+        val firstRangeSet = SatisfiableRangeSet(entityLength, Seq(Some(firstRange)))
 
         val (offset, source) = getSource(byteRange.start)
         // Really the only sensible values for offset are 0 or the requested byteRange,
@@ -438,7 +439,7 @@ object RangeResult {
         Result(
           ResponseHeader(
             status = PARTIAL_CONTENT,
-            headers = Map(CONTENT_RANGE -> rangeSet.toString) ++ commonHeaders
+            headers = Map(CONTENT_RANGE -> firstRangeSet.toString) ++ commonHeaders
           ),
           HttpEntity.Streamed(
             entitySource,

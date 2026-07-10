@@ -88,33 +88,37 @@ private[server] class PekkoModelConversion(
       request: HttpRequest
   ): RequestHeader = {
     val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
-    new RequestHeaderImpl(
-      forwardedHeaderHandler.forwardedConnection(
-        new RemoteConnection {
-          override def remoteAddress: InetAddress                           = remoteAddressArg.getAddress
-          override def secure: Boolean                                      = secureProtocol
-          override def clientCertificateChain: Option[Seq[X509Certificate]] = {
-            try {
-              request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
-                immutable.ArraySeq
-                  .unsafeWrapArray(tlsSessionInfo.getSession.getPeerCertificates)
-                  .collect { case x509: X509Certificate => x509 }
-              }
-            } catch {
-              case _: SSLPeerUnverifiedException => None
-            }
+    val rawConnection    = new RemoteConnection {
+      override def remoteAddress: InetAddress                           = remoteAddressArg.getAddress
+      override def remotePort: Option[Int]                              = Some(remoteAddressArg.getPort)
+      override def secure: Boolean                                      = secureProtocol
+      override def clientCertificateChain: Option[Seq[X509Certificate]] = {
+        try {
+          request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
+            immutable.ArraySeq
+              .unsafeWrapArray(tlsSessionInfo.getSession.getPeerCertificates)
+              .collect { case x509: X509Certificate => x509 }
           }
-        },
-        headers
-      ),
+        } catch {
+          case _: SSLPeerUnverifiedException => None
+        }
+      }
+    }
+    val forwarding       = forwardedHeaderHandler.forwardedRequest(rawConnection, headers)
+    val forwardedHeaders = forwarding.host.fold(headers)(host => headers.replace(HeaderNames.HOST -> host))
+    val attrs            = TypedMap(
+      // This is the earliest stage of a Play request at which we can set an id.
+      RequestAttrKey.Id -> RequestIdProvider.freshId(),
+    )
+    val effectiveAttrs = forwarding.host.fold(attrs)(host => attrs.updated(RequestAttrKey.EffectiveHost, host))
+
+    new RequestHeaderImpl(
+      forwarding.connection,
       request.method.name,
       requestTarget,
       request.protocol.value,
-      headers,
-      TypedMap(
-        // This is the earliest stage of a Play request at which we can set an id.
-        RequestAttrKey.Id -> RequestIdProvider.freshId(),
-      )
+      forwardedHeaders,
+      effectiveAttrs
     )
   }
 

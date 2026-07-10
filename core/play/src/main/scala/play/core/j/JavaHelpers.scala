@@ -100,6 +100,10 @@ trait JavaHelpers {
       r.withConnection(new RemoteConnection {
         override def remoteAddress: InetAddress                           = c.remoteAddress
         override def remoteAddressString: String                          = c.remoteAddressString
+        override def remoteNode: RemoteConnection.RemoteNode              = c.remoteNode
+        override def byNode: Option[RemoteConnection.RemoteNode]          = c.byNode
+        override def remoteIpAddress: Option[InetAddress]                 = c.remoteIpAddress
+        override def remotePort: Option[Int]                              = c.remotePort
         override def secure: Boolean                                      = newSecure
         override def clientCertificateChain: Option[Seq[X509Certificate]] = c.clientCertificateChain
       })
@@ -195,11 +199,15 @@ object JavaHelpers extends JavaHelpers {
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
   override def asScala: RequestHeader = header
 
-  override def uri: String           = header.uri
-  override def method: String        = header.method
-  override def version: String       = header.version
-  override def remoteAddress: String = header.remoteAddress
-  override def secure: Boolean       = header.secure
+  override def uri: String                       = header.uri
+  override def method: String                    = header.method
+  override def version: String                   = header.version
+  override def connection: Http.RemoteConnection = new Http.RemoteConnection(header.connection)
+  override def remoteAddress: String             = header.remoteAddress
+  override def remotePort: Optional[Integer]     = {
+    header.remotePort.map(Int.box).toJava
+  }
+  override def secure: Boolean = header.secure
 
   override def attrs: TypedMap                                                                   = new TypedMap(header.attrs)
   override def withAttrs(newAttrs: TypedMap): JRequestHeader                                     = header.withAttrs(newAttrs.asScala).asJava

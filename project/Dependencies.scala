@@ -86,8 +86,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.3.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.3.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.4.4.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.4.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -113,7 +113,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "9.1.1.Final"
+    "org.hibernate.validator" % "hibernate-validator" % "9.1.2.Final"
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
