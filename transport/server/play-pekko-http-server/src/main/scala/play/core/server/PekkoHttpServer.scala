@@ -159,7 +159,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       .withIncludeTlsSessionInfoHeader(includeTlsSessionInfoHeader)
       .withUriParsingMode(Uri.ParsingMode.Relaxed)
       .withModeledHeaderParsing(false) // Disable most of Pekko HTTP's header parsing; use RawHeaders instead
-      .withCustomMethods(HttpMethod.custom("QUERY"))
+      .withCustomMethods(HttpMethods.QUERY)
 
   /**
    * Create Pekko HTTP settings for a given port binding.
