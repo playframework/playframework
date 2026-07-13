@@ -57,9 +57,9 @@ If you want to configure the default dispatcher, use another dispatcher, or defi
 
 The full configuration options available to you can be found in the [Configuration][pekko-default-config] section.
 
-[pekko-default-config]:     https://pekko.apache.org/docs/pekko/1.0/general/configuration.html#listing-of-the-reference-configuration
-[pekko-default-dispatcher]: https://pekko.apache.org/docs/pekko/1.0/dispatchers.html#default-dispatcher
-[pekko-dispatcher-types]:   https://pekko.apache.org/docs/pekko/1.0/dispatchers.html#types-of-dispatchers
+[pekko-default-config]:     https://pekko.apache.org/docs/pekko/2.0/general/configuration.html#listing-of-the-reference-configuration
+[pekko-default-dispatcher]: https://pekko.apache.org/docs/pekko/2.0/dispatchers.html#default-dispatcher
+[pekko-dispatcher-types]:   https://pekko.apache.org/docs/pekko/2.0/dispatchers.html#types-of-dispatchers
 
 ## Using other thread pools
 

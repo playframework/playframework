@@ -4,9 +4,12 @@
 
 package play.mvc
 
+import java.net.InetAddress
+
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
+import com.google.common.net.InetAddresses
 import org.specs2.mutable.Specification
 import play.api.http.HttpConfiguration
 import play.api.libs.typedmap.TypedMap
@@ -20,7 +23,7 @@ import play.mvc.Http.HeaderNames
 class RequestHeaderSpec extends Specification {
   private def requestHeader(headers: (String, String)*): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
-      connection = RemoteConnection("", secure = false, None),
+      connection = RemoteConnection("127.0.0.1", secure = false, None),
       method = "GET",
       target = RequestTarget("/", "", Map.empty),
       version = "",
@@ -114,6 +117,101 @@ class RequestHeaderSpec extends Specification {
 
       "when there is not a transfer-encoding header" in {
         requestHeader().asJava.hasBody must beFalse
+      }
+    }
+
+    "remote port" in {
+      "expose the scala request remote port" in {
+        val request = requestHeader().withConnection(RemoteConnection("127.0.0.1", Some(12345), secure = false, None))
+
+        request.asJava.remotePort must beEqualTo(java.util.Optional.of(12345))
+      }
+
+      "expose the scala request remote port in connection" in {
+        val request = requestHeader().withConnection(RemoteConnection("127.0.0.1", Some(12345), secure = false, None))
+
+        request.asJava.connection.remotePort must beEqualTo(java.util.Optional.of(12345))
+      }
+
+      "be set by the request builder" in {
+        val request = new Http.RequestBuilder().remoteAddress("127.0.0.1").remotePort(12345).build()
+
+        request.remotePort must beEqualTo(java.util.Optional.of(12345))
+        request.asScala.connection.remotePort must beSome(12345)
+      }
+
+      "be set by the request builder in connections" in {
+        val request = new Http.RequestBuilder().remoteAddress("127.0.0.1").remotePort(12345).build()
+
+        request.connection.remotePort must beEqualTo(java.util.Optional.of(12345))
+        request.asScala.connection.remotePort must beSome(12345)
+      }
+    }
+
+    "remote node" in {
+      "wrap scala remote connections" in {
+        val scalaConnection = RemoteConnection(
+          InetAddresses.forString("127.0.0.1"),
+          RemoteConnection.RemoteNode.Ip(InetAddresses.forString("127.0.0.1"), Some(12345)),
+          Some(12345),
+          Some(RemoteConnection.RemoteNode.Obfuscated("_edge", None)),
+          secure = true,
+          None
+        )
+        val javaConnection = new Http.RemoteConnection(scalaConnection)
+
+        javaConnection.asScala must beEqualTo(scalaConnection)
+        javaConnection.remoteNode must beEqualTo(
+          new Http.RemoteNode.Ip(InetAddresses.forString("127.0.0.1"), java.util.Optional.of(12345))
+        )
+        javaConnection.byNode must beEqualTo(
+          java.util.Optional.of(new Http.RemoteNode.Obfuscated("_edge", java.util.Optional.empty[String]))
+        )
+        javaConnection.remoteIpAddress must beEqualTo(java.util.Optional.of(InetAddresses.forString("127.0.0.1")))
+        javaConnection.remoteIdentity must beEqualTo("127.0.0.1")
+        javaConnection.remotePort must beEqualTo(java.util.Optional.of(12345))
+        javaConnection.secure must beTrue
+        javaConnection.clientCertificateChain must beEqualTo(
+          java.util.Optional.empty[java.util.List[java.security.cert.X509Certificate]]
+        )
+      }
+
+      "convert remote node wrappers to and from scala" in {
+        val obfuscated = new Http.RemoteNode.Obfuscated("_hidden", java.util.Optional.of("_port"))
+        val unknown    = new Http.RemoteNode.Unknown(java.util.Optional.empty[String])
+
+        obfuscated.asScala.asJava must beEqualTo(obfuscated)
+        unknown.asScala.asJava must beEqualTo(unknown)
+      }
+
+      "expose the scala request remote node" in {
+        val request = requestHeader().withConnection(RemoteConnection("127.0.0.1", Some(12345), secure = false, None))
+
+        request.asJava.connection.remoteNode must beEqualTo(
+          new Http.RemoteNode.Ip(InetAddresses.forString("127.0.0.1"), java.util.Optional.of(12345))
+        )
+        request.asJava.connection.remoteIpAddress must beEqualTo(
+          java.util.Optional.of(InetAddresses.forString("127.0.0.1"))
+        )
+      }
+
+      "expose an empty remote IP address for obfuscated remote nodes" in {
+        val request = requestHeader().withConnection(
+          RemoteConnection(
+            InetAddresses.forString("127.0.0.1"),
+            RemoteConnection.RemoteNode.Obfuscated("_hidden", None),
+            None,
+            secure = false,
+            None
+          )
+        )
+
+        request.asJava.connection.remoteNode must beEqualTo(
+          new Http.RemoteNode.Obfuscated("_hidden", java.util.Optional.empty[String])
+        )
+        request.asJava.connection.remoteIpAddress must beEqualTo(java.util.Optional.empty[InetAddress])
+        request.asJava.connection.remoteIdentity must beEqualTo("_hidden")
+        request.asJava.remoteIdentity must beEqualTo("_hidden")
       }
     }
   }

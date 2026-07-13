@@ -121,15 +121,15 @@ A common use case within Pekko is to have some computation performed concurrentl
 
 ## Pekko Coordinated Shutdown
 
-Play handles the shutdown of the `Application` and the `Server` using Pekko's [Coordinated Shutdown](https://pekko.apache.org/docs/pekko/1.0/coordinated-shutdown.html?language=java). Find more information in the [[Coordinated Shutdown|Shutdown]] common section.
+Play handles the shutdown of the `Application` and the `Server` using Pekko's [Coordinated Shutdown](https://pekko.apache.org/docs/pekko/2.0/coordinated-shutdown.html?language=java). Find more information in the [[Coordinated Shutdown|Shutdown]] common section.
 
-NOTE: Play only handles the shutdown of its internal `ActorSystem`. If you are using extra actor systems, make sure they are all terminated and feel free to migrate your termination code to [Coordinated Shutdown](https://pekko.apache.org/docs/pekko/1.0/coordinated-shutdown.html?language=java).
+NOTE: Play only handles the shutdown of its internal `ActorSystem`. If you are using extra actor systems, make sure they are all terminated and feel free to migrate your termination code to [Coordinated Shutdown](https://pekko.apache.org/docs/pekko/2.0/coordinated-shutdown.html?language=java).
 
 ## Pekko Cluster
 
-You can make your Play application join an existing [Pekko Cluster](https://pekko.apache.org/docs/pekko/1.0/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Pekko's Coordinated Shutdown which will take care of that graceful leave. 
+You can make your Play application join an existing [Pekko Cluster](https://pekko.apache.org/docs/pekko/2.0/cluster-usage.html). In that case it is recommended that you leave the cluster gracefully. Play ships with Pekko's Coordinated Shutdown which will take care of that graceful leave. 
 
-If you already have custom Cluster Leave code it is recommended that you replace it with Pekko's handling. See [Pekko docs](https://pekko.apache.org/docs/pekko/1.0/coordinated-shutdown.html?language=java) for more details.
+If you already have custom Cluster Leave code it is recommended that you replace it with Pekko's handling. See [Pekko docs](https://pekko.apache.org/docs/pekko/2.0/coordinated-shutdown.html?language=java) for more details.
 
 ## Updating Pekko version
 
@@ -143,6 +143,6 @@ If you haven't switched to the Netty server backend and therefore are using Play
 
 @[pekko-http-update](code/javaguide.pekkoupdate.sbt)
 
-> **Note:** When doing such updates, keep in mind that you need to follow Pekko's [Binary Compatibility Rules](https://pekko.apache.org/docs/pekko/1.0/common/binary-compatibility-rules.html). And if you are manually adding other Pekko artifacts, remember to keep the version of all the Pekko artifacts consistent since [mixed versioning is not allowed](https://pekko.apache.org/docs/pekko/1.0/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
+> **Note:** When doing such updates, keep in mind that you need to follow Pekko's [Binary Compatibility Rules](https://pekko.apache.org/docs/pekko/2.0/common/binary-compatibility-rules.html). And if you are manually adding other Pekko artifacts, remember to keep the version of all the Pekko artifacts consistent since [mixed versioning is not allowed](https://pekko.apache.org/docs/pekko/2.0/common/binary-compatibility-rules.html#mixed-versioning-is-not-allowed).
 
 > **Note:** When resolving dependencies, sbt will get the newest one declared for this project or added transitively. It means that if Play depends on a newer Pekko (or Pekko HTTP) version than the one you are declaring, Play's version wins. See more details about [how sbt does evictions here](https://www.scala-sbt.org/1.x/docs/Library-Management.html#Eviction+warning).

@@ -188,12 +188,13 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       version: String = "HTTP/1.1",
       id: Long = 666,
       secure: Boolean = false,
+      remotePort: Option[Int] = None,
       clientCertificateChain: Option[Seq[X509Certificate]] = None,
       attrs: TypedMap = TypedMap.empty
   ): FakeRequest[A] = {
     val _uri                = uri
     val request: Request[A] = requestFactory.createRequest(
-      RemoteConnection(remoteAddress, secure, clientCertificateChain),
+      RemoteConnection(remoteAddress, remotePort, secure, clientCertificateChain),
       method,
       new RequestTarget {
         override lazy val uri: URI                           = new URI(uriString)

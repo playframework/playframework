@@ -15,7 +15,7 @@ import play.twirl.api.utils.StringEscapeUtils;
 
 /**
  * Provides an easy way to use a Comet formatted output with <a
- * href="https://pekko.apache.org/docs/pekko/1.0/java/stream/index.html">Pekko Streams</a>.
+ * href="https://pekko.apache.org/docs/pekko/2.0/stream/index.html?language=java">Pekko Streams</a>.
  *
  * <p>There are two methods that can be used to convert strings and JSON, {@code Comet.string} and
  * {@code Comet.json}. These methods build on top of the base method, {@code Comet.flow}, which

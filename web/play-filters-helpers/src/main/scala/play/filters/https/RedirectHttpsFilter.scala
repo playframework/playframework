@@ -41,13 +41,17 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
 
   @inline
   private[this] def shouldRedirect(req: RequestHeader) = {
-    if (xForwardedProtoEnabled) req.headers.get(HeaderNames.X_FORWARDED_PROTO).contains("http")
+    if (xForwardedProtoEnabled) hasXForwardedProto(req, "http")
     else true
   }
 
   @inline
   private[this] def isSecure(req: RequestHeader) =
-    req.secure || req.headers.get(HeaderNames.X_FORWARDED_PROTO).contains("https")
+    req.secure || (xForwardedProtoEnabled && hasXForwardedProto(req, "https"))
+
+  @inline
+  private[this] def hasXForwardedProto(req: RequestHeader, protocol: String) =
+    req.headers.get(HeaderNames.X_FORWARDED_PROTO).exists(_.trim.equalsIgnoreCase(protocol))
 
   override def apply(next: EssentialAction): EssentialAction = EssentialAction { req =>
     import play.api.libs.streams.Accumulator
@@ -80,12 +84,16 @@ class RedirectHttpsFilter @Inject() (config: RedirectHttpsConfiguration) extends
 
   protected def createHttpsRedirectUrl(req: RequestHeader): String = {
     import req.domain
-    import req.uri
+    val path  = Option(req.path).filter(_.startsWith("/")).getOrElse("/")
+    val query = req.uri.indexOf('?') match {
+      case -1    => ""
+      case index => req.uri.substring(index)
+    }
     sslPort match {
       case None | Some(443) =>
-        s"https://$domain$uri"
+        s"https://$domain$path$query"
       case Some(port) =>
-        s"https://$domain:$port$uri"
+        s"https://$domain:$port$path$query"
     }
   }
 

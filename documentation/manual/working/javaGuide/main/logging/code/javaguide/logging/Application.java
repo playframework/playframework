@@ -43,7 +43,7 @@ class AccessLoggingAction extends Action.Simple {
         "method={} uri={} remote-address={}",
         request.method(),
         request.uri(),
-        request.remoteAddress());
+        request.connection().remoteIdentity());
 
     return delegate.call(request);
   }

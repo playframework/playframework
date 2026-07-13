@@ -32,11 +32,7 @@ object ScriptedTools extends AutoPlugin {
     // the snapshot resolvers in `cron` builds.
     // If this is a scheduled GitHub Action
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
-    resolvers ++= sys.env
-      .get("GITHUB_EVENT_NAME")
-      .filter(_.equalsIgnoreCase("schedule"))
-      .map(_ => Resolver.ApacheMavenSnapshotsRepo) // contains pekko(-http) snapshots
-      .toSeq
+    resolvers += Resolver.ApacheMavenSnapshotsRepo
   )
 
   def scalaVersionFromJavaProperties() =

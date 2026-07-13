@@ -6,6 +6,7 @@ package play.api.mvc
 
 import java.util.Locale
 
+import com.google.common.net.InetAddresses
 import org.specs2.mutable.Specification
 import play.api.http.HeaderNames._
 import play.api.http.HttpConfiguration
@@ -18,6 +19,7 @@ import play.api.mvc.request.DefaultRequestFactory
 import play.api.mvc.request.RemoteConnection
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.request.RequestTarget
+import play.mvc.Http
 
 class RequestHeaderSpec extends Specification {
   "request header" should {
@@ -29,6 +31,31 @@ class RequestHeaderSpec extends Specification {
       "keep the headers accessible case insensitively" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
         rh.asJava.headers.contains("host") must beTrue
+      }
+      "keep the remote port" in {
+        val rh = dummyRequestHeader(remotePort = Some(12345))
+        rh.remotePort must beSome(12345)
+        rh.asJava.remotePort must beEqualTo(java.util.Optional.of(12345))
+      }
+      "keep the remote port in connection" in {
+        val rh = dummyRequestHeader(remotePort = Some(12345))
+        rh.connection.remotePort must beSome(12345)
+        rh.asJava.connection.remotePort must beEqualTo(java.util.Optional.of(12345))
+      }
+      "keep the remote node and remote IP address" in {
+        val rh = dummyRequestHeader(remotePort = Some(12345))
+        rh.connection.remoteNode must beEqualTo(
+          RemoteConnection.RemoteNode.Ip(InetAddresses.forString("127.0.0.1"), Some(12345))
+        )
+        rh.connection.remoteIpAddress must beSome(InetAddresses.forString("127.0.0.1"))
+        rh.remoteIdentity must beEqualTo("127.0.0.1")
+        rh.asJava.connection.remoteNode must beEqualTo(
+          new Http.RemoteNode.Ip(InetAddresses.forString("127.0.0.1"), java.util.Optional.of(12345))
+        )
+        rh.asJava.connection.remoteIpAddress must beEqualTo(
+          java.util.Optional.of(InetAddresses.forString("127.0.0.1"))
+        )
+        rh.asJava.remoteIdentity must beEqualTo("127.0.0.1")
       }
     }
 
@@ -153,10 +180,50 @@ class RequestHeaderSpec extends Specification {
       "relative uri with host header" in {
         val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com"))
         rh.host must_== "playframework.com"
+        rh.domain must_== "playframework.com"
+      }
+      "relative uri with host header and port" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "playframework.com:9000"))
+        rh.host must_== "playframework.com:9000"
+        rh.domain must_== "playframework.com"
+      }
+      "relative uri with bracketed IPv6 host and port" in {
+        val rh = dummyRequestHeader("GET", "/", Headers(HOST -> "[2001:db8::1]:9000"))
+        rh.host must_== "[2001:db8::1]:9000"
+        rh.domain must_== "[2001:db8::1]"
+      }
+      "leave ambiguous host values unchanged when extracting the domain" in {
+        val hosts = Seq("2001:db8::1", "[2001:db8::1]suffix:9000")
+
+        hosts.forall { host => dummyRequestHeader("GET", "/", Headers(HOST -> host)).domain == host } must beTrue
       }
       "absolute uri" in {
         val rh = dummyRequestHeader("GET", "https://example.com/test", Headers(HOST -> "playframework.com"))
         rh.host must_== "example.com"
+      }
+      "trusted effective host with absolute uri for Scala and Java requests" in {
+        val requestHeader = dummyRequestHeader(
+          requestMethod = "GET",
+          requestUri = "https://internal.example/test",
+          headers = Headers(HOST -> "public.example"),
+          attrs = TypedMap(RequestAttrKey.EffectiveHost -> "public.example"),
+          requestPath = "/test"
+        )
+        val request = requestHeader.withBody("body")
+
+        requestHeader.host must_== "public.example"
+        request.host must_== "public.example"
+        requestHeader.asJava.host must_== "public.example"
+        request.asJava.host must_== "public.example"
+
+        requestHeader.uri must_== "https://internal.example/test"
+        requestHeader.path must_== "/test"
+        request.uri must_== "https://internal.example/test"
+        request.path must_== "/test"
+        requestHeader.asJava.uri must_== "https://internal.example/test"
+        requestHeader.asJava.path must_== "/test"
+        request.asJava.uri must_== "https://internal.example/test"
+        request.asJava.path must_== "/test"
       }
       "absolute uri with port" in {
         val rh = dummyRequestHeader("GET", "https://example.com:8080/test", Headers(HOST -> "playframework.com"))
@@ -231,12 +298,14 @@ class RequestHeaderSpec extends Specification {
       requestMethod: String = "GET",
       requestUri: String = "/",
       headers: Headers = Headers(),
-      attrs: TypedMap = TypedMap.empty
+      attrs: TypedMap = TypedMap.empty,
+      remotePort: Option[Int] = None,
+      requestPath: String = ""
   ): RequestHeader = {
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
-      connection = RemoteConnection("", false, None),
+      connection = RemoteConnection("127.0.0.1", remotePort, false, None),
       method = requestMethod,
-      target = RequestTarget(requestUri, "", Map.empty),
+      target = RequestTarget(requestUri, requestPath, Map.empty),
       version = "",
       headers = headers,
       attrs = attrs

@@ -47,12 +47,12 @@ class IPFilter @Inject() (config: IPFilterConfig, httpErrorHandler: HttpErrorHan
     if (this.config.ipAllowed(req)) {
       next(req)
     } else {
-      logger.warn(s"Access denied to ${req.path} for IP ${req.remoteAddress}.")
+      logger.warn(s"Access denied to ${req.path} for IP ${req.remoteIdentity}.")
       Accumulator.done(
         httpErrorHandler.onClientError(
           req.addAttr(HttpErrorHandler.Attrs.HttpErrorInfo, HttpErrorInfo("ip-filter")),
           this.config.accessDeniedHttpStatusCode,
-          s"IP not allowed: ${req.remoteAddress}"
+          s"IP not allowed: ${req.remoteIdentity}"
         )
       )
     }
@@ -91,11 +91,15 @@ object IPFilterConfig {
           true // default case, both whitelist and blacklist are empty so all IPs are allowed.
         } else {
           // The blacklist is defined, so we accept the IP if it's not blacklisted.
-          blackList.forall(!JArrays.equals(_, req.connection.remoteAddress.getAddress))
+          req.connection.remoteIpAddress.exists { remoteAddress =>
+            blackList.forall(!JArrays.equals(_, remoteAddress.getAddress))
+          }
         }
       } else {
         // The whitelist is defined. We accept the IP if there is a matching whitelist entry.
-        whiteList.exists(JArrays.equals(_, req.connection.remoteAddress.getAddress))
+        req.connection.remoteIpAddress.exists { remoteAddress =>
+          whiteList.exists(JArrays.equals(_, remoteAddress.getAddress))
+        }
       }
     }
 

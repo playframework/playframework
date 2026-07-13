@@ -48,6 +48,11 @@ class NodeIdentifierParserSpec extends Specification {
       parseNode(Rfc7239, "unknown") must beRight(UnknownIp -> None)
     }
 
+    "parse an unknown ip address case-insensitively" in {
+      parseNode(Rfc7239, "Unknown") must beRight(UnknownIp -> None)
+      parseNode(Rfc7239, "UNKNOWN") must beRight(UnknownIp -> None)
+    }
+
     "parse an obfuscated ip address without port" in {
       parseNode(Rfc7239, "_harry") must beRight(ObfuscatedIp("_harry") -> None)
     }

@@ -8,12 +8,12 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "1.6.0")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "1.3.0")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M3")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+169-56f2f5ad-SNAPSHOT")
 
   val playJsonVersion = "3.1.0-M10"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.34"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.37"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -86,8 +86,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.1.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.1.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.4.4.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.4.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -113,7 +113,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "9.1.0.Final"
+    "org.hibernate.validator" % "hibernate-validator" % "9.1.2.Final"
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
@@ -130,9 +130,12 @@ object Dependencies {
   ).map(_ % Test)
 
   val guiceVersion = "7.0.0"
+  val asmVersion   = "9.10.1"
   val guiceDeps    = Seq(
-    "com.google.inject"            % "guice"                % guiceVersion,
-    "com.google.inject.extensions" % "guice-assistedinject" % guiceVersion
+    ("com.google.inject" % "guice" % guiceVersion).classifier("classes"),
+    // Keep assistedinject from pulling the default shaded Guice jar alongside the unshaded classes classifier.
+    ("com.google.inject.extensions" % "guice-assistedinject" % guiceVersion).exclude("com.google.inject", "guice"),
+    "org.ow2.asm"                   % "asm"                  % asmVersion
   )
 
   def runtime(scalaVersion: String) =
@@ -151,7 +154,7 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.2.15.Final"
+  val nettyVersion = "4.2.16.Final"
 
   val netty = Seq(
     "org.playframework.netty" % "netty-reactive-streams-http" % "3.1.0-M1",
@@ -286,7 +289,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M12"
+  val playWsStandaloneVersion = "3.1.0-M13"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

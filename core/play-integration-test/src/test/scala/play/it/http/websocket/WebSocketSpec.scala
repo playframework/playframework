@@ -4,8 +4,10 @@
 
 package play.it.http.websocket
 
+import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
+import java.util.zip.Inflater
 
 import scala.collection.immutable
 import scala.concurrent.duration._
@@ -27,6 +29,9 @@ import org.specs2.matcher.Matcher
 import org.specs2.specification.AroundEach
 import play.api.http.websocket._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
+import play.api.libs.json.Reads
 import play.api.libs.streams.ActorFlow
 import play.api.libs.ws.WSClient
 import play.api.mvc.Handler
@@ -37,12 +42,184 @@ import play.api.test._
 import play.api.Application
 import play.api.Configuration
 import play.it._
+import play.it.http.websocket.WebSocketClient.CompressionMode
 import play.it.http.websocket.WebSocketClient.ContinuationMessage
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
+import play.it.http.websocket.WebSocketClient.RawWebSocketFrame
 import play.it.http.websocket.WebSocketClient.SimpleMessage
 
-class NettyWebSocketSpec     extends WebSocketSpec with NettyIntegrationSpecification
-class PekkoHttpWebSocketSpec extends WebSocketSpec with PekkoHttpIntegrationSpecification {
+trait WebSocketCompressionSpec extends WebSocketSpecMethods {
+  def backendName: String
+  def extraConfiguredCompressionConfig: Map[String, Any] = Map.empty
+  def expectedServerMaxWindowBits: Option[Int]           = None
+
+  "Plays WebSockets using " + backendName + " with compression" should {
+    "negotiate permessage-deflate" in {
+      withServer(app =>
+        WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) }
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.Enabled()
+        )
+
+        headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        } must beSome(contain("permessage-deflate"))
+      }
+    }
+
+    "decompress inbound permessage-deflate frames before passing them to the application" in {
+      val consumed = Promise[List[String]]()
+      withServer(app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
+        }
+      ) { (app, port) =>
+        import app.materializer
+        val result = runWebSocket(
+          port,
+          { flow =>
+            sendFrames(
+              TextMessage("compressed client message"),
+              CloseMessage(1000)
+            ).via(flow).runWith(Sink.ignore)
+            consumed.future
+          },
+          compressionMode = CompressionMode.Enabled()
+        )
+
+        result must_== Seq("compressed client message")
+      }
+    }
+
+    "compress outbound permessage-deflate frames sent by the application" in {
+      withServer(app =>
+        WebSocket.accept[String, String] { req =>
+          Flow.fromSinkAndSource(Sink.ignore, Source.single("compressed server message"))
+        }
+      ) { (app, port) =>
+        import app.materializer
+        val frames = runWebSocket(
+          port,
+          { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) },
+          compressionMode = CompressionMode.RequestOnly()
+        )
+
+        frames.collectFirst {
+          case RawWebSocketFrame("text", data, rsv, true) => (data, rsv)
+        } must beSome[(ByteString, Int)].which {
+          case (data, rsv) =>
+            data.nonEmpty &&
+            (rsv & 4) == 4 &&
+            data != ByteString("compressed server message") &&
+            inflatePerMessageDeflate(data).utf8String == "compressed server message"
+        }
+      }
+    }
+
+    "not negotiate compression when websocket compression is disabled" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map("play.server.websocket.compression.enabled" -> false)
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.RequestOnly()
+        )
+
+        headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        } must beNone
+      }
+    }
+
+    "use configured permessage-deflate negotiation settings" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map(
+          "play.server.websocket.compression.perMessageDeflate.preferredClientWindowSize" -> 11,
+          "play.server.websocket.compression.perMessageDeflate.allowServerNoContext"      -> true,
+          "play.server.websocket.compression.perMessageDeflate.preferredClientNoContext"  -> true,
+          "play.server.websocket.compression.perMessageDeflate.compressionLevel"          -> 5
+        ) ++ extraConfiguredCompressionConfig
+      ) { (app, port) =>
+        import app.materializer
+        val (_, headers) = runWebSocket(
+          port,
+          { flow =>
+            Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+            Future.successful(())
+          },
+          subprotocol = None,
+          handleConnect = c => c,
+          compressionMode = CompressionMode.RequestOnly(
+            "permessage-deflate; client_max_window_bits; server_max_window_bits=15; " +
+              "client_no_context_takeover; server_no_context_takeover"
+          )
+        )
+
+        val extension = headers.collectFirst {
+          case (name, value) if name.equalsIgnoreCase("Sec-WebSocket-Extensions") => value
+        }
+
+        extension must beSome[String].which { value =>
+          value.contains("permessage-deflate") &&
+          expectedServerMaxWindowBits.forall(bits => value.contains(s"server_max_window_bits=$bits")) &&
+          value.contains("client_max_window_bits=11") &&
+          value.contains("server_no_context_takeover") &&
+          value.contains("client_no_context_takeover")
+        }
+      }
+    }
+  }
+}
+class NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification with WebSocketCompressionSpec {
+  override def backendName: String                                = "netty backend"
+  override def extraConfiguredCompressionConfig: Map[String, Any] =
+    Map(
+      "play.server.netty.websocket.compression.perMessageDeflate.allowServerWindowSize" -> true,
+      "play.server.netty.websocket.compression.perMessageDeflate.serverWindowSize"      -> 12,
+      "play.server.netty.websocket.compression.perMessageDeflate.memLevel"              -> 7
+    )
+  override def expectedServerMaxWindowBits: Option[Int] = Some(12)
+
+  "Plays WebSockets using netty backend with compression" should {
+    "fail clearly when Netty websocket compression maxAllocation exceeds Netty's integer limit" in {
+      withServer(
+        app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+        Map("play.server.websocket.compression.maxAllocation" -> "3g")
+      ) { (_, _) =>
+        ()
+      } must throwA[RuntimeException].like {
+        case exception =>
+          (exception.getCause must beAnInstanceOf[play.core.server.ServerStartException])
+            .and(exception.getMessage must contain("play.server.websocket.compression.maxAllocation"))
+      }
+    }
+  }
+}
+
+class PekkoHttpWebSocketSpec
+    extends WebSocketSpec
+    with PekkoHttpIntegrationSpecification
+    with WebSocketCompressionSpec {
+  override def backendName: String = "pekko-http backend"
+
   "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
       delay = 5.seconds, // connection times out before something gets send
@@ -150,6 +327,12 @@ trait WebSocketSpec
     with ServerIntegrationSpecification
     with WebSocketSpecMethods
     with PingWebSocketSpec {
+  case class JsonMessage(name: String)
+
+  implicit val jsonMessageReads: Reads[JsonMessage]                                               = Json.reads[JsonMessage]
+  implicit val jsonMessageFlowTransformer: WebSocket.MessageFlowTransformer[JsonMessage, JsValue] =
+    WebSocket.MessageFlowTransformer.jsonMessageFlowTransformer[JsonMessage, JsValue]
+
   /*
    * This is the flakiest part of the test suite -- the CI server will timeout websockets
    * and fail tests seemingly at random.
@@ -180,6 +363,106 @@ trait WebSocketSpec
 
       "allow sending messages" in allowSendingMessages { _ => messages =>
         WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source(messages)) }
+      }
+
+      "notify the application when the connection closes without a close frame" in {
+        val consumed = Promise[List[Message]]()
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[Message](consumed.success(_)), Source.maybe[Message])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
+          result must contain(exactly(closeMessage(1006)))
+        }
+      }
+
+      "not notify the application with 1006 when the client sends a close frame" in {
+        val consumed = Promise[List[Message]]()
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[Message](consumed.success(_)), Source.maybe[Message])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(CloseMessage(1000)).via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
+          result must contain(exactly(closeMessage(1000)))
+        }
+      }
+
+      "not expose 1006 as a typed WebSocket message" in {
+        val consumed = Promise[List[String]]()
+        withServer(app =>
+          WebSocket.accept[String, String] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe[String])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              Source.empty[ExtendedMessage].via(flow).runWith(Sink.ignore)
+              consumed.future
+            }
+          )
+          result must beEmpty
+        }
+      }
+
+      "not notify the application with 1006 when the application sends a close frame" in {
+        val consumed = Promise[List[Message]]()
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(onFramesConsumed[Message](consumed.success(_)), Source.single(CloseMessage(1000)))
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val result = runWebSocket(
+            port,
+            { flow =>
+              Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
+              consumed.future
+            }
+          )
+          result must beEmpty
+        }
+      }
+
+      "close the websocket with the exception close code when the application source fails" in {
+        withServer(app =>
+          WebSocket.accept[Message, Message] { req =>
+            Flow.fromSinkAndSource(
+              Sink.ignore,
+              Source.failed[Message](WebSocketCloseException(CloseMessage(4001, "Application close")))
+            )
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(4001)
+            )
+          )
+        }
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
@@ -282,7 +565,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("my_crazy_subprotocol"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -302,7 +586,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("first-protocol, second-protocol, third-protocol"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -327,7 +612,8 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("graphql-ws, graphql-transport-ws"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
@@ -349,6 +635,75 @@ trait WebSocketSpec
               sendFrames(
                 BinaryMessage(ByteString("first")),
                 TextMessage("foo")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a binary websocket when a text frame is received" in {
+        withServer(app =>
+          WebSocket.accept[ByteString, ByteString] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[ByteString])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("first")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a JSON websocket when the message is not valid JSON" in {
+        withServer(app =>
+          WebSocket.accept[JsValue, JsValue] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[JsValue])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("{")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close the websocket with 1003 when JSON validation fails" in {
+        withServer(app =>
+          WebSocket.accept[JsonMessage, JsValue] { req =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[JsValue])
+          }
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("""{"unknown":"value"}""")
               ).via(flow).runWith(consumeFrames)
             }
           )
@@ -488,12 +843,89 @@ trait WebSocketSpec
               sendFrames(TextMessage("foo"), CloseMessage(1000)).via(flow).runWith(Sink.ignore)
             },
             Some("graphql-ws, graphql-transport-ws"),
-            c => c
+            c => c,
+            CompressionMode.Disabled
           )
           (headers
             .map { case (key, value) => (key.toLowerCase, value) }
             .collect { case ("sec-websocket-protocol", selectedProtocol) => selectedProtocol }
             .head must be).equalTo("graphql-transport-ws")
+        }
+      }
+
+      "close a text websocket when a binary frame is received" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptText()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                BinaryMessage(ByteString("first"))
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a binary websocket when a text frame is received" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptBinary()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("first")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a JSON websocket when the message is not valid JSON" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptJson()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("{")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
+        }
+      }
+
+      "close a typed JSON websocket when JSON decoding fails" in {
+        withServer(_ => WebSocketSpecJavaActions.acceptJsonClass()) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow =>
+              sendFrames(
+                TextMessage("""{"count":"not-a-number"}""")
+              ).via(flow).runWith(consumeFrames)
+            }
+          )
+          frames must contain(
+            exactly(
+              closeFrame(1003)
+            )
+          )
         }
       }
     }
@@ -530,29 +962,51 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   def runWebSocket[A](
       port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
-      handleConnect: Future[?] => Future[?] = c => c
+      handleConnect: Future[?] => Future[?] = c => c,
+      compressionMode: CompressionMode = CompressionMode.Disabled
   ): A =
-    runWebSocket(port, handler, subprotocol = None, handleConnect) match { case (result, _) => result }
+    runWebSocket(port, handler, subprotocol = None, handleConnect, compressionMode) match { case (result, _) => result }
 
   def runWebSocket[A](
       port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
       subprotocol: Option[String],
-      handleConnect: Future[?] => Future[?]
+      handleConnect: Future[?] => Future[?],
+      compressionMode: CompressionMode
   ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult     = Promise[A]()
       val responseHeaders = Promise[immutable.Seq[(String, String)]]()
       await(
         handleConnect(
-          client.connect(URI.create("ws://localhost:" + port + "/stream"), subprotocol = subprotocol) {
-            (headers, flow) =>
-              innerResult.completeWith(handler(flow))
-              responseHeaders.success(headers)
+          client.connect(
+            URI.create("ws://localhost:" + port + "/stream"),
+            subprotocol = subprotocol,
+            compressionMode = compressionMode
+          ) { (headers, flow) =>
+            innerResult.completeWith(handler(flow))
+            responseHeaders.success(headers)
           }
         )
       )
       (await(innerResult.future), await(responseHeaders.future))
+    }
+  }
+
+  def inflatePerMessageDeflate(data: ByteString): ByteString = {
+    val inflater = new Inflater(true)
+    try {
+      inflater.setInput((data ++ ByteString(0x00, 0x00, 0xff.toByte, 0xff.toByte)).toArray)
+      val output = new ByteArrayOutputStream()
+      val buffer = new Array[Byte](256)
+      var count  = inflater.inflate(buffer)
+      while (count > 0) {
+        output.write(buffer, 0, count)
+        count = inflater.inflate(buffer)
+      }
+      ByteString.fromArray(output.toByteArray)
+    } finally {
+      inflater.end()
     }
   }
 
@@ -570,6 +1024,10 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
 
   def closeFrame(status: Int = 1000): Matcher[ExtendedMessage] = beLike {
     case SimpleMessage(CloseMessage(statusCode, _), _) => statusCode must beSome(status)
+  }
+
+  def closeMessage(status: Int): Matcher[Message] = beLike {
+    case CloseMessage(statusCode, _) => statusCode must beSome(status)
   }
 
   def consumeFrames[A]: Sink[A, Future[List[A]]] =
@@ -695,7 +1153,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
     withServer(
       app =>
         WebSocket.accept[String, String] { req =>
-          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.success(_)), Source.maybe)
+          Flow.fromSinkAndSource(onFramesConsumed[String](consumed.trySuccess(_)), Source.maybe)
         },
       Map(
         "play.server.pekko.http2.enabled" -> pekkoHttp2enabled,
@@ -715,7 +1173,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
             .via(
               flow.recover(t =>
                 // recover from "java.io.IOException: Connection reset by peer"
-                consumed.success(List.empty)
+                consumed.trySuccess(List.empty)
               )
             )
             .runWith(consumeFrames)

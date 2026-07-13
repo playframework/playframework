@@ -112,9 +112,10 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   private val httpsWantClientAuth                      = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
     pekkoServerConfig.get[String]("illegal-response-header-value-processing-mode")
-  private val wsBufferLimit      = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
-  private val wsKeepAliveMode    = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
-  private val wsKeepAliveMaxIdle = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsKeepAliveMode     = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
+  private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsCompressionConfig = serverConfig.get[Configuration]("websocket.compression")
 
   private val http2Enabled: Boolean = pekkoServerConfig.getOptional[Boolean]("http2.enabled").getOrElse(false)
 
@@ -131,8 +132,19 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
    */
   protected def createPekkoHttpConfig(): Config =
     Configuration(
-      "pekko.http.server.enable-http2"         -> http2Enabled,
-      "pekko.http.server.preview.enable-http2" -> http2Enabled,
+      "pekko.http.server.enable-http2"                         -> http2Enabled,
+      "pekko.http.server.preview.enable-http2"                 -> http2Enabled,
+      "pekko.http.server.websocket.compression.enabled"        -> wsCompressionConfig.get[Boolean]("enabled"),
+      "pekko.http.server.websocket.compression.max-allocation" ->
+        wsCompressionConfig.get[ConfigMemorySize]("maxAllocation").toBytes,
+      "pekko.http.server.websocket.compression.permessage-deflate.compression-level" ->
+        wsCompressionConfig.get[Int]("perMessageDeflate.compressionLevel"),
+      "pekko.http.server.websocket.compression.permessage-deflate.preferred-client-window-size" ->
+        wsCompressionConfig.get[Int]("perMessageDeflate.preferredClientWindowSize"),
+      "pekko.http.server.websocket.compression.permessage-deflate.allow-server-no-context" ->
+        wsCompressionConfig.get[Boolean]("perMessageDeflate.allowServerNoContext"),
+      "pekko.http.server.websocket.compression.permessage-deflate.preferred-client-no-context" ->
+        wsCompressionConfig.get[Boolean]("perMessageDeflate.preferredClientNoContext"),
     ).withFallback(Configuration(context.actorSystem.settings.config)).underlying
 
   /** Play's parser settings for Pekko HTTP. Initialized by a call to [[createParserSettings()]]. */

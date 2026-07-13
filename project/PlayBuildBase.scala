@@ -62,7 +62,7 @@ object PlayBuildBase extends AutoPlugin {
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options"),
     resolvers ++= {
       if (isSnapshot.value) {
-        Seq(Resolver.sonatypeCentralSnapshots)
+        Seq(Resolver.sonatypeCentralSnapshots, Resolver.ApacheMavenSnapshotsRepo)
       } else {
         Nil
       }

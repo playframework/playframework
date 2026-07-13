@@ -5,6 +5,7 @@ plugins {
 repositories {
   mavenCentral()
   mavenLocal()
+  maven("https://repository.apache.org/snapshots/")
 }
 
 sourceSets {

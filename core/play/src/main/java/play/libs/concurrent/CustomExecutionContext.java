@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContextExecutor;
  * Then use your custom execution context where you have blocking operations that require processing
  * outside of Play's main rendering thread.
  *
- * @see <a href="https://pekko.apache.org/docs/pekko/1.0/dispatchers.html">Dispatchers</a>
+ * @see <a href="https://pekko.apache.org/docs/pekko/2.0/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
  */
 public abstract class CustomExecutionContext implements ExecutionContextExecutor {

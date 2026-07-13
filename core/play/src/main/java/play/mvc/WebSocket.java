@@ -133,7 +133,8 @@ public abstract class WebSocket {
                       play.libs.Json.mapper().readValue(((Message.Text) message).data(), in));
                 }
               } catch (Exception e) {
-                return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), e.getMessage()));
+                return F.Either.Right(
+                    new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
               }
               throw Scala.noMatch();
             }),

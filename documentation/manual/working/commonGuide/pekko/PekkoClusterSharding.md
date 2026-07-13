@@ -2,7 +2,7 @@
 
 # Cluster Sharding for Pekko Typed (incubating)
 
-Play provides an incubating module for integration with [Pekko Cluster Sharding Typed](https://pekko.apache.org/docs/pekko/1.0/typed/cluster-sharding.html). To enable this module, add the following dependency to your build:
+Play provides an incubating module for integration with [Pekko Cluster Sharding Typed](https://pekko.apache.org/docs/pekko/2.0/typed/cluster-sharding.html). To enable this module, add the following dependency to your build:
 
 Java
 : @[java-cluster-deps](code/javaguide/javaguide.clusterdeps.sbt)
@@ -32,6 +32,12 @@ Scala
 
 ## Cluster Formation
 
-When including this module, the application `ActorSystem` will be configured for a clustered environment. As a result, it will start [Pekko Remote](https://pekko.apache.org/docs/pekko/1.0/remoting-artery.html) and bind it, by default, to port `17355` (see [Pekko docs for how to configure a different port](https://pekko.apache.org/docs/pekko/1.0/remoting-artery.html#configuration)).
+When including this module, the application `ActorSystem` will be configured for a clustered environment. As a result, it will start [Pekko Remote](https://pekko.apache.org/docs/pekko/2.0/remoting-artery.html) and bind it, by default, to port `17355` (see [Pekko docs for how to configure a different port](https://pekko.apache.org/docs/pekko/2.0/remoting-artery.html#configuration)).
 
-In addition to that, it is expected that your application's Actor System forms a cluster with other instances of your application. Please consult [Pekko's documentation](https://pekko.apache.org/docs/pekko/1.0/typed/cluster.html) on how to form an Pekko Cluster.
+In addition to that, it is expected that your application's Actor System forms a cluster with other instances of your application. Please consult [Pekko's documentation](https://pekko.apache.org/docs/pekko/2.0/typed/cluster.html) on how to form an Pekko Cluster.
+
+When running on a strongly encapsulated JDK, Pekko Remote/Artery TCP may require the following JVM option because its Agrona dependency accesses `jdk.internal.misc.Unsafe`:
+
+```text
+--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED
+```

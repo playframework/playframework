@@ -58,6 +58,8 @@ play.filters.https.port = 9443
 
 then the URL in the `Location` header will include the port specifically, e.g. `https://playframework.com:9443/some/url`.
 
+The redirect authority comes from the request's effective host, including a trusted forwarded host when configured. The incoming port is replaced by the configured HTTPS port, and bracketed IPv6 hosts are preserved. For both origin-form and absolute-form request targets, only the original path and query are appended to the redirect authority.
+
 ## X-Forwarded-Proto Header
 
 It is possible to only redirect if a `x-forwarded-proto` header is set to `http`, this can be enabled by adding the following to `application.conf`:
@@ -65,3 +67,9 @@ It is possible to only redirect if a `x-forwarded-proto` header is set to `http`
 ```
 play.filters.https.xForwardedProtoEnabled = true
 ```
+
+This legacy option reads `X-Forwarded-Proto` directly. It treats `https` as secure and redirects only `http`. A request with a missing or unexpected value is passed to the application without an HTTPS redirect or HSTS header. The option affects only this filter and does not update `request.secure`.
+
+Only enable it when bypassing redirects for requests without the header is intentional, or when a trusted proxy removes or overwrites every client-supplied value and reliably sends either `http` or `https`. When the option is disabled, the filter ignores the header and uses `request.secure`.
+
+Prefer configuring [[trusted proxies|HTTPServer#configuring-trusted-proxies]] so Play derives `request.secure` while validating the forwarded proxy chain. For a trusted proxy that sends a single `X-Forwarded-Proto` value without `X-Forwarded-For`, enable `play.http.forwarded.trustXForwardedProtoWithoutXForwardedFor` instead of direct header handling in this filter.

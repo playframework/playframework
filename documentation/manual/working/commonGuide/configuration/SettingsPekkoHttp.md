@@ -12,9 +12,9 @@ The configurations above are specific to Pekko HTTP server backend, but other mo
  
 @[](/confs/play-server/reference.conf)
 
-You can read more about the configuration settings in the [Pekko HTTP documentation](https://pekko.apache.org/docs/pekko-http/1.0/configuration.html?language=scala).
+You can read more about the configuration settings in the [Pekko HTTP documentation](https://pekko.apache.org/docs/pekko-http/2.0/configuration.html?language=scala).
 
-> **Note:** Pekko HTTP has a number of [timeouts configurations](https://pekko.apache.org/docs/pekko-http/1.0/common/timeouts.html?language=scala#server-timeouts) that you can use to protect your application from attacks or programming mistakes. The Pekko HTTP Server in Play will automatically recognize all these Pekko configurations. For example, if you have `idle-timeout` and `request-timeout` configurations like below:
+> **Note:** Pekko HTTP has a number of [timeouts configurations](https://pekko.apache.org/docs/pekko-http/2.0/common/timeouts.html?language=scala#server-timeouts) that you can use to protect your application from attacks or programming mistakes. The Pekko HTTP Server in Play will automatically recognize all these Pekko configurations. For example, if you have `idle-timeout` and `request-timeout` configurations like below:
 >
 > ```
 > pekko.http.server.idle-timeout = 30s

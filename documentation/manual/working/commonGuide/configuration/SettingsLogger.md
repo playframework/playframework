@@ -212,7 +212,7 @@ Pekko system logging can be done by changing the `org.apache.pekko` logger to IN
 <logger name="actors.MyActor" level="DEBUG" />
 ```
 
-You may also wish to configure an appender for the Pekko loggers that includes useful properties such as thread and actor address. For more information about configuring Pekko's logging, including details on Logback and Slf4j integration, see the [Pekko documentation](https://pekko.apache.org/docs/pekko/1.0/logging.html?language=scala).
+You may also wish to configure an appender for the Pekko loggers that includes useful properties such as thread and actor address. For more information about configuring Pekko's logging, including details on Logback and Slf4j integration, see the [Pekko documentation](https://pekko.apache.org/docs/pekko/2.0/logging.html?language=scala).
 
 ## Using a Custom Logging Framework
 

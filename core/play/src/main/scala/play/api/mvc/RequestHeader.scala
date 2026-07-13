@@ -27,7 +27,10 @@ trait RequestHeader {
   top =>
 
   /**
-   * The remote connection that made the request.
+   * The remote connection metadata for this request.
+   *
+   * This is the primary API for connection metadata such as the selected remote
+   * identity, IP address, port, secure flag, and client certificate chain.
    */
   def connection: RemoteConnection
 
@@ -100,20 +103,45 @@ trait RequestHeader {
   def headers: Headers
 
   /**
-   * The remote connection that made the request.
+   * Return a new copy of the request with its HTTP headers changed.
    */
   def withHeaders(newHeaders: Headers): RequestHeader =
     new RequestHeaderImpl(connection, method, target, version, newHeaders, attrs)
 
   /**
-   * The client IP address.
+   * The client IP address, or a fallback IP address when the remote client is
+   * represented by an RFC 7239 unknown or obfuscated identifier.
    *
    * retrieves the last untrusted proxy
    * from the Forwarded-Headers or the X-Forwarded-*-Headers.
    *
    * This method delegates to `connection.remoteAddressString`.
    */
+  @deprecated(
+    "Use connection.remoteIdentity for the remote identity as a string, connection.remoteNode for the structured RFC 7239 remote identity, or connection.remoteIpAddress for an IP-only value. " +
+      "This legacy address cannot represent RFC 7239 unknown or obfuscated identifiers and may " +
+      "return a fallback proxy address when the selected forwarded identity is not an IP.",
+    "3.1.0"
+  )
   final def remoteAddress: String = connection.remoteAddressString
+
+  /**
+   * The remote identity as a string.
+   *
+   * If the remote identity is an IP address, this returns the address in textual
+   * form. If the remote identity is an RFC 7239 `unknown` or obfuscated
+   * identifier, this returns that identifier.
+   *
+   * This is a request-level shortcut for `connection.remoteIdentity`.
+   */
+  final def remoteIdentity: String = connection.remoteIdentity
+
+  /**
+   * The client port, if known.
+   *
+   * This method delegates to `connection.remotePort`.
+   */
+  final def remotePort: Option[Int] = connection.remotePort
 
   /**
    * Is the client using SSL? This method delegates to `connection.secure`.
@@ -219,22 +247,46 @@ trait RequestHeader {
   def hasBody: Boolean = headers.hasBody
 
   /**
-   * The HTTP host (domain, optionally port). This value is derived from the request target, if a hostname is present.
-   * If the target doesn't have a host then the `Host` header is used, if present. If that's not present then an
-   * empty string is returned.
+   * The HTTP host (domain, optionally port). Trusted forwarding information takes precedence when the server has
+   * selected an effective host. Otherwise, this value is derived from the request target if a hostname is present,
+   * then from the `Host` header. If none of these is present, an empty string is returned. Selecting an effective host
+   * does not modify the request target exposed through [[uri]] and [[path]].
    */
   lazy val host: String = {
     import RequestHeader.AbsoluteUri
-    uri match {
-      case AbsoluteUri(proto, hostPort, rest) => hostPort
-      case _                                  => headers.get(HeaderNames.HOST).getOrElse("")
+    attrs.get(RequestAttrKey.EffectiveHost).getOrElse {
+      uri match {
+        case AbsoluteUri(proto, hostPort, rest) => hostPort
+        case _                                  => headers.get(HeaderNames.HOST).getOrElse("")
+      }
     }
   }
 
   /**
-   * The HTTP domain. The domain part of the request's [[host]].
+   * The HTTP domain. This is the request's [[host]] without its port. Brackets
+   * around an IPv6 address are preserved so the result can be used in a URI.
    */
-  lazy val domain: String = host.split(':').head
+  lazy val domain: String = {
+    val hostValue = host
+    if (hostValue.startsWith("[")) {
+      val closingBracket = hostValue.indexOf(']')
+      if (
+        closingBracket >= 0 &&
+        (closingBracket == hostValue.length - 1 || hostValue.charAt(closingBracket + 1) == ':')
+      ) {
+        hostValue.substring(0, closingBracket + 1)
+      } else {
+        hostValue
+      }
+    } else {
+      val portSeparator = hostValue.indexOf(':')
+      if (portSeparator >= 0 && hostValue.indexOf(':', portSeparator + 1) < 0) {
+        hostValue.substring(0, portSeparator)
+      } else {
+        hostValue
+      }
+    }
+  }
 
   /**
    * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).

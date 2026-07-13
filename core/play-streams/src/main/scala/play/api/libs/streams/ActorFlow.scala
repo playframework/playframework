@@ -35,10 +35,10 @@ object ActorFlow {
    *
    * Messages can be sent downstream by sending them to the actor passed into the props function.  This actor meets
    * the contract of the actor returned by
-   * [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/stream/scaladsl/Source$.html#actorRef org.apache.pekko.stream.scaladsl.Source.actorRef]].
+   * [[https://pekko.apache.org/api/pekko/2.0/org/apache/pekko/stream/scaladsl/Source$.html#actorRef org.apache.pekko.stream.scaladsl.Source.actorRef]].
    *
    * The props function should return the props for an actor to handle the flow. This actor will be created using the
-   * passed in [[https://pekko.apache.org/api/pekko/1.0/org/apache/pekko/actor/ActorRefFactory.html org.apache.pekko.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,
+   * passed in [[https://pekko.apache.org/api/pekko/2.0/org/apache/pekko/actor/ActorRefFactory.html org.apache.pekko.actor.ActorRefFactory]]. Each message received will be sent to the actor - there is no back pressure,
    * if the actor is unable to process the messages, they will queue up in the actors mailbox. The upstream can be
    * cancelled by the actor terminating itself.
    *

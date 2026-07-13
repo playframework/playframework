@@ -32,6 +32,11 @@ case class BinaryMessage(data: ByteString) extends Message
 /**
  * A close message.
  *
+ * RFC 6455 reserves close status codes 1005, 1006, and 1015 for application-visible state. Applications should
+ * not send those values as the status code in a WebSocket Close frame. When a status code is present, the close
+ * reason must fit in the remaining 123 UTF-8 bytes of the Close frame payload. Play truncates longer close
+ * reasons before sending them.
+ *
  * @param statusCode The close status code.
  * @param reason The reason it was closed.
  */

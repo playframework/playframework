@@ -165,6 +165,7 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
               Success(
                 GuiceApplicationBuilder()
                   .configure("play.http.forwarded.version" -> "rfc7239")
+                  .configure("play.http.forwarded.trustForwardedHost" -> true)
                   .overrides(bind[Router].toProvider[ServerReloadingSpec.TestRouterProvider])
                   .build()
               )
@@ -191,6 +192,16 @@ trait ServerReloadingSpec extends PlaySpecification with WsTestClient with Serve
             }
             forwardedHeaderResponse.status must_== 200
             forwardedHeaderResponse.body[String] must_== "192.0.2.43"
+
+            val forwardedHostResponse = await {
+              wsUrl("/gethost")
+                .withHttpHeaders(
+                  "Forwarded" -> "for=192.0.2.43;host=\"public.example:9443\", for=\"[::1]\""
+                )
+                .get()
+            }
+            forwardedHostResponse.status must_== 200
+            forwardedHostResponse.body[String] must_== "public.example:9443"
           }
       }
     }
@@ -260,7 +271,9 @@ private[server] object ServerReloadingSpec {
       case GET(p"/getflash") =>
         action { (request: Request[?]) => Results.Ok(request.flash.data.get("foo").toString) }
       case GET(p"/getremoteaddress") =>
-        action { (request: Request[?]) => Results.Ok(request.remoteAddress) }
+        action { (request: Request[?]) => Results.Ok(request.remoteIdentity) }
+      case GET(p"/gethost") =>
+        action { (request: Request[?]) => Results.Ok(request.host) }
       case GET(p"/getserverconfigcachereloads") =>
         action { (request: Request[?]) =>
           val reloadCount: Option[Int] = request.attrs.get(ServerDebugInfo.Attr).map(_.serverConfigCacheReloads)

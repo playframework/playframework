@@ -49,12 +49,6 @@ object NoMaterializer extends Materializer {
       task: Runnable
   ): Cancellable = throw new UnsupportedOperationException("NoMaterializer does not provide scheduleAtFixedRate")
 
-  override def schedulePeriodically(
-      initialDelay: FiniteDuration,
-      interval: FiniteDuration,
-      task: Runnable
-  ): Cancellable = throw new UnsupportedOperationException("NoMaterializer does not provide schedulePeriodically")
-
   override def shutdown(): Unit = throw new UnsupportedOperationException("NoMaterializer does not provide shutdown")
 
   override def isShutdown: Boolean =

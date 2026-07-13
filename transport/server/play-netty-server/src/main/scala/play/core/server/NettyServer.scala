@@ -33,7 +33,10 @@ import io.netty.channel.unix.UnixChannelOption
 import io.netty.channel.uring.IoUringChannelOption
 import io.netty.channel.uring.IoUringIoHandler
 import io.netty.channel.uring.IoUringServerSocketChannel
+import io.netty.handler.codec.compression.ZlibCodecFactory
 import io.netty.handler.codec.http._
+import io.netty.handler.codec.http.websocketx.extensions.compression.PerMessageDeflateServerExtensionHandshaker
+import io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.handler.ssl.SslHandler
@@ -79,23 +82,40 @@ class NettyServer(
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize        =
     serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "netty.maxHeaderSize").toBytes.toInt
-  private val maxContentLength    = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
-  private val maxChunkSize        = nettyConfig.get[Int]("maxChunkSize")
-  private val threadCount         = nettyConfig.get[Int]("eventLoopThreads")
-  private val logWire             = nettyConfig.get[Boolean]("log.wire")
-  private val bootstrapOption     = nettyConfig.get[Config]("option")
-  private val channelOption       = nettyConfig.get[Config]("option.child")
-  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
-  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
-  private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
-  private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
-  private val shutdownQuietPeriod = nettyConfig.get[FiniteDuration]("shutdownQuietPeriod")
-  private val terminationDelay    = serverConfig.get[FiniteDuration]("waitBeforeTermination")
-  private val terminationTimeout  = serverConfig.getOptional[FiniteDuration]("terminationTimeout")
-  private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
-  private val wsKeepAliveMode     = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
-  private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
-  private val deferBodyParsing    = serverConfig.underlying.getBoolean("deferBodyParsing")
+  private val maxContentLength           = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
+  private val maxChunkSize               = nettyConfig.get[Int]("maxChunkSize")
+  private val threadCount                = nettyConfig.get[Int]("eventLoopThreads")
+  private val logWire                    = nettyConfig.get[Boolean]("log.wire")
+  private val bootstrapOption            = nettyConfig.get[Config]("option")
+  private val channelOption              = nettyConfig.get[Config]("option.child")
+  private val httpsWantClientAuth        = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val httpsNeedClientAuth        = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpIdleTimeout            = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout           = serverConfig.get[Duration]("https.idleTimeout")
+  private val shutdownQuietPeriod        = nettyConfig.get[FiniteDuration]("shutdownQuietPeriod")
+  private val terminationDelay           = serverConfig.get[FiniteDuration]("waitBeforeTermination")
+  private val terminationTimeout         = serverConfig.getOptional[FiniteDuration]("terminationTimeout")
+  private val wsBufferLimit              = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsKeepAliveMode            = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
+  private val wsKeepAliveMaxIdle         = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsCompression              = serverConfig.get[Boolean]("websocket.compression.enabled")
+  private val wsCompressionConfig        = serverConfig.get[Configuration]("websocket.compression")
+  private val nettyWsCompressionConfig   = nettyConfig.get[Configuration]("websocket.compression")
+  private val wsCompressionMaxAllocation =
+    if (wsCompression) {
+      Some(
+        getMemorySizeAsInt(
+          wsCompressionConfig,
+          "maxAllocation",
+          "play.server.websocket.compression.maxAllocation"
+        )
+      )
+    } else {
+      None
+    }
+  private val wsCompressionPerMessageDeflateConfig =
+    if (wsCompression) Some(wsCompressionConfig.get[Configuration]("perMessageDeflate")) else None
+  private val deferBodyParsing = serverConfig.underlying.getBoolean("deferBodyParsing")
 
   private lazy val osName                   = sys.props("os.name").toLowerCase(Locale.ENGLISH)
   private lazy val isWindows: Boolean       = osName.contains("windows")
@@ -245,6 +265,58 @@ class NettyServer(
       deferBodyParsing
     )
 
+  private def getAutoBoolean(config: Configuration, path: String, auto: => Boolean): Boolean = {
+    config.underlying.getValue(path).unwrapped() match {
+      case value: java.lang.Boolean                         => value.booleanValue()
+      case value: String if value.equalsIgnoreCase("auto")  => auto
+      case value: String if value.equalsIgnoreCase("true")  => true
+      case value: String if value.equalsIgnoreCase("false") => false
+      case value                                            =>
+        throw ServerStartException(
+          s"Netty WebSocket compression configuration value $path should be true, false or auto, but was $value"
+        )
+    }
+  }
+
+  private def getMemorySizeAsInt(config: Configuration, path: String, displayPath: String): Int = {
+    val bytes = config.get[ConfigMemorySize](path).toBytes
+    if (bytes > Int.MaxValue) {
+      throw ServerStartException(
+        s"Netty WebSocket compression configuration value $displayPath must be <= ${Int.MaxValue} bytes, but was $bytes bytes"
+      )
+    }
+    bytes.toInt
+  }
+
+  private def newWebSocketCompressionHandler(): Option[ChannelHandler] = {
+    if (!wsCompression) {
+      None
+    } else {
+      val maxAllocation                = wsCompressionMaxAllocation.get
+      val perMessageDeflateConfig      = wsCompressionPerMessageDeflateConfig.get
+      val nettyPerMessageDeflateConfig = nettyWsCompressionConfig.get[Configuration]("perMessageDeflate")
+
+      Some(
+        new WebSocketServerExtensionHandler(
+          new PerMessageDeflateServerExtensionHandshaker(
+            perMessageDeflateConfig.get[Int]("compressionLevel"),
+            getAutoBoolean(
+              nettyPerMessageDeflateConfig,
+              "allowServerWindowSize",
+              ZlibCodecFactory.isSupportingWindowSizeAndMemLevel()
+            ),
+            perMessageDeflateConfig.get[Int]("preferredClientWindowSize"),
+            perMessageDeflateConfig.get[Boolean]("allowServerNoContext"),
+            perMessageDeflateConfig.get[Boolean]("preferredClientNoContext"),
+            nettyPerMessageDeflateConfig.get[Int]("serverWindowSize"),
+            nettyPerMessageDeflateConfig.get[Int]("memLevel"),
+            maxAllocation
+          )
+        )
+      )
+    }
+  }
+
   /**
    * Create a sink for the incoming connection channels.
    */
@@ -272,8 +344,9 @@ class NettyServer(
 
       // Netty HTTP decoders/encoders/etc
       pipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
-      pipeline.addLast("encoder", new HttpResponseEncoder())
+      pipeline.addLast("encoder", new PlayHttpResponseEncoder())
       pipeline.addLast("decompressor", new HttpContentDecompressor())
+      newWebSocketCompressionHandler().foreach(pipeline.addLast("ws-compressor", _))
       if (logWire) {
         pipeline.addLast("logging", new LoggingHandler(LogLevel.DEBUG))
       }

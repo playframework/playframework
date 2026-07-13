@@ -396,6 +396,20 @@ class RangeResultSpec extends Specification {
       result must be_==(Array[Byte](3, 4, 5, 6))
     }
 
+    "support multiple ranges but send only the first range" in {
+      val bytes: List[Byte]                                                                  = (1 to 150).map(_.toByte).toList
+      val source                                                                             = Source(bytes).map(b => ByteString.fromArray(Array[Byte](b)))
+      val Result(ResponseHeader(_, headers, _), HttpEntity.Streamed(data, _, _), _, _, _, _) =
+        RangeResult.ofSource(bytes.length, source, Some("bytes=0-1,100-101"), None, None)
+      // The two ranges are farther apart than Range.minimumDistance, so they aren't coalesced into one,
+      // but the body only ever contains the first range, so Content-Range must reflect only that range.
+      headers must havePair("Content-Range" -> "bytes 0-1/150")
+      implicit val system: ActorSystem        = ActorSystem()
+      implicit val materializer: Materializer = Materializer.matFromSystem
+      val result                              = collectBytes(data)
+      result must be_==(Array[Byte](1, 2))
+    }
+
     "support a Source function that handles pre-seeking" in {
       val bytes: List[Byte]                                                                  = List[Byte](1, 2, 3, 4, 5, 6)
       val source: Long => (Long, Source[ByteString, ?])                                      = offsetSupportingGenerator(bytes)
