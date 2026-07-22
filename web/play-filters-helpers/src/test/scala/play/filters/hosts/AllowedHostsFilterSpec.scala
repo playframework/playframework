@@ -13,13 +13,13 @@ import scala.reflect.ClassTag
 import com.typesafe.config.ConfigFactory
 import jakarta.inject.Inject
 import org.specs2.matcher.MatchResult
-import play.api.http.HeaderNames
 import play.api.http.HttpErrorHandler
 import play.api.http.HttpFilters
 import play.api.inject._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws._
 import play.api.mvc._
+import play.api.mvc.request.RequestAuthority
 import play.api.mvc.Handler.Stage
 import play.api.mvc.Results._
 import play.api.routing.HandlerDef
@@ -57,13 +57,18 @@ class AllowedHostsFilterSpec extends PlaySpecification {
       uri: String = "/",
       headers: Seq[(String, String)] = Seq()
   ) = {
-    val req = FakeRequest(method = "GET", path = uri)
-      .withHeaders(headers*)
-      .withHeaders(HOST -> hostHeader)
+    val req = FakeRequest(
+      method = "GET",
+      uri = uri,
+      headers = Headers((headers :+ (HOST -> hostHeader))*),
+      body = AnyContentAsEmpty
+    )
     route(app, req).get
   }
 
   private val okWithHost = (req: RequestHeader) => Ok(req.host)
+
+  private def authority(value: String): Option[RequestAuthority] = Some(RequestAuthority.parseOrThrow(value))
 
   def newApplication(result: RequestHeader => Result, config: String): Application = {
     val properties = Map(
@@ -115,7 +120,7 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     "disallow non-local hosts with default config" in withApplication(okWithHost, "") { app =>
       status(request(app, "localhost")) must_== OK
       statusBadRequest(app, "example.com")
-      statusBadRequest(app, "")
+      status(route(app, FakeRequest().withAuthority(Some(RequestAuthority.parseOrThrow("")))).get) must_== BAD_REQUEST
     }
 
     "only allow specific hosts specified in configuration" in withApplication(
@@ -156,9 +161,9 @@ class AllowedHostsFilterSpec extends PlaySpecification {
         |play.filters.hosts.allowed = [".example.com", ""]
       """.stripMargin
     ) { app =>
-      status(request(app, "")) must_== OK
       statusBadRequest(app, "example.net")
-      status(route(app, FakeRequest().withHeaders(HeaderNames.HOST -> "")).get) must_== OK
+      status(route(app, FakeRequest().withAuthority(None)).get) must_== OK
+      status(route(app, FakeRequest().withAuthority(Some(RequestAuthority.parseOrThrow("")))).get) must_== OK
     }
 
     "support host headers with ports" in withApplication(
@@ -200,19 +205,46 @@ class AllowedHostsFilterSpec extends PlaySpecification {
     ) { app =>
       status(request(app, "example.net")) must_== OK
       status(request(app, "amazon.com")) must_== OK
-      status(request(app, "")) must_== OK
+      status(route(app, FakeRequest().withAuthority(None)).get) must_== OK
+      status(route(app, FakeRequest().withAuthority(Some(RequestAuthority.parseOrThrow("")))).get) must_== OK
     }
 
     // See https://www.skeletonscribe.net/2013/05/practical-http-host-header-attacks.html
 
-    "not allow malformed ports" in withApplication(
+    "fail closed for malformed configured patterns" in {
+      val matcher = HostMatcher(".mozilla.org")
+
+      matcher(authority("addons.mozilla.org")) must beTrue
+      HostMatcher("addons.mozilla.org:@passwordreset.net")(authority("addons.mozilla.org")) must beFalse
+      HostMatcher("addons.mozilla.org: www.securepasswordreset.com")(authority("addons.mozilla.org")) must beFalse
+      HostMatcher("addons.mozilla.org:12x")(authority("addons.mozilla.org")) must beFalse
+      HostMatcher("[::1")(authority("[::1]")) must beFalse
+    }
+
+    "support arbitrary non-negative URI authority ports" in withApplication(
       okWithHost,
       """
-        |play.filters.hosts.allowed = [".mozilla.org"]
+        |play.filters.hosts.allowed = [
+        |  "host-only.example",
+        |  "zero.example:0",
+        |  "large.example:2147483648",
+        |  "huge.example:999999999999999999999999999999999999999999"
+        |]
       """.stripMargin
     ) { app =>
-      statusBadRequest(app, "addons.mozilla.org:@passwordreset.net")
-      statusBadRequest(app, "addons.mozilla.org: www.securepasswordreset.com")
+      status(request(app, "host-only.example:0")) must_== OK
+      status(request(app, "host-only.example:2147483648")) must_== OK
+      status(request(app, "host-only.example:999999999999999999999999999999999999999999")) must_== OK
+
+      status(request(app, "zero.example:0")) must_== OK
+      statusBadRequest(app, "zero.example")
+      statusBadRequest(app, "zero.example:1")
+
+      status(request(app, "large.example:2147483648")) must_== OK
+      statusBadRequest(app, "large.example:2147483647")
+
+      status(request(app, "huge.example:999999999999999999999999999999999999999999")) must_== OK
+      statusBadRequest(app, "huge.example:999999999999999999999999999999999999999998")
     }
 
     "validate hosts in absolute URIs" in withApplication(

@@ -49,6 +49,26 @@ class Rfc7239HeaderParserSpec extends Specification {
       )
     }
 
+    "accept optional whitespace after parameter separators for Play 3.0 compatibility" in {
+      Seq(
+        "for=192.0.2.43; proto=https; extension=value",
+        "for=192.0.2.43;\tproto=https;\textension=value",
+        "for=192.0.2.43; \t  proto=https;  \t extension=value"
+      ).map(Rfc7239HeaderParser.parse) must containTheSameElementsAs(
+        Seq.fill(3)(
+          Right(
+            Vector(
+              Map(
+                "for"       -> "192.0.2.43",
+                "proto"     -> "https",
+                "extension" -> "value"
+              )
+            )
+          )
+        )
+      )
+    }
+
     "ignore empty HTTP list elements" in {
       Rfc7239HeaderParser.parse(", ,for=192.0.2.43,,") must beRight(
         Vector(Map("for" -> "192.0.2.43"))
@@ -67,16 +87,57 @@ class Rfc7239HeaderParserSpec extends Specification {
       )
     }
 
+    "parse an unusually large forwarded list iteratively" in {
+      val elementCount = 4096
+      val input        = Vector
+        .tabulate(elementCount) { index =>
+          s"for=192.0.2.43;proto=https;extension$index=value$index"
+        }
+        .mkString(",")
+
+      Rfc7239HeaderParser.parse(input) must beRight.like {
+        case elements =>
+          elements.length must_== elementCount
+          elements.head must_== Map(
+            "for"        -> "192.0.2.43",
+            "proto"      -> "https",
+            "extension0" -> "value0"
+          )
+          elements.last must_== Map(
+            "for"           -> "192.0.2.43",
+            "proto"         -> "https",
+            "extension4095" -> "value4095"
+          )
+      }
+    }
+
+    "handle unusually large valid and unterminated quoted strings" in {
+      val payload = "a,b;c=d" * (32 * 1024)
+
+      Rfc7239HeaderParser.parse(s"extension=\"$payload\"") must beRight(
+        Vector(Map("extension" -> payload))
+      )
+      Rfc7239HeaderParser.parse(s"extension=\"$payload") must beLeft("Unterminated quoted-string")
+    }
+
+    "handle long runs of empty list elements and parameter slots iteratively" in {
+      val input = ("," * (64 * 1024)) + "for=192.0.2.43" + (";" * (64 * 1024))
+
+      Rfc7239HeaderParser.parse(input) must beRight(
+        Vector(Map("for" -> "192.0.2.43"))
+      )
+    }
+
     "reject duplicate parameters case-insensitively" in {
       Rfc7239HeaderParser.parse("for=192.0.2.43;For=198.51.100.17") must beLeft
     }
 
-    "reject whitespace outside HTTP list separators" in {
+    "reject whitespace before parameter separators and around equals signs" in {
       Seq(
         "for =192.0.2.43",
         "for= 192.0.2.43",
         "for=192.0.2.43 ;proto=https",
-        "for=192.0.2.43; proto=https"
+        "for=192.0.2.43;proto= https"
       ).forall(Rfc7239HeaderParser.parse(_).isLeft) must beTrue
     }
 

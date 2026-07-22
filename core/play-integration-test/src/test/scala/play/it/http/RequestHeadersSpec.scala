@@ -11,12 +11,23 @@ import play.api.test._
 import play.api.Configuration
 import play.api.Mode
 import play.core.server.ServerConfig
+import play.filters.cors.CORSFilter
 import play.filters.hosts.AllowedHostsFilter
 import play.it._
 
-class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification
+class NettyRequestHeadersSpec extends RequestHeadersSpec with NettyIntegrationSpecification {
+  // Netty passes an HTTP/1.0 request without Host through to Play, which retains missing-Host compatibility.
+  protected override val backendPassesHttp10WithoutHostToPlay = true
+  // Netty passes an empty Host on an absolute-form request through to Play, which applies target precedence.
+  protected override val backendPassesAbsoluteTargetWithEmptyHostToPlay = true
+}
 
 class PekkoHttpRequestHeadersSpec extends RequestHeadersSpec with PekkoHttpIntegrationSpecification {
+  // Pekko HTTP rejects a relative request without Host while establishing its effective URI, before Play sees it.
+  protected override val backendPassesHttp10WithoutHostToPlay = false
+  // Pekko HTTP currently rejects an empty Host against an absolute target before Play's request conversion runs.
+  protected override val backendPassesAbsoluteTargetWithEmptyHostToPlay = false
+
   "Pekko HTTP request header handling" should {
     "not complain about invalid User-Agent headers" in {
       // This test modifies the global (!) logger to capture log messages.
@@ -61,6 +72,52 @@ class PekkoHttpRequestHeadersSpec extends RequestHeadersSpec with PekkoHttpInteg
 }
 
 trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecification with HttpHeadersCommonSpec {
+
+  /** Pekko rejects a missing Host while establishing its effective URI, including for HTTP/1.0. */
+  protected def backendPassesHttp10WithoutHostToPlay: Boolean
+
+  /** Whether the backend passes an absolute-form request with an empty Host field to Play. */
+  protected def backendPassesAbsoluteTargetWithEmptyHostToPlay: Boolean
+
+  // RFC 9440 Appendix A's leaf certificate (serial number 7).
+  private val forwardedClientCertificateBase64 =
+    "MIIBqDCCAU6gAwIBAgIBBzAKBggqhkjOPQQDAjA6MRswGQYDVQQKDBJMZXQncyBB" +
+      "dXRoZW50aWNhdGUxGzAZBgNVBAMMEkxBIEludGVybWVkaWF0ZSBDQTAeFw0yMDAx" +
+      "MTQyMjU1MzNaFw0yMTAxMjMyMjU1MzNaMA0xCzAJBgNVBAMMAkJDMFkwEwYHKoZI" +
+      "zj0CAQYIKoZIzj0DAQcDQgAE8YnXXfaUgmnMtOXU/IncWalRhebrXmckC8vdgJ1p" +
+      "5Be5F/3YC8OthxM4+k1M6aEAEFcGzkJiNy6J84y7uzo9M6NyMHAwCQYDVR0TBAIw" +
+      "ADAfBgNVHSMEGDAWgBRm3WjLa38lbEYCuiCPct0ZaSED2DAOBgNVHQ8BAf8EBAMC" +
+      "BsAwEwYDVR0lBAwwCgYIKwYBBQUHAwIwHQYDVR0RAQH/BBMwEYEPYmRjQGV4YW1w" +
+      "bGUuY29tMAoGCCqGSM49BAMCA0gAMEUCIBHda/r1vaL6G3VliL4/Di6YK0Q6bMje" +
+      "SkC3dFCOOB8TAiEAx/kHSB4urmiZ0NX5r5XarmPk0wmuydBVoU4hBVZ1yhk="
+
+  private val trustedForwardedCertificateProxyConfig = Seq(
+    "play.http.forwarded.clientCertificates.trustedProxies" -> Seq("127.0.0.0/8", "::1/128"),
+    "play.server.max-header-size"                           -> "64k"
+  )
+
+  private def percentEncode(value: String): String = {
+    val result = new StringBuilder(value.length * 3)
+    val hex    = "0123456789ABCDEF"
+    value.getBytes(java.nio.charset.StandardCharsets.US_ASCII).foreach { byte =>
+      val unsigned = byte & 0xff
+      if (
+        (unsigned >= 'a' && unsigned <= 'z') ||
+        (unsigned >= 'A' && unsigned <= 'Z') ||
+        (unsigned >= '0' && unsigned <= '9') ||
+        unsigned == '-' || unsigned == '.' || unsigned == '_' || unsigned == '~'
+      ) result.append(unsigned.toChar)
+      else {
+        result.append('%')
+        result.append(hex.charAt(unsigned >>> 4))
+        result.append(hex.charAt(unsigned & 0x0f))
+      }
+    }
+    result.result()
+  }
+
+  private def forwardedClientCertificatePem: String =
+    s"-----BEGIN CERTIFICATE-----\n$forwardedClientCertificateBase64\n-----END CERTIFICATE-----\n"
 
   def withServerAndConfig[T](
       configuration: (String, Any)*
@@ -233,6 +290,510 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
       )
     }
 
+    "reject an absolute https target received over untrusted plaintext transport" in {
+      withServer((Action, _) => Action(Results.Ok)) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "https://localhost/path", "HTTP/1.1", Map.empty, "")
+        )
+
+        response.status must_== BAD_REQUEST
+      }
+    }
+
+    "use an absolute scheme that matches the direct transport" in {
+      withServer((Action, _) =>
+        Action { request => Results.Ok(s"${request.scheme.render}|${request.host}|${request.uri}") }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "http://localhost/path", "HTTP/1.1", Map.empty, "")
+        )
+
+        response.body must beLeft("http|localhost|http://localhost/path")
+      }
+    }
+
+    "normalize an empty absolute-form path while retaining the raw request target and query" in {
+      withServer((Action, _) =>
+        Action { request =>
+          Results.Ok(
+            Seq(
+              request.path,
+              request.asJava.path,
+              request.uri,
+              request.target.queryString,
+              request.getQueryString("key")
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "http://localhost?key=value", "HTTP/1.1", Map.empty, "")
+        )
+
+        response.body must beLeft("/|/|http://localhost?key=value|key=value|Some(value)")
+      }
+    }
+
+    "apply an absolute target authority when an empty HTTP/1.1 Host field reaches Play" in {
+      withServer((Action, _) =>
+        Action { request => Results.Ok(s"${request.host}|${request.headers.getAll(HOST).mkString}") }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "http://LOCALHOST/path",
+            "HTTP/1.1",
+            Map(HOST -> ""),
+            "",
+            includeHost = false
+          )
+        )
+
+        if (backendPassesAbsoluteTargetWithEmptyHostToPlay) {
+          response.status must_== OK
+          response.body must beLeft("localhost|localhost")
+        } else {
+          // Pekko HTTP's effective-URI stage currently enforces Host/target equality before Play can apply RFC 9112
+          // target precedence. Keep this raw test so that an upstream fix immediately exercises Play's acceptance.
+          response.status must_== BAD_REQUEST
+        }
+      }
+    }
+
+    "accept an absolute public scheme supplied through a trusted gateway" in {
+      withServerAndConfig("play.http.forwarded.version" -> "rfc7239")((Action, _) =>
+        Action { request => Results.Ok(s"${request.scheme.render}|${request.secure}|${request.uri}") }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "https://localhost/path",
+            "HTTP/1.1",
+            Map("Forwarded" -> "for=203.0.113.43;proto=https"),
+            ""
+          )
+        )
+
+        response.body must beLeft("https|true|https://localhost/path")
+      }
+    }
+
+    "accept an absolute backend scheme supplied through a trusted gateway" in {
+      withServerAndConfig("play.http.forwarded.version" -> "rfc7239")((Action, _) =>
+        Action { request => Results.Ok(s"${request.scheme.render}|${request.secure}|${request.uri}") }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "http://localhost/path",
+            "HTTP/1.1",
+            Map("Forwarded" -> "for=203.0.113.43;proto=https"),
+            ""
+          )
+        )
+
+        response.body must beLeft("https|true|http://localhost/path")
+      }
+    }
+
+    "reject a missing Host field in HTTP/1.1 origin-form and absolute-form requests" in {
+      withServer((Action, _) => Action(Results.Ok)) { port =>
+        Seq("/", "http://localhost/").foreach { target =>
+          val Seq(response) = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", target, "HTTP/1.1", Map.empty, "", includeHost = false)
+          )
+          response.status must_== BAD_REQUEST
+        }
+        ok
+      }
+    }
+
+    "reject an invalid single Host field before absolute-form or CONNECT precedence" in {
+      withServer((Action, _) => Action(Results.Ok)) { port =>
+        Seq("GET" -> "http://localhost/", "CONNECT" -> "localhost:443").foreach {
+          case (method, target) =>
+            val Seq(response) = BasicHttpClient.makeRequests(port)(
+              BasicRequest(
+                method,
+                target,
+                "HTTP/1.1",
+                Map(HOST -> "user@ignored.example"),
+                "",
+                includeHost = false
+              )
+            )
+            response.status must_== BAD_REQUEST
+        }
+        ok
+      }
+    }
+
+    "retain HTTP/1.0 compatibility when Host is absent" in {
+      withServerAndConfig("play.filters.hosts.allowed" -> Seq(""))((Action, _) =>
+        Action { request =>
+          Results.Ok(s"${request.version}|${request.authority.isEmpty}|${request.headers.get(HOST)}")
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.0", Map.empty, "", includeHost = false)
+        )
+
+        if (backendPassesHttp10WithoutHostToPlay) {
+          response.body must beLeft("HTTP/1.0|true|None")
+        } else {
+          response.status must_== BAD_REQUEST
+        }
+      }
+    }
+
+    "reject invalid CONNECT request targets" in {
+      withServer((Action, _) => Action(Results.Ok)) { port =>
+        Seq("http://localhost:443", "localhost:0", "localhost:65536").foreach { target =>
+          val Seq(response) = BasicHttpClient.makeRequests(port)(
+            BasicRequest("CONNECT", target, "HTTP/1.1", Map.empty, "")
+          )
+          response.status must_== BAD_REQUEST
+        }
+        ok
+      }
+    }
+
+    "return a stable bad request for userinfo in an absolute authority" in {
+      withServer((Action, _) => Action(Results.Ok)) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port, checkClosed = true)(
+          BasicRequest("GET", "http://user@localhost/path", "HTTP/1.1", Map.empty, "")
+        )
+
+        // HTTP request authorities model host[:port], not userinfo. Strict request conversion rejects
+        // user@localhost, and both server backends must report that validation failure as a stable 400.
+        response.status must_== BAD_REQUEST
+      }
+    }
+
+    "expose a trusted RFC 9440 client certificate as typed request metadata" in {
+      withServerAndConfig(
+        (trustedForwardedCertificateProxyConfig :+
+          ("play.http.forwarded.clientCertificates.mode" -> "rfc9440"))*
+      )((Action, _) =>
+        Action { request =>
+          val certificate = request.clientCertificate
+          Results.Ok(
+            Seq(
+              certificate.exists(_.source == play.api.mvc.request.ClientCertificateSource.Rfc9440),
+              certificate.map(_.certificate.getSerialNumber).getOrElse("none"),
+              certificate.fold(-1)(_.chain.size),
+              request.xForwardedClientCertificates.size
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Client-Cert" -> s":$forwardedClientCertificateBase64:"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("true|7|0|0")
+      }
+    }
+
+    "ignore a malformed RFC 9440 client certificate from a trusted proxy" in {
+      withServerAndConfig(
+        (trustedForwardedCertificateProxyConfig :+
+          ("play.http.forwarded.clientCertificates.mode" -> "rfc9440"))*
+      )((Action, _) => Action(request => Results.Ok(request.clientCertificate.isEmpty.toString))) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Client-Cert" -> ":not base64:"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("true")
+      }
+    }
+
+    "ignore a malformed RFC 9440 chain while retaining its valid leaf" in {
+      withServerAndConfig(
+        (trustedForwardedCertificateProxyConfig :+
+          ("play.http.forwarded.clientCertificates.mode" -> "rfc9440"))*
+      )((Action, _) =>
+        Action { request =>
+          Results.Ok(
+            request.clientCertificate
+              .map(certificate => s"${certificate.certificate.getSerialNumber}|${certificate.chain.size}")
+              .getOrElse("none")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map(
+              "Client-Cert"       -> s":$forwardedClientCertificateBase64:",
+              "Client-Cert-Chain" -> ":AQID:"
+            ),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("7|0")
+      }
+    }
+
+    "retain a trusted metadata-only X-Forwarded-Client-Cert assertion" in {
+      withServerAndConfig(
+        (trustedForwardedCertificateProxyConfig :+
+          ("play.http.forwarded.clientCertificates.mode" -> "x-forwarded-client-cert"))*
+      )((Action, _) =>
+        Action { request =>
+          request.xForwardedClientCertificates match {
+            case Vector(assertion) =>
+              Results.Ok(
+                Seq(
+                  request.clientCertificate.isEmpty,
+                  assertion.hash.contains("a" * 64),
+                  assertion.subject.contains(""),
+                  assertion.uris == Vector("spiffe://example.test/workload"),
+                  assertion.dnsNames == Vector("client.example.test")
+                ).mkString("|")
+              )
+            case assertions => Results.InternalServerError(s"unexpected assertion count: ${assertions.size}")
+          }
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map(
+              "X-Forwarded-Client-Cert" ->
+                s"Hash=${"a" * 64};Subject=\"\";URI=spiffe://example.test/workload;DNS=client.example.test"
+            ),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("true|true|true|true|true")
+      }
+    }
+
+    "expose a certificate-bearing X-Forwarded-Client-Cert assertion and effective certificate" in {
+      withServerAndConfig(
+        (trustedForwardedCertificateProxyConfig :+
+          ("play.http.forwarded.clientCertificates.mode" -> "x-forwarded-client-cert"))*
+      )((Action, _) =>
+        Action { request =>
+          val certificate = request.clientCertificate
+          val assertion   = request.xForwardedClientCertificates.headOption
+          Results.Ok(
+            Seq(
+              certificate.exists(_.source == play.api.mvc.request.ClientCertificateSource.XForwardedClientCert),
+              certificate.map(_.certificate.getSerialNumber).getOrElse("none"),
+              certificate.fold(-1)(_.chain.size),
+              assertion.flatMap(_.certificate).exists(_.getSerialNumber.intValue == 7),
+              request.xForwardedClientCertificates.size
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val encodedPem    = percentEncode(forwardedClientCertificatePem)
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("X-Forwarded-Client-Cert" -> s"Cert=$encodedPem"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("true|7|0|true|1")
+      }
+    }
+
+    "reject malformed forwarded client-certificate metadata from a trusted proxy" in {
+      withServerAndConfig(
+        (trustedForwardedCertificateProxyConfig :+
+          ("play.http.forwarded.clientCertificates.mode" -> "x-forwarded-client-cert"))*
+      )((Action, _) => Action(Results.Ok)) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port, checkClosed = true)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("X-Forwarded-Client-Cert" -> "Cert=%ZZ"),
+            ""
+          )
+        )
+
+        response.status must_== BAD_REQUEST
+        val responseBody = response.body.left.toOption.get
+        responseBody must contain("Invalid forwarded client certificate")
+        responseBody must not contain "XFCC certificate contains an invalid percent escape"
+      }
+    }
+
+    "ignore malformed forwarded client-certificate fields while handling is off" in {
+      withServerAndConfig("play.http.forwarded.clientCertificates.mode" -> "off")((Action, _) =>
+        Action { request =>
+          Results.Ok(s"${request.clientCertificate.isEmpty}|${request.xForwardedClientCertificates.isEmpty}")
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Client-Cert" -> ":not base64:", "X-Forwarded-Client-Cert" -> "Cert=%ZZ"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("true|true")
+      }
+    }
+
+    "ignore malformed forwarded client-certificate metadata from an untrusted peer" in {
+      withServerAndConfig(
+        "play.http.forwarded.clientCertificates.mode"           -> "x-forwarded-client-cert",
+        "play.http.forwarded.clientCertificates.trustedProxies" -> Seq("192.0.2.0/24")
+      )((Action, _) =>
+        Action { request =>
+          Results.Ok(s"${request.clientCertificate.isEmpty}|${request.xForwardedClientCertificates.isEmpty}")
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("X-Forwarded-Client-Cert" -> "Cert=%ZZ"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("true|true")
+      }
+    }
+
+    "retain direct transport metadata when selecting a forwarded remote node" in {
+      withServerAndConfig("play.http.forwarded.version" -> "rfc7239")((Action, _) =>
+        Action { request =>
+          Results.Ok(
+            Seq(
+              request.transport.peer.address.isLoopbackAddress,
+              request.transport.peer.port.exists(_ > 0),
+              request.transport.tls.isDefined,
+              request.remote.identity,
+              request.remote.port,
+              request.secure
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Forwarded" -> "for=203.0.113.43;proto=https"),
+            ""
+          )
+        )
+
+        response.body must beLeft("true|true|false|203.0.113.43|None|true")
+      }
+    }
+
+    "keep a non-IP selected remote separate from the direct transport peer" in {
+      withServerAndConfig("play.http.forwarded.version" -> "rfc7239")((Action, _) =>
+        Action { request =>
+          Results.Ok(
+            Seq(
+              request.transport.peer.address.isLoopbackAddress,
+              request.transport.tls.isEmpty,
+              request.remote.identity,
+              request.remote.ipAddress.isEmpty,
+              request.scheme.render
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Forwarded" -> "for=_hidden;proto=https"),
+            ""
+          )
+        )
+
+        response.body must beLeft("true|true|_hidden|true|https")
+      }
+    }
+
+    "use trusted x-forwarded-ssl throughout the request" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"            -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedSsl" -> true
+      )((Action, _) =>
+        Action { request =>
+          Results.Ok(s"${request.secure}|${Call("GET", "/result").absoluteURL()(using request)}")
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/path",
+            "HTTP/1.1",
+            Map("X-Forwarded-Ssl" -> "on"),
+            ""
+          )
+        )
+
+        response.body must beLeft("true|https://localhost/result")
+      }
+    }
+
+    "use trusted rfc7239 proto without a forwarded identity throughout the request" in {
+      withServerAndConfig("play.http.forwarded.version" -> "rfc7239")((Action, _) =>
+        Action { request =>
+          Results.Ok(s"${request.secure}|${Call("GET", "/result").absoluteURL()(using request)}")
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/path",
+            "HTTP/1.1",
+            Map("Forwarded" -> "proto=https"),
+            ""
+          )
+        )
+
+        response.body must beLeft("true|https://localhost/result")
+      }
+    }
+
     "keep the original host when forwarded host handling is disabled" in {
       withServerAndConfig("play.http.forwarded.version" -> "rfc7239")((Action, _) =>
         Action { rh => Results.Ok(s"${rh.host}|${rh.headers(HOST)}") }
@@ -247,6 +808,41 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
           )
         )
         response.body must beLeft("localhost|localhost")
+      }
+    }
+
+    "expose one typed forwarded scheme and authority consistently" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"            -> "rfc7239",
+        "play.http.forwarded.trustForwardedHost" -> true
+      )((Action, _) =>
+        Action { request =>
+          Results.Ok(
+            Seq(
+              request.scheme.render,
+              request.asJava.scheme.render,
+              request.authority.map(_.render).getOrElse("<none>"),
+              request.asJava.authority.orElseThrow().render,
+              request.host,
+              request.headers(HOST),
+              request.secure
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Forwarded" -> "for=203.0.113.43;proto=HtTpS;host=\"PUBLIC.EXAMPLE:08443\""),
+            ""
+          )
+        )
+
+        response.body must beLeft(
+          "https|https|public.example:8443|public.example:8443|public.example:8443|public.example:8443|true"
+        )
       }
     }
 
@@ -324,6 +920,315 @@ trait RequestHeadersSpec extends PlaySpecification with ServerIntegrationSpecifi
           )
         )
         response.status must_== BAD_REQUEST
+      }
+    }
+
+    "use trusted x-forwarded authority metadata throughout the request" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"                                  -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedHost"                      -> true,
+        "play.http.forwarded.trustXForwardedPort"                      -> true,
+        "play.http.forwarded.trustXForwardedProtoWithoutXForwardedFor" -> true
+      )((Action, _) =>
+        Action { request =>
+          val absoluteUrl  = Call("GET", "/result").absoluteURL()(using request)
+          val webSocketUrl = Call("GET", "/socket").webSocketURL()(using request)
+          Results.Ok(
+            Seq(
+              request.host,
+              request.asJava.host,
+              request.headers(HOST),
+              absoluteUrl,
+              webSocketUrl
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "https://localhost/path",
+            "HTTP/1.1",
+            Map(
+              "X-Forwarded-Host"  -> "public.example:7000",
+              "X-Forwarded-Port"  -> "8443",
+              "X-Forwarded-Proto" -> "https"
+            ),
+            ""
+          )
+        )
+
+        response.body must beLeft(
+          "public.example:8443|public.example:8443|public.example:8443|" +
+            "https://public.example:8443/result|wss://public.example:8443/socket"
+        )
+      }
+    }
+
+    "validate the trusted x-forwarded-host with the allowed hosts filter" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"             -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedHost" -> true,
+        "play.filters.enabled"                    -> Seq(classOf[AllowedHostsFilter].getName),
+        "play.filters.hosts.allowed"              -> Seq("public.example")
+      )((Action, _) => Action { request => Results.Ok(request.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/path",
+            "HTTP/1.1",
+            Map("X-Forwarded-Host" -> "public.example"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("public.example")
+      }
+    }
+
+    "reject an x-forwarded-host not accepted by the allowed hosts filter" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"             -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedHost" -> true,
+        "play.filters.enabled"                    -> Seq(classOf[AllowedHostsFilter].getName),
+        "play.filters.hosts.allowed"              -> Seq("internal.example")
+      )((Action, _) => Action { request => Results.Ok(request.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/path",
+            "HTTP/1.1",
+            Map("X-Forwarded-Host" -> "public.example"),
+            ""
+          )
+        )
+
+        response.status must_== BAD_REQUEST
+      }
+    }
+
+    "use a trusted x-forwarded-port throughout the effective request authority" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"                                  -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedPort"                      -> true,
+        "play.http.forwarded.trustXForwardedProtoWithoutXForwardedFor" -> true
+      )((Action, _) =>
+        Action { request =>
+          val absoluteUrl  = Call("GET", "/result").absoluteURL()(using request)
+          val webSocketUrl = Call("GET", "/socket").webSocketURL()(using request)
+          Results.Ok(
+            Seq(
+              request.host,
+              request.asJava.host,
+              request.headers(HOST),
+              absoluteUrl,
+              webSocketUrl
+            ).mkString("|")
+          )
+        }
+      ) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "https://localhost/path",
+            "HTTP/1.1",
+            Map("X-Forwarded-Port" -> "8443", "X-Forwarded-Proto" -> "https"),
+            ""
+          )
+        )
+
+        response.body must beLeft(
+          "localhost:8443|localhost:8443|localhost:8443|" +
+            "https://localhost:8443/result|wss://localhost:8443/socket"
+        )
+      }
+    }
+
+    "apply x-forwarded-port to an absolute target with a query and no path" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"             -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedPort" -> true
+      )((Action, _) => Action { request => Results.Ok(s"${request.host}|${request.headers(HOST)}") }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "http://localhost?x=1",
+            "HTTP/1.1",
+            Map("X-Forwarded-Port" -> "8443"),
+            ""
+          )
+        )
+
+        response.body must beLeft("localhost:8443|localhost:8443")
+      }
+    }
+
+    "validate the trusted x-forwarded-port with the allowed hosts filter" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"             -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedPort" -> true,
+        "play.filters.enabled"                    -> Seq(classOf[AllowedHostsFilter].getName),
+        "play.filters.hosts.allowed"              -> Seq("localhost:8443")
+      )((Action, _) => Action { request => Results.Ok(request.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "http://localhost/path",
+            "HTTP/1.1",
+            Map("X-Forwarded-Port" -> "8443"),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("localhost:8443")
+      }
+    }
+
+    "reject an effective x-forwarded-port not accepted by the allowed hosts filter" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"             -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedPort" -> true,
+        "play.filters.enabled"                    -> Seq(classOf[AllowedHostsFilter].getName),
+        "play.filters.hosts.allowed"              -> Seq("localhost:9000")
+      )((Action, _) => Action { request => Results.Ok(request.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "http://localhost/path",
+            "HTTP/1.1",
+            Map("X-Forwarded-Port" -> "8443"),
+            ""
+          )
+        )
+
+        response.status must_== BAD_REQUEST
+      }
+    }
+
+    "allow an arbitrary-size trusted forwarded port with a host-only allowed-host rule" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"            -> "rfc7239",
+        "play.http.forwarded.trustForwardedHost" -> true,
+        "play.filters.enabled"                   -> Seq(classOf[AllowedHostsFilter].getName),
+        "play.filters.hosts.allowed"             -> Seq("public.example")
+      )((Action, _) => Action { rh => Results.Ok(rh.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map("Forwarded" -> "for=192.0.2.43;host=\"public.example:2147483648\""),
+            ""
+          )
+        )
+        response.status must_== OK
+        response.body must beLeft("public.example:2147483648")
+      }
+    }
+
+    "handle a trusted forwarded IPvFuture host with the CORS filter" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"            -> "rfc7239",
+        "play.http.forwarded.trustForwardedHost" -> true,
+        "play.filters.enabled"                   -> Seq(classOf[CORSFilter].getName)
+      )((Action, _) => Action { rh => Results.Ok(rh.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map(
+              "Origin"    -> "http://www.example.com",
+              "Forwarded" -> "for=192.0.2.43;host=\"[V1.FE80::A]\""
+            ),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("[v1.fe80::a]")
+        response.headers.get(ACCESS_CONTROL_ALLOW_ORIGIN) must beSome("http://www.example.com")
+      }
+    }
+
+    "treat an explicit trusted forwarded default port as the same CORS origin" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"            -> "rfc7239",
+        "play.http.forwarded.trustForwardedHost" -> true,
+        "play.filters.enabled"                   -> Seq(classOf[CORSFilter].getName)
+      )((Action, _) => Action { rh => Results.Ok(rh.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map(
+              "Origin"    -> "http://public.example",
+              "Forwarded" -> "for=192.0.2.43;host=\"public.example:80\""
+            ),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("public.example:80")
+        response.headers.get(ACCESS_CONTROL_ALLOW_ORIGIN) must beNone
+      }
+    }
+
+    "treat an explicit trusted forwarded HTTPS default port as the same CORS origin" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"            -> "rfc7239",
+        "play.http.forwarded.trustForwardedHost" -> true,
+        "play.filters.enabled"                   -> Seq(classOf[CORSFilter].getName)
+      )((Action, _) => Action { request => Results.Ok(request.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map(
+              "Origin"    -> "https://public.example",
+              "Forwarded" -> "for=192.0.2.43;proto=https;host=\"public.example:443\""
+            ),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("public.example:443")
+        response.headers.get(ACCESS_CONTROL_ALLOW_ORIGIN) must beNone
+      }
+    }
+
+    "treat a separate trusted x-forwarded default port as the same CORS origin" in {
+      withServerAndConfig(
+        "play.http.forwarded.version"             -> "x-forwarded",
+        "play.http.forwarded.trustXForwardedHost" -> true,
+        "play.http.forwarded.trustXForwardedPort" -> true,
+        "play.filters.enabled"                    -> Seq(classOf[CORSFilter].getName)
+      )((Action, _) => Action { request => Results.Ok(request.host) }) { port =>
+        val Seq(response) = BasicHttpClient.makeRequests(port)(
+          BasicRequest(
+            "GET",
+            "/",
+            "HTTP/1.1",
+            Map(
+              "Origin"            -> "http://public.example",
+              "X-Forwarded-For"   -> "192.0.2.43",
+              "X-Forwarded-Proto" -> "http",
+              "X-Forwarded-Host"  -> "public.example",
+              "X-Forwarded-Port"  -> "80"
+            ),
+            ""
+          )
+        )
+
+        response.status must_== OK
+        response.body must beLeft("public.example:80")
+        response.headers.get(ACCESS_CONTROL_ALLOW_ORIGIN) must beNone
       }
     }
 

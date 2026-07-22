@@ -25,11 +25,11 @@ case class Call(method: String, url: String, fragment: String = null) extends pl
    *
    * implicit val req: RequestHeader = myRequest
    * val url: String = Call("GET", "/url").absoluteURL()
-   * // == "http://\$host/url", or "https://\$host/url" if secure
+   * // == "\$scheme://\$host/url" using the request's effective scheme and authority
    * }}}
    */
   def absoluteURL()(implicit request: RequestHeader): String =
-    absoluteURL(request.secure)
+    request.scheme.render + "://" + request.host + this.url + this.appendFragment
 
   /**
    * Transform this call to an absolute URL.

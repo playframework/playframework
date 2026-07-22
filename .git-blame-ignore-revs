@@ -61,3 +61,6 @@ bed8f2fdfccdbec318c11ee7c9503fec96ccf517
 
 # javafmt 0.8.0 -> 0.11.0
 0ff248c489e79821f97e853ef6c99732db30b3d6
+
+# Scala Steward: Reformat with scalafmt 3.11.4
+9c240f23551bdadd30d2e7e418530c92e5f7006c

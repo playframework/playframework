@@ -5,11 +5,17 @@
 package play.mvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
+import com.google.common.net.InetAddresses;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.net.Inet6Address;
 import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,8 +62,354 @@ public class RequestBuilderTest {
 
   @Test
   public void testSecure() {
-    assertFalse(new RequestBuilder().uri("http://www.benmccann.com/blog").build().secure());
-    assertTrue(new RequestBuilder().uri("https://www.benmccann.com/blog").build().secure());
+    RequestBuilder builder = new RequestBuilder();
+
+    // Changing the target to https:// does not change the builder's default HTTP effective scheme.
+    assertFalse(builder.uri("https://www.benmccann.com/blog").build().secure());
+    // Make the build set secure
+    assertTrue(builder.secure(true).build().secure());
+    // Changing the target to http:// does not replace the explicitly selected HTTPS effective
+    // scheme.
+    assertTrue(builder.uri("http://www.benmccann.com/blog").build().secure());
+    assertFalse(builder.secure(false).build().secure());
+  }
+
+  @Test
+  public void testSchemeAndAuthorityValueTypes() throws Exception {
+    Http.Scheme customScheme = new Http.Scheme("Git+SSH.v1-2");
+    assertEquals("git+ssh.v1-2", customScheme.render());
+    assertEquals(customScheme, customScheme.asScala().asJava());
+    assertFalse(customScheme.isSecure());
+    assertEquals(Http.Scheme.HTTPS, new Http.Scheme("HTTPS"));
+
+    Http.RequestAuthority registered = Http.RequestAuthority.parse("EXAMPLE.%63om:00080");
+    Http.RequestAuthority ipv4 = Http.RequestAuthority.parse("192.0.2.43:8080");
+    Http.RequestAuthority ipv6 = Http.RequestAuthority.parse("[2001:0DB8::1]:443");
+    Http.RequestAuthority mappedIpv6 = Http.RequestAuthority.parse("[::ffff:192.0.2.43]");
+    Http.RequestAuthority ipvFuture = Http.RequestAuthority.parse("[VF.FOO:BAR]:8443");
+    Http.RequestAuthority lowerIpvFuture = Http.RequestAuthority.parse("[vf.foo:bar]:8443");
+
+    assertEquals("example.com:80", registered.render());
+    assertTrue(registered.host() instanceof Http.AuthorityHost.RegName);
+    assertTrue(ipv4.host() instanceof Http.AuthorityHost.IPv4);
+    assertEquals("192.0.2.43:8080", ipv4.render());
+    assertTrue(ipv6.host() instanceof Http.AuthorityHost.IPv6);
+    assertEquals("[2001:db8::1]:443", ipv6.render());
+    assertTrue(mappedIpv6.host() instanceof Http.AuthorityHost.IPv6);
+    assertEquals("[::ffff:c000:22b]", mappedIpv6.render());
+    assertTrue(ipvFuture.host() instanceof Http.AuthorityHost.IPvFuture);
+    assertEquals("[vf.foo:bar]:8443", ipvFuture.render());
+    assertEquals(lowerIpvFuture, ipvFuture);
+    assertEquals(lowerIpvFuture.host(), ipvFuture.host());
+    assertEquals(lowerIpvFuture.hashCode(), ipvFuture.hashCode());
+    assertEquals(lowerIpvFuture.host().hashCode(), ipvFuture.host().hashCode());
+
+    for (Http.RequestAuthority authority : List.of(registered, ipv4, ipv6, mappedIpv6, ipvFuture)) {
+      assertEquals(authority, authority.asScala().asJava());
+      assertEquals(authority.host().render(), authority.host().toString());
+      assertEquals(authority.render(), authority.toString());
+    }
+
+    Http.AuthorityPort huge =
+        new Http.AuthorityPort(new BigInteger("123456789012345678901234567890"));
+    assertEquals(Optional.of(0), new Http.AuthorityPort(BigInteger.ZERO).tcpPort());
+    assertEquals(Optional.of(65535), new Http.AuthorityPort(BigInteger.valueOf(65535)).tcpPort());
+    assertEquals(Optional.empty(), new Http.AuthorityPort(BigInteger.valueOf(65536)).tcpPort());
+    assertEquals(Optional.empty(), huge.tcpPort());
+    assertEquals(huge, huge.asScala().asJava());
+    assertEquals("example.com:" + huge.render(), registered.withPort(Optional.of(huge)).render());
+
+    for (String invalid :
+        List.of("[fe80::1%1]", "[fe80::1%eth0]", "[fe80::1%25eth0]", "１２７.０.０.１", "١٢٧.٠.٠.١")) {
+      assertThatThrownBy(() -> Http.RequestAuthority.parse(invalid))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    Inet6Address unscoped = (Inet6Address) InetAddresses.forString("fe80::1");
+    for (int scope : List.of(0, 1)) {
+      Inet6Address scoped = Inet6Address.getByAddress(null, unscoped.getAddress(), scope);
+      assertThatThrownBy(() -> new Http.AuthorityHost.IPv6(scoped))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+  }
+
+  @Test
+  public void testSchemeAuthorityAndUriAreIndependentBuilderState() {
+    Http.Scheme scheme = new Http.Scheme("Git+SSH");
+    Http.RequestAuthority authority = Http.RequestAuthority.parse("PUBLIC.example:08443");
+    RequestBuilder builder =
+        new RequestBuilder()
+            .scheme(scheme)
+            .authority(authority)
+            .uri("https://internal.example:9443/original?x=1");
+
+    assertEquals("https://internal.example:9443/original?x=1", builder.uri());
+    assertEquals(scheme, builder.scheme());
+    assertEquals(Optional.of(authority), builder.authority());
+    assertEquals("public.example:8443", builder.host());
+    assertEquals(Optional.of("public.example:8443"), builder.headers().get(Http.HeaderNames.HOST));
+    assertFalse(builder.secure());
+
+    builder.path("/changed");
+    assertEquals("/changed", builder.path());
+    assertEquals(scheme, builder.scheme());
+    assertEquals(Optional.of(authority), builder.authority());
+    assertEquals("public.example:8443", builder.host());
+  }
+
+  @Test
+  public void testRemoteInfoValueTypes() {
+    Http.RemoteNode.Ip ip =
+        new Http.RemoteNode.Ip(
+            InetAddresses.forString("192.0.2.43"), Optional.of(new Http.NodePort.Numeric(53124)));
+    Http.RemoteNode.Obfuscated by = new Http.RemoteNode.Obfuscated("_edge", Optional.empty());
+    Http.RemoteInfo remote = new Http.RemoteInfo(ip, Optional.of(by));
+
+    assertEquals(ip, remote.node());
+    assertEquals(Optional.of(by), remote.byNode());
+    assertEquals("192.0.2.43", remote.identity());
+    assertEquals(Optional.of(InetAddresses.forString("192.0.2.43")), remote.ipAddress());
+    assertEquals(Optional.of(new Http.NodePort.Numeric(53124)), remote.nodePort());
+    assertEquals(Optional.of(53124), remote.port());
+    assertEquals(remote, remote.asScala().asJava());
+    assertEquals(new Http.RemoteInfo(ip, Optional.of(by)), remote);
+
+    Http.RemoteInfo obfuscated =
+        new Http.RemoteInfo(
+            new Http.RemoteNode.Obfuscated(
+                "_client", Optional.of(new Http.NodePort.Obfuscated("_port"))),
+            Optional.empty());
+    assertEquals("_client", obfuscated.identity());
+    assertEquals(Optional.empty(), obfuscated.ipAddress());
+    assertEquals(Optional.of(new Http.NodePort.Obfuscated("_port")), obfuscated.nodePort());
+    assertEquals(Optional.empty(), obfuscated.port());
+    assertEquals(obfuscated, obfuscated.asScala().asJava());
+
+    Http.RemoteInfo unknown =
+        new Http.RemoteInfo(new Http.RemoteNode.Unknown(Optional.empty()), Optional.empty());
+    assertEquals("unknown", unknown.identity());
+    assertEquals(Optional.empty(), unknown.ipAddress());
+    assertEquals(Optional.empty(), unknown.port());
+    assertEquals(unknown, unknown.asScala().asJava());
+
+    assertThatThrownBy(() -> new Http.RemoteInfo(null, Optional.empty()))
+        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.RemoteInfo(ip, null))
+        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.RemoteNode.Obfuscated("not-obfuscated", Optional.empty()))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void testRemoteForwardingValueTypes() {
+    Http.RemoteEndpoint selected =
+        new Http.RemoteEndpoint(
+            new Http.RemoteNode.Ip(InetAddresses.forString("203.0.113.43"), Optional.empty()),
+            Optional.of(new Http.RemoteNode.Obfuscated("_edge", Optional.empty())));
+    Http.RemoteEndpoint proxy =
+        new Http.RemoteEndpoint(
+            new Http.RemoteNode.Ip(InetAddresses.forString("192.0.2.10"), Optional.empty()),
+            Optional.of(new Http.RemoteNode.Obfuscated("_internal", Optional.empty())));
+    List<Http.RemoteEndpoint> mutableVia = new java.util.ArrayList<>(List.of(proxy));
+    Http.ForwardingInfo forwarding =
+        new Http.ForwardingInfo(Http.ForwardingSource.RFC_7239, mutableVia);
+    Http.RemoteInfo remote =
+        new Http.RemoteInfo(selected.node(), selected.byNode(), Optional.of(forwarding));
+
+    mutableVia.clear();
+
+    assertTrue(remote.isForwarded());
+    assertEquals(Http.ForwardingSource.RFC_7239, remote.forwarding().orElseThrow().source());
+    assertEquals(List.of(proxy), remote.forwarding().orElseThrow().via());
+    assertEquals(List.of(selected, proxy), remote.path());
+    assertEquals(remote, remote.asScala().asJava());
+    assertThatThrownBy(
+            () ->
+                remote
+                    .forwarding()
+                    .orElseThrow()
+                    .via()
+                    .add(
+                        new Http.RemoteEndpoint(
+                            new Http.RemoteNode.Unknown(Optional.empty()), Optional.empty())))
+        .isInstanceOf(UnsupportedOperationException.class);
+    assertThatThrownBy(() -> new Http.ForwardingInfo(null, List.of()))
+        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.ForwardingInfo(Http.ForwardingSource.X_FORWARDED, null))
+        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.RemoteInfo(selected.node(), selected.byNode(), null))
+        .isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  public void testNodePortValidation() {
+    assertEquals(0, new Http.NodePort.Numeric(0).value());
+    assertEquals(65535, new Http.NodePort.Numeric(65535).value());
+    assertEquals("_Edge.1_test-port", new Http.NodePort.Obfuscated("_Edge.1_test-port").value());
+
+    assertThatThrownBy(() -> new Http.NodePort.Numeric(-1))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> new Http.NodePort.Numeric(65536))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> new Http.NodePort.Obfuscated(null))
+        .isInstanceOf(NullPointerException.class);
+    for (String value : List.of("", "_", "port", "_bad value", "_bad!")) {
+      assertThatThrownBy(() -> new Http.NodePort.Obfuscated(value))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+  }
+
+  @Test
+  public void testRemoteAndTransportAreIndependentBuilderState() {
+    Http.RemoteInfo remote =
+        new Http.RemoteInfo(
+            new Http.RemoteNode.Obfuscated("_client", Optional.empty()), Optional.empty());
+    Http.TransportConnection transport =
+        new Http.TransportConnection(
+            new Http.PeerEndpoint(InetAddresses.forString("192.0.2.10"), Optional.of(53124)),
+            Optional.of(new Http.TransportTls(List.of())));
+
+    Request request = new RequestBuilder().remote(remote).transport(transport).build();
+
+    assertEquals(remote, request.remote());
+    assertEquals(transport, request.transport());
+    assertTrue(request.transport().tls().isPresent());
+    assertEquals(List.of(), request.transport().tls().orElseThrow().peerCertificates());
+    assertFalse(request.secure());
+  }
+
+  @Test
+  public void testClientCertificateIsBuilderState() {
+    X509Certificate leaf = mock(X509Certificate.class);
+    X509Certificate intermediate = mock(X509Certificate.class);
+    Http.ClientCertificateInfo certificate =
+        new Http.ClientCertificateInfo(
+            leaf, List.of(intermediate), Http.ClientCertificateSource.RFC_9440);
+
+    RequestBuilder builder = new RequestBuilder().clientCertificate(certificate);
+    Request request = builder.build();
+
+    assertEquals(Optional.of(certificate), builder.clientCertificate());
+    assertEquals(Optional.of(certificate), request.clientCertificate());
+    assertEquals(certificate, request.asScala().clientCertificate().get().asJava());
+
+    builder.clientCertificate(Optional.empty());
+    assertEquals(Optional.empty(), builder.clientCertificate());
+    assertEquals(Optional.empty(), builder.build().clientCertificate());
+  }
+
+  @Test
+  public void testXForwardedClientCertificatesAreOrderedBuilderState() {
+    Http.XForwardedClientCert client =
+        new Http.XForwardedClientCert(
+            List.of("spiffe://example/edge"),
+            Optional.empty(),
+            Optional.empty(),
+            List.of(),
+            Optional.empty(),
+            List.of("spiffe://example/client"),
+            List.of("client.example"));
+    Http.XForwardedClientCert proxy =
+        new Http.XForwardedClientCert(
+            List.of("spiffe://example/sidecar"),
+            Optional.empty(),
+            Optional.empty(),
+            List.of(),
+            Optional.empty(),
+            List.of("spiffe://example/proxy"),
+            List.of());
+    List<Http.XForwardedClientCert> mutableAssertions = new ArrayList<>(List.of(client, proxy));
+
+    Request request = new RequestBuilder().xForwardedClientCertificates(mutableAssertions).build();
+    mutableAssertions.clear();
+
+    assertEquals(List.of(client, proxy), request.xForwardedClientCertificates());
+    assertEquals(2, request.asScala().xForwardedClientCertificates().size());
+    assertEquals(client, request.asScala().xForwardedClientCertificates().apply(0).asJava());
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> request.xForwardedClientCertificates().add(client));
+  }
+
+  @Test
+  public void testPathPreservesRawTargetAuthority() {
+    RequestBuilder oversizedPort =
+        new RequestBuilder()
+            .uri("https://example.com:123456789012345678901234567890/old?x=1")
+            .path("/changed path");
+    assertEquals(
+        "https://example.com:123456789012345678901234567890/changed%20path?x=1",
+        oversizedPort.uri());
+
+    RawTargetRequestBuilder ipvFuture =
+        new RawTargetRequestBuilder()
+            .rawTarget("https://[vF.FOO:BAR]:8443/old?x=1#fragment")
+            .pathOnRawTarget("/changed");
+    assertEquals("https://[vF.FOO:BAR]:8443/changed?x=1#fragment", ipvFuture.uri());
+    assertEquals("/changed", ipvFuture.path());
+  }
+
+  @Test
+  public void testAuthorityIsTheCanonicalHostState() {
+    RequestBuilder builder = new RequestBuilder().host("EXAMPLE.com:00080");
+    Http.Headers withoutHost = new Http.Headers(Map.of("X-Test", Collections.singletonList("one")));
+    Http.Headers replacementHost =
+        new Http.Headers(Map.of("host", Collections.singletonList("OTHER.example:00081")));
+    Http.Headers duplicateHost =
+        new Http.Headers(
+            Map.of(Http.HeaderNames.HOST, List.of("example.com:80", "example.com:80")));
+    Http.Headers emptyHost =
+        new Http.Headers(Map.of(Http.HeaderNames.HOST, Collections.emptyList()));
+    Http.Headers invalidHost =
+        new Http.Headers(Map.of(Http.HeaderNames.HOST, Collections.singletonList("[invalid")));
+
+    assertEquals("example.com:80", builder.host());
+    assertEquals(Optional.of(Http.RequestAuthority.parse("example.com:80")), builder.authority());
+
+    builder.headers(withoutHost);
+    assertEquals(Optional.of("example.com:80"), builder.headers().get(Http.HeaderNames.HOST));
+
+    builder.headers(replacementHost);
+    assertEquals("other.example:81", builder.host());
+    assertEquals(Optional.of("other.example:81"), builder.headers().get(Http.HeaderNames.HOST));
+
+    builder.header("HOST", "THIRD.example:00082");
+    assertEquals("third.example:82", builder.host());
+    assertEquals(Optional.of("third.example:82"), builder.headers().get(Http.HeaderNames.HOST));
+
+    builder.header("host", Collections.singletonList("[2001:0DB8::1]:00443"));
+    assertEquals("[2001:db8::1]:443", builder.host());
+    assertEquals(Optional.of("[2001:db8::1]:443"), builder.headers().get(Http.HeaderNames.HOST));
+
+    assertThatThrownBy(() -> builder.headers(duplicateHost))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("exactly one Host");
+    assertThatThrownBy(() -> builder.headers(emptyHost))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("exactly one Host");
+    assertThatThrownBy(() -> builder.headers(invalidHost))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> builder.header("host", "[invalid"))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(
+            () -> builder.header(Http.HeaderNames.HOST, List.of("one.example", "two.example")))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("exactly one Host");
+    assertEquals("[2001:db8::1]:443", builder.host());
+
+    builder.authority(Optional.empty());
+    assertEquals(Optional.empty(), builder.authority());
+    assertEquals("", builder.host());
+    assertEquals(Optional.empty(), builder.headers().get(Http.HeaderNames.HOST));
+
+    builder.header("Host", "RESTORED.example:00083");
+    assertEquals(
+        Optional.of(Http.RequestAuthority.parse("restored.example:83")), builder.authority());
+    assertEquals(Optional.of("restored.example:83"), builder.headers().get(Http.HeaderNames.HOST));
+
+    builder.authority(Http.RequestAuthority.parse("NEW.example"));
+    assertEquals("new.example", builder.host());
+    assertEquals(Optional.of("new.example"), builder.headers().get(Http.HeaderNames.HOST));
   }
 
   @Test
@@ -495,5 +847,17 @@ public class RequestBuilderTest {
     --somerandomboundary--
     */
     assertEquals(request.header(Http.HeaderNames.CONTENT_LENGTH).get(), "590");
+  }
+
+  private static final class RawTargetRequestBuilder extends RequestBuilder {
+    private RawTargetRequestBuilder rawTarget(String uri) {
+      req = req.withTarget(req.target().withUriString(uri).withPath("/old"));
+      return this;
+    }
+
+    private RawTargetRequestBuilder pathOnRawTarget(String path) {
+      path(path);
+      return this;
+    }
   }
 }

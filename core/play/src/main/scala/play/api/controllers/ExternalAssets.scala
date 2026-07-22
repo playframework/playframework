@@ -16,10 +16,14 @@ import play.api.mvc._
 
 /**
  * Controller that serves static resources from an external folder.
- * It useful in development mode if you want to serve static assets that shouldn't be part of the build process.
+ * It is useful in development mode if you want to serve static assets that shouldn't be part of the build process.
  *
  * Note that this controller IS NOT intended to be used in production mode and can lead to security issues.
  * Therefore it is automatically disabled in production mode.
+ *
+ * Requested paths are normalized lexically and must remain within the configured root. Symbolic links are not
+ * resolved by this containment check, so a link below the root may point outside it. This is intentional to support
+ * linked development assets; the configured asset tree must therefore be trusted.
  *
  * All assets are served with max-age=3600 cache directive.
  *
@@ -47,17 +51,25 @@ class ExternalAssets @Inject() (environment: Environment)(implicit ec: Execution
       case Mode.Prod => Future.successful(NotFound)
       case _         =>
         Future {
-          val fileToServe = rootPath match {
-            case AbsolutePath(_) => new File(rootPath, file)
-            case _               => new File(environment.getFile(rootPath), file)
+          val root = rootPath match {
+            case AbsolutePath(_) => new File(rootPath)
+            case _               => environment.getFile(rootPath)
           }
 
-          if (fileToServe.exists) {
-            Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
-          } else {
-            NotFound
+          ExternalAssets.resolveFile(root, file).filter(_.exists) match {
+            case Some(fileToServe) =>
+              Ok.sendFile(fileToServe, inline = true).withHeaders(CACHE_CONTROL -> "max-age=3600")
+            case None => NotFound
           }
         }
     }
+  }
+}
+
+private[controllers] object ExternalAssets {
+  private[controllers] def resolveFile(root: File, file: String): Option[File] = {
+    val normalizedRoot = root.toPath.toAbsolutePath.normalize
+    val resolvedFile   = normalizedRoot.resolve(file).normalize
+    Option.when(resolvedFile.startsWith(normalizedRoot))(resolvedFile.toFile)
   }
 }

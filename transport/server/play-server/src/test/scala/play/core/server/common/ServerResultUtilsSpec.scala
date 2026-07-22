@@ -14,14 +14,18 @@ import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import org.specs2.mutable.Specification
+import com.google.common.net.InetAddresses
 import play.api.http._
 import play.api.http.Status._
 import play.api.libs.crypto.CookieSignerProvider
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
 import play.api.mvc.request.DefaultRequestFactory
-import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.PeerEndpoint
+import play.api.mvc.request.RemoteInfo
 import play.api.mvc.request.RequestTarget
+import play.api.mvc.request.Scheme
+import play.api.mvc.request.TransportConnection
 import play.api.mvc.Results._
 
 class ServerResultUtilsSpec extends Specification {
@@ -46,8 +50,15 @@ class ServerResultUtilsSpec extends Specification {
   }
 
   private def cookieRequestHeader(cookie: Option[(String, String)]): RequestHeader = {
+    val transport = TransportConnection(PeerEndpoint(InetAddresses.forString("127.0.0.1"), None), None)
+    val remote    = RemoteInfo.fromPeer(transport.peer)
     new DefaultRequestFactory(HttpConfiguration()).createRequestHeader(
-      RemoteConnection("", false, None),
+      transport,
+      None,
+      Vector.empty,
+      remote,
+      Scheme.Http,
+      None,
       "",
       RequestTarget("", "", Map.empty),
       "",
@@ -110,13 +121,18 @@ class ServerResultUtilsSpec extends Specification {
     implicit val system: ActorSystem        = ActorSystem()
     implicit val materializer: Materializer = Materializer.matFromSystem
 
-    val header = new RequestHeaderImpl(
-      RemoteConnection("", false, None),
+    val transport = TransportConnection(PeerEndpoint(InetAddresses.forString("127.0.0.1"), None), None)
+    val header    = new RequestHeaderImpl(
+      RemoteInfo.fromPeer(transport.peer),
       "",
       RequestTarget("", "", Map.empty),
       "",
       Headers(),
-      TypedMap.empty
+      TypedMap.empty,
+      transport,
+      None,
+      Scheme.Http,
+      None
     )
 
     def hasNoEntity(response: Future[Result], responseStatus: Int) = {

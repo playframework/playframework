@@ -220,6 +220,12 @@ class AssetsSpec extends Specification {
       Assets.resourceNameAt("/a/b", "../../c/d") must beNone
     }
 
+    "not look up assets in a sibling path that shares the parent path prefix" in {
+      Assets.resourceNameAt("/public", "../public-internal/secret.txt") must beNone
+      Assets.resourceNameAt("/public", "..%2Fpublic-internal%2Fsecret.txt") must beNone
+      Assets.resourceNameAt("/public", "..%5Cpublic-internal%5Csecret.txt") must beNone
+    }
+
     "not look up assets with dot-segments that escape the parent path with a encoded separator for Windows" in {
       // %5C is "\" URL encoded
       Assets.resourceNameAt("/a/b", "..") must beNone

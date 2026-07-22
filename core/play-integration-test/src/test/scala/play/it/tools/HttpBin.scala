@@ -31,7 +31,7 @@ import play.filters.gzip.GzipFilter
 object HttpBinApplication {
   private val requestHeaderWriter = new Writes[RequestHeader] {
     def writes(r: RequestHeader): JsValue = Json.obj(
-      "origin"  -> r.remoteIdentity,
+      "origin"  -> r.remote.identity,
       "url"     -> "",
       "args"    -> r.queryString.view.mapValues(_.head).toMap[String, String],
       "headers" -> r.headers.toSimpleMap
@@ -68,7 +68,7 @@ object HttpBinApplication {
 
   def getIp(implicit Action: DefaultActionBuilder): Routes = {
     case GET(p"/ip") =>
-      Action { request => Ok(Json.obj("origin" -> request.remoteIdentity)) }
+      Action { request => Ok(Json.obj("origin" -> request.remote.identity)) }
   }
 
   def getUserAgent(implicit Action: DefaultActionBuilder): Routes = {

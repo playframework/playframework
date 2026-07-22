@@ -170,23 +170,20 @@ package scalaguide.http.scalaactionscomposition {
 
       "allow modifying the request object" in {
         // #modify-request
+        import play.api.libs.typedmap.TypedKey
         import play.api.mvc._
-        import play.api.mvc.request.RemoteConnection
 
         // ###skip:1
-        val Action                              = actionBuilder
-        def xForwardedFor[A](action: Action[A]) = Action.async(action.parser) { request =>
-          val newRequest = request.headers.get("X-Forwarded-For") match {
-            case None      => request
-            case Some(xff) =>
-              val xffConnection = RemoteConnection(xff, request.connection.secure, None)
-              request.withConnection(xffConnection)
-          }
-          action(newRequest)
+        val Action                                    = actionBuilder
+        val RequestStartTime                          = TypedKey[Long]("request-start-time")
+        def addRequestStartTime[A](action: Action[A]) = Action.async(action.parser) { request =>
+          action(request.addAttr(RequestStartTime, System.nanoTime()))
         }
         // #modify-request
 
-        testAction(xForwardedFor(Action(Ok)))
+        testAction(addRequestStartTime(Action { request =>
+          if (request.attrs.contains(RequestStartTime)) Ok else InternalServerError
+        }))
       }
 
       "allow blocking the request" in {
@@ -197,18 +194,24 @@ package scalaguide.http.scalaactionscomposition {
         // ###skip:1
         val Action                          = actionBuilder
         def onlyHttps[A](action: Action[A]) = Action.async(action.parser) { request =>
-          request.headers
-            .get("X-Forwarded-Proto")
-            .collect {
-              case "https" => action(request)
-            }
-            .getOrElse {
-              Future.successful(Forbidden("Only HTTPS requests allowed"))
-            }
+          if (request.secure) action(request)
+          else Future.successful(Forbidden("Only HTTPS requests allowed"))
         }
         // #block-request
 
+        import play.api.mvc.request.Scheme
+
         testAction(action = onlyHttps(Action(Ok)), expectedResponse = FORBIDDEN)
+        testAction(
+          action = onlyHttps(Action(Ok)),
+          request = FakeRequest().withHeaders("X-Forwarded-Proto" -> "https"),
+          expectedResponse = FORBIDDEN
+        )
+        val insecureRequest = FakeRequest()
+        testAction(
+          action = onlyHttps(Action(Ok)),
+          request = insecureRequest.withScheme(Scheme.Https)
+        )
       }
 
       "allow modifying the result" in {

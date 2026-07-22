@@ -271,7 +271,7 @@ private[server] object ServerReloadingSpec {
       case GET(p"/getflash") =>
         action { (request: Request[?]) => Results.Ok(request.flash.data.get("foo").toString) }
       case GET(p"/getremoteaddress") =>
-        action { (request: Request[?]) => Results.Ok(request.remoteIdentity) }
+        action { (request: Request[?]) => Results.Ok(request.remote.identity) }
       case GET(p"/gethost") =>
         action { (request: Request[?]) => Results.Ok(request.host) }
       case GET(p"/getserverconfigcachereloads") =>

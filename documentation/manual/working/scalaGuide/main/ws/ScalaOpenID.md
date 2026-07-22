@@ -2,7 +2,13 @@
 
 # OpenID Support in Play
 
-OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
+> **Warning**: Play's `openId` module implements the obsolete OpenID Authentication 2.0 protocol, with compatibility paths for OpenID 1.x providers. It does not implement OpenID Connect (OIDC). New authentication integrations should use an OIDC client library.
+>
+> Both initial discovery and callback verification issue outbound requests to locations derived from untrusted input. In particular, `OpenIdClient.verifiedId` performs discovery on the callback's `openid.claimed_id` and then contacts the discovered provider endpoint. This creates a server-side request forgery (SSRF) risk.
+>
+> Applications that retain this module must validate identifiers from both initiation and callback requests, restrict permitted provider endpoints, and enforce network-level egress controls that prevent connections to internal, loopback, link-local, and cloud metadata addresses, including after DNS resolution and redirects.
+
+OpenID 2.0 is a protocol for users to access several services with a single account. In a legacy deployment, you can use it to let users log in with an existing OpenID identity or to connect to a company’s compatible SSO server.
 
 ## The OpenID flow in a nutshell
 
@@ -11,7 +17,7 @@ OpenID is a protocol for users to access several services with a single account.
 3. The user confirms the authorization on his OpenID provider, and gets redirected back to your server.
 4. Your server receives information from that redirect, and checks with the provider that the information is correct.
 
-Step 1 may be omitted if all your users are using the same OpenID provider (for example if you decide to rely completely on Google accounts).
+Step 1 may be omitted if all your users are using the same trusted OpenID provider.
 
 ## Usage
 

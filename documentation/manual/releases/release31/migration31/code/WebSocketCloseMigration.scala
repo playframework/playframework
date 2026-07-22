@@ -50,7 +50,7 @@ object WebSocketCloseMigration {
 
   object TypedJsonWebSocket {
     case class In(name: String)
-    implicit val reads: Reads[In] = Json.reads[In]
+    implicit val reads: Reads[In]                                           = Json.reads[In]
     implicit val transformer: WebSocket.MessageFlowTransformer[In, JsValue] =
       WebSocket.MessageFlowTransformer.jsonMessageFlowTransformer[In, JsValue]
 

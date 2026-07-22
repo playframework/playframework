@@ -48,11 +48,6 @@ object RequestAttrKey {
   val Server = TypedKey[String]("Server-Name")
 
   /**
-   * The effective host selected from trusted forwarding information.
-   */
-  private[play] val EffectiveHost = TypedKey[String]("Effective-Host")
-
-  /**
    * The CSP nonce key.
    */
   val CSPNonce: TypedKey[String] = TypedKey("CSP-Nonce")

@@ -4,7 +4,6 @@
 
 package play.core.server.pekkohttp
 
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
 import java.security.cert.X509Certificate
@@ -28,10 +27,14 @@ import play.api.http.HttpChunk
 import play.api.http.HttpErrorHandler
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc._
-import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.PeerEndpoint
+import play.api.mvc.request.RemoteInfo
 import play.api.mvc.request.RequestAttrKey
 import play.api.mvc.request.RequestTarget
+import play.api.mvc.request.TransportConnection
+import play.api.mvc.request.TransportTls
 import play.api.Logger
+import play.core.server.common.ClientCertificateHeaderHandler
 import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.PathAndQueryParser
 import play.core.server.common.ServerResultUtils
@@ -44,6 +47,7 @@ import play.mvc.Http.HeaderNames
 private[server] class PekkoModelConversion(
     resultUtils: ServerResultUtils,
     forwardedHeaderHandler: ForwardedHeaderHandler,
+    clientCertificateHeaderHandler: ClientCertificateHeaderHandler,
     illegalResponseHeaderValue: ParserSettings.IllegalResponseHeaderValueProcessingMode
 ) {
   private val logger = Logger(getClass)
@@ -87,39 +91,117 @@ private[server] class PekkoModelConversion(
       requestTarget: RequestTarget,
       request: HttpRequest
   ): RequestHeader = {
-    val remoteAddressArg = remoteAddress // Avoid clash between method arg and RequestHeader field
-    val rawConnection    = new RemoteConnection {
-      override def remoteAddress: InetAddress                           = remoteAddressArg.getAddress
-      override def remotePort: Option[Int]                              = Some(remoteAddressArg.getPort)
-      override def secure: Boolean                                      = secureProtocol
-      override def clientCertificateChain: Option[Seq[X509Certificate]] = {
-        try {
-          request.header[`Tls-Session-Info`].map { tlsSessionInfo =>
+    val transport     = createTransport(remoteAddress, secureProtocol, request)
+    val rawRemote     = RemoteInfo.fromPeer(transport.peer)
+    val directScheme  = RequestHeader.initialScheme(transport)
+    val initialTarget = RequestHeader
+      .initialRequestTarget(request.method.name, requestTarget, request.protocol.value, headers)
+      .fold(error => throw new IllegalArgumentException(error), identity)
+    val forwarding = forwardedHeaderHandler.forwardedRequest(
+      rawRemote,
+      headers,
+      directScheme,
+      initialTarget.authority
+    )
+    val effectiveScheme = RequestHeader
+      .effectiveScheme(initialTarget.scheme, directScheme, forwarding.scheme)
+      .fold(error => throw new IllegalArgumentException(error), identity)
+    val normalizedTarget   = RequestHeader.normalizeRequestTargetPath(requestTarget, initialTarget)
+    val clientCertificates = clientCertificateHeaderHandler.clientCertificates(transport, headers)
+    val attrs              = TypedMap(
+      // This is the earliest stage of a Play request at which we can set an id.
+      RequestAttrKey.Id -> RequestIdProvider.freshId(),
+    )
+    new RequestHeaderImpl(
+      forwarding.remote,
+      request.method.name,
+      normalizedTarget,
+      request.protocol.value,
+      headers,
+      attrs,
+      transport,
+      clientCertificates.clientCertificate,
+      effectiveScheme,
+      forwarding.authority,
+      clientCertificates.xForwardedClientCertificates
+    )
+  }
+
+  /**
+   * Build a nonthrowing header for reporting a request-conversion error.
+   *
+   * Normal request conversion might have failed before all target metadata was available. This
+   * recovery path therefore derives target metadata best-effort and still applies independently
+   * valid trusted forwarding metadata. Forwarding validation is fail-closed; an unexpected failure
+   * falls back to the directly observed request metadata so construction for HttpErrorHandler cannot
+   * repeat the original failure.
+   */
+  def createErrorRequestHeader(
+      headers: Headers,
+      secureProtocol: Boolean,
+      remoteAddress: InetSocketAddress,
+      requestTarget: RequestTarget,
+      request: HttpRequest,
+      requestFailure: Throwable
+  ): RequestHeader = {
+    val transport          = createTransport(remoteAddress, secureProtocol, request)
+    val clientCertificates =
+      clientCertificateHeaderHandler.clientCertificatesForErrorRequest(transport, headers, requestFailure)
+    val rawRemote     = RemoteInfo.fromPeer(transport.peer)
+    val directScheme  = RequestHeader.initialScheme(transport)
+    val initialTarget = RequestHeader
+      .initialRequestTarget(request.method.name, requestTarget, request.protocol.value, headers)
+      .toOption
+    val initialAuthority = initialTarget.flatMap(_.authority)
+    val forwarding       = try {
+      forwardedHeaderHandler.forwardedRequest(rawRemote, headers, directScheme, initialAuthority)
+    } catch {
+      case NonFatal(error) =>
+        logger.warn("Failed to apply forwarded metadata to an error request; using direct metadata.", error)
+        ForwardedHeaderHandler.ParsedForwarding(rawRemote, directScheme, initialAuthority)
+    }
+    val scheme = RequestHeader
+      .effectiveScheme(initialTarget.flatMap(_.scheme), directScheme, forwarding.scheme)
+      .getOrElse(forwarding.scheme)
+    val attrs = TypedMap(RequestAttrKey.Id -> RequestIdProvider.freshId())
+
+    new RequestHeaderImpl(
+      forwarding.remote,
+      request.method.name,
+      requestTarget,
+      request.protocol.value,
+      headers,
+      attrs,
+      transport,
+      clientCertificates.clientCertificate,
+      scheme,
+      forwarding.authority,
+      clientCertificates.xForwardedClientCertificates
+    )
+  }
+
+  private def createTransport(
+      remoteAddress: InetSocketAddress,
+      secureProtocol: Boolean,
+      request: HttpRequest
+  ): TransportConnection = {
+    val peer = PeerEndpoint(remoteAddress.getAddress, Some(remoteAddress.getPort))
+    val tls  = Option.when(secureProtocol) {
+      val peerCertificates = try {
+        request
+          .header[`Tls-Session-Info`]
+          .map { tlsSessionInfo =>
             immutable.ArraySeq
               .unsafeWrapArray(tlsSessionInfo.getSession.getPeerCertificates)
               .collect { case x509: X509Certificate => x509 }
           }
-        } catch {
-          case _: SSLPeerUnverifiedException => None
-        }
+          .getOrElse(Seq.empty)
+      } catch {
+        case _: SSLPeerUnverifiedException => Seq.empty
       }
+      TransportTls(peerCertificates)
     }
-    val forwarding       = forwardedHeaderHandler.forwardedRequest(rawConnection, headers)
-    val forwardedHeaders = forwarding.host.fold(headers)(host => headers.replace(HeaderNames.HOST -> host))
-    val attrs            = TypedMap(
-      // This is the earliest stage of a Play request at which we can set an id.
-      RequestAttrKey.Id -> RequestIdProvider.freshId(),
-    )
-    val effectiveAttrs = forwarding.host.fold(attrs)(host => attrs.updated(RequestAttrKey.EffectiveHost, host))
-
-    new RequestHeaderImpl(
-      forwarding.connection,
-      request.method.name,
-      requestTarget,
-      request.protocol.value,
-      forwardedHeaders,
-      effectiveAttrs
-    )
+    TransportConnection(peer, tls)
   }
 
   /**

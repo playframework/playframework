@@ -126,6 +126,14 @@ class RangeSpec extends Specification {
     "When range header is empty" in {
       Range(entityLength = Some(100), range = "") must beNone
     }
+
+    "When the first byte exceeds Long.MaxValue" in {
+      Range(entityLength = Some(100), range = "9223372036854775808-0") must beNone
+    }
+
+    "When the last byte exceeds Long.MaxValue" in {
+      Range(entityLength = Some(100), range = "0-9223372036854775808") must beNone
+    }
   }
 
   "Ordering ranges" in {
@@ -301,6 +309,11 @@ class RangeSetSpec extends Specification {
       val rangeSet = RangeSet(entityLength = Some(120), rangeHeader = Some("bytes=0-0,200-210"))
       rangeSet.entityLength must beSome(120)
       rangeSet must beAnInstanceOf[UnsatisfiableRangeSet]
+    }
+    "When a byte position exceeds Long.MaxValue" in {
+      Seq("bytes=9223372036854775808-0", "bytes=0-9223372036854775808").map { header =>
+        RangeSet(entityLength = Some(120), rangeHeader = Some(header))
+      } must contain(beAnInstanceOf[UnsatisfiableRangeSet]).forall
     }
   }
 

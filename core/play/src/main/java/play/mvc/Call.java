@@ -80,7 +80,7 @@ public abstract class Call {
    * @return the absolute URL string
    */
   public String absoluteURL(Http.Request request) {
-    return absoluteURL(request.secure(), request.host());
+    return request.scheme().render() + "://" + request.host() + this.url() + this.appendFragment();
   }
 
   /**

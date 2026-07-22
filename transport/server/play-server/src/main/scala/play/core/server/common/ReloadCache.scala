@@ -114,4 +114,13 @@ private[play] abstract class ReloadCache[+T] {
       ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(tryApp.toOption.map(_.configuration))
     new ForwardedHeaderHandler(forwardedHeaderConfiguration)
   }
+
+  /** Helper to calculate a forwarded client-certificate handler. */
+  protected final def reloadClientCertificateHeaderHandler(
+      tryApp: Try[Application]
+  ): ClientCertificateHeaderHandler = {
+    val clientCertificateConfiguration =
+      ClientCertificateHeaderHandler.Config(tryApp.toOption.map(_.configuration))
+    new ClientCertificateHeaderHandler(clientCertificateConfiguration)
+  }
 }

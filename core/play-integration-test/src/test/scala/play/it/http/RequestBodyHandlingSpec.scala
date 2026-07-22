@@ -125,18 +125,31 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     "handle a big http request and fail with HTTP Error '413 request entity too large'" in withServerAndConfig(
-      "play.server.max-content-length" -> "21b",
-      "play.http.errorHandler"         -> classOf[CustomErrorHandler].getName,
+      "play.server.max-content-length"          -> "21b",
+      "play.http.errorHandler"                  -> classOf[CustomErrorHandler].getName,
+      "play.http.forwarded.trustXForwardedHost" -> true,
     )((Action, parse) =>
       Action(parse.default(Some(Long.MaxValue))) { rh => Results.Ok(rh.body.asText.getOrElse("")) }
     ) { port =>
       val body      = "Hello World" * 2 // => 22 bytes, but we allow only 21 bytes
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
-        BasicRequest("POST", "/", "HTTP/1.1", Map("Content-Length" -> body.length.toString), body)
+        BasicRequest(
+          "POST",
+          "/",
+          "HTTP/1.1",
+          Map(
+            "Content-Length"    -> body.length.toString,
+            "X-Forwarded-For"   -> "192.0.2.10",
+            "X-Forwarded-Proto" -> "https",
+            "X-Forwarded-Host"  -> "public.example:8443"
+          ),
+          body
+        )
       )
       responses.length must_== 1
       responses(0).status must_== 413
-      responses(0).body.left.getOrElse("") must_=== "Origin: server-backend / Request Entity Too Large"
+      responses(0).body.left.getOrElse("") must_===
+        "Origin: server-backend / Request Entity Too Large / Remote: 192.0.2.10 / Scheme: https / Host: public.example:8443"
     }
 
     "handle a big http request with exact amount of allowed Content-Length" in withServerAndConfig(
@@ -161,7 +174,10 @@ class CustomErrorHandler extends HttpErrorHandler {
         "Origin: " + request.attrs
           .get(HttpErrorHandler.Attrs.HttpErrorInfo)
           .map(_.origin)
-          .getOrElse("<not set>") + " / " + message
+          .getOrElse("<not set>") + " / " + message +
+          " / Remote: " + request.remote.identity +
+          " / Scheme: " + request.scheme.value +
+          " / Host: " + request.host
       )
     )
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result] =

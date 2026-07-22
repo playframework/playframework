@@ -12,6 +12,8 @@ import play.api.http.HttpErrorInfo
 import play.api.http.Status
 import play.api.inject._
 import play.api.libs.streams.Accumulator
+import play.api.mvc.request.AuthorityPort
+import play.api.mvc.request.RequestAuthority
 import play.api.mvc.EssentialAction
 import play.api.mvc.EssentialFilter
 import play.api.mvc.RequestHeader
@@ -48,7 +50,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
   private val hostMatchers: Seq[HostMatcher] = config.allowed.map(HostMatcher.apply)
 
   override def apply(next: EssentialAction) = EssentialAction { req =>
-    if (!config.shouldProtect(req) || hostMatchers.exists(_(req.host))) {
+    if (!config.shouldProtect(req) || hostMatchers.exists(_(req.authority))) {
       next(req)
     } else {
       logger.warn(s"Host not allowed: ${req.host}")(using SecurityMarkerContext)
@@ -67,26 +69,27 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
  * A utility class for matching a host header with a pattern
  */
 private[hosts] case class HostMatcher(pattern: String) {
-  val isSuffix            = pattern.startsWith(".")
-  val (hostPattern, port) = getHostAndPort(pattern)
-
-  def apply(hostHeader: String): Boolean = {
-    val (headerHost, headerPort) = getHostAndPort(hostHeader)
-    val hostMatches              = if (isSuffix) s".$headerHost".endsWith(hostPattern) else headerHost == hostPattern
-    val portMatches              = headerPort.forall(_ > 0) && (port.isEmpty || port == headerPort)
-    hostMatches && portMatches
+  private val parsedPattern: Option[(Boolean, String, Option[AuthorityPort])] = {
+    val trimmed = pattern.trim
+    RequestAuthority
+      .parse(trimmed)
+      .toOption
+      .map(authority => (trimmed.startsWith("."), normalizedHost(authority), authority.port))
   }
 
-  // Get and normalize the host and port
-  // Returns None for no port but Some(-1) for an invalid/non-numeric port
-  private def getHostAndPort(s: String) = {
-    val (h, p) = s.trim.split(""":(?=\d*$)""", 2) match {
-      case Array(h, p) if p.nonEmpty && p.forall(_.isDigit) => (h, Some(p.toInt))
-      case Array(h, _)                                      => (h, Some(-1))
-      case Array(h, _*)                                     => (h, None)
+  def apply(authority: Option[RequestAuthority]): Boolean = {
+    val (headerHost, headerPort) =
+      authority.fold("" -> Option.empty[AuthorityPort])(value => normalizedHost(value) -> value.port)
+
+    parsedPattern.exists {
+      case (isSuffix, hostPattern, portPattern) =>
+        val hostMatches = if (isSuffix) s".$headerHost".endsWith(hostPattern) else headerHost == hostPattern
+        val portMatches = portPattern.forall(headerPort.contains)
+        hostMatches && portMatches
     }
-    (h.toLowerCase(java.util.Locale.ENGLISH).stripSuffix("."), p)
   }
+
+  private def normalizedHost(authority: RequestAuthority): String = authority.host.render.stripSuffix(".")
 }
 
 case class AllowedHostsConfig(allowed: Seq[String], shouldProtect: RequestHeader => Boolean = _ => true) {

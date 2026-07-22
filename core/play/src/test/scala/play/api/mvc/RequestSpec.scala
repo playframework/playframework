@@ -10,8 +10,10 @@ import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request.DefaultRequestFactory
-import play.api.mvc.request.RemoteConnection
+import play.api.mvc.request.PeerEndpoint
+import play.api.mvc.request.RemoteInfo
 import play.api.mvc.request.RequestTarget
+import play.api.mvc.request.TransportConnection
 import play.mvc.Http.RequestBody
 
 class RequestSpec extends Specification {
@@ -139,10 +141,22 @@ class RequestSpec extends Specification {
       headers: Headers = Headers(),
       body: RequestBody = new RequestBody(null)
   ): Request[RequestBody] = {
+    val peer      = PeerEndpoint(com.google.common.net.InetAddresses.forString("127.0.0.1"), None)
+    val transport = TransportConnection(peer, None)
+    val remote    = RemoteInfo.fromPeer(peer)
+    val target    = RequestTarget(requestUri, "", Map.empty)
+    val authority = RequestHeader
+      .initialAuthority(requestMethod, target, headers)
+      .fold(error => throw new IllegalArgumentException(error), identity)
     new DefaultRequestFactory(HttpConfiguration()).createRequest(
-      connection = RemoteConnection("", false, None),
-      method = "GET",
-      target = RequestTarget(requestUri, "", Map.empty),
+      transport = transport,
+      clientCertificate = None,
+      xForwardedClientCertificates = Vector.empty,
+      remote = remote,
+      scheme = RequestHeader.initialScheme(transport),
+      authority = authority,
+      method = requestMethod,
+      target = target,
       version = "",
       headers = headers,
       attrs = TypedMap.empty,

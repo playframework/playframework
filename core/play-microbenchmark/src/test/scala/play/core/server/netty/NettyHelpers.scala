@@ -20,6 +20,7 @@ import play.api.libs.crypto.CookieSignerProvider
 import play.api.mvc.DefaultCookieHeaderEncoding
 import play.api.mvc.DefaultFlashCookieBaker
 import play.api.mvc.DefaultSessionCookieBaker
+import play.core.server.common.ClientCertificateHeaderHandler
 import play.core.server.common.ForwardedHeaderHandler
 import play.core.server.common.ServerResultUtils
 
@@ -38,6 +39,7 @@ object NettyHelpers {
     new NettyModelConversion(
       serverResultUtils,
       new ForwardedHeaderHandler(ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(None)),
+      new ClientCertificateHeaderHandler(ClientCertificateHeaderHandler.Config(None)),
       None
     )
   }

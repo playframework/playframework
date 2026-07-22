@@ -58,17 +58,16 @@ private[common] object Rfc7239HeaderParser {
 
       while (index < input.length && input.charAt(index) == ';') {
         index += 1
+        // Play 3.0 partially accepted fields containing whitespace after `;`:
+        // it retained the preceding parameter but lost the whitespace-prefixed
+        // one. Accept that whitespace as a bounded compatibility allowance so
+        // the complete field is retained, while keeping all other RFC 7239
+        // parameter whitespace invalid.
+        skipOptionalWhitespace()
         if (index < input.length && input.charAt(index) != ';' && input.charAt(index) != ',') {
-          if (isOptionalWhitespace(input.charAt(index))) {
-            skipOptionalWhitespace()
-            if (index < input.length && input.charAt(index) != ',') {
-              return Left(s"Whitespace is not allowed before a parameter at position $index")
-            }
-          } else {
-            parsePair(parameters) match {
-              case Left(error) => return Left(error)
-              case Right(_)    =>
-            }
+          parsePair(parameters) match {
+            case Left(error) => return Left(error)
+            case Right(_)    =>
           }
         }
       }

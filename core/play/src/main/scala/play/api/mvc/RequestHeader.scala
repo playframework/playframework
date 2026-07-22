@@ -4,7 +4,6 @@
 
 package play.api.mvc
 
-import java.security.cert.X509Certificate
 import java.util.Locale
 
 import scala.annotation.implicitNotFound
@@ -26,16 +25,137 @@ import play.api.mvc.request._
 trait RequestHeader {
   top =>
 
-  /**
-   * The remote connection metadata for this request.
-   *
-   * This is the primary API for connection metadata such as the selected remote
-   * identity, IP address, port, secure flag, and client certificate chain.
-   */
-  def connection: RemoteConnection
+  /** Metadata about the network connection directly terminating at Play. */
+  def transport: TransportConnection
 
-  def withConnection(newConnection: RemoteConnection): RequestHeader =
-    new RequestHeaderImpl(newConnection, method, target, version, headers, attrs)
+  /** Return a copy with different direct transport metadata. */
+  def withTransport(newTransport: TransportConnection): RequestHeader =
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      newTransport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
+
+  /** The effective X.509 client certificate selected for this request, if present. */
+  def clientCertificate: Option[ClientCertificateInfo]
+
+  /** Return a copy with different effective client certificate information. */
+  def withClientCertificate(newClientCertificate: Option[ClientCertificateInfo]): RequestHeader =
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      transport,
+      newClientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
+
+  /** Accepted `X-Forwarded-Client-Cert` assertions in client-to-Play order. */
+  def xForwardedClientCertificates: Vector[XForwardedClientCert]
+
+  /** Return a copy with a different ordered sequence of accepted XFCC assertions. */
+  def withXForwardedClientCertificates(
+      newXForwardedClientCertificates: Seq[XForwardedClientCert]
+  ): RequestHeader = {
+    require(newXForwardedClientCertificates != null, "The XFCC assertion sequence must not be null")
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      newXForwardedClientCertificates.toVector
+    )
+  }
+
+  /**
+   * The normalized effective request scheme.
+   *
+   * This is derived initially from direct transport TLS and may then be replaced by trusted forwarding metadata.
+   */
+  def scheme: Scheme
+
+  /** Return a copy with a different effective request scheme. */
+  def withScheme(newScheme: Scheme): RequestHeader =
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      newScheme,
+      authority,
+      xForwardedClientCertificates
+    )
+
+  /**
+   * The normalized effective request authority, if the request has one.
+   *
+   * [[host]], [[domain]], and the exposed `Host` header are derived from this value.
+   */
+  def authority: Option[RequestAuthority]
+
+  /**
+   * Return a copy with a different effective request authority.
+   *
+   * This is the only copy operation that changes the canonical `Host` header.
+   */
+  def withAuthority(newAuthority: Option[RequestAuthority]): RequestHeader =
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      newAuthority,
+      xForwardedClientCertificates
+    )
+
+  /**
+   * The selected remote-node metadata for this request.
+   */
+  def remote: RemoteInfo
+
+  /** Return a copy with different selected remote-node metadata. */
+  def withRemote(newRemote: RemoteInfo): RequestHeader =
+    new RequestHeaderImpl(
+      newRemote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
   /**
    * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
@@ -51,7 +171,19 @@ trait RequestHeader {
    * Return a new copy of the request with its method changed.
    */
   def withMethod(newMethod: String): RequestHeader =
-    new RequestHeaderImpl(connection, newMethod, target, version, headers, attrs)
+    new RequestHeaderImpl(
+      remote,
+      newMethod,
+      target,
+      version,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
   /**
    * The target of the HTTP request, i.e. the URI or path that was
@@ -61,9 +193,23 @@ trait RequestHeader {
 
   /**
    * Return a new copy of the request with its target changed.
+   *
+   * This operation preserves the effective [[scheme]] and [[authority]].
    */
   def withTarget(newTarget: RequestTarget): RequestHeader =
-    new RequestHeaderImpl(connection, method, newTarget, version, headers, attrs)
+    new RequestHeaderImpl(
+      remote,
+      method,
+      newTarget,
+      version,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
   /**
    * The complete request URI, containing both path and query string.
@@ -90,7 +236,19 @@ trait RequestHeader {
    * Return a new copy of the request with its HTTP version changed.
    */
   def withVersion(newVersion: String): RequestHeader =
-    new RequestHeaderImpl(connection, method, target, newVersion, headers, attrs)
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      newVersion,
+      headers,
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
   /**
    * The parsed query string. This method delegates to `target.queryMap`.
@@ -104,55 +262,27 @@ trait RequestHeader {
 
   /**
    * Return a new copy of the request with its HTTP headers changed.
+   *
+   * This operation preserves the effective [[authority]]. A missing `Host` field is restored from that authority. A
+   * conflicting or duplicate `Host` field is rejected; use [[withAuthority]] to change the authority explicitly.
    */
   def withHeaders(newHeaders: Headers): RequestHeader =
-    new RequestHeaderImpl(connection, method, target, version, newHeaders, attrs)
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      RequestHeader.validateReplacementHeaders(newHeaders, authority),
+      attrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
-  /**
-   * The client IP address, or a fallback IP address when the remote client is
-   * represented by an RFC 7239 unknown or obfuscated identifier.
-   *
-   * retrieves the last untrusted proxy
-   * from the Forwarded-Headers or the X-Forwarded-*-Headers.
-   *
-   * This method delegates to `connection.remoteAddressString`.
-   */
-  @deprecated(
-    "Use connection.remoteIdentity for the remote identity as a string, connection.remoteNode for the structured RFC 7239 remote identity, or connection.remoteIpAddress for an IP-only value. " +
-      "This legacy address cannot represent RFC 7239 unknown or obfuscated identifiers and may " +
-      "return a fallback proxy address when the selected forwarded identity is not an IP.",
-    "3.1.0"
-  )
-  final def remoteAddress: String = connection.remoteAddressString
-
-  /**
-   * The remote identity as a string.
-   *
-   * If the remote identity is an IP address, this returns the address in textual
-   * form. If the remote identity is an RFC 7239 `unknown` or obfuscated
-   * identifier, this returns that identifier.
-   *
-   * This is a request-level shortcut for `connection.remoteIdentity`.
-   */
-  final def remoteIdentity: String = connection.remoteIdentity
-
-  /**
-   * The client port, if known.
-   *
-   * This method delegates to `connection.remotePort`.
-   */
-  final def remotePort: Option[Int] = connection.remotePort
-
-  /**
-   * Is the client using SSL? This method delegates to `connection.secure`.
-   */
-  final def secure: Boolean = connection.secure
-
-  /**
-   * The X509 certificate chain presented by a client during SSL requests.  This method is
-   * equivalent to `connection.clientCertificateChain`.
-   */
-  final def clientCertificateChain: Option[Seq[X509Certificate]] = connection.clientCertificateChain
+  /** Whether the effective request scheme is HTTPS. */
+  final def secure: Boolean = scheme.isSecure
 
   /**
    * A map of typed attributes associated with the request.
@@ -167,7 +297,19 @@ trait RequestHeader {
    * @return The new version of this object with the attributes attached.
    */
   def withAttrs(newAttrs: TypedMap): RequestHeader =
-    new RequestHeaderImpl(connection, method, target, version, headers, newAttrs)
+    new RequestHeaderImpl(
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      newAttrs,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
   /**
    * Create a new versions of this object with the given attribute attached to it.
@@ -230,7 +372,7 @@ trait RequestHeader {
   // -- Computed
 
   /**
-   * Helper method to access a queryString parameter. This method delegates to `connection.getQueryParameter(key)`.
+   * Helper method to access a queryString parameter. This method delegates to `target.getQueryParameter(key)`.
    *
    * @return The query parameter's value if the parameter is present
    *         and there is only one value. If the parameter is absent
@@ -246,26 +388,14 @@ trait RequestHeader {
    */
   def hasBody: Boolean = headers.hasBody
 
-  /**
-   * The HTTP host (domain, optionally port). Trusted forwarding information takes precedence when the server has
-   * selected an effective host. Otherwise, this value is derived from the request target if a hostname is present,
-   * then from the `Host` header. If none of these is present, an empty string is returned. Selecting an effective host
-   * does not modify the request target exposed through [[uri]] and [[path]].
-   */
-  lazy val host: String = {
-    import RequestHeader.AbsoluteUri
-    attrs.get(RequestAttrKey.EffectiveHost).getOrElse {
-      uri match {
-        case AbsoluteUri(proto, hostPort, rest) => hostPort
-        case _                                  => headers.get(HeaderNames.HOST).getOrElse("")
-      }
-    }
-  }
+  /** The normalized effective request authority, including its port when present. */
+  final def host: String = authority.fold("")(_.render)
 
   /**
-   * The HTTP domain. The domain part of the request's [[host]].
+   * The HTTP domain. This is the request's [[host]] without its port. Brackets
+   * around an IPv6 address are preserved so the result can be used in a URI.
    */
-  lazy val domain: String = host.split(':').head
+  final def domain: String = authority.fold("")(_.host.render)
 
   /**
    * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
@@ -312,7 +442,7 @@ trait RequestHeader {
   def flash: Flash = attrs.get(RequestAttrKey.Flash).map(_.value).getOrElse(Flash(Map.empty))
 
   /**
-   * Returns the raw query string. This method delegates to `connection.rawQueryString`.
+   * Returns the raw query string. This method delegates to `target.queryString`.
    */
   def rawQueryString: String = target.queryString
 
@@ -343,7 +473,20 @@ trait RequestHeader {
    * @return A new request with the body attached to the header.
    */
   def withBody[A](body: A): Request[A] =
-    new RequestImpl[A](connection, method, target, version, headers, attrs, body)
+    new RequestImpl[A](
+      remote,
+      method,
+      target,
+      version,
+      headers,
+      attrs,
+      body,
+      transport,
+      clientCertificate,
+      scheme,
+      authority,
+      xForwardedClientCertificates
+    )
 
   /**
    * Create a new versions of this object with the given transient language set.
@@ -399,7 +542,237 @@ trait RequestHeader {
 }
 
 object RequestHeader {
-  private val AbsoluteUri = """(?is)^(https?)://([^/]+)(/.*|$)""".r
+  private val UriScheme = """^([A-Za-z][A-Za-z0-9+.-]*):""".r
+
+  /** Recognized HTTP(S) absolute-form metadata before authority parsing. */
+  private[play] final case class AbsoluteRequestTarget(
+      scheme: Scheme,
+      authority: Option[String]
+  )
+
+  /** Direct request-target metadata selected before trusted forwarding is applied. */
+  private[play] final case class InitialRequestTarget(
+      scheme: Option[Scheme],
+      authority: Option[RequestAuthority]
+  )
+
+  /** Derive the effective scheme from the transport terminating directly at Play. */
+  private[play] def initialScheme(transport: TransportConnection): Scheme = {
+    if (transport.tls.isDefined) Scheme.Https else Scheme.Http
+  }
+
+  /** Derive and validate request-target metadata before trusted forwarding metadata is applied. */
+  private[play] def initialRequestTarget(
+      method: String,
+      target: RequestTarget,
+      version: String,
+      headers: Headers
+  ): Either[String, InitialRequestTarget] = {
+    val hostValues = headers.getAll(HeaderNames.HOST)
+    if (target.uriString.indexOf('#') >= 0) {
+      Left("A request target must not contain a fragment")
+    } else if (hostValues.sizeIs > 1) {
+      Left("A request must not contain more than one Host header")
+    } else if ("HTTP/1.1".equalsIgnoreCase(version) && hostValues.isEmpty) {
+      Left("An HTTP/1.1 request must contain a Host header")
+    } else {
+      val hostAuthority = hostValues.headOption match {
+        case Some(value) => parseAuthority(value).map(Some(_))
+        case None        => Right(None)
+      }
+
+      hostAuthority.flatMap { parsedHost =>
+        def requireNonEmptyHost[A](result: => Either[String, A]): Either[String, A] =
+          Either
+            .cond(
+              parsedHost.forall(_.host.render.nonEmpty),
+              (),
+              "A Host header must contain a non-empty host"
+            )
+            .flatMap(_ => result)
+
+        if (method == "CONNECT") {
+          parseAuthority(target.uriString).flatMap { authority =>
+            Either.cond(
+              authority.host.render.nonEmpty && authority.port.flatMap(_.tcpPort).exists(_ > 0),
+              InitialRequestTarget(None, Some(authority)),
+              "A CONNECT request target must contain a non-empty host and a TCP port from 1 through 65535"
+            )
+          }
+        } else if (target.uriString == "*") {
+          requireNonEmptyHost {
+            Either.cond(
+              method == "OPTIONS",
+              InitialRequestTarget(None, parsedHost),
+              "Only an OPTIONS request may use the asterisk-form request target"
+            )
+          }
+        } else if (target.uriString.startsWith("/")) {
+          requireNonEmptyHost(Right(InitialRequestTarget(None, parsedHost)))
+        } else {
+          absoluteTarget(target.uriString) match {
+            case Right(absolute) =>
+              absolute.authority match {
+                case Some(authorityValue) =>
+                  for {
+                    authority <- parseAuthority(authorityValue)
+                    _         <- Either.cond(
+                      authority.host.render.nonEmpty,
+                      (),
+                      "An absolute-form request target must contain a non-empty host"
+                    )
+                    result <- httpAbsoluteTarget(absolute.scheme, Some(authority))
+                  } yield result
+                case None =>
+                  httpAbsoluteTarget(absolute.scheme, None)
+              }
+            case Left(error) => Left(error)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Normalize the application-facing path of a validated request target while retaining its raw URI.
+   *
+   * RFC 3986 section 6.2.3 defines an empty path as equivalent to `/` for schemes with an
+   * authority. [[InitialRequestTarget.scheme]] is present only for accepted HTTP(S) absolute-form
+   * targets, so origin-form, asterisk-form, and CONNECT authority-form targets remain unchanged.
+   */
+  private[play] def normalizeRequestTargetPath(
+      target: RequestTarget,
+      initialTarget: InitialRequestTarget
+  ): RequestTarget = {
+    if (initialTarget.scheme.isDefined && target.path.isEmpty) target.withPath("/") else target
+  }
+
+  /** Derive authority for synthetic requests that do not enforce a wire protocol version. */
+  private[play] def initialAuthority(
+      method: String,
+      target: RequestTarget,
+      headers: Headers
+  ): Either[String, Option[RequestAuthority]] =
+    initialRequestTarget(method, target, "", headers).map(_.authority)
+
+  /**
+   * Reconcile an absolute target scheme with direct transport and trusted forwarding metadata.
+   *
+   * A trusted gateway may preserve the public absolute target or rewrite it to the scheme of its
+   * backend connection. The final forwarded scheme contains only direct or proxy-trust-validated
+   * metadata, so expose it as the canonical application-facing scheme while requiring the raw
+   * target to describe one side of that trusted hop.
+   */
+  private[play] def effectiveScheme(
+      targetScheme: Option[Scheme],
+      directScheme: Scheme,
+      forwardedScheme: Scheme
+  ): Either[String, Scheme] = {
+    targetScheme match {
+      case Some(value) if value != directScheme && value != forwardedScheme =>
+        Left(
+          s"Absolute request scheme '${value.render}' matches neither direct scheme " +
+            s"'${directScheme.render}' nor trusted forwarded scheme '${forwardedScheme.render}'"
+        )
+      case _ => Right(forwardedScheme)
+    }
+  }
+
+  private[play] def absoluteTarget(target: String): Either[String, AbsoluteRequestTarget] = {
+    UriScheme.findPrefixMatchOf(target) match {
+      case Some(matched) =>
+        for {
+          scheme <- Scheme.parse(matched.group(1)).left.map(error => s"Invalid absolute request scheme: $error")
+          // Play cannot route other schemes. Reject after recognizing the scheme instead of
+          // parsing the remainder solely to refine an error for a request that will always fail.
+          _ <- Either.cond(
+            scheme == Scheme.Http || scheme == Scheme.Https,
+            (),
+            s"Unsupported absolute request scheme '${scheme.render}'"
+          )
+        } yield {
+          val authority = Option.when(target.startsWith("//", matched.end)) {
+            val start = matched.end + 2
+            val end   = target.indexWhere(char => char == '/' || char == '?', start) match {
+              case -1    => target.length
+              case index => index
+            }
+            target.substring(start, end)
+          }
+          AbsoluteRequestTarget(scheme, authority)
+        }
+      case None =>
+        Left("A request target must use origin-form, absolute-form, or OPTIONS asterisk-form")
+    }
+  }
+
+  private def httpAbsoluteTarget(
+      scheme: Scheme,
+      authority: Option[RequestAuthority]
+  ): Either[String, InitialRequestTarget] =
+    Either.cond(
+      authority.exists(_.host.render.nonEmpty),
+      InitialRequestTarget(Some(scheme), authority),
+      s"An absolute-form ${scheme.render} request target must contain a non-empty authority"
+    )
+
+  private def parseAuthority(value: String): Either[String, RequestAuthority] =
+    RequestAuthority.parse(value).left.map(error => s"Invalid request authority: $error")
+
+  /** Validate that generic header replacement does not mutate the effective authority. */
+  private[mvc] def validateReplacementHeaders(
+      headers: Headers,
+      authority: Option[RequestAuthority]
+  ): Headers = {
+    val hostValues = headers.getAll(HeaderNames.HOST)
+    if (hostValues.sizeIs > 1) {
+      throw new IllegalArgumentException(
+        "withHeaders cannot set duplicate Host headers; use withAuthority to replace the effective authority"
+      )
+    }
+
+    (authority.map(_.render), hostValues.headOption) match {
+      case (Some(expected), Some(actual)) if actual != expected =>
+        throw new IllegalArgumentException(
+          s"withHeaders cannot change Host from '$expected' to '$actual'; use withAuthority instead"
+        )
+      case (None, Some(actual)) =>
+        throw new IllegalArgumentException(
+          s"withHeaders cannot add Host '$actual' when the request has no authority; use withAuthority instead"
+        )
+      case _ => headers
+    }
+  }
+
+  /** Expose the effective authority as the one canonical Host field. */
+  private[mvc] def canonicalHeaders(headers: Headers, authority: Option[RequestAuthority]): Headers = {
+    val underlying = headers match {
+      case canonical: CanonicalAuthorityHeaders => canonical.underlying
+      case other                                => other
+    }
+    val rendered = authority.map(_.render)
+    val existing = underlying.getAll(HeaderNames.HOST)
+
+    if (existing == rendered.toSeq) underlying
+    else new CanonicalAuthorityHeaders(underlying, rendered)
+  }
+
+  private final class CanonicalAuthorityHeaders(
+      val underlying: Headers,
+      authority: Option[String]
+  ) extends Headers(Seq.empty) {
+    override def headers: Seq[(String, String)] =
+      underlying.headers.filterNot(_._1.equalsIgnoreCase(HeaderNames.HOST)) ++
+        authority.map(HeaderNames.HOST -> _)
+
+    override def get(name: String): Option[String] = {
+      if (name.equalsIgnoreCase(HeaderNames.HOST)) authority else underlying.get(name)
+    }
+
+    override def getAll(name: String): Seq[String] = {
+      if (name.equalsIgnoreCase(HeaderNames.HOST)) authority.toSeq else underlying.getAll(name)
+    }
+  }
 
   // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
   val qPattern = ";\\s*q=([0-9.]+)".r
@@ -425,10 +798,33 @@ object RequestHeader {
  * A standard implementation of a RequestHeader.
  */
 private[play] class RequestHeaderImpl(
-    override val connection: RemoteConnection,
+    override val remote: RemoteInfo,
     override val method: String,
     override val target: RequestTarget,
     override val version: String,
-    override val headers: Headers,
-    override val attrs: TypedMap
-) extends RequestHeader
+    requestHeaders: Headers,
+    override val attrs: TypedMap,
+    override val transport: TransportConnection,
+    override val clientCertificate: Option[ClientCertificateInfo],
+    override val scheme: Scheme,
+    override val authority: Option[RequestAuthority],
+    override val xForwardedClientCertificates: Vector[XForwardedClientCert] = Vector.empty
+) extends RequestHeader {
+  require(remote != null, "Selected remote metadata must not be null")
+  require(transport != null, "Direct transport metadata must not be null")
+  require(
+    clientCertificate != null && clientCertificate.forall(_ != null),
+    "Effective client certificate option must not be null or contain null"
+  )
+  require(scheme != null, "Effective request scheme must not be null")
+  require(
+    authority != null && authority.forall(_ != null),
+    "Effective request authority option must not be null or contain null"
+  )
+  require(
+    xForwardedClientCertificates != null && xForwardedClientCertificates.forall(_ != null),
+    "The XFCC assertion sequence must not be null or contain null"
+  )
+
+  override val headers: Headers = RequestHeader.canonicalHeaders(requestHeaders, authority)
+}

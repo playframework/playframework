@@ -9,11 +9,11 @@ import Keys._
 
 object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M3")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+169-56f2f5ad-SNAPSHOT")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+197-d53065af-SNAPSHOT")
 
   val playJsonVersion = "3.1.0-M10"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.5.37"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.5.38"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -29,7 +29,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.19.0"      % Test
   )
 
-  val jacksonVersion  = "2.21.4"
+  val jacksonVersion  = "2.21.5"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -86,8 +86,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.4.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.4.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.4.5.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.5.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -231,7 +231,7 @@ object Dependencies {
     "org.apache.pekko"   %% "pekko-stream"     % pekkoVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val bouncyCastleVersion    = "1.84"
+  val bouncyCastleVersion    = "1.85"
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion,
     "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion,

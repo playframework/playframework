@@ -880,9 +880,11 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
    * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    */
   private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
-    val decodedFile  = UriEncoding.decodePath(file, "utf-8")
-    val resourceName = removeExtraSlashes(s"/$path/$decodedFile")
-    if (!fileLikeCanonicalPath(resourceName).startsWith(fileLikeCanonicalPath(path))) {
+    val decodedFile           = UriEncoding.decodePath(file, "utf-8")
+    val resourceName          = removeExtraSlashes(s"/$path/$decodedFile")
+    val canonicalPath         = fileLikeCanonicalPath(path)
+    val canonicalResourceName = fileLikeCanonicalPath(resourceName)
+    if (canonicalResourceName != canonicalPath && !canonicalResourceName.startsWith(s"$canonicalPath/")) {
       None
     } else {
       Some(resourceName)

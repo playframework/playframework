@@ -159,18 +159,20 @@ private[mvc] object Range {
 
   def apply(entityLength: Option[Long], range: String): Option[Range] = range match {
     case RangePattern(first, last) =>
-      val firstByte = asOptionLong(first)
-      val lastByte  = asOptionLong(last)
-
-      if ((firstByte ++ lastByte).isEmpty) return None // unsatisfiable range
-
-      entityLength
-        .map(entityLen => WithEntityLengthRange(entityLen, firstByte, lastByte))
-        .orElse(Some(WithoutEntityLengthRange(firstByte, lastByte)))
+      for {
+        firstByte <- asOptionLong(first)
+        lastByte  <- asOptionLong(last)
+        if (firstByte ++ lastByte).nonEmpty
+      } yield {
+        entityLength
+          .map(entityLen => WithEntityLengthRange(entityLen, firstByte, lastByte))
+          .getOrElse(WithoutEntityLengthRange(firstByte, lastByte))
+      }
     case _ => None // unsatisfiable range
   }
 
-  private def asOptionLong(string: String) = if (string.isEmpty) None else Some(string.toLong)
+  private def asOptionLong(string: String): Option[Option[Long]] =
+    if (string.isEmpty) Some(None) else string.toLongOption.map(Some(_))
 }
 
 private[mvc] trait RangeSet {

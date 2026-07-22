@@ -1,2 +1,3 @@
 Highlights31:What's new?
+RequestMetadataHighlights31:Typed request and forwarded metadata
 !migration31:Migration Guides

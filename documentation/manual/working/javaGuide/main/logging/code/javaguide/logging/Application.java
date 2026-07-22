@@ -40,10 +40,10 @@ class AccessLoggingAction extends Action.Simple {
 
   public CompletionStage<Result> call(Http.Request request) {
     accessLogger.info(
-        "method={} uri={} remote-address={}",
+        "method={} uri={} remote-identity={}",
         request.method(),
         request.uri(),
-        request.connection().remoteIdentity());
+        request.remote().identity());
 
     return delegate.call(request);
   }

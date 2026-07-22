@@ -28,10 +28,7 @@ public class FiltersTest extends WithApplication {
 
     // #test-with-request-builder
     Http.RequestBuilder request =
-        new Http.RequestBuilder()
-            .method(GET)
-            .header(Http.HeaderNames.HOST, "localhost")
-            .uri("/xx/Kiwi");
+        new Http.RequestBuilder().method(GET).host("localhost").uri("/xx/Kiwi");
     // #test-with-request-builder
 
     Helpers.routeAndCall(app, router, request, 10_000 /* 10 seconds */);

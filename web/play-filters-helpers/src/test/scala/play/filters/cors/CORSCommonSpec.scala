@@ -6,6 +6,8 @@ package play.filters.cors
 
 import scala.concurrent.Future
 
+import play.api.mvc.request.RequestAuthority
+import play.api.mvc.request.Scheme
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
@@ -23,9 +25,10 @@ trait CORSCommonSpec extends PlaySpecification {
     header(ACCESS_CONTROL_MAX_AGE, result) must beNone
   }
 
-  def fakeRequest(method: String = "GET", path: String = "/") = FakeRequest(method, path).withHeaders(
-    HOST -> "www.example.com"
-  )
+  // Authority is canonical request state. Generic header replacement cannot change Host implicitly;
+  // use withAuthority when a test needs a different effective host.
+  def fakeRequest(method: String = "GET", path: String = "/") =
+    FakeRequest(method, path).withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com")))
 
   def commonTests = {
     "pass through requests without an origin header" in withApplication() { app =>
@@ -39,10 +42,9 @@ trait CORSCommonSpec extends PlaySpecification {
       "with a port number" in withApplication() { app =>
         val result = route(
           app,
-          FakeRequest().withHeaders(
-            ORIGIN -> "http://www.example.com:9000",
-            HOST   -> "www.example.com:9000"
-          )
+          FakeRequest()
+            .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com:9000")))
+            .withHeaders(ORIGIN -> "http://www.example.com:9000")
         ).get
 
         status(result) must_== OK
@@ -52,10 +54,59 @@ trait CORSCommonSpec extends PlaySpecification {
       "without a port number" in withApplication() { app =>
         val result = route(
           app,
-          FakeRequest().withHeaders(
-            ORIGIN -> "http://www.example.com",
-            HOST   -> "www.example.com"
-          )
+          FakeRequest()
+            .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com")))
+            .withHeaders(ORIGIN -> "http://www.example.com")
+        ).get
+
+        status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+      "when only the HTTP request authority specifies the default port" in withApplication() { app =>
+        val result = route(
+          app,
+          FakeRequest()
+            .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com:80")))
+            .withHeaders(ORIGIN -> "http://www.example.com")
+        ).get
+
+        status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+      "when only the HTTP origin specifies the default port" in withApplication() { app =>
+        val result = route(
+          app,
+          FakeRequest()
+            .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com")))
+            .withHeaders(ORIGIN -> "http://www.example.com:80")
+        ).get
+
+        status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+      "when only the HTTPS request authority specifies the default port" in withApplication() { app =>
+        val result = route(
+          app,
+          FakeRequest()
+            .withScheme(Scheme.Https)
+            .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com:443")))
+            .withHeaders(ORIGIN -> "https://www.example.com")
+        ).get
+
+        status(result) must_== OK
+        header(VARY, result) must beSome(ORIGIN)
+        mustBeNoAccessControlResponseHeaders(result)
+      }
+      "when only the HTTPS origin specifies the default port" in withApplication() { app =>
+        val result = route(
+          app,
+          FakeRequest()
+            .withScheme(Scheme.Https)
+            .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com")))
+            .withHeaders(ORIGIN -> "https://www.example.com:443")
         ).get
 
         status(result) must_== OK
@@ -111,10 +162,9 @@ trait CORSCommonSpec extends PlaySpecification {
     "not consider sub domains to be the same origin" in withApplication() { app =>
       val result = route(
         app,
-        fakeRequest().withHeaders(
-          ORIGIN -> "http://www.example.com",
-          HOST   -> "example.com"
-        )
+        fakeRequest()
+          .withAuthority(Some(RequestAuthority.parseOrThrow("example.com")))
+          .withHeaders(ORIGIN -> "http://www.example.com")
       ).get
 
       status(result) must_== OK
@@ -125,10 +175,9 @@ trait CORSCommonSpec extends PlaySpecification {
     "not consider different ports to be the same origin" in withApplication() { app =>
       val result = route(
         app,
-        fakeRequest().withHeaders(
-          ORIGIN -> "http://www.example.com:9000",
-          HOST   -> "www.example.com:9001"
-        )
+        fakeRequest()
+          .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com:9001")))
+          .withHeaders(ORIGIN -> "http://www.example.com:9000")
       ).get
 
       status(result) must_== OK
@@ -139,14 +188,55 @@ trait CORSCommonSpec extends PlaySpecification {
     "not consider different protocols to be the same origin" in withApplication() { app =>
       val result = route(
         app,
-        fakeRequest().withHeaders(
-          ORIGIN -> "https://www.example.com:9000",
-          HOST   -> "www.example.com:9000"
-        )
+        fakeRequest()
+          .withAuthority(Some(RequestAuthority.parseOrThrow("www.example.com:9000")))
+          .withHeaders(ORIGIN -> "https://www.example.com:9000")
       ).get
 
       status(result) must_== OK
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("https://www.example.com:9000")
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    "compare the complete first-class scheme when checking same origin" in withApplication() { app =>
+      val request    = fakeRequest().withScheme(Scheme.parseOrThrow("webcal"))
+      val sameOrigin = route(
+        app,
+        request.withHeaders(ORIGIN -> "webcal://www.example.com")
+      ).get
+      val differentOrigin = route(
+        app,
+        request.withHeaders(ORIGIN -> "http://www.example.com")
+      ).get
+
+      status(sameOrigin) must_== OK
+      mustBeNoAccessControlResponseHeaders(sameOrigin)
+      status(differentOrigin) must_== OK
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, differentOrigin) must beSome("http://www.example.com")
+    }
+
+    "recognize a matching IPvFuture authority without java.net.URI host parsing" in withApplication() { app =>
+      val result = route(
+        app,
+        fakeRequest()
+          .withAuthority(Some(RequestAuthority.parseOrThrow("[vF.FOO:BAR]:8443")))
+          .withHeaders(ORIGIN -> "http://[vf.foo:bar]:8443")
+      ).get
+
+      status(result) must_== OK
+      mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    "handle a different IPvFuture authority as a cross-origin request" in withApplication() { app =>
+      val result = route(
+        app,
+        fakeRequest()
+          .withAuthority(Some(RequestAuthority.parseOrThrow("[v1.fe80::a]")))
+          .withHeaders(ORIGIN -> "http://www.example.com")
+      ).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com")
       header(VARY, result) must beSome(ORIGIN)
     }
 
@@ -168,6 +258,37 @@ trait CORSCommonSpec extends PlaySpecification {
 
       status(result) must_== FORBIDDEN
       mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    "forbid origins with URI components or authorities that cannot appear in a serialized origin" in
+      withApplication() { app =>
+        Seq(
+          "http://www.example.com/path",
+          "http://www.example.com?query=value",
+          "http://www.example.com#fragment",
+          "http://user@www.example.com",
+          "http://"
+        ).foreach { origin =>
+          val result = route(app, fakeRequest().withHeaders(ORIGIN -> origin)).get
+
+          status(result) must_== FORBIDDEN
+          mustBeNoAccessControlResponseHeaders(result)
+        }
+        ok
+      }
+
+    "treat a request without an authority as cross-origin" in withApplication() { app =>
+      val result = route(
+        app,
+        fakeRequest()
+          .withAuthority(None)
+          .withHeaders(ORIGIN -> "http://www.example.com")
+      ).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://www.example.com")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "forbid an unrecognized HTTP method" in withApplication() { app =>

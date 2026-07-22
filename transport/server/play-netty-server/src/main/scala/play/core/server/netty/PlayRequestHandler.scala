@@ -28,6 +28,7 @@ import play.api.mvc.request.RequestAttrKey
 import play.api.Application
 import play.api.Logger
 import play.api.Mode
+import play.core.server.common.ClientCertificateHeaderHandler.InvalidClientCertificateHeaderException
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
@@ -72,9 +73,15 @@ private[play] class PlayRequestHandler(
    */
   private val reloadCache = new ReloadCache[ReloadCacheValues] {
     protected override def reloadValue(tryApp: Try[Application]): ReloadCacheValues = {
-      val serverResultUtils      = reloadServerResultUtils(tryApp)
-      val forwardedHeaderHandler = reloadForwardedHeaderHandler(tryApp)
-      val modelConversion        = new NettyModelConversion(serverResultUtils, forwardedHeaderHandler, serverHeader)
+      val serverResultUtils              = reloadServerResultUtils(tryApp)
+      val forwardedHeaderHandler         = reloadForwardedHeaderHandler(tryApp)
+      val clientCertificateHeaderHandler = reloadClientCertificateHeaderHandler(tryApp)
+      val modelConversion                = new NettyModelConversion(
+        serverResultUtils,
+        forwardedHeaderHandler,
+        clientCertificateHeaderHandler,
+        serverHeader
+      )
       ReloadCacheValues(
         resultUtils = serverResultUtils,
         modelConversion = modelConversion,
@@ -106,13 +113,28 @@ private[play] class PlayRequestHandler(
       ServerDebugInfo.attachToRequestHeader(rh, cacheValues.serverDebugInfo)
     }
 
-    def clientError(statusCode: Int, message: String, bypassErrorHandler: Boolean = false): (RequestHeader, Handler) = {
-      val unparsedTarget = Server.createUnparsedRequestTarget(request.uri)
-      val requestHeader  = modelConversion(tryApp).createRequestHeader(channel, request, unparsedTarget)
-      val debugHeader    = attachDebugInfo(requestHeader)
-      val cleanMessage   = if (message == null) "" else message
-      val maybeEnriched  = Server.tryToEnrichHeader(tryApp, debugHeader)
-      val result         =
+    def clientError(
+        statusCode: Int,
+        message: String,
+        convertedRequestHeader: Option[RequestHeader] = None,
+        requestFailure: Option[Throwable] = None,
+        bypassErrorHandler: Boolean = false
+    ): (RequestHeader, Handler) = {
+      val requestHeader = convertedRequestHeader.getOrElse {
+        val unparsedTarget = Server.createUnparsedRequestTarget(request.uri)
+        modelConversion(tryApp).createErrorRequestHeader(
+          channel,
+          request,
+          unparsedTarget,
+          requestFailure.getOrElse {
+            throw new IllegalStateException("Request conversion failure is required to construct an error request")
+          }
+        )
+      }
+      val debugHeader   = attachDebugInfo(requestHeader)
+      val cleanMessage  = if (message == null) "" else message
+      val maybeEnriched = Server.tryToEnrichHeader(tryApp, debugHeader)
+      val result        =
         if (bypassErrorHandler) Future.successful(Results.Status(statusCode)(cleanMessage))
         else
           errorHandler(tryApp).onClientError(
@@ -120,23 +142,42 @@ private[play] class PlayRequestHandler(
             statusCode,
             cleanMessage
           )
-      // If there's a problem in parsing the request, then we should close the connection, once done with it
+      // These paths stop processing before consuming the request body, so close the connection after the error response.
       maybeEnriched -> Server.actionForResult(result.map(_.withHeaders(HeaderNames.CONNECTION -> "close")))
     }
 
     val (requestHeader, handler): (RequestHeader, Handler) = tryRequest match {
-      case Failure(exception: IllegalArgumentException) if exception.getMessage.startsWith("invalid hex byte") =>
-        clientError(Status.BAD_REQUEST, exception.getMessage, bypassErrorHandler = true)
-      case Failure(exception: TooLongFrameException) => clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage)
-      case Failure(exception)                        => clientError(Status.BAD_REQUEST, exception.getMessage)
-      case Success(untagged)                         =>
+      case Failure(exception: InvalidClientCertificateHeaderException) =>
+        logger.debug("Rejected invalid forwarded client certificate metadata.", exception)
+        clientError(
+          Status.BAD_REQUEST,
+          "Invalid forwarded client certificate",
+          requestFailure = Some(exception)
+        )
+      case Failure(exception: IllegalArgumentException)
+          if Option(exception.getMessage).exists(_.startsWith("invalid hex byte")) =>
+        clientError(
+          Status.BAD_REQUEST,
+          exception.getMessage,
+          requestFailure = Some(exception),
+          bypassErrorHandler = true
+        )
+      case Failure(exception: TooLongFrameException) =>
+        clientError(Status.REQUEST_URI_TOO_LONG, exception.getMessage, requestFailure = Some(exception))
+      case Failure(exception) =>
+        clientError(Status.BAD_REQUEST, exception.getMessage, requestFailure = Some(exception))
+      case Success(untagged) =>
         if (
           untagged.headers
             .get(HeaderNames.CONTENT_LENGTH)
             .flatMap(clh => catching(classOf[NumberFormatException]).opt(clh.toLong))
             .exists(_ > maxContentLength)
         ) {
-          clientError(Status.REQUEST_ENTITY_TOO_LARGE, "Request Entity Too Large")
+          clientError(
+            Status.REQUEST_ENTITY_TOO_LARGE,
+            "Request Entity Too Large",
+            convertedRequestHeader = Some(untagged)
+          )
         } else {
           val debugHeader: RequestHeader = attachDebugInfo(untagged)
           Server.getHandlerFor(debugHeader, tryApp, fallbackErrorHandler)

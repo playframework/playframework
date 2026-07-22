@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
+import play.mvc.Http.Scheme;
 
 public class CallTest {
 
@@ -28,7 +29,9 @@ public class CallTest {
 
   @Test
   public void absoluteURLWithRequestShouldHaveHTTPScheme() {
-    final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
+    // The absolute-form target only claims an HTTP scheme; it does not establish the effective
+    // connection scheme. RequestBuilder therefore keeps target, scheme, and authority independent.
+    final Request req = request("http://playframework.com/playframework", Scheme.HTTP);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -37,7 +40,7 @@ public class CallTest {
 
   @Test
   public void absoluteURLWithRequestAndSecureParameterIsFalseShouldHaveHTTPScheme() {
-    final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
+    final Request req = request("https://playframework.com/playframework", Scheme.HTTPS);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -53,7 +56,7 @@ public class CallTest {
 
   @Test
   public void absoluteURLWithRequestShouldHaveHTTPSScheme() {
-    final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
+    final Request req = request("https://playframework.com/playframework", Scheme.HTTPS);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -62,7 +65,7 @@ public class CallTest {
 
   @Test
   public void absoluteUrlWithRequestAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
-    final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
+    final Request req = request("http://playframework.com/playframework", Scheme.HTTP);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -78,7 +81,7 @@ public class CallTest {
 
   @Test
   public void webSocketURLWithRequestShouldHaveHTTPScheme() {
-    final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
+    final Request req = request("http://playframework.com/playframework", Scheme.HTTP);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -87,7 +90,7 @@ public class CallTest {
 
   @Test
   public void webSocketURLWithRequestAndSecureParameterIsFalseShouldHaveHTTPScheme() {
-    final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
+    final Request req = request("https://playframework.com/playframework", Scheme.HTTPS);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -103,7 +106,7 @@ public class CallTest {
 
   @Test
   public void webSocketURLWithRequestShouldHaveHTTPSScheme() {
-    final Request req = new RequestBuilder().uri("https://playframework.com/playframework").build();
+    final Request req = request("https://playframework.com/playframework", Scheme.HTTPS);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -112,7 +115,7 @@ public class CallTest {
 
   @Test
   public void webSocketURLWithRequestAndSecureParameterIsTrueShouldHaveHTTPSScheme() {
-    final Request req = new RequestBuilder().uri("http://playframework.com/playframework").build();
+    final Request req = request("http://playframework.com/playframework", Scheme.HTTP);
 
     final TestCall call = new TestCall("/url", "GET");
 
@@ -128,7 +131,7 @@ public class CallTest {
 
   @Test
   public void relativePathTakesStartPathFromRequest() {
-    final Request req = new RequestBuilder().uri("http://playframework.com/one/two").build();
+    final Request req = request("http://playframework.com/one/two", Scheme.HTTP);
 
     final TestCall call = new TestCall("/one/two-b", "GET");
 
@@ -146,7 +149,7 @@ public class CallTest {
 
   @Test
   public void relativePathIncludesFragment() {
-    final Request req = new RequestBuilder().uri("http://playframework.com/one/two").build();
+    final Request req = request("http://playframework.com/one/two", Scheme.HTTP);
 
     final TestCall call = new TestCall("/one/two-b", "GET", "foo");
 
@@ -158,6 +161,24 @@ public class CallTest {
     final TestCall call = new TestCall("/one/.././two//three-b", "GET");
 
     assertEquals("/two/three-b", call.canonical());
+  }
+
+  @Test
+  public void absoluteURLWithRequestShouldPreserveCustomEffectiveScheme() {
+    final Request req =
+        new RequestBuilder()
+            .uri("https://internal.example/playframework")
+            .scheme(new Scheme("Git+SSH.v1-2"))
+            .host("PUBLIC.example:08443")
+            .build();
+
+    final TestCall call = new TestCall("/url", "GET");
+
+    assertEquals("git+ssh.v1-2://public.example:8443/url", call.absoluteURL(req));
+  }
+
+  private Request request(String uri, Scheme scheme) {
+    return new RequestBuilder().uri(uri).scheme(scheme).host("playframework.com").build();
   }
 }
 

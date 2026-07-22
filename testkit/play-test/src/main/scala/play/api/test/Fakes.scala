@@ -5,10 +5,10 @@
 package play.api.test
 
 import java.net.URI
-import java.security.cert.X509Certificate
 
 import scala.xml.NodeSeq
 
+import com.google.common.net.InetAddresses
 import org.apache.pekko.util.ByteString
 import play.api.http.HeaderNames
 import play.api.http.HttpConfiguration
@@ -34,24 +34,74 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  * @tparam A the body content type.
  */
 class FakeRequest[+A](request: Request[A]) extends Request[A] {
-  override def connection: RemoteConnection = request.connection
-  override def method: String               = request.method
-  override def target: RequestTarget        = request.target
-  override def version: String              = request.version
-  override def headers: Headers             = request.headers
-  override def body: A                      = request.body
-  override def attrs: TypedMap              = request.attrs
+  override def transport: TransportConnection                             = request.transport
+  override def clientCertificate: Option[ClientCertificateInfo]           = request.clientCertificate
+  override def xForwardedClientCertificates: Vector[XForwardedClientCert] = request.xForwardedClientCertificates
+  override def remote: RemoteInfo                                         = request.remote
+  override def scheme: Scheme                                             = request.scheme
+  override def authority: Option[RequestAuthority]                        = request.authority
+  override def method: String                                             = request.method
+  override def target: RequestTarget                                      = request.target
+  override def version: String                                            = request.version
+  override def headers: Headers                                           = request.headers
+  override def body: A                                                    = request.body
+  override def attrs: TypedMap                                            = request.attrs
 
-  override def withConnection(newConnection: RemoteConnection): FakeRequest[A] =
-    new FakeRequest(request.withConnection(newConnection))
+  override def withRemote(newRemote: RemoteInfo): FakeRequest[A] =
+    new FakeRequest(request.withRemote(newRemote))
+  override def withTransport(newTransport: TransportConnection): FakeRequest[A] =
+    new FakeRequest(request.withTransport(newTransport))
+  override def withClientCertificate(newClientCertificate: Option[ClientCertificateInfo]): FakeRequest[A] =
+    new FakeRequest(request.withClientCertificate(newClientCertificate))
+  override def withXForwardedClientCertificates(
+      newXForwardedClientCertificates: Seq[XForwardedClientCert]
+  ): FakeRequest[A] =
+    new FakeRequest(request.withXForwardedClientCertificates(newXForwardedClientCertificates))
+  override def withScheme(newScheme: Scheme): FakeRequest[A] =
+    new FakeRequest(request.withScheme(newScheme))
+  override def withAuthority(newAuthority: Option[RequestAuthority]): FakeRequest[A] =
+    new FakeRequest(request.withAuthority(newAuthority))
+
+  /**
+   * Constructs a new request with the given numeric port on its selected remote node.
+   */
+  def withRemotePort(remotePort: Option[Int]): FakeRequest[A] =
+    withRemote(remote.withPort(remotePort))
+
   override def withMethod(newMethod: String): FakeRequest[A] =
     new FakeRequest(request.withMethod(newMethod))
   override def withTarget(newTarget: RequestTarget): FakeRequest[A] =
     new FakeRequest(request.withTarget(newTarget))
   override def withVersion(newVersion: String): FakeRequest[A] =
     new FakeRequest(request.withVersion(newVersion))
-  override def withHeaders(newHeaders: Headers): FakeRequest[A] =
-    new FakeRequest(request.withHeaders(newHeaders))
+
+  /**
+   * Constructs a new request with the given headers.
+   *
+   * Unlike the core `Request.withHeaders` operation, this test helper treats exactly one `Host` value as a
+   * convenience authority replacement. The value is parsed and exposed canonically through both
+   * [[play.api.mvc.RequestHeader.authority]] and the `Host` header. Duplicate or invalid `Host` values are rejected.
+   */
+  override def withHeaders(newHeaders: Headers): FakeRequest[A] = {
+    val hostValues = newHeaders.getAll(HeaderNames.HOST)
+    if (hostValues.sizeIs > 1) {
+      throw new IllegalArgumentException(
+        "FakeRequest.withHeaders cannot set duplicate Host headers; use withAuthority to replace the effective authority"
+      )
+    }
+
+    hostValues.headOption match {
+      case Some(host) =>
+        val newAuthority = RequestAuthority.parseOrThrow(host)
+        new FakeRequest(
+          request
+            .withAuthority(Some(newAuthority))
+            .withHeaders(newHeaders.remove(HeaderNames.HOST))
+        )
+      case None =>
+        new FakeRequest(request.withHeaders(newHeaders))
+    }
+  }
   override def withAttrs(attrs: TypedMap): FakeRequest[A] =
     new FakeRequest(request.withAttrs(attrs))
   override def withBody[B](body: B): FakeRequest[B] =
@@ -59,6 +109,9 @@ class FakeRequest[+A](request: Request[A]) extends Request[A] {
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
+   *
+   * Supplying exactly one `Host` value replaces the effective authority and canonicalizes the resulting `Host`
+   * header. Duplicate or invalid `Host` values are rejected.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
     withHeaders(headers.replace(newHeaders*))
@@ -190,30 +243,45 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
    * @param uri The request uri.
    * @param headers The request HTTP headers.
    * @param body The request body.
-   * @param remoteAddress The client IP.
+   * @param transport The network connection directly terminating at Play.
+   * @param remote The selected remote node metadata.
+   * @param scheme The effective request scheme.
+   * @param clientCertificate The effective client certificate metadata.
+   * @param xForwardedClientCertificates Accepted `X-Forwarded-Client-Cert` assertions.
    */
   def apply[A](
       method: String,
       uri: String,
       headers: Headers,
       body: A,
-      remoteAddress: String = "127.0.0.1",
+      transport: TransportConnection = defaultTransport,
+      remote: RemoteInfo = defaultRemote,
+      scheme: Scheme = Scheme.Http,
       version: String = "HTTP/1.1",
       id: Long = 666,
-      secure: Boolean = false,
-      clientCertificateChain: Option[Seq[X509Certificate]] = None,
-      attrs: TypedMap = TypedMap.empty
+      attrs: TypedMap = TypedMap.empty,
+      clientCertificate: Option[ClientCertificateInfo] = None,
+      xForwardedClientCertificates: Vector[XForwardedClientCert] = Vector.empty
   ): FakeRequest[A] = {
-    val _uri                = uri
+    val _uri   = uri
+    val target = new RequestTarget {
+      override lazy val uri: URI                           = new URI(uriString)
+      override def uriString: String                       = _uri
+      override lazy val path: String                       = uriString.split('?').take(1).mkString
+      override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
+    }
+    val authority = RequestHeader
+      .initialAuthority(method, target, headers)
+      .fold(error => throw new IllegalArgumentException(error), identity)
     val request: Request[A] = requestFactory.createRequest(
-      RemoteConnection(remoteAddress, secure, clientCertificateChain),
+      transport,
+      clientCertificate,
+      xForwardedClientCertificates,
+      remote,
+      scheme,
+      authority,
       method,
-      new RequestTarget {
-        override lazy val uri: URI                           = new URI(uriString)
-        override def uriString: String                       = _uri
-        override lazy val path: String                       = uriString.split('?').take(1).mkString
-        override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
-      },
+      target,
       version,
       headers,
       attrs.updated(RequestAttrKey.Id -> id),
@@ -221,4 +289,8 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
     )
     new FakeRequest(request)
   }
+
+  private val defaultTransport: TransportConnection =
+    TransportConnection(PeerEndpoint(InetAddresses.forString("127.0.0.1"), None), None)
+  private val defaultRemote: RemoteInfo = RemoteInfo.fromPeer(defaultTransport.peer)
 }

@@ -4,10 +4,6 @@
 
 package play.filters.cors
 
-import java.net.URI
-import java.net.URISyntaxException
-import java.util.Locale
-
 import scala.collection.immutable
 import scala.concurrent.Future
 
@@ -17,6 +13,8 @@ import play.api.http.HttpErrorHandler
 import play.api.http.HttpVerbs
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import play.api.mvc.request.RequestAuthority
+import play.api.mvc.request.Scheme
 import play.api.LoggerLike
 import play.api.MarkerContexts.SecurityMarkerContext
 
@@ -304,17 +302,42 @@ private[cors] trait AbstractCORSPolicy {
     } else if (origin.contains("%")) {
       false
     } else {
-      try {
-        new URI(origin).getScheme ne null
-      } catch {
-        case _: URISyntaxException => false
-      }
+      parseOrigin(origin).isDefined
     }
   }
 
   private def isSameOrigin(origin: String, request: RequestHeader): Boolean = {
-    val originUri = new URI(origin.toLowerCase(Locale.ENGLISH))
-    val hostUri   = new URI((if (request.secure) "https://" else "http://") + request.host.toLowerCase(Locale.ENGLISH))
-    (originUri.getScheme, originUri.getHost, originUri.getPort) == (hostUri.getScheme, hostUri.getHost, hostUri.getPort)
+    parseOrigin(origin).exists {
+      case (originScheme, originAuthority) =>
+        originScheme == request.scheme && request.authority.exists { requestAuthority =>
+          originAuthority.host.render.equalsIgnoreCase(requestAuthority.host.render) &&
+          effectivePort(originScheme, originAuthority) == effectivePort(request.scheme, requestAuthority)
+        }
+    }
+  }
+
+  private def effectivePort(scheme: Scheme, authority: RequestAuthority): Option[BigInt] = {
+    authority.port.map(_.value).orElse {
+      if (scheme == Scheme.Http) Some(BigInt(80))
+      else if (scheme == Scheme.Https) Some(BigInt(443))
+      else None
+    }
+  }
+
+  private def parseOrigin(origin: String): Option[(Scheme, RequestAuthority)] = {
+    val schemeSeparator = origin.indexOf("://")
+    if (schemeSeparator <= 0) None
+    else {
+      val authority = origin.substring(schemeSeparator + 3)
+      Option
+        .when(authority.nonEmpty && !authority.exists(char => char == '/' || char == '?' || char == '#')) {
+          for {
+            scheme           <- Scheme.parse(origin.substring(0, schemeSeparator)).toOption
+            requestAuthority <- RequestAuthority.parse(authority).toOption
+            if requestAuthority.host.render.nonEmpty
+          } yield scheme -> requestAuthority
+        }
+        .flatten
+    }
   }
 }

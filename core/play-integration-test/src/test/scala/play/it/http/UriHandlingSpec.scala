@@ -6,6 +6,7 @@ package play.it.http
 
 import org.specs2.execute.AsResult
 import org.specs2.specification.core.Fragment
+import play.api.http.HeaderNames.HOST
 import play.api.mvc._
 import play.api.routing.sird
 import play.api.routing.Router
@@ -51,6 +52,32 @@ class UriHandlingSpec
   }
 
   "Server" should {
+    "derive the effective authority from HTTP/2 pseudo-headers" in {
+      withRouter { (components: BuiltInComponents) =>
+        import components.{ defaultActionBuilder => Action }
+        import sird.UrlContext
+        Router.from {
+          case sird.GET(p"/authority") =>
+            Action { (request: Request[?]) =>
+              Results.Ok(
+                Seq(
+                  request.scheme.render,
+                  request.authority.map(_.render).getOrElse("<none>"),
+                  request.host,
+                  request.headers.get(HOST).getOrElse("<none>")
+                ).mkString("|")
+              )
+            }
+        }
+      }.withOkHttpEndpoints(Seq(PekkoHttpServerEndpointRecipes.PekkoHttp20Encrypted)) { okEndpoint =>
+        val response          = okEndpoint.call("/authority")
+        val expectedAuthority = s"${okEndpoint.endpoint.host}:${okEndpoint.endpoint.port}"
+
+        (response.protocol must_== okhttp3.Protocol.HTTP_2)
+          .and(response.body.string must_== s"https|$expectedAuthority|$expectedAuthority|$expectedAuthority")
+      }
+    }
+
     "preserve order of repeated query string parameters" in makeRequest(
       "/path?a=1&b=1&b=2&b=3&b=4&b=5"
     ) {

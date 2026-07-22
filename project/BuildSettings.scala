@@ -316,16 +316,6 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.this"),
       ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
-      // ForwardedHeaderHandlerConfig is a private server-internal configuration model.
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.apply"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.copy"
-      ),
-      ProblemFilters.exclude[DirectMissingMethodProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.this"
-      ),
       // Switch to Jakarta DI
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpErrorHandler.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpRequestHandler.this"),
@@ -584,11 +574,28 @@ object BuildSettings {
       ProblemFilters.exclude[ReversedMissingMethodProblem](
         "play.api.routing.sird.RequestMethodExtractors.play$api$routing$sird$RequestMethodExtractors$_setter_$QUERY_="
       ),
-      // ForwardedHeaderHandler parser models are private server internals.
-      // Their signatures changed to carry forwarded port values and RFC 7239 remote identities.
+      // Replace legacy request connection APIs and reshape private forwarded-header models
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.request.DefaultRequestFactory.createRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.parseEntry"
+        "play.api.mvc.request.DefaultRequestFactory.createRequestHeader"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificateChain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.connection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.remoteAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.RequestHeader.withConnection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.request.RequestFactory.createRequest"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.request.RequestFactory.createRequestHeader"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.Request.withConnection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.clientCertificateChain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.connection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.remoteAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.WrappedRequest.withConnection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.clientCertificateChain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.connection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.remoteAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.withConnection"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.RequestHeaderImpl.clientCertificateChain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.RequestHeaderImpl.remoteAddress"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "play.core.server.common.ForwardedHeaderHandler#ForwardedEntry.apply"
       ),
@@ -599,30 +606,94 @@ object BuildSettings {
         "play.core.server.common.ForwardedHeaderHandler#ForwardedEntry.this"
       ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.apply"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.copy"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.address"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
         "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.apply"
       ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.copy"
       ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.this"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.copy$default$2"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.secure"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.this"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestBuilder.clientCertificateChain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestBuilder.remoteAddress"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestHeader.clientCertificateChain"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestHeader.remoteAddress"),
+      // Preserve the intentional finality and signature changes in the typed request model
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.mvc.WrappedRequest.domain"),
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.mvc.WrappedRequest.host"),
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.test.FakeRequest.domain"),
+      ProblemFilters.exclude[FinalMethodProblem]("play.api.test.FakeRequest.host"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.test.FakeRequest.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.test.FakeRequestFactory.apply"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ForwardedHeaderHandlerConfig.isTrustedProxy"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.apply$default$5"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.apply$default$6"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.apply$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.apply$default$8"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequest.apply$default$9"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequestFactory.apply$default$5"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequestFactory.apply$default$6"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequestFactory.apply$default$7"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequestFactory.apply$default$8"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.FakeRequestFactory.apply$default$9"),
       ProblemFilters.exclude[IncompatibleResultTypeProblem](
         "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.copy$default$1"
       ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry._1"
-      ),
-      ProblemFilters.exclude[IncompatibleResultTypeProblem](
-        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry._2"
-      ),
+      // Remove legacy types and add the typed RequestHeader accessors
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.request.RemoteConnection"),
+      ProblemFilters.exclude[MissingClassProblem]("play.api.mvc.request.RemoteConnection$"),
       ProblemFilters.exclude[MissingTypesProblem]("play.core.server.common.ForwardedHeaderHandler$ForwardedEntry$"),
       ProblemFilters.exclude[MissingTypesProblem](
         "play.core.server.common.ForwardedHeaderHandler$ParsedForwardedEntry$"
       ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.authority"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.remote"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.scheme"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.transport"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.request.RequestFactory.createRequestHeader"),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry._2"
+      ),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem](
+        "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry._1"
+      ),
+      // Add source-aware client certificate support for direct TLS and trusted forwarding headers
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequest.apply"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.test.FakeRequestFactory.apply"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CLIENT_CERT"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.CLIENT_CERT_CHAIN"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.X_FORWARDED_CLIENT_CERT"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CLIENT_CERT_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$CLIENT_CERT_CHAIN_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$X_FORWARDED_CLIENT_CERT_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

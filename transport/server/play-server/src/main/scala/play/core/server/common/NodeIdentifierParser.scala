@@ -10,9 +10,9 @@ import java.net.InetAddress
 import java.util.Locale
 
 import scala.util.parsing.combinator.RegexParsers
-import scala.util.Try
 
-import com.google.common.net.InetAddresses
+import play.api.mvc.request.IpAddressSyntax
+import play.api.mvc.request.NodePort
 import play.core.server.common.ForwardedHeaderHandler.ForwardedHeaderVersion
 import play.core.server.common.ForwardedHeaderHandler.Rfc7239
 import play.core.server.common.ForwardedHeaderHandler.Xforwarded
@@ -25,6 +25,10 @@ import play.core.server.common.NodeIdentifierParser._
  * The version is used to switch between IP address parsing behavior.
  */
 private[common] class NodeIdentifierParser(version: ForwardedHeaderVersion) extends RegexParsers {
+  // RFC 7239 requires the complete unescaped node value to match the node
+  // grammar. X-Forwarded-For historically permits surrounding whitespace.
+  override val skipWhitespace: Boolean = version == Xforwarded
+
   def parseNode(s: String): Either[String, (IpAddress, Option[Port])] = {
     parse(node, s) match {
       case Success(matched, _) => Right(matched)
@@ -54,35 +58,32 @@ private[common] class NodeIdentifierParser(version: ForwardedHeaderVersion) exte
       }
   }
 
-  private lazy val ipv4Address = regex("[\\d\\.]{7,15}".r) ^? inetAddress
+  private lazy val ipv4Address = regex("[0-9.]{7,15}".r) ^? parsedAddress(IpAddressSyntax.parseIpv4)
 
-  private lazy val ipv6Address = regex("[\\da-fA-F:\\.]+".r) ^? inetAddress
+  private lazy val ipv6Address = regex("[0-9a-fA-F:\\.]+".r) ^? parsedAddress { value =>
+    IpAddressSyntax.parseIpv6(value).map(IpAddressSyntax.collapseMappedIpv6)
+  }
 
-  private lazy val obfnode = regex(obfuscatedIdentifierPattern)
+  private lazy val obfnode = regex(NodePort.obfuscatedIdentifierPattern)
 
   private lazy val nodeport = (port | obfport) ^^ {
     case x: Int => PortNumber(x)
     case x      => ObfuscatedPort(x.toString)
   }
 
-  private lazy val port = regex("\\d{1,5}".r) ^? {
+  private lazy val port = regex("[0-9]{1,5}".r) ^? {
     case x if x.toInt <= 65535 => x.toInt
   }
 
-  private def obfport = regex(obfuscatedIdentifierPattern)
+  private def obfport = regex(NodePort.obfuscatedIdentifierPattern)
 
-  private def inetAddress = new PartialFunction[String, InetAddress] {
-    def isDefinedAt(s: String) = Try { InetAddresses.forString(s) }.isSuccess
-    def apply(s: String)       = Try { InetAddresses.forString(s) }.get
+  private def parsedAddress[A <: InetAddress](parse: String => Option[A]) = new PartialFunction[String, A] {
+    def isDefinedAt(s: String) = parse(s).isDefined
+    def apply(s: String)       = parse(s).get
   }
 }
 
 private[common] object NodeIdentifierParser {
-  private val obfuscatedIdentifierPattern = "_[A-Za-z0-9._-]+".r
-
-  def isObfuscatedIdentifier(identifier: String): Boolean =
-    obfuscatedIdentifierPattern.pattern.matcher(identifier).matches()
-
   sealed trait Port
   case class PortNumber(number: Int)   extends Port
   case class ObfuscatedPort(s: String) extends Port

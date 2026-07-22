@@ -26,51 +26,11 @@ Play now uses Pekko 2 and Pekko HTTP 2. If your build overrides Play's Pekko dep
 
 The deprecated low-level `org.apache.pekko.http.play.WebSocketHandler.handleWebSocket` overloads that accepted Pekko HTTP's old `UpgradeToWebSocket` API have been removed. Code using this internal Pekko HTTP bridge should use the maintained `WebSocketUpgrade` overload instead.
 
-### Remote address APIs deprecated in favor of remote node APIs
+### Request metadata and forwarded-header changes
 
-Play now supports RFC 7239 `Forwarded` remote identifiers that are not IP addresses, such as `for=unknown` and obfuscated identifiers like `for=_hidden`. The old `remoteAddress` APIs cannot represent these values, so they are deprecated:
+Play replaces the legacy combined connection APIs with typed `remote`, `transport`, `scheme`, and `authority` metadata. Applications may need to update request accessors and test builders, IP filter entries, custom request implementations, and proxy configuration.
 
-* Scala `RequestHeader.remoteAddress`
-* Scala `RemoteConnection.remoteAddress`
-* Scala `RemoteConnection.remoteAddressString`
-* Java `Http.RequestHeader.remoteAddress()`
-
-Use `RequestHeader.connection.remoteNode` when you need the structured remote identity selected from trusted forwarded headers. Use `RequestHeader.connection.remoteIdentity` when you need that identity as a string, or `RequestHeader.connection.remoteIpAddress` when you specifically need an IP address. `RequestHeader.remoteIdentity` is available as a request-level shortcut.
-
-For compatibility, the deprecated `remoteAddress` APIs still return an IP address. If the selected RFC 7239 remote identity is `unknown` or obfuscated, that IP address is only a fallback, usually the previous trusted proxy address, and does not represent the actual RFC 7239 remote identity.
-
-For example, with a trusted direct proxy at `127.0.0.1`:
-
-```http
-Forwarded: for=_hidden;proto=https
-```
-
-Play reports:
-
-```scala
-request.connection.remoteNode      // RemoteNode.Obfuscated("_hidden", None)
-request.connection.remoteIdentity  // "_hidden"
-request.connection.remoteIpAddress // None
-request.secure                     // true
-```
-
-The deprecated `request.remoteAddress` method still returns the fallback legacy value, such as
-`"127.0.0.1"` in this example.
-
-### RFC 7239 Forwarded header syntax is validated
-
-Play now validates RFC 7239 `Forwarded` field values before using them. Parameter names must be valid tokens, values must be tokens or quoted strings, and a parameter cannot occur more than once in one forwarded element. Empty HTTP list elements remain accepted and are ignored.
-
-RFC 7239 requires IPv6 addresses and node identifiers with ports to be quoted because they contain `:`:
-
-```http
-Forwarded: for="[2001:db8:cafe::17]:4711"
-Forwarded: for="192.0.2.43:4711"
-```
-
-For compatibility with Play 3.0, Play continues to accept these values without quotes in the `for` parameter. Play applies the same allowance to `by` for consistent node parsing. Proxy configurations should nevertheless be updated to emit the quoted RFC syntax. Other parameters do not receive this compatibility allowance.
-
-When Play encounters a malformed `Forwarded` field while scanning a trusted proxy chain, it stops at that field and keeps the last verified connection information. Check that each trusted proxy emits valid RFC 7239 syntax before upgrading.
+Forwarded-header parsing, Host and absolute-target validation, scheme retention, CORS origin checks, and Redirect HTTPS behavior have also changed. See [[Request metadata and forwarded-header migration|RequestMetadataMigration31]] for the complete migration instructions and [[Typed request and forwarded metadata|RequestMetadataHighlights31]] for a conceptual overview.
 
 ### HEAD responses no longer include generated Content-Length headers
 

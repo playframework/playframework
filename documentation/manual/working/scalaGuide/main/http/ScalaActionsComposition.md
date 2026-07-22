@@ -54,8 +54,6 @@ So far we've only shown actions that don't impact the request at all.  Of course
 
 @[modify-request](code/ScalaActionsComposition.scala)
 
-> **Note:** Play already has built in support for `X-Forwarded-For` headers.
-
 We could block the request:
 
 @[block-request](code/ScalaActionsComposition.scala)

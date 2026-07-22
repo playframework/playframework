@@ -18,6 +18,8 @@ play.filters.enabled += "play.filters.cors.CORSFilter"
 
 The filter can be configured from `application.conf`.  For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/play-filters-helpers/reference.conf).
 
+For same-origin detection, the filter compares the parsed `Origin` with the request's effective normalized scheme, host, and port. Omitted ports are equivalent to `80` for HTTP and `443` for HTTPS. The request values can include forwarding metadata accepted through Play's [[trusted proxy configuration|HTTPServer#configuring-trusted-proxies]], but the CORS filter does not trust or parse raw `Forwarded` or `X-Forwarded-*` fields itself. Only enabled metadata from a configured trusted proxy can affect the comparison.
+
 The available options include:
 
 * `play.filters.cors.pathPrefixes` - filter paths by a whitelist of path prefixes

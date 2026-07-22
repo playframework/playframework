@@ -4,17 +4,38 @@
 
 package play.core.server
 
+import java.net.InetAddress
+
 import org.specs2.mutable.Specification
 import play.api.libs.typedmap.TypedMap
+import play.api.mvc.request.PeerEndpoint
+import play.api.mvc.request.RemoteInfo
+import play.api.mvc.request.Scheme
+import play.api.mvc.request.TransportConnection
+import play.api.mvc.Headers
 import play.api.mvc.RequestHeaderImpl
 import play.api.routing.HandlerDef
 
 class ServerSpec extends Specification {
 
+  private val peer      = PeerEndpoint(InetAddress.getLoopbackAddress, None)
+  private val transport = TransportConnection(peer, None)
+
   private def handlerDef(modifiers: Seq[String]) = HandlerDef(null, null, null, null, null, null, null, null, modifiers)
 
   private def req(modifiers: String*) =
-    new RequestHeaderImpl(null, null, null, null, null, TypedMap.empty)
+    new RequestHeaderImpl(
+      RemoteInfo.fromPeer(peer),
+      null,
+      null,
+      null,
+      Headers(),
+      TypedMap.empty,
+      transport,
+      None,
+      Scheme.Http,
+      None
+    )
       .addAttr(play.api.routing.Router.Attrs.HandlerDef, handlerDef(modifiers))
 
   "body parsing should be" should {

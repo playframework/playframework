@@ -129,7 +129,9 @@ class BasicHttpClient(port: Int, secure: Boolean) {
       trickleFeed: Option[Long] = None
   ): Seq[BasicResponse] = {
     out.write(s"${request.method} ${request.uri} ${request.version}\r\n")
-    out.write("Host: localhost\r\n")
+    if (request.includeHost) {
+      out.write("Host: localhost\r\n")
+    }
     request.headers.foreach { header => out.write(s"${header._1}: ${header._2}\r\n") }
     out.write("\r\n")
 
@@ -321,8 +323,16 @@ case class BasicResponse(
  * @param version The HTTP version
  * @param headers The HTTP request headers
  * @param body The body
+ * @param includeHost Whether the client should add its normal `Host: localhost` field
  */
-case class BasicRequest(method: String, uri: String, version: String, headers: Map[String, String], body: String)
+case class BasicRequest(
+    method: String,
+    uri: String,
+    version: String,
+    headers: Map[String, String],
+    body: String,
+    includeHost: Boolean = true
+)
 
 /**
  * A TrustManager that trusts everything

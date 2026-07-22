@@ -8,6 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
+import com.google.common.net.InetAddresses
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
@@ -15,6 +16,14 @@ import org.apache.pekko.util.ByteString
 import org.specs2.mutable._
 import play.api.libs.json.Json
 import play.api.mvc._
+import play.api.mvc.request.NodePort
+import play.api.mvc.request.PeerEndpoint
+import play.api.mvc.request.RemoteInfo
+import play.api.mvc.request.RemoteNode
+import play.api.mvc.request.RequestAuthority
+import play.api.mvc.request.Scheme
+import play.api.mvc.request.TransportConnection
+import play.api.mvc.request.TransportTls
 import play.api.mvc.Results._
 import play.api.test.Helpers._
 import play.twirl.api.Content
@@ -236,6 +245,87 @@ class HelpersSpec extends Specification {
       "return an empty map when there is no query string parameters" in {
         val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty)
         request.queryString must beEmpty
+      }
+
+      "set and clear the selected remote port" in {
+        val request = FakeRequest().withRemotePort(Some(12345))
+
+        request.remote.port must beSome(12345)
+
+        val cleared = request.withRemotePort(None)
+        cleared.remote.port must beNone
+      }
+
+      "model transport, selected remote, and scheme independently" in {
+        val transport = TransportConnection(
+          PeerEndpoint(InetAddresses.forString("192.0.2.10"), Some(53124)),
+          Some(TransportTls(Seq.empty))
+        )
+        val remote = RemoteInfo(
+          RemoteNode.Obfuscated("_anonymous", Some(NodePort.Obfuscated("_source"))),
+          Some(RemoteNode.Obfuscated("_edge", None))
+        )
+        val scheme = Scheme.parseOrThrow("web+demo")
+
+        val request = FakeRequest(
+          "GET",
+          "/uri",
+          FakeHeaders(),
+          AnyContentAsEmpty,
+          transport = transport,
+          remote = remote,
+          scheme = scheme
+        )
+
+        request.transport mustEqual transport
+        request.remote mustEqual remote
+        request.scheme mustEqual scheme
+      }
+
+      "preserve the positional request-metadata parameter order" in {
+        val transport = TransportConnection(
+          PeerEndpoint(InetAddresses.forString("192.0.2.10"), Some(53124)),
+          None
+        )
+        val remote = RemoteInfo.fromPeer(PeerEndpoint(InetAddresses.forString("198.51.100.20"), Some(443)))
+        val scheme = Scheme.Https
+
+        val request = FakeRequest("GET", "/uri", FakeHeaders(), AnyContentAsEmpty, transport, remote, scheme)
+
+        request.transport mustEqual transport
+        request.remote mustEqual remote
+        request.scheme mustEqual scheme
+      }
+
+      "synchronize Host header helpers with the effective authority" in {
+        val fromHeaders = FakeRequest().withHeaders(Headers("host" -> "EXAMPLE.com:00080", "X-Test" -> "one"))
+
+        fromHeaders.authority must beSome(RequestAuthority.parseOrThrow("example.com:80"))
+        fromHeaders.host mustEqual "example.com:80"
+        fromHeaders.headers.getAll("Host") must contain(exactly("example.com:80"))
+        fromHeaders.headers.get("X-Test") must beSome("one")
+
+        val fromPairs = fromHeaders.withHeaders("HOST" -> "[2001:0DB8::1]:00443")
+        fromPairs.authority must beSome(RequestAuthority.parseOrThrow("[2001:db8::1]:443"))
+        fromPairs.host mustEqual "[2001:db8::1]:443"
+        fromPairs.headers.getAll("Host") must contain(exactly("[2001:db8::1]:443"))
+
+        val withoutHost = fromPairs.withHeaders(Headers("X-Test" -> "two"))
+        withoutHost.authority mustEqual fromPairs.authority
+        withoutHost.headers.getAll("Host") must contain(exactly("[2001:db8::1]:443"))
+
+        val typed = withoutHost.withAuthority(Some(RequestAuthority.parseOrThrow("TYPED.example:00444")))
+        typed.host mustEqual "typed.example:444"
+        typed.headers.getAll("Host") must contain(exactly("typed.example:444"))
+      }
+
+      "reject duplicate and invalid Host values in header helpers" in {
+        FakeRequest().withHeaders(Headers("Host" -> "one.example", "host" -> "two.example")) must
+          throwA[IllegalArgumentException]
+        FakeRequest().withHeaders("Host" -> "one.example", "HOST" -> "two.example") must
+          throwA[IllegalArgumentException]
+        FakeRequest().withHeaders(Headers("Host" -> "[invalid")) must throwA[IllegalArgumentException]
+        FakeRequest().withHeaders("host" -> "[invalid") must throwA[IllegalArgumentException]
       }
 
       "successfully execute a POST request with an empty body" in {
