@@ -9,7 +9,7 @@ import Keys._
 
 object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M3")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+197-d53065af-SNAPSHOT")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M2")
 
   val playJsonVersion = "3.1.0-M10"
 
