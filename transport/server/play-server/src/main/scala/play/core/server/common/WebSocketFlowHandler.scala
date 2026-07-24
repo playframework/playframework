@@ -107,10 +107,11 @@ object WebSocketFlowHandler {
           .onMalformedInput(CodingErrorAction.REPORT)
           .onUnmappableCharacter(CodingErrorAction.REPORT)
 
-        // For the remoteIn, we always and only pull when the appOut is available, the only exception being when appOut
-        // is already closed and we're expecting a close ack from the client. This means whenever remoteIn pushes, we
-        // always know we can push directly to appOut.  It does mean however that we will never respond to close or
-        // pings if appOut never pulls.
+        // For remoteIn, pull only when appOut has demand, except when appOut is closed and awaiting a close
+        // acknowledgment. This guarantees appOut is available whenever a remote message needs to be pushed to it.
+        // The one-element application-side buffer below supplies demand for one application-visible message
+        // independently of the application, allowing a peer control message to be processed while the application
+        // is applying backpressure. Once that slot is occupied, further frames wait until the application pulls.
 
         // For the remoteOut, we have a few buffers - a server or client initiated close buffer, a server message, and a pong
         // message.  Multiple ping messages could arrive at any time, according to the WebSocket spec, we only need to
@@ -483,7 +484,12 @@ object WebSocketFlowHandler {
         }
       }
     })
-    periodicKeepAlive.atop(messageHandling)
+    val applicationInputBuffer = BidiFlow.fromFlows(
+      Flow[Message].buffer(1, OverflowStrategy.backpressure),
+      Flow[Message]
+    )
+
+    periodicKeepAlive.atop(messageHandling).atop(applicationInputBuffer)
   }
 
   private sealed trait State

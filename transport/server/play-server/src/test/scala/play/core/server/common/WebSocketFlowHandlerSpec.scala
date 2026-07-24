@@ -168,6 +168,72 @@ class WebSocketFlowHandlerSpec extends Specification {
       ok
     }
 
+    "answer a peer ping while the application applies backpressure" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut, appMessages, appOut) = runBackpressuredWebSocket()
+      val payload                                    = ByteString("ping")
+
+      offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Ping, payload, isFinal = true))
+
+      Await.result(remoteOut.pull(), 1.second) must beSome(beEqualTo(PongMessage(payload)))
+      Await.result(appMessages.pull(), 1.second) must beSome(beEqualTo(PingMessage(payload)))
+
+      appOut.complete()
+      Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.Regular))
+      offer(remoteIn, rawClose(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
+    "consume a peer pong while the application applies backpressure" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut, appMessages, _) = runBackpressuredWebSocket()
+      val payload                               = ByteString("pong")
+
+      offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Pong, payload, isFinal = true))
+      Await.result(remoteIn.offer(rawClose(CloseCodes.Regular)), 1.second) must_== QueueOfferResult.Enqueued
+
+      Await.result(appMessages.pull(), 1.second) must beSome(beEqualTo(PongMessage(payload)))
+      val appClose = appMessages.pull()
+      Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.Regular))
+      Await.result(appClose, 1.second) must beSome(closeMessage(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+      Await.result(appMessages.pull(), 1.second) must beNone
+    }
+
+    "acknowledge a peer close while the application applies backpressure" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut, appMessages, _) = runBackpressuredWebSocket()
+
+      offer(remoteIn, rawClose(CloseCodes.GoingAway))
+
+      Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+      Await.result(appMessages.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+      Await.result(appMessages.pull(), 1.second) must beNone
+    }
+
+    "preserve a buffered application message before reporting abnormal closure" in withActorSystem {
+      implicit materializer =>
+        val (remoteIn, remoteOut, appMessages, _) = runBackpressuredWebSocket()
+
+        offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Text, ByteString("message"), isFinal = true))
+        remoteIn.complete()
+
+        Await.result(appMessages.pull(), 1.second) must beSome(beEqualTo(TextMessage("message")))
+        Await.result(appMessages.pull(), 1.second) must beSome(closeMessage(CloseCodes.ConnectionAbort))
+        Await.result(appMessages.pull(), 1.second) must beNone
+        Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
+    "preserve a buffered application message before a backend-handled protocol failure" in withActorSystem {
+      implicit materializer =>
+        val (remoteIn, remoteOut, appMessages, _) = runBackpressuredWebSocket()
+
+        offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Text, ByteString("message"), isFinal = true))
+        remoteIn.fail(new WebSocketFlowHandler.BackendHandledProtocolViolation(new RuntimeException("invalid frame")))
+
+        Await.result(appMessages.pull(), 1.second) must beSome(beEqualTo(TextMessage("message")))
+        Await.result(appMessages.pull(), 1.second) must beNone
+        Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
     "echo an empty remote close frame without serializing 1005" in withActorSystem { implicit materializer =>
       val (_, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(rawClose(None))
 
@@ -333,6 +399,28 @@ class WebSocketFlowHandlerSpec extends Specification {
       .via(flow)
       .toMat(Sink.queue[Message]())(Keep.both)
       .run()
+  }
+
+  private def runBackpressuredWebSocket()(implicit materializer: Materializer): (
+      SourceQueueWithComplete[WebSocketFlowHandler.RawMessage],
+      SinkQueueWithCancel[Message],
+      SinkQueueWithCancel[Message],
+      SourceQueueWithComplete[Message]
+  ) = {
+    val appFlow = Flow.fromSinkAndSourceMat(
+      Sink.queue[Message](),
+      Source.queue[Message](1, OverflowStrategy.backpressure)
+    )(Keep.both)
+    val flow = protocol().joinMat(appFlow)(Keep.right)
+
+    val ((remoteIn, (appMessages, appOut)), remoteOut) =
+      Source
+        .queue[WebSocketFlowHandler.RawMessage](1, OverflowStrategy.backpressure)
+        .viaMat(flow)(Keep.both)
+        .toMat(Sink.queue[Message]())(Keep.both)
+        .run()
+
+    (remoteIn, remoteOut, appMessages, appOut)
   }
 
   private def offer(
