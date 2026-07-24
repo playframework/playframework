@@ -52,6 +52,15 @@ object WebSocketFlowHandler {
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration,
       wsCloseTimeout: FiniteDuration
+  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] =
+    webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout, None)
+
+  def webSocketProtocol(
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration,
+      gracefulShutdown: Option[(CloseMessage => Unit) => (() => Unit)]
   ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = {
 
     /** The layer that transparently injects (if enabled) keepAlive Ping or Pong messages when client is idle */
@@ -98,7 +107,8 @@ object WebSocketFlowHandler {
         var pongToSend: Message    = null
         var messageToSend: Message = null
         var closeForwardedToApp    = false
-        var appInitiatedClose      = false
+        var locallyInitiatedClose  = false
+        var shutdownRegistration   = Option.empty[() => Unit]
 
         var currentPartialMessage: RawMessage = null
 
@@ -255,13 +265,30 @@ object WebSocketFlowHandler {
         }
 
         def completeRemoteInputAbnormally(): Unit = {
-          if (!closeForwardedToApp && !appInitiatedClose) {
+          if (!closeForwardedToApp && !locallyInitiatedClose) {
             completeAfterForwardingCloseToApp(
               CloseMessage(CloseCodes.ConnectionAbort, "Connection closed abnormally")
             )
           } else {
             completeStage()
           }
+        }
+
+        private val shutdownCallback = getAsyncCallback[CloseMessage] { close =>
+          if (state == Open) {
+            locallyInitiatedClose = true
+            serverInitiatedClose(close)
+          }
+        }
+
+        override def preStart(): Unit = {
+          shutdownRegistration = gracefulShutdown.map(register => register(shutdownCallback.invoke))
+          super.preStart()
+        }
+
+        override def postStop(): Unit = {
+          shutdownRegistration.foreach(_())
+          super.postStop()
         }
 
         setHandler(
@@ -277,7 +304,7 @@ object WebSocketFlowHandler {
 
             override def onDownstreamFinish(cause: Throwable): Unit = {
               if (state == Open) {
-                appInitiatedClose = true
+                locallyInitiatedClose = true
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }
             }
@@ -395,7 +422,7 @@ object WebSocketFlowHandler {
               if (state == Open) {
                 grab(appIn) match {
                   case close: CloseMessage =>
-                    appInitiatedClose = true
+                    locallyInitiatedClose = true
                     serverInitiatedClose(close)
                     cancel(appIn)
                   case other =>
@@ -412,14 +439,14 @@ object WebSocketFlowHandler {
 
             override def onUpstreamFinish() = {
               if (state == Open) {
-                appInitiatedClose = true
+                locallyInitiatedClose = true
                 serverInitiatedClose(CloseMessage(Some(CloseCodes.Regular)))
               }
             }
 
             override def onUpstreamFailure(ex: Throwable) = {
               if (state == Open) {
-                appInitiatedClose = true
+                locallyInitiatedClose = true
                 ex match {
                   case WebSocketCloseException(close) =>
                     serverInitiatedClose(close)

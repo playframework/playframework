@@ -52,7 +52,8 @@ object WebSocketHandler {
       compressionSelector,
       wsKeepAliveMode,
       wsKeepAliveMaxIdle,
-      3.seconds
+      3.seconds,
+      None
     )
 
   def handleWebSocket(
@@ -66,10 +67,44 @@ object WebSocketHandler {
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration,
       wsCloseTimeout: FiniteDuration,
+  ): HttpResponse =
+    handleWebSocket(
+      upgrade,
+      flow,
+      bufferLimit,
+      subprotocol,
+      compressionEnabled,
+      compressionThreshold,
+      compressionSelector,
+      wsKeepAliveMode,
+      wsKeepAliveMaxIdle,
+      wsCloseTimeout,
+      None
+    )
+
+  def handleWebSocket(
+      upgrade: WebSocketUpgrade,
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      subprotocol: Option[String],
+      compressionEnabled: Boolean,
+      compressionThreshold: Long,
+      compressionSelector: (() => Message, Long, Boolean) => Boolean,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration,
+      gracefulShutdown: Option[(CloseMessage => Unit) => (() => Unit)],
   ): HttpResponse = upgrade match {
     case lowLevel: UpgradeToWebSocketLowLevel =>
       lowLevel.handleFrames(
-        messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout),
+        messageFlowToFrameFlow(
+          flow,
+          bufferLimit,
+          wsKeepAliveMode,
+          wsKeepAliveMaxIdle,
+          wsCloseTimeout,
+          gracefulShutdown
+        ),
         subprotocol,
         compressionEnabled,
         frame => {
@@ -108,7 +143,7 @@ object WebSocketHandler {
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration
   ): Flow[FrameEvent, FrameEvent, ?] =
-    messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, 3.seconds)
+    messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, 3.seconds, None)
 
   def messageFlowToFrameFlow(
       flow: Flow[Message, Message, ?],
@@ -116,6 +151,16 @@ object WebSocketHandler {
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration,
       wsCloseTimeout: FiniteDuration
+  ): Flow[FrameEvent, FrameEvent, ?] =
+    messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout, None)
+
+  def messageFlowToFrameFlow(
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration,
+      gracefulShutdown: Option[(CloseMessage => Unit) => (() => Unit)]
   ): Flow[FrameEvent, FrameEvent, ?] = {
     // Each of the stages here transforms frames to an Either[Message, ?], where Message is a close message indicating
     // some sort of protocol failure. The handleProtocolFailures function then ensures that these messages skip the
@@ -125,7 +170,7 @@ object WebSocketHandler {
       .via(
         handleProtocolFailures(
           WebSocketFlowHandler
-            .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout)
+            .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout, gracefulShutdown)
             .join(flow)
         )
       )

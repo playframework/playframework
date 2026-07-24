@@ -54,10 +54,13 @@ import org.apache.pekko.Done
 import org.playframework.netty.http.HttpStreamsServerHandler
 import org.playframework.netty.HandlerPublisher
 import play.api._
+import play.api.http.websocket.CloseCodes
+import play.api.http.websocket.CloseMessage
 import play.api.http.HttpProtocol
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 import play.api.routing.Router
 import play.core._
+import play.core.server.common.WebSocketGracefulShutdown
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.core.server.Server.ServerStoppedReason
@@ -109,6 +112,7 @@ class NettyServer(
     "websocket.closeTimeout",
     "play.server.websocket.closeTimeout"
   )
+  private val wsGracefulShutdown       = new WebSocketGracefulShutdown
   private val wsCompression            = serverConfig.get[Boolean]("websocket.compression.enabled")
   private val wsCompressionConfig      = serverConfig.get[Configuration]("websocket.compression")
   private val wsCompressionThreshold   = wsCompressionConfig.get[ConfigMemorySize]("threshold").toBytes
@@ -313,6 +317,7 @@ class NettyServer(
       wsKeepAliveMode,
       wsKeepAliveMaxIdle,
       wsCloseTimeout,
+      Some(wsGracefulShutdown.register),
       deferBodyParsing
     )
 
@@ -506,31 +511,38 @@ class NettyServer(
 
     val serviceRequestsDoneTimeout = cs.timeout(CoordinatedShutdown.PhaseServiceRequestsDone)
     cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "netty-server-terminate") { () =>
-      // First, close all remaining open sockets
-      val nonServerChannelGroupFuture = allChannels.close(ChannelMatchers.isNonServerChannel) // vs. isServerChannel
-      val nonServerChannelIterator    = nonServerChannelGroupFuture.iterator()
-      while (nonServerChannelIterator.hasNext) {
-        val localAddress = nonServerChannelIterator.next().channel().localAddress()
-        logger.info(s"Closing (non server) channel ${localAddress}")
+      val startTime                                      = System.nanoTime()
+      def remainingMillis(timeout: FiniteDuration): Long = {
+        val elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime)
+        math.max(timeout.toMillis - elapsedMillis - 100, 0)
       }
 
-      val startTime = System.currentTimeMillis()
-      nonServerChannelGroupFuture.awaitUninterruptibly(serviceRequestsDoneTimeout.toMillis - 100)
-      val elapsedTime                         = System.currentTimeMillis() - startTime
-      val remainingServiceRequestsDoneTimeout = serviceRequestsDoneTimeout.toMillis - elapsedTime
-      val remainingServerTerminateTimeout     = serverTerminateTimeout.toMillis - elapsedTime
-      org.apache.pekko.pattern
-        .after(terminationDelay)(Future {
-          logger.info("Shutting down event loop")
-          eventLoop
-            .shutdownGracefully(
-              shutdownQuietPeriod.toMillis,
-              remainingServerTerminateTimeout - 100,
-              TimeUnit.MILLISECONDS
-            )
-            .awaitUninterruptibly(remainingServiceRequestsDoneTimeout - 100)
-        })(using actorSystem)
-        .map(_ => Done)
+      wsGracefulShutdown
+        .shutdown(CloseMessage(CloseCodes.GoingAway), wsCloseTimeout)(actorSystem.scheduler, ctx)
+        .flatMap { _ =>
+          // First, close all remaining open sockets
+          val nonServerChannelGroupFuture = allChannels.close(ChannelMatchers.isNonServerChannel) // vs. isServerChannel
+          val nonServerChannelIterator    = nonServerChannelGroupFuture.iterator()
+          while (nonServerChannelIterator.hasNext) {
+            val localAddress = nonServerChannelIterator.next().channel().localAddress()
+            logger.info(s"Closing (non server) channel ${localAddress}")
+          }
+
+          nonServerChannelGroupFuture.awaitUninterruptibly(remainingMillis(serviceRequestsDoneTimeout))
+          org.apache.pekko.pattern
+            .after(terminationDelay)(Future {
+              logger.info("Shutting down event loop")
+              val remainingServerTerminateTimeout = remainingMillis(serverTerminateTimeout)
+              eventLoop
+                .shutdownGracefully(
+                  math.min(shutdownQuietPeriod.toMillis, remainingServerTerminateTimeout),
+                  remainingServerTerminateTimeout,
+                  TimeUnit.MILLISECONDS
+                )
+                .awaitUninterruptibly(remainingMillis(serviceRequestsDoneTimeout))
+            })(using actorSystem)
+            .map(_ => Done)
+        }
     }
 
     // Call provided hook

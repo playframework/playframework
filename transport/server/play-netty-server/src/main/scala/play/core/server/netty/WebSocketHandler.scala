@@ -50,7 +50,8 @@ private[server] object WebSocketHandler {
       compressionSelector,
       wsKeepAliveMode,
       wsKeepAliveMaxIdle,
-      3.seconds
+      3.seconds,
+      None
     )
 
   def messageFlowToFrameProcessor(
@@ -63,12 +64,35 @@ private[server] object WebSocketHandler {
       wsCloseTimeout: FiniteDuration
   )(
       implicit mat: Materializer
+  ): Processor[WebSocketFrame, WebSocketFrame] =
+    messageFlowToFrameProcessor(
+      flow,
+      bufferLimit,
+      compressionThreshold,
+      compressionSelector,
+      wsKeepAliveMode,
+      wsKeepAliveMaxIdle,
+      wsCloseTimeout,
+      None
+    )
+
+  def messageFlowToFrameProcessor(
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      compressionThreshold: Long,
+      compressionSelector: WebSocket.CompressionContext => Boolean,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration,
+      gracefulShutdown: Option[(CloseMessage => Unit) => (() => Unit)]
+  )(
+      implicit mat: Materializer
   ): Processor[WebSocketFrame, WebSocketFrame] = {
     // The reason we use a processor is that we *must* release the buffers synchronously, since Pekko streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     val processor = SynchronousMappedStreams.transform(
       WebSocketFlowHandler
-        .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout)
+        .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout, gracefulShutdown)
         .join(flow)
         .toProcessor
         .run(),
