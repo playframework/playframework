@@ -29,7 +29,8 @@ object WebSocketFlowHandler {
   @deprecated("Please specify the keep-alive mode (ping or pong) and max-idle time", "2.8.19")
   def webSocketProtocol(
       bufferLimit: Int
-  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = webSocketProtocol(bufferLimit, "ping", Duration.Inf)
+  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] =
+    webSocketProtocol(bufferLimit, "ping", Duration.Inf, 3.seconds)
 
   /**
    * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
@@ -39,6 +40,18 @@ object WebSocketFlowHandler {
       bufferLimit: Int,
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration
+  ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] =
+    webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, 3.seconds)
+
+  /**
+   * Implements the WebSocket protocol, including correctly handling the closing of the WebSocket, as well as
+   * other control frames like ping/pong.
+   */
+  def webSocketProtocol(
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration
   ): BidiFlow[RawMessage, Message, Message, Message, NotUsed] = {
 
     /** The layer that transparently injects (if enabled) keepAlive Ping or Pong messages when client is idle */
@@ -79,7 +92,7 @@ object WebSocketFlowHandler {
       override def shape: BidiShape[RawMessage, Message, Message, Message] =
         new BidiShape(remoteIn, appOut, appIn, remoteOut)
 
-      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new GraphStageLogic(shape) {
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = new TimerGraphStageLogic(shape) {
         var state: State           = Open
         var pingToSend: Message    = null
         var pongToSend: Message    = null
@@ -123,6 +136,7 @@ object WebSocketFlowHandler {
             if (isAvailable(remoteOut)) {
               state = ServerInitiatedClose
               push(remoteOut, closeToSend)
+              scheduleOnce(CloseHandshakeTimeout, wsCloseTimeout)
               // If appOut is closed, then we may need to do our own pull so that we can get the ack
               if (isClosed(appOut) && !isClosed(remoteIn) && !hasBeenPulled(remoteIn)) {
                 pull(remoteIn)
@@ -176,22 +190,26 @@ object WebSocketFlowHandler {
               null
             case MessageType.Ping if read.directAnswer =>
               // Ping the client (Part of idle handling)
-              if (isAvailable(remoteOut)) {
-                // Send immediately
-                push(remoteOut, PingMessage(ByteString.empty))
-              } else {
-                // Store to send later
-                pingToSend = PingMessage(ByteString.empty)
+              if (state == Open) {
+                if (isAvailable(remoteOut)) {
+                  // Send immediately
+                  push(remoteOut, PingMessage(ByteString.empty))
+                } else {
+                  // Store to send later
+                  pingToSend = PingMessage(ByteString.empty)
+                }
               }
               null
             case MessageType.Pong if read.directAnswer =>
               // Pong the client (Part of idle handling)
-              if (isAvailable(remoteOut)) {
-                // Send immediately
-                push(remoteOut, PongMessage(ByteString.empty))
-              } else {
-                // Store to send later
-                pongToSend = PongMessage(ByteString.empty)
+              if (state == Open) {
+                if (isAvailable(remoteOut)) {
+                  // Send immediately
+                  push(remoteOut, PongMessage(ByteString.empty))
+                } else {
+                  // Store to send later
+                  pongToSend = PongMessage(ByteString.empty)
+                }
               }
               null
             case MessageType.Ping | MessageType.Pong | MessageType.Close =>
@@ -457,6 +475,12 @@ object WebSocketFlowHandler {
             }
           }
         )
+
+        protected override def onTimer(timerKey: Any): Unit = {
+          if (timerKey == CloseHandshakeTimeout && state == ServerInitiatedClose) {
+            completeStage()
+          }
+        }
       }
     })
     periodicKeepAlive.atop(messageHandling)
@@ -467,6 +491,7 @@ object WebSocketFlowHandler {
   private case class ServerInitiatingClose(message: CloseMessage) extends State
   private case object ServerInitiatedClose                        extends State
   private case class ClientInitiatedClose(message: CloseMessage)  extends State
+  private case object CloseHandshakeTimeout
 
   private val logger = Logger("play.core.server.common.WebSocketFlowHandler")
 

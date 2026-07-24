@@ -204,3 +204,15 @@ websocat -vv --close-status-code 1000 --close-reason "bye bye" ws://127.0.0.1:90
 If clients send close status codes other than the default 1000 to your Play app, make sure they use the ones that are defined and valid according to [RFC 6455 Section 7.4.1](https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1) to avoid any problems. For example web browsers usually throw exceptions when trying to use such status codes and some server implementations (e.g. Netty) fail with exceptions if they receive them (and close the connection).
 
 > **Note:** The pekko-http specific configs `pekko.http.server.websocket.periodic-keep-alive-max-idle` and `pekko.http.server.websocket.periodic-keep-alive-mode` do **not** affect Play. To be backend server agnostic, Play uses its own low-level WebSocket implementation and therefore handles frames itself.
+
+## Configuring the close handshake timeout
+
+After Play sends a WebSocket Close frame, it waits for the client to acknowledge the closing handshake with its own Close frame. By default, Play terminates the connection if the client does not respond within three seconds:
+
+```hocon
+play.server.websocket.closeTimeout = 3 seconds
+```
+
+The timeout starts when the Close frame is emitted and is not extended by subsequent client traffic, including Ping and Pong frames. Play also stops sending periodic keep-alive frames while awaiting the acknowledgement. The configured value must be a positive finite duration and applies to both the Netty and Pekko HTTP server backends independently of the HTTP idle timeout.
+
+Like other backend server settings, `play.server.websocket.closeTimeout` must be set through `PlayKeys.devSettings` in `build.sbt` to affect the server used by `sbt run`.

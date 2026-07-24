@@ -8,6 +8,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
 import scala.util.control.Exception.catching
 import scala.util.Failure
@@ -53,6 +54,7 @@ private[play] class PlayRequestHandler(
     val wsCompressionThreshold: Long,
     val wsKeepAliveMode: String,
     val wsKeepAliveMaxIdle: Duration,
+    val wsCloseTimeout: FiniteDuration,
     val deferBodyParsingGlobal: Boolean
 ) extends ChannelInboundHandlerAdapter {
   import PlayRequestHandler._
@@ -223,7 +225,8 @@ private[play] class PlayRequestHandler(
                   wsCompressionThreshold,
                   accepted.shouldCompress,
                   wsKeepAliveMode,
-                  wsKeepAliveMaxIdle
+                  wsKeepAliveMaxIdle,
+                  wsCloseTimeout
                 )
               val factory =
                 new PlayWebSocketServerHandshakerFactory(

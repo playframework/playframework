@@ -4,7 +4,7 @@
 
 package org.apache.pekko.http.play
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 import org.apache.pekko.http.impl.engine.ws._
 import org.apache.pekko.http.scaladsl.model.ws.WebSocketUpgrade
@@ -41,10 +41,35 @@ object WebSocketHandler {
       compressionSelector: (() => Message, Long, Boolean) => Boolean,
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration,
+  ): HttpResponse =
+    handleWebSocket(
+      upgrade,
+      flow,
+      bufferLimit,
+      subprotocol,
+      compressionEnabled,
+      compressionThreshold,
+      compressionSelector,
+      wsKeepAliveMode,
+      wsKeepAliveMaxIdle,
+      3.seconds
+    )
+
+  def handleWebSocket(
+      upgrade: WebSocketUpgrade,
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      subprotocol: Option[String],
+      compressionEnabled: Boolean,
+      compressionThreshold: Long,
+      compressionSelector: (() => Message, Long, Boolean) => Boolean,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration,
   ): HttpResponse = upgrade match {
     case lowLevel: UpgradeToWebSocketLowLevel =>
       lowLevel.handleFrames(
-        messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle),
+        messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout),
         subprotocol,
         compressionEnabled,
         frame => {
@@ -82,6 +107,15 @@ object WebSocketHandler {
       bufferLimit: Int,
       wsKeepAliveMode: String,
       wsKeepAliveMaxIdle: Duration
+  ): Flow[FrameEvent, FrameEvent, ?] =
+    messageFlowToFrameFlow(flow, bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, 3.seconds)
+
+  def messageFlowToFrameFlow(
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration
   ): Flow[FrameEvent, FrameEvent, ?] = {
     // Each of the stages here transforms frames to an Either[Message, ?], where Message is a close message indicating
     // some sort of protocol failure. The handleProtocolFailures function then ensures that these messages skip the
@@ -90,7 +124,9 @@ object WebSocketHandler {
       .via(aggregateFrames(bufferLimit))
       .via(
         handleProtocolFailures(
-          WebSocketFlowHandler.webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle).join(flow)
+          WebSocketFlowHandler
+            .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout)
+            .join(flow)
         )
       )
       .map(messageToFrameEvent)

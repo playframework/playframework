@@ -7,6 +7,7 @@ package play.core.server
 import java.net.URI
 import java.util.function.{ Function => JFunction }
 
+import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -219,6 +220,18 @@ object Server {
     Configuration(config).getDeprecated[String](path, deprecatedPath) match {
       case "infinite" => Long.MaxValue
       case _          => config.getBytes(if (config.hasPath(deprecatedPath)) deprecatedPath else path)
+    }
+  }
+
+  private[server] def getPositiveFiniteDuration(
+      config: Configuration,
+      path: String,
+      displayPath: String
+  ): FiniteDuration = {
+    config.get[Duration](path) match {
+      case duration: FiniteDuration if duration > Duration.Zero => duration
+      case duration                                             =>
+        throw ServerStartException(s"$displayPath must be a positive finite duration, but was $duration")
     }
   }
 

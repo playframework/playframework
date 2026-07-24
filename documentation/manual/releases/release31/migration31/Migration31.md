@@ -97,6 +97,18 @@ Java
 
 Handlers using typed APIs such as `WebSocket.accept[String, String]` still do not receive close control frames as typed messages. Use a raw `Message` flow if your application needs to inspect WebSocket close status codes directly.
 
+### Server-initiated WebSocket closing handshakes now have a timeout
+
+Previously, after Play sent a WebSocket Close frame, it could keep the underlying connection open until the peer replied with its own Close frame or the transport was terminated by another mechanism, such as the HTTP idle timeout. Because traffic such as Ping and Pong frames could keep the connection active, an uncooperative peer could prevent the idle timeout from terminating it.
+
+Play now terminates the connection if the peer does not acknowledge the Close frame within three seconds. The closing-handshake deadline starts when Play emits the Close frame, is not extended by subsequent traffic, and suppresses Play's periodic WebSocket keep-alive frames while closing. Applications that require more time can configure a different positive finite duration:
+
+```hocon
+play.server.websocket.closeTimeout = 3 seconds
+```
+
+This setting applies to both the Netty and Pekko HTTP server backends and is independent of the HTTP idle timeout.
+
 ### Malformed WebSocket frames are rejected more strictly
 
 Play now validates incoming WebSocket text and control frames consistently across the Netty and Pekko HTTP server backends.

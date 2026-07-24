@@ -89,6 +89,16 @@ This is useful for applications that need to attach handshake metadata, for exam
 
 For more details, see the [[Scala WebSocket documentation|ScalaWebSockets#Setting-WebSocket-handshake-response-options]] and [[Java WebSocket documentation|JavaWebSockets#Setting-WebSocket-handshake-response-options]].
 
+### Bounded WebSocket Closing Handshakes
+
+After Play sends a WebSocket Close frame, it now waits up to three seconds for the peer's Close acknowledgement before terminating the connection. This prevents a peer that ignores the closing handshake, or continues sending Ping and Pong frames, from keeping the connection open until the HTTP idle timeout.
+
+The timeout starts when Play emits the Close frame, is not extended by subsequent traffic, and also suppresses Play's periodic WebSocket keep-alive frames while the connection is closing. It is shared by the Netty and Pekko HTTP backends and can be configured with a positive finite duration:
+
+```hocon
+play.server.websocket.closeTimeout = 3 seconds
+```
+
 ### WebSocket Abnormal Closure Status
 
 Play now reports abnormal WebSocket connection loss to raw WebSocket handlers with close status `1006`.
