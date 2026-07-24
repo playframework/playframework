@@ -12,6 +12,8 @@ import scala.concurrent.Promise
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.OverflowStrategy
+import org.apache.pekko.stream.QueueOfferResult
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.Done
 import org.specs2.matcher.Matcher
@@ -108,6 +110,64 @@ class WebSocketFlowHandlerSpec extends Specification {
       message must beEqualTo(CloseMessage(None))
     }
 
+    "complete when the peer acknowledges an application close" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut) = runClosingWebSocket(5.seconds)
+
+      Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+      offer(remoteIn, rawClose(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
+    "complete when the peer does not acknowledge an application close before the timeout" in withActorSystem {
+      implicit materializer =>
+        val (remoteIn, remoteOut) = runClosingWebSocket(100.millis)
+
+        Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+        Await.result(remoteOut.pull(), 5.seconds) must beNone
+        remoteIn.complete()
+        ok
+    }
+
+    "start the close timeout only after emitting the close frame" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut) = runClosingWebSocket(100.millis)
+
+      Thread.sleep(250)
+      Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 5.seconds) must beNone
+      remoteIn.complete()
+      ok
+    }
+
+    "complete when the transport terminates while awaiting a close acknowledgement" in withActorSystem {
+      implicit materializer =>
+        val (remoteIn, remoteOut) = runClosingWebSocket(5.seconds)
+
+        Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+        remoteIn.complete()
+        Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
+    "not let client ping or pong frames extend the close timeout" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut) = runClosingWebSocket(1.second)
+
+      Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+      offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Ping, ByteString("ping"), isFinal = true))
+      offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Pong, ByteString("pong"), isFinal = true))
+      Await.result(remoteOut.pull(), 5.seconds) must beNone
+      remoteIn.complete()
+      ok
+    }
+
+    "not send periodic keep-alive frames after emitting a close frame" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut) =
+        runClosingWebSocket(1.second, wsKeepAliveMode = "ping", wsKeepAliveMaxIdle = 20.millis)
+
+      Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 5.seconds) must beNone
+      remoteIn.complete()
+      ok
+    }
+
     "echo an empty remote close frame without serializing 1005" in withActorSystem { implicit materializer =>
       val (_, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(rawClose(None))
 
@@ -194,7 +254,7 @@ class WebSocketFlowHandlerSpec extends Specification {
       appIn: Source[Message, ?] = Source.maybe[Message]
   )(implicit materializer: Materializer): (Seq[Message], Seq[Message]) = {
     val appFlow = Flow.fromSinkAndSourceMat(Sink.seq[Message], appIn)(Keep.left)
-    val flow    = protocol.joinMat(appFlow)(Keep.right)
+    val flow    = protocol().joinMat(appFlow)(Keep.right)
 
     val (appMessages, remoteMessages) = remoteIn.viaMat(flow)(Keep.right).toMat(Sink.seq[Message])(Keep.both).run()
 
@@ -212,7 +272,7 @@ class WebSocketFlowHandlerSpec extends Specification {
       Sink.seq[Message],
       Source.single(close)
     )(Keep.left)
-    val flow = protocol.joinMat(appFlow)(Keep.right)
+    val flow = protocol().joinMat(appFlow)(Keep.right)
 
     val ((remoteIn, appMessages), remoteMessage) =
       Source
@@ -236,7 +296,7 @@ class WebSocketFlowHandlerSpec extends Specification {
       Sink.seq[Message],
       Source.single(CloseMessage(CloseCodes.Regular))
     )(Keep.left)
-    val flow      = protocol.joinMat(appFlow)(Keep.right)
+    val flow      = protocol().joinMat(appFlow)(Keep.right)
     val closeSent = Promise[Message]()
 
     val ((remoteIn, appMessages), remoteOutDone) =
@@ -252,11 +312,41 @@ class WebSocketFlowHandlerSpec extends Specification {
     Await.result(appMessages, 5.seconds)
   }
 
+  private def runClosingWebSocket(
+      closeTimeout: FiniteDuration,
+      wsKeepAliveMode: String = "ping",
+      wsKeepAliveMaxIdle: Duration = Duration.Inf
+  )(implicit materializer: Materializer): (
+      SourceQueueWithComplete[WebSocketFlowHandler.RawMessage],
+      SinkQueueWithCancel[
+        Message
+      ]
+  ) = {
+    val appFlow = Flow.fromSinkAndSource(
+      Sink.ignore,
+      Source.single[Message](CloseMessage(CloseCodes.Regular))
+    )
+    val flow = protocol(closeTimeout, wsKeepAliveMode, wsKeepAliveMaxIdle).join(appFlow)
+
+    Source
+      .queue[WebSocketFlowHandler.RawMessage](16, OverflowStrategy.backpressure)
+      .via(flow)
+      .toMat(Sink.queue[Message]())(Keep.both)
+      .run()
+  }
+
+  private def offer(
+      queue: SourceQueueWithComplete[WebSocketFlowHandler.RawMessage],
+      message: WebSocketFlowHandler.RawMessage
+  ): Unit = {
+    Await.result(queue.offer(message), 5.seconds) must_== QueueOfferResult.Enqueued
+  }
+
   private def runCompletedRemoteInputWithoutInitialAppDemand()(
       implicit materializer: Materializer
   ): Seq[Message] = {
     val appFlow = Flow.fromSinkAndSourceMat(Sink.asPublisher[Message](fanout = false), Source.maybe[Message])(Keep.left)
-    val flow    = protocol.joinMat(appFlow)(Keep.right)
+    val flow    = protocol().joinMat(appFlow)(Keep.right)
 
     val (appPublisher, remoteOutDone) =
       Source.empty[WebSocketFlowHandler.RawMessage].viaMat(flow)(Keep.right).toMat(Sink.ignore)(Keep.both).run()
@@ -267,11 +357,16 @@ class WebSocketFlowHandlerSpec extends Specification {
     Await.result(appMessages, 5.seconds)
   }
 
-  private def protocol =
+  private def protocol(
+      closeTimeout: FiniteDuration = 3.seconds,
+      wsKeepAliveMode: String = "ping",
+      wsKeepAliveMaxIdle: Duration = Duration.Inf
+  ) =
     WebSocketFlowHandler.webSocketProtocol(
       bufferLimit = 65536,
-      wsKeepAliveMode = "ping",
-      wsKeepAliveMaxIdle = Duration.Inf
+      wsKeepAliveMode = wsKeepAliveMode,
+      wsKeepAliveMaxIdle = wsKeepAliveMaxIdle,
+      wsCloseTimeout = closeTimeout
     )
 
   private def rawClose(statusCode: Int): WebSocketFlowHandler.RawMessage = {

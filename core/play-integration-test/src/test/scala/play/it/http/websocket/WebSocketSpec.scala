@@ -673,6 +673,18 @@ trait WebSocketSpec
       expectedMessages = Seq("foo")
     )
 
+    "reject a zero play.server.websocket.closeTimeout at startup" in {
+      failToStartWithInvalidCloseTimeout("0 seconds")
+    }
+
+    "reject a negative play.server.websocket.closeTimeout at startup" in {
+      failToStartWithInvalidCloseTimeout("-1 second")
+    }
+
+    "reject an infinite play.server.websocket.closeTimeout at startup" in {
+      failToStartWithInvalidCloseTimeout("infinite")
+    }
+
     "allow handling WebSockets using Pekko streams" in {
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         WebSocket.accept[String, String] { req =>
@@ -757,6 +769,90 @@ trait WebSocketSpec
             }
           )
           result must beEmpty
+        }
+      }
+
+      "terminate after closeTimeout when the client continues sending ping and pong frames" in {
+        val consumed = Promise[List[Message]]()
+        withServer(
+          app =>
+            WebSocket.accept[Message, Message] { req =>
+              Flow.fromSinkAndSource(
+                onFramesConsumed[Message](consumed.success(_)),
+                Source.single(CloseMessage(CloseCodes.Regular))
+              )
+            },
+          Map(
+            "play.server.http.idleTimeout"                       -> "infinite",
+            "play.server.https.idleTimeout"                      -> "infinite",
+            "play.server.websocket.closeTimeout"                 -> "300 milliseconds",
+            "play.server.websocket.periodic-keep-alive-max-idle" -> "infinite"
+          )
+        ) { (app, port) =>
+          import app.materializer
+          val closeReceived = Promise[Long]()
+          val frames        = runWebSocket(
+            port,
+            { flow =>
+              Source
+                .futureSource(
+                  closeReceived.future.map { _ =>
+                    Source
+                      .tick(10.millis, 20.millis, ())
+                      .zipWithIndex
+                      .map[ExtendedMessage] {
+                        case (_, index) if index % 2 == 0 => PingMessage(ByteString("ping"))
+                        case _ => PongMessage(ByteString("pong"))
+                      }
+                  }
+                )
+                .via(flow)
+                .map { frame =>
+                  frame match {
+                    case SimpleMessage(_: CloseMessage, _) => closeReceived.trySuccess(System.nanoTime())
+                    case _                                 =>
+                  }
+                  frame
+                }
+                .runWith(consumeFrames)
+            },
+            acknowledgeServerClose = false
+          )
+          val closeHandshakeDuration = (System.nanoTime() - await(closeReceived.future)).nanos
+
+          (frames must contain(exactly(closeFrame(CloseCodes.Regular))))
+            .and(
+              await(consumed.future).exists {
+                case _: CloseMessage => true
+                case _               => false
+              } must beFalse
+            )
+            .and(closeHandshakeDuration must beLessThan(2.seconds))
+        }
+      }
+
+      "not send periodic keep-alive frames while awaiting a close acknowledgement" in {
+        withServer(
+          app =>
+            WebSocket.accept[Message, Message] { req =>
+              Flow.fromSinkAndSource(Sink.ignore, Source.single(CloseMessage(CloseCodes.Regular)))
+            },
+          Map(
+            "play.server.http.idleTimeout"                       -> "infinite",
+            "play.server.https.idleTimeout"                      -> "infinite",
+            "play.server.websocket.closeTimeout"                 -> "200 milliseconds",
+            "play.server.websocket.periodic-keep-alive-max-idle" -> "20 milliseconds",
+            "play.server.websocket.periodic-keep-alive-mode"     -> "ping"
+          )
+        ) { (app, port) =>
+          import app.materializer
+          val frames = runWebSocket(
+            port,
+            { flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames) },
+            acknowledgeServerClose = false
+          )
+
+          frames must contain(exactly(closeFrame(CloseCodes.Regular)))
         }
       }
 
@@ -1601,6 +1697,19 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   // Extend the default spec timeout for CI.
   implicit override def defaultAwaitTimeout: Timeout = 10.seconds
 
+  def failToStartWithInvalidCloseTimeout(value: String) = {
+    withServer(
+      app => WebSocket.accept[String, String] { req => Flow.fromSinkAndSource(Sink.ignore, Source.maybe[String]) },
+      Map("play.server.websocket.closeTimeout" -> value)
+    ) { (_, _) =>
+      ()
+    } must throwA[RuntimeException].like {
+      case exception =>
+        (exception.getCause must beAnInstanceOf[play.core.server.ServerStartException])
+          .and(exception.getMessage must contain("play.server.websocket.closeTimeout"))
+    }
+  }
+
   def withServer[A](
       webSocket: Application => Handler,
       extraConfig: Map[String, Any] = Map.empty,
@@ -1630,9 +1739,12 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       port: Int,
       handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
       handleConnect: Future[?] => Future[?] = c => c,
-      compressionMode: CompressionMode = CompressionMode.Disabled
+      compressionMode: CompressionMode = CompressionMode.Disabled,
+      acknowledgeServerClose: Boolean = true
   ): A =
-    runWebSocket(port, handler, subprotocol = None, handleConnect, compressionMode) match { case (result, _) => result }
+    runWebSocket(port, handler, subprotocol = None, handleConnect, compressionMode, acknowledgeServerClose) match {
+      case (result, _) => result
+    }
 
   def runWebSocket[A](
       port: Int,
@@ -1640,6 +1752,16 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       subprotocol: Option[String],
       handleConnect: Future[?] => Future[?],
       compressionMode: CompressionMode
+  ): (A, immutable.Seq[(String, String)]) =
+    runWebSocket(port, handler, subprotocol, handleConnect, compressionMode, acknowledgeServerClose = true)
+
+  def runWebSocket[A](
+      port: Int,
+      handler: Flow[ExtendedMessage, ExtendedMessage, ?] => Future[A],
+      subprotocol: Option[String],
+      handleConnect: Future[?] => Future[?],
+      compressionMode: CompressionMode,
+      acknowledgeServerClose: Boolean
   ): (A, immutable.Seq[(String, String)]) = {
     WebSocketClient { client =>
       val innerResult     = Promise[A]()
@@ -1649,7 +1771,8 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
           client.connect(
             URI.create("ws://localhost:" + port + "/stream"),
             subprotocol = subprotocol,
-            compressionMode = compressionMode
+            compressionMode = compressionMode,
+            acknowledgeServerClose = acknowledgeServerClose
           ) { (headers, flow) =>
             innerResult.completeWith(handler(flow))
             responseHeaders.success(headers)

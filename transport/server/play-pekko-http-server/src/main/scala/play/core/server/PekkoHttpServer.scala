@@ -113,9 +113,14 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   private val httpsWantClientAuth                      = serverConfig.get[Boolean]("https.wantClientAuth")
   private val illegalResponseHeaderValueProcessingMode =
     pekkoServerConfig.get[String]("illegal-response-header-value-processing-mode")
-  private val wsBufferLimit          = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
-  private val wsKeepAliveMode        = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
-  private val wsKeepAliveMaxIdle     = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsBufferLimit      = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsKeepAliveMode    = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
+  private val wsKeepAliveMaxIdle = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsCloseTimeout     = Server.getPositiveFiniteDuration(
+    serverConfig,
+    "websocket.closeTimeout",
+    "play.server.websocket.closeTimeout"
+  )
   private val wsCompressionConfig    = serverConfig.get[Configuration]("websocket.compression")
   private val wsCompressionThreshold = wsCompressionConfig.get[ConfigMemorySize]("threshold").toBytes
 
@@ -459,7 +464,8 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
                       new WebSocket.CompressionContext(message(), payloadLength, isAboveCompressionThreshold)
                     ),
                   wsKeepAliveMode,
-                  wsKeepAliveMaxIdle
+                  wsKeepAliveMaxIdle,
+                  wsCloseTimeout
                 )
               Future.successful(response.withHeaders(response.headers ++ handshakeHeaders))
           }

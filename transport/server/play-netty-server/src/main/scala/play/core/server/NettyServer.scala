@@ -88,22 +88,27 @@ class NettyServer(
   private val maxInitialLineLength = nettyConfig.get[Int]("maxInitialLineLength")
   private val maxHeaderSize        =
     serverConfig.getDeprecated[ConfigMemorySize]("max-header-size", "netty.maxHeaderSize").toBytes.toInt
-  private val maxContentLength         = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
-  private val maxChunkSize             = nettyConfig.get[Int]("maxChunkSize")
-  private val threadCount              = nettyConfig.get[Int]("eventLoopThreads")
-  private val logWire                  = nettyConfig.get[Boolean]("log.wire")
-  private val bootstrapOption          = nettyConfig.get[Config]("option")
-  private val channelOption            = nettyConfig.get[Config]("option.child")
-  private val httpsWantClientAuth      = serverConfig.get[Boolean]("https.wantClientAuth")
-  private val httpsNeedClientAuth      = serverConfig.get[Boolean]("https.needClientAuth")
-  private val httpIdleTimeout          = serverConfig.get[Duration]("http.idleTimeout")
-  private val httpsIdleTimeout         = serverConfig.get[Duration]("https.idleTimeout")
-  private val shutdownQuietPeriod      = nettyConfig.get[FiniteDuration]("shutdownQuietPeriod")
-  private val terminationDelay         = serverConfig.get[FiniteDuration]("waitBeforeTermination")
-  private val terminationTimeout       = serverConfig.getOptional[FiniteDuration]("terminationTimeout")
-  private val wsBufferLimit            = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
-  private val wsKeepAliveMode          = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
-  private val wsKeepAliveMaxIdle       = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val maxContentLength    = Server.getPossiblyInfiniteBytes(serverConfig.underlying, "max-content-length")
+  private val maxChunkSize        = nettyConfig.get[Int]("maxChunkSize")
+  private val threadCount         = nettyConfig.get[Int]("eventLoopThreads")
+  private val logWire             = nettyConfig.get[Boolean]("log.wire")
+  private val bootstrapOption     = nettyConfig.get[Config]("option")
+  private val channelOption       = nettyConfig.get[Config]("option.child")
+  private val httpsWantClientAuth = serverConfig.get[Boolean]("https.wantClientAuth")
+  private val httpsNeedClientAuth = serverConfig.get[Boolean]("https.needClientAuth")
+  private val httpIdleTimeout     = serverConfig.get[Duration]("http.idleTimeout")
+  private val httpsIdleTimeout    = serverConfig.get[Duration]("https.idleTimeout")
+  private val shutdownQuietPeriod = nettyConfig.get[FiniteDuration]("shutdownQuietPeriod")
+  private val terminationDelay    = serverConfig.get[FiniteDuration]("waitBeforeTermination")
+  private val terminationTimeout  = serverConfig.getOptional[FiniteDuration]("terminationTimeout")
+  private val wsBufferLimit       = serverConfig.get[ConfigMemorySize]("websocket.frame.maxLength").toBytes.toInt
+  private val wsKeepAliveMode     = serverConfig.get[String]("websocket.periodic-keep-alive-mode")
+  private val wsKeepAliveMaxIdle  = serverConfig.get[Duration]("websocket.periodic-keep-alive-max-idle")
+  private val wsCloseTimeout      = Server.getPositiveFiniteDuration(
+    serverConfig,
+    "websocket.closeTimeout",
+    "play.server.websocket.closeTimeout"
+  )
   private val wsCompression            = serverConfig.get[Boolean]("websocket.compression.enabled")
   private val wsCompressionConfig      = serverConfig.get[Configuration]("websocket.compression")
   private val wsCompressionThreshold   = wsCompressionConfig.get[ConfigMemorySize]("threshold").toBytes
@@ -307,6 +312,7 @@ class NettyServer(
       wsCompressionThreshold,
       wsKeepAliveMode,
       wsKeepAliveMaxIdle,
+      wsCloseTimeout,
       deferBodyParsing
     )
 

@@ -57,7 +57,8 @@ trait WebSocketClient {
       url: URI,
       version: WebSocketVersion = WebSocketVersion.V13,
       subprotocol: Option[String] = None,
-      compressionMode: WebSocketClient.CompressionMode = WebSocketClient.CompressionMode.Disabled
+      compressionMode: WebSocketClient.CompressionMode = WebSocketClient.CompressionMode.Disabled,
+      acknowledgeServerClose: Boolean = true
   )(
       onConnect: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
   ): Future[?]
@@ -132,7 +133,13 @@ object WebSocketClient {
     /**
      * Connect to the given URI
      */
-    def connect(url: URI, version: WebSocketVersion, subprotocol: Option[String], compressionMode: CompressionMode)(
+    def connect(
+        url: URI,
+        version: WebSocketVersion,
+        subprotocol: Option[String],
+        compressionMode: CompressionMode,
+        acknowledgeServerClose: Boolean
+    )(
         onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
     ): Future[?] = {
       val normalized = url.normalize()
@@ -166,7 +173,12 @@ object WebSocketClient {
             compressionMode != CompressionMode.Disabled,
             headers
           )
-          channel.pipeline().addLast("supervisor", new WebSocketSupervisor(disconnected, handshaker, onConnected))
+          channel
+            .pipeline()
+            .addLast(
+              "supervisor",
+              new WebSocketSupervisor(disconnected, handshaker, acknowledgeServerClose, onConnected)
+            )
           handshaker.handshake(channel)
           channel.read()
         }
@@ -184,6 +196,7 @@ object WebSocketClient {
   private class WebSocketSupervisor(
       disconnected: Promise[Unit],
       handshaker: WebSocketClientHandshaker,
+      acknowledgeServerClose: Boolean,
       onConnected: (immutable.Seq[(String, String)], Flow[ExtendedMessage, ExtendedMessage, ?]) => Unit
   ) extends ChannelInboundHandlerAdapter {
     override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
@@ -300,7 +313,12 @@ object WebSocketClient {
           val handleServerClose = Flow[WebSocketFrame].filter { frame =>
             if (frame.isInstanceOf[CloseWebSocketFrame] && !clientInitiatedClose.get()) {
               serverInitiatedClose.set(true)
-              true
+              if (acknowledgeServerClose) {
+                true
+              } else {
+                ReferenceCountUtil.release(frame)
+                false
+              }
             } else {
               // If we're going to drop it, we need to release it first
               ReferenceCountUtil.release(frame)

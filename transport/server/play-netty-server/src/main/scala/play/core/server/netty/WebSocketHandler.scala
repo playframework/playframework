@@ -4,7 +4,7 @@
 
 package play.core.server.netty
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
@@ -42,12 +42,33 @@ private[server] object WebSocketHandler {
       wsKeepAliveMaxIdle: Duration
   )(
       implicit mat: Materializer
+  ): Processor[WebSocketFrame, WebSocketFrame] =
+    messageFlowToFrameProcessor(
+      flow,
+      bufferLimit,
+      compressionThreshold,
+      compressionSelector,
+      wsKeepAliveMode,
+      wsKeepAliveMaxIdle,
+      3.seconds
+    )
+
+  def messageFlowToFrameProcessor(
+      flow: Flow[Message, Message, ?],
+      bufferLimit: Int,
+      compressionThreshold: Long,
+      compressionSelector: WebSocket.CompressionContext => Boolean,
+      wsKeepAliveMode: String,
+      wsKeepAliveMaxIdle: Duration,
+      wsCloseTimeout: FiniteDuration
+  )(
+      implicit mat: Materializer
   ): Processor[WebSocketFrame, WebSocketFrame] = {
     // The reason we use a processor is that we *must* release the buffers synchronously, since Pekko streams drops
     // messages, which will mean we can't release the ByteBufs in the messages.
     val processor = SynchronousMappedStreams.transform(
       WebSocketFlowHandler
-        .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle)
+        .webSocketProtocol(bufferLimit, wsKeepAliveMode, wsKeepAliveMaxIdle, wsCloseTimeout)
         .join(flow)
         .toProcessor
         .run(),

@@ -18,6 +18,8 @@ import play.api.test._
 import play.api.Application
 
 class JsonBodyParserSpec extends PlaySpecification {
+  sequential
+
   private case class Foo(a: Int, b: String)
   private implicit val fooFormat: OFormat[Foo] = Json.format[Foo]
 
