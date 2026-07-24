@@ -61,10 +61,12 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 * **Short description:** Provides managed MongoDB access and object mapping using [Morphia](https://morphia.dev/)
 
 ### MongoDB ReactiveMongo Plugin (Scala)
-* **Website (docs, sample):** <http://reactivemongo.org/releases/0.1x/documentation/tutorial/play.html>
-* **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
+
+* **Website (docs, sample):** <http://reactivemongo.org/releases/1.0/documentation/tutorial/play.html>
+* **Short description:** Provides a Play module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
 
 ### Play-Slick
+
 * **Website (docs, sample):** <https://github.com/playframework/play-slick>
 * **Short description:** This plugin makes Slick a first-class citizen of Play.
 
@@ -79,10 +81,10 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 * **Short description:** Provides both blocking and asynchronous redis based cache implementation. It implements common Play's CacheApi for both Java and Scala plus provides a few more Scala APIs implementing various Redis commands including the support of collections.
 
 ### Kuzminki (Scala)
+
 * **Website (docs, sample):** <https://kuzminki.info/>
 * **Demo:** <https://github.com/karimagnusson/kuzminki-play-demo>
 * **Short description:** Kuzminki is feature-rich query builder and access library for PostgreSQL.
-
 
 ## Page Rendering
 
@@ -192,6 +194,11 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 * **Documentation:** <https://github.com/zengularity/benji/tree/master/examples>
 * **Short description:** A reactive module for the Benji library, providing an Object storage DSL (AWS/Ceph S3, Google Cloud Storage).
 
+### Jinbe (Scala)
+
+* **Website:** <https://github.com/cchantep/jinbe>
+* **Documentation:** <https://github.com/cchantep/jinbe/tree/master/examples>
+* **Short description:** A reactive module for the Jinbe library (continuation fork of Benji), providing an Object storage DSL (AWS/Ceph S3, Google Cloud Storage).
 
 ## Archived or Unmaintained Modules
 
