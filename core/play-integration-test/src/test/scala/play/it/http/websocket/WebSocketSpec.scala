@@ -21,6 +21,7 @@ import org.apache.pekko.actor.Actor
 import org.apache.pekko.actor.Props
 import org.apache.pekko.actor.Status
 import org.apache.pekko.stream.scaladsl._
+import org.apache.pekko.stream.OverflowStrategy
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.util.Timeout
 import org.specs2.execute.AsResult
@@ -608,6 +609,90 @@ trait PingWebSocketSpec
             closeFrame()
           )
         )
+      }
+    }
+
+    "respond to pings before the application requests a message" in {
+      val appMessages = Promise[SinkQueueWithCancel[Message]]()
+
+      withServer(app =>
+        WebSocket.accept[Message, Message] { req =>
+          Flow
+            .fromSinkAndSourceMat(Sink.queue[Message](), Source.maybe[Message])(Keep.left)
+            .mapMaterializedValue { queue =>
+              appMessages.success(queue)
+              queue
+            }
+        }
+      ) { (app, port) =>
+        import app.materializer
+        val (pong, appPing, close) = runWebSocket(
+          port,
+          { flow =>
+            val (clientIn, clientOut) =
+              Source
+                .queue[ExtendedMessage](1, OverflowStrategy.backpressure)
+                .via(flow)
+                .toMat(Sink.queue[ExtendedMessage]())(Keep.both)
+                .run()
+
+            for {
+              appQueue <- appMessages.future
+              _        <- clientIn.offer(PingMessage(ByteString("hello")))
+              pong     <- clientOut.pull()
+              appPing  <- appQueue.pull()
+              appClose = appQueue.pull()
+              _     <- clientIn.offer(CloseMessage(CloseCodes.Regular))
+              close <- clientOut.pull()
+              _     <- appClose
+              _     <- clientOut.pull()
+            } yield (pong, appPing, close)
+          }
+        )
+
+        (pong must beSome(pongFrame(be_==("hello"))))
+          .and(appPing must beSome(beEqualTo(PingMessage(ByteString("hello")))))
+          .and(close must beSome(closeFrame()))
+      }
+    }
+
+    "acknowledge a close before the application requests a message" in {
+      val appMessages = Promise[SinkQueueWithCancel[Message]]()
+
+      withServer(app =>
+        WebSocket.accept[Message, Message] { req =>
+          Flow
+            .fromSinkAndSourceMat(Sink.queue[Message](), Source.maybe[Message])(Keep.left)
+            .mapMaterializedValue { queue =>
+              appMessages.success(queue)
+              queue
+            }
+        }
+      ) { (app, port) =>
+        import app.materializer
+        val (remoteClose, appClose) = runWebSocket(
+          port,
+          { flow =>
+            val (clientIn, clientOut) =
+              Source
+                .queue[ExtendedMessage](1, OverflowStrategy.backpressure)
+                .via(flow)
+                .toMat(Sink.queue[ExtendedMessage]())(Keep.both)
+                .run()
+
+            for {
+              appQueue    <- appMessages.future
+              _           <- clientIn.offer(CloseMessage(CloseCodes.GoingAway))
+              remoteClose <- clientOut.pull()
+              appClose    <- appQueue.pull()
+              _           <- clientOut.pull()
+              _           <- appQueue.pull()
+            } yield (remoteClose, appClose)
+          }
+        )
+
+        (remoteClose must beSome(closeFrame(CloseCodes.GoingAway)))
+          .and(appClose must beSome(closeMessage(CloseCodes.GoingAway)))
       }
     }
 
