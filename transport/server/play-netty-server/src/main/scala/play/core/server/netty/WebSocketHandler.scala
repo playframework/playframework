@@ -122,21 +122,34 @@ private[server] object WebSocketHandler {
    * Converts Netty frames to Play RawMessages.
    */
   private def frameToMessage(frame: WebSocketFrame): RawMessage = {
-    val builder = ByteString.newBuilder
-    frame.content().readBytes(builder.asOutputStream, frame.content().readableBytes())
-    val bytes = builder.result()
-    ReferenceCountUtil.release(frame)
-
-    val messageType = frame match {
-      case _: TextWebSocketFrame         => MessageType.Text
-      case _: BinaryWebSocketFrame       => MessageType.Binary
-      case close: CloseWebSocketFrame    => MessageType.Close
-      case _: PingWebSocketFrame         => MessageType.Ping
-      case _: PongWebSocketFrame         => MessageType.Pong
-      case _: ContinuationWebSocketFrame => MessageType.Continuation
+    val reservedBits  = frame.rsv()
+    val finalFragment = frame.isFinalFragment
+    val messageType   = if (reservedBits != 0) {
+      MessageType.ReservedBits
+    } else {
+      frame match {
+        case _: TextWebSocketFrame         => MessageType.Text
+        case _: BinaryWebSocketFrame       => MessageType.Binary
+        case close: CloseWebSocketFrame    => MessageType.Close
+        case _: PingWebSocketFrame         => MessageType.Ping
+        case _: PongWebSocketFrame         => MessageType.Pong
+        case _: ContinuationWebSocketFrame => MessageType.Continuation
+      }
     }
+    val data =
+      try {
+        if (reservedBits != 0) {
+          ByteString.empty
+        } else {
+          val builder = ByteString.newBuilder
+          frame.content().readBytes(builder.asOutputStream, frame.content().readableBytes())
+          builder.result()
+        }
+      } finally {
+        ReferenceCountUtil.release(frame)
+      }
 
-    RawMessage(messageType, bytes, frame.isFinalFragment)
+    RawMessage(messageType, data, finalFragment)
   }
 
   /**

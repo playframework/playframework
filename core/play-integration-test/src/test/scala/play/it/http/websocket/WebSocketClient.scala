@@ -273,6 +273,17 @@ object WebSocketClient {
           new CloseWebSocketFrame(finalFragment, 0, statusCode.getOrElse(CloseCodes.NoStatus), reason)
         case ContinuationMessage(data, finalFragment) =>
           new ContinuationWebSocketFrame(finalFragment, 0, Unpooled.wrappedBuffer(data.asByteBuffer))
+        case RawWebSocketFrame(frameType, data, rsv, finalFragment) =>
+          lazy val content = Unpooled.wrappedBuffer(data.asByteBuffer)
+          frameType match {
+            case "text"         => new TextWebSocketFrame(finalFragment, rsv, content)
+            case "binary"       => new BinaryWebSocketFrame(finalFragment, rsv, content)
+            case "continuation" => new ContinuationWebSocketFrame(finalFragment, rsv, content)
+            case "ping"         => new PingWebSocketFrame(finalFragment, rsv, content)
+            case "pong"         => new PongWebSocketFrame(finalFragment, rsv, content)
+            case "close"        => new CloseWebSocketFrame(finalFragment, rsv, content)
+            case other          => throw new IllegalArgumentException(s"Unsupported WebSocket frame type: $other")
+          }
       }
 
       val framesToMessages = Flow[WebSocketFrame].map { frame =>
