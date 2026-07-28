@@ -1,234 +1,53 @@
-name: Check
+name: Autobahn WebSocket Conformance
 
 on:
-  pull_request: # Check Pull Requests
-
-  push:
-    branches:
-      - main # Check branch after merge
-
-  schedule:
-    - cron: "0 4 * * *" # Nightly build (@daily)
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
-  # Only run once for latest commit per ref and cancel other (previous) runs.
-  group: ci-${{ github.ref }}
+  group: autobahn-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: read # for checkout
+  contents: read
 
 jobs:
-  extra-vars:
-    name: Extra variables
+  autobahn:
+    name: Autobahn (${{ matrix.backend }})
     runs-on: ubuntu-24.04
-    outputs:
-      pekko_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_opts }}
-      pekko_http_version_opts: ${{ steps.pekko-snapshots.outputs.pekko_http_opts }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        backend:
+          - netty
+          - pekko-http
+
     steps:
-      - id: pekko-snapshots
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-            PEKKO_VERSION=$(curl -s https://repository.apache.org/content/repositories/snapshots/org/apache/pekko/pekko-actor_2.13/ | grep -oEi '2\.0\.[0-9]+\-[RCM0-9]+\+[0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
-            PEKKO_HTTP_VERSION=$(curl -s https://repository.apache.org/content/repositories/snapshots/org/apache/pekko/pekko-http-core_2.13/ | grep -oEi '2\.0\.[0-9]+\-[RCM0-9]+\+[0-9]+-[0-9a-f]{8}-SNAPSHOT' | sort -V | tail -n 1)
-            echo "pekko_opts=-Dpekko.version=$PEKKO_VERSION" >> $GITHUB_OUTPUT
-            echo "pekko_http_opts=-Dpekko.http.version=$PEKKO_HTTP_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "pekko_opts=" >> $GITHUB_OUTPUT
-            echo "pekko_http_opts=" >> $GITHUB_OUTPUT
-          fi
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-  prefetch-for-caching:
-    name: Prefetch dependencies and JVMs for caching
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      cmd: |
-        if [ "$CACHE_HIT_COURSIER" = "false" ]; then
-          sbt +update                                             # Runs with adoptium:8 (default)
-          # sbt --sbt-version 1.12.14 +update                      # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
-          sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
-          cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
-          sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
-          sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
-          sbt -java-home `cs java-home --jvm adoptium:25` exit    # Init sbt with new JVM that will be downloaded
-        fi
+      - name: Coursier cache
+        uses: coursier/cache-action@v8
 
-  # Run Gradle Wrapper Validation to verify the wrapper's checksum
-  gradle-validation:
-    name: Gradle Wrapper
-    uses: playframework/.github/.github/workflows/gradle-wrapper-validation.yml@v4
+      - name: Install Adoptium Temurin OpenJDK
+        uses: coursier/setup-action@v3
+        with:
+          jvm: adoptium:17
 
-  check-code-style:
-    name: Code Style # scalafmt, javafmt, file headers, pekko version check
-    needs:
-      - "extra-vars"
-      - "prefetch-for-caching"
-      - "gradle-validation"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      cmd: |
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
-        cd dev-mode/gradle-plugin
-        ./gradlew clean spotlessCheck --no-daemon
-      gradle-build-root: dev-mode/gradle-plugin
+      - name: Install sbt
+        uses: sbt/setup-sbt@v1
 
-  check-binary-compatibility:
-    name: Binary Compatibility
-    needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/binary-check.yml@v4
+      - name: Run Autobahn core profile
+        run: core/play-integration-test/autobahn/run.sh "${{ matrix.backend }}" core
 
-  check-code-style-docs:
-    name: Code Style Docs
-    needs: "prefetch-for-caching"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      cmd: |
-        cd documentation
-        sbt validateCode
-
-  check-api-docs-package-tree:
-    name: Check Public API Docs Packages
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      cmd: >-
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" +Play-Docs/checkApiDocsPackageTree
-
-  publish-local:
-    name: Publish Local
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      java: 25, 21, 17
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
-      cmd: |
-        rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal +publishM2
-      cache-path: |
-        ~/.ivy2/local/org.playframework
-        ~/.m2/repository/org/playframework
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
-
-  tests:
-    name: Tests
-    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')"
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      java: 25, 21, 17
-      scala: 2.13.x, 3.x
-      add-dimensions: >-
-        {
-          "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true" ]
-        }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" },
-          { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}" }
-        ]
-      cmd: >-
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$(eval "echo $MATRIX_SBT_TEST_TASK")"
-
-  docs-tests:
-    name: Docs Tests
-    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-docs-tests')"
-    needs:
-      - "extra-vars"
-      - "check-code-style"
-      - "check-binary-compatibility"
-      - "check-code-style-docs"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      java: 25, 21, 17
-      scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
-      cmd: >-
-        cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
-
-  scripted-tests:
-    name: Scripted Tests
-    if: "!contains(github.event.pull_request.labels.*.name, 'ci:skip-scripted-tests')"
-    needs:
-      - "extra-vars"
-      - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      java: 25, 21, 17
-      scala: 2.13.x, 3.x
-      add-dimensions: >-
-        {
-          "sbt": [ "1.12.14" ],
-          "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
-        }
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
-      cmd: >-
-        export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
-          project Sbt-Plugin;
-          set scriptedSbt := \"$MATRIX_SBT\";
-          set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
-          set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
-          show scriptedSbt;
-          show scriptedLaunchOpts;
-          disableIncompatibleScriptedTests;
-          scripted play-sbt-plugin/$MATRIX_SBT_STEPS
-        "
-      cache-path: |
-        ~/.ivy2/local/org.playframework
-        ~/.m2/repository/org/playframework
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
-
-  gradle-plugin-tests:
-    name: Gradle Plugin Tests
-    needs:
-      - "extra-vars"
-      - "publish-local"
-    uses: playframework/.github/.github/workflows/cmd.yml@v4
-    with:
-      java: 25, 21, 17
-      scala: 2.13.x, 3.x
-      exclude: >-
-        [
-          { "java": "${{ github.event_name == 'schedule' || '21' }}" }
-        ]
-      cmd: |
-        sbt savePlayVersion
-        cd dev-mode/gradle-plugin
-        ./gradlew clean check -x spotlessCheck --no-daemon -Pscala.version="$MATRIX_SCALA"
-      gradle-build-root: dev-mode/gradle-plugin
-      cache-path: |
-        ~/.ivy2/local/org.playframework
-        ~/.m2/repository/org/playframework
-      cache-key: play-published-local-jdk{0}-${{ github.sha }}-${{ github.event_name != 'schedule' || github.run_id }}
-
-  finish:
-    name: Finish
-    if: github.event_name == 'pull_request'
-    needs: # Should be last
-      - "check-api-docs-package-tree"
-      - "tests"
-      - "docs-tests"
-      - "scripted-tests"
-      - "gradle-plugin-tests"
-    uses: playframework/.github/.github/workflows/rtm.yml@v4
+      - name: Upload Autobahn report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autobahn-${{ matrix.backend }}-core
+          path: target/autobahn/${{ matrix.backend }}/core
+          if-no-files-found: warn
+          retention-days: 7
