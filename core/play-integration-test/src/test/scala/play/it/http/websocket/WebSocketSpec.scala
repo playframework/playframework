@@ -1200,6 +1200,17 @@ trait WebSocketSpec
         )
       }
 
+      "respond to every Ping in a burst" in {
+        val payloads = (1 to 10).map(index => ByteString(s"ping-$index")).toList
+        val pings    = payloads.map(payload => SimpleMessage(PingMessage(payload), finalFragment = true))
+        val close    = SimpleMessage(CloseMessage(CloseCodes.Regular), finalFragment = true)
+
+        val (frames, messages) = sendProtocolFrames((pings :+ close)*)
+
+        frames.collect { case SimpleMessage(PongMessage(data), _) => data } must_== payloads
+        messages.collect { case PingMessage(data) => data } must_== payloads
+      }
+
       Seq(
         "Ping"  -> SimpleMessage(PingMessage(ByteString("control")), false),
         "Pong"  -> SimpleMessage(PongMessage(ByteString("control")), false),
