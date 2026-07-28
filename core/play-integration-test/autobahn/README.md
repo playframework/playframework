@@ -21,7 +21,9 @@ The available profiles are:
 | `full` | Protocol and permessage-deflate cases, excluding performance (`9.*`) |
 | `all` | Every Autobahn case, including long-running limits and performance cases |
 
-The harness starts an echo WebSocket on an ephemeral port, runs the pinned `crossbario/autobahn-testsuite:25.10.1` image, checks `index.json`, and then stops the server. `OK`, `NON-STRICT`, and `INFORMATIONAL` protocol results are accepted. Closing behavior must be `OK` or `INFORMATIONAL`; all other results fail the command.
+The harness starts an echo WebSocket on an ephemeral port, runs the pinned `crossbario/autobahn-testsuite:25.10.1` image, checks `index.json`, and then stops the server. It raises the frame and decompression limits and enables both no-context-takeover directions so that Autobahn can exercise the supported compression behavior. `OK`, `NON-STRICT`, and `INFORMATIONAL` protocol results are accepted. Closing behavior must be `OK` or `INFORMATIONAL`; all other results fail the command.
+
+Some RFC 7692 parameters are optional. Netty without its optional JZlib dependency declines all `server_max_window_bits` offers, while Pekko HTTP declines values below `15` because the JDK compression API cannot configure the window size. The corresponding group 13 cases are accepted only when Autobahn reports them as `UNIMPLEMENTED`; all other compression cases must pass.
 
 HTML and JSON reports are written to `target/autobahn/<backend>/<profile>/reports`.
 

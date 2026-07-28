@@ -37,6 +37,11 @@ object AutobahnWebSocketConformance {
   private val AcceptedBehavior      = Set("OK", "NON-STRICT", "INFORMATIONAL")
   private val AcceptedCloseBehavior = Set("OK", "INFORMATIONAL")
 
+  private val ExpectedUnimplementedCasePrefixes = Map(
+    "netty"      -> Seq("13.3.", "13.4.", "13.5.", "13.6."),
+    "pekko-http" -> Seq("13.3.", "13.5.")
+  )
+
   private case class Profile(excludedCases: Seq[String])
 
   private val Profiles = Map(
@@ -60,20 +65,32 @@ object AutobahnWebSocketConformance {
       closeBehaviorCounts: Map[String, Int]
   )
 
-  private[websocket] def evaluateReport(report: JsValue): ReportEvaluation = {
-    val results = report.as[JsObject].fields.flatMap { case (agent, cases) =>
-      cases.as[JsObject].fields.map { case (caseId, result) =>
-        CaseResult(
-          agent,
-          caseId,
-          (result \ "behavior").as[String],
-          (result \ "behaviorClose").as[String],
-          (result \ "reportfile").asOpt[String].getOrElse("")
-        )
+  private[websocket] def evaluateReport(
+      report: JsValue,
+      expectedUnimplementedCasePrefixes: Seq[String] = Seq.empty
+  ): ReportEvaluation = {
+    val results = report
+      .as[JsObject]
+      .fields
+      .flatMap {
+        case (agent, cases) =>
+          cases.as[JsObject].fields.map {
+            case (caseId, result) =>
+              CaseResult(
+                agent,
+                caseId,
+                (result \ "behavior").as[String],
+                (result \ "behaviorClose").as[String],
+                (result \ "reportfile").asOpt[String].getOrElse("")
+              )
+          }
       }
-    }.toVector
+      .toVector
     val failures = results.filterNot { result =>
-      AcceptedBehavior(result.behavior) && AcceptedCloseBehavior(result.closeBehavior)
+      val acceptedBehavior = AcceptedBehavior(result.behavior) ||
+        (result.behavior == "UNIMPLEMENTED" &&
+          expectedUnimplementedCasePrefixes.exists(result.caseId.startsWith))
+      acceptedBehavior && AcceptedCloseBehavior(result.closeBehavior)
     }
     ReportEvaluation(
       results,
@@ -90,11 +107,11 @@ object AutobahnWebSocketConformance {
       )
     }
 
-    val backend = args(0)
+    val backend                  = args(0)
     val provider: ServerProvider = backend match {
       case "netty"      => NettyServer.provider
       case "pekko-http" => PekkoHttpServer.provider
-      case _             => throw new IllegalArgumentException(s"Unknown server backend: $backend")
+      case _            => throw new IllegalArgumentException(s"Unknown server backend: $backend")
     }
     val profile = Profiles(args(1))
 
@@ -107,10 +124,13 @@ object AutobahnWebSocketConformance {
 
     val settings = Configuration.from(
       Map(
-        "play.server.http.idleTimeout"                       -> "infinite",
-        "play.server.https.idleTimeout"                      -> "infinite",
-        "play.server.websocket.frame.maxLength"              -> "64m",
-        "play.server.websocket.periodic-keep-alive-max-idle" -> "infinite"
+        "play.server.http.idleTimeout"                                                 -> "infinite",
+        "play.server.https.idleTimeout"                                                -> "infinite",
+        "play.server.websocket.frame.maxLength"                                        -> "64m",
+        "play.server.websocket.compression.maxAllocation"                              -> "64m",
+        "play.server.websocket.compression.perMessageDeflate.allowServerNoContext"     -> true,
+        "play.server.websocket.compression.perMessageDeflate.preferredClientNoContext" -> true,
+        "play.server.websocket.periodic-keep-alive-max-idle"                           -> "infinite"
       )
     )
     val app = GuiceApplicationBuilder()
@@ -147,8 +167,8 @@ object AutobahnWebSocketConformance {
       val cases         = patternsFromEnvironment("AUTOBAHN_CASES", Seq("*"))
       val excludedCases = patternsFromEnvironment("AUTOBAHN_EXCLUDE_CASES", profile.excludedCases)
       val host          = sys.env.getOrElse("AUTOBAHN_HOST", DefaultHost)
-      val config = Json.obj(
-        "outdir" -> "/reports",
+      val config        = Json.obj(
+        "outdir"  -> "/reports",
         "servers" -> Json.arr(
           Json.obj(
             "url"   -> s"ws://$host:$port/autobahn",
@@ -178,7 +198,10 @@ object AutobahnWebSocketConformance {
       if (!Files.isRegularFile(reportFile)) {
         throw new IllegalStateException(s"Autobahn did not create ${reportFile.toAbsolutePath}")
       }
-      val evaluation = evaluateReport(Json.parse(Files.readString(reportFile, StandardCharsets.UTF_8)))
+      val evaluation = evaluateReport(
+        Json.parse(Files.readString(reportFile, StandardCharsets.UTF_8)),
+        ExpectedUnimplementedCasePrefixes(backend)
+      )
       if (evaluation.results.isEmpty) {
         throw new IllegalStateException("Autobahn report did not contain any test results")
       }

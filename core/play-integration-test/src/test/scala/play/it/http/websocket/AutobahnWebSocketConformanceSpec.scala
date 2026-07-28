@@ -13,8 +13,8 @@ class AutobahnWebSocketConformanceSpec extends Specification {
     "accept successful, non-strict, and informational case behavior" in {
       val report = Json.obj(
         "Play-netty" -> Json.obj(
-          "1.1.1" -> result("OK", "OK"),
-          "1.1.2" -> result("NON-STRICT", "OK"),
+          "1.1.1"  -> result("OK", "OK"),
+          "1.1.2"  -> result("NON-STRICT", "OK"),
           "7.13.1" -> result("INFORMATIONAL", "INFORMATIONAL")
         )
       )
@@ -29,7 +29,7 @@ class AutobahnWebSocketConformanceSpec extends Specification {
     "report failed protocol and closing behavior" in {
       val report = Json.obj(
         "Play-pekko-http" -> Json.obj(
-          "3.1" -> result("FAILED", "OK"),
+          "3.1"   -> result("FAILED", "OK"),
           "7.1.1" -> result("OK", "UNCLEAN")
         )
       )
@@ -42,6 +42,19 @@ class AutobahnWebSocketConformanceSpec extends Specification {
           "7.1.1" -> ("OK", "UNCLEAN")
         )
       )
+    }
+
+    "accept only explicitly expected unimplemented cases" in {
+      val report = Json.obj(
+        "Play-pekko-http" -> Json.obj(
+          "13.3.1" -> result("UNIMPLEMENTED", "OK"),
+          "13.6.1" -> result("UNIMPLEMENTED", "OK")
+        )
+      )
+
+      val evaluation = AutobahnWebSocketConformance.evaluateReport(report, Seq("13.3."))
+
+      evaluation.failures.map(_.caseId) must contain(exactly("13.6.1"))
     }
   }
 
