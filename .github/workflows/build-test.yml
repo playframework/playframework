@@ -40,14 +40,14 @@ jobs:
       - name: Install sbt
         uses: sbt/setup-sbt@v1
 
-      - name: Run Autobahn core profile
-        run: core/play-integration-test/autobahn/run.sh "${{ matrix.backend }}" core
+      - name: Run Autobahn full profile
+        run: core/play-integration-test/autobahn/run.sh "${{ matrix.backend }}" full
 
       - name: Upload Autobahn report
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: autobahn-${{ matrix.backend }}-core
-          path: core/play-integration-test/target/autobahn/${{ matrix.backend }}/core
+          name: autobahn-${{ matrix.backend }}-full
+          path: core/play-integration-test/target/autobahn/${{ matrix.backend }}/full
           if-no-files-found: error
           retention-days: 7
