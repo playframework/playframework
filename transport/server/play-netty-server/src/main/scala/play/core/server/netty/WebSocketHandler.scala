@@ -112,8 +112,7 @@ private[server] object WebSocketHandler {
   }
 
   private def normalizeProtocolViolation(error: Throwable): Throwable = error match {
-    case corrupted: CorruptedWebSocketFrameException
-        if Option(corrupted.getMessage).forall(message => !message.startsWith("Invalid close frame getStatus code:")) =>
+    case corrupted: CorruptedWebSocketFrameException =>
       new WebSocketFlowHandler.BackendHandledProtocolViolation(corrupted)
     case other => other
   }
@@ -125,12 +124,15 @@ private[server] object WebSocketHandler {
     val reservedBits  = frame.rsv()
     val finalFragment = frame.isFinalFragment
     val messageType   = if (reservedBits != 0) {
-      MessageType.ReservedBits
+      frame match {
+        case _: CloseWebSocketFrame => MessageType.CloseWithReservedBits
+        case _                      => MessageType.ReservedBits
+      }
     } else {
       frame match {
         case _: TextWebSocketFrame         => MessageType.Text
         case _: BinaryWebSocketFrame       => MessageType.Binary
-        case close: CloseWebSocketFrame    => MessageType.Close
+        case _: CloseWebSocketFrame        => MessageType.Close
         case _: PingWebSocketFrame         => MessageType.Ping
         case _: PongWebSocketFrame         => MessageType.Pong
         case _: ContinuationWebSocketFrame => MessageType.Continuation

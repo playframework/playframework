@@ -162,6 +162,21 @@ object WebSocketFlowHandler {
           }
         }
 
+        def rejectPeerClose(close: CloseMessage): Unit = {
+          // A malformed peer Close is already the peer's contribution to closing the connection. Send at most one
+          // protocol-error Close, and do not wait for another acknowledgement.
+          if (state != Open || isClosed(remoteOut)) {
+            completeStage()
+          } else {
+            cancel(appIn)
+            if (!isClosed(appOut)) {
+              complete(appOut)
+            }
+            cancel(remoteIn)
+            emit(remoteOut, toValidCloseFrame(close), () => completeStage())
+          }
+        }
+
         def toMessage(messageType: MessageType.Type, data: ByteString): Message = {
           messageType match {
             case MessageType.Text =>
@@ -177,7 +192,13 @@ object WebSocketFlowHandler {
             case MessageType.Binary => BinaryMessage(data)
             case MessageType.Ping   => PingMessage(data)
             case MessageType.Pong   => PongMessage(data)
-            case MessageType.Close  => parseCloseMessage(data)
+            case MessageType.Close  =>
+              parsePeerCloseMessage(data) match {
+                case Right(close) => close
+                case Left(error)  =>
+                  rejectPeerClose(error)
+                  null
+              }
           }
         }
 
@@ -191,13 +212,26 @@ object WebSocketFlowHandler {
           val read = grab(remoteIn)
 
           read.messageType match {
+            case MessageType.CloseWithReservedBits =>
+              rejectPeerClose(
+                CloseMessage(CloseCodes.ProtocolError, "WebSocket frame contained unexpected reserved bits")
+              )
+              null
             case MessageType.ReservedBits =>
               serverInitiatedClose(
                 CloseMessage(CloseCodes.ProtocolError, "WebSocket frame contained unexpected reserved bits")
               )
               null
+            case MessageType.Close if !read.isFinal =>
+              rejectPeerClose(CloseMessage(CloseCodes.ProtocolError, "Control frames must not be fragmented"))
+              null
             case messageType if isControlMessage(messageType) && !read.isFinal =>
               serverInitiatedClose(CloseMessage(CloseCodes.ProtocolError, "Control frames must not be fragmented"))
+              null
+            case MessageType.Close if read.data.size > 125 =>
+              rejectPeerClose(
+                CloseMessage(CloseCodes.ProtocolError, "Control frame payload must not exceed 125 bytes")
+              )
               null
             case messageType if isControlMessage(messageType) && read.data.size > 125 =>
               serverInitiatedClose(
@@ -328,25 +362,13 @@ object WebSocketFlowHandler {
                 case _: BackendHandledProtocolViolation =>
                   completeStage()
                 case _ =>
-                  // This happens e.g. when using the Netty backend and a client sends an invalid close status code
-                  // that is not defined in https://tools.ietf.org/html/rfc6455#section-7.4
-                  val closeFromFailure = if (state == Open) {
-                    val statusCode = """(\d+)""".r
-                    ex.getMessage match {
-                      case s"Invalid close frame getStatus code: ${statusCode(code)}" => // Parse Netty error message
-                        Some(CloseMessage(code.toInt))
-                      case _ => // Don't log the whole exception to not overwhelm the logs in case failures occur often
-                        logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
-                        None
-                    }
+                  if (state == Open) {
+                    // Don't log the whole exception to avoid overwhelming the logs if failures occur often.
+                    logger.warn(s"WebSocket communication problem: ${ex.getMessage}")
                   } else {
                     logger.debug("WebSocket communication problem after the WebSocket was closed", ex)
-                    None
                   }
-                  closeFromFailure match {
-                    case Some(close) => completeAfterForwardingCloseToApp(close)
-                    case None        => completeRemoteInputAbnormally()
-                  }
+                  completeRemoteInputAbnormally()
               }
             }
 
@@ -542,25 +564,35 @@ object WebSocketFlowHandler {
   )
   object MessageType extends Enumeration {
     type Type = Value
-    val Ping, Pong, Text, Binary, Continuation, Close, ReservedBits = Value
+    val Ping, Pong, Text, Binary, Continuation, Close, ReservedBits, CloseWithReservedBits = Value
   }
 
   private[server] final class BackendHandledProtocolViolation(cause: Throwable) extends RuntimeException(cause)
 
-  def parseCloseMessage(data: ByteString): CloseMessage = {
-    def invalid(reason: String) =
-      CloseMessage(Some(CloseCodes.ProtocolError), s"Peer sent illegal close frame ($reason).")
+  private def parsePeerCloseMessage(data: ByteString): Either[CloseMessage, CloseMessage] = {
+    def invalid(statusCode: Int, reason: String) =
+      Left(CloseMessage(Some(statusCode), s"Peer sent illegal close frame ($reason)."))
 
     if (data.length >= 2) {
-      val code    = ((data(0) & 0xff) << 8) | (data(1) & 0xff)
-      val message = data.drop(2).utf8String
-      CloseMessage(Some(code), message)
+      val code = ((data(0) & 0xff) << 8) | (data(1) & 0xff)
+      invalidCloseStatusCodeReason(code) match {
+        case Some(reason) =>
+          invalid(CloseCodes.ProtocolError, reason)
+        case None =>
+          decodeUtf8(data.drop(2)) match {
+            case Right(reason) => Right(CloseMessage(Some(code), reason))
+            case Left(reason)  => invalid(CloseCodes.InconsistentData, reason)
+          }
+      }
     } else if (data.length == 1) {
-      invalid("close code must be length 2 but was 1")
+      invalid(CloseCodes.ProtocolError, "close code must be length 2 but was 1")
     } else {
-      CloseMessage(CloseCodes.NoStatus)
+      Right(CloseMessage(CloseCodes.NoStatus))
     }
   }
+
+  def parseCloseMessage(data: ByteString): CloseMessage =
+    parsePeerCloseMessage(data).fold(identity, identity)
 
   private def toValidCloseFrame(close: CloseMessage): CloseMessage = {
     close.statusCode match {
@@ -591,6 +623,8 @@ object WebSocketFlowHandler {
         Some("close code 1004 is reserved")
       case code if code < 1000 || code >= 5000 =>
         Some(s"close code must be between 1000 and 4999 but was $code")
+      case code if code >= 1016 && code <= 2999 =>
+        Some(s"close code $code is reserved")
       case _ =>
         None
     }
@@ -639,6 +673,19 @@ object WebSocketFlowHandler {
 
     try {
       Right(encoder.encode(CharBuffer.wrap(value)))
+    } catch {
+      case _: CharacterCodingException => Left("close reason must be valid UTF-8")
+    }
+  }
+
+  private def decodeUtf8(value: ByteString): Either[String, String] = {
+    val decoder = StandardCharsets.UTF_8
+      .newDecoder()
+      .onMalformedInput(CodingErrorAction.REPORT)
+      .onUnmappableCharacter(CodingErrorAction.REPORT)
+
+    try {
+      Right(decoder.decode(value.asByteBuffer).toString)
     } catch {
       case _: CharacterCodingException => Left("close reason must be valid UTF-8")
     }

@@ -34,7 +34,7 @@ class WebSocketFlowHandlerSpec extends Specification {
         messages must contain(exactly(closeMessage(CloseCodes.ConnectionAbort)))
     }
 
-    "forward an invalid close status code reported by the backend failure" in withActorSystem { implicit materializer =>
+    "treat an unclassified backend failure as abnormal connection loss" in withActorSystem { implicit materializer =>
       val messages = runFailedRemoteInput(new RuntimeException("Invalid close frame getStatus code: 1006"))
 
       messages must contain(exactly(closeMessage(CloseCodes.ConnectionAbort)))
@@ -67,14 +67,40 @@ class WebSocketFlowHandlerSpec extends Specification {
       WebSocketFlowHandler.parseCloseMessage(ByteString.empty) must beEqualTo(CloseMessage(CloseCodes.NoStatus))
     }
 
-    "preserve a remote close frame with a reserved status code for application visibility" in {
+    "reject a remote close frame with a reserved status code" in {
       WebSocketFlowHandler.parseCloseMessage(rawCloseData(CloseCodes.ConnectionAbort)) must beEqualTo(
-        CloseMessage(CloseCodes.ConnectionAbort)
+        CloseMessage(CloseCodes.ProtocolError, "Peer sent illegal close frame (close code 1006 must not be sent).")
       )
     }
 
-    "preserve a remote close frame with an invalid status code range for application visibility" in {
-      WebSocketFlowHandler.parseCloseMessage(rawCloseData(999)) must beEqualTo(CloseMessage(999))
+    "reject a remote close frame with an invalid status code range" in {
+      WebSocketFlowHandler.parseCloseMessage(rawCloseData(999)) must beEqualTo(
+        CloseMessage(
+          CloseCodes.ProtocolError,
+          "Peer sent illegal close frame (close code must be between 1000 and 4999 but was 999)."
+        )
+      )
+    }
+
+    "reject a remote close frame with a reserved extension status code" in {
+      WebSocketFlowHandler.parseCloseMessage(rawCloseData(2000)) must beEqualTo(
+        CloseMessage(CloseCodes.ProtocolError, "Peer sent illegal close frame (close code 2000 is reserved).")
+      )
+    }
+
+    "accept valid standard and application close status code boundaries" in {
+      Seq(CloseCodes.Regular, CloseCodes.BadGateway, 3000, 4999).foreach { statusCode =>
+        WebSocketFlowHandler.parseCloseMessage(rawCloseData(statusCode)) must beEqualTo(CloseMessage(statusCode))
+      }
+      ok
+    }
+
+    "reject a remote close frame with an invalid UTF-8 reason" in {
+      val data = rawCloseData(CloseCodes.Regular) ++ ByteString(0xc3.toByte, 0x28.toByte)
+
+      WebSocketFlowHandler.parseCloseMessage(data) must beEqualTo(
+        CloseMessage(CloseCodes.InconsistentData, "Peer sent illegal close frame (close reason must be valid UTF-8).")
+      )
     }
 
     "send 1006 after remote input completes even when the application has no immediate demand" in withActorSystem {
@@ -115,6 +141,14 @@ class WebSocketFlowHandlerSpec extends Specification {
 
       Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
       offer(remoteIn, rawClose(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
+    "not send a second close for an invalid acknowledgement" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOut) = runClosingWebSocket(5.seconds)
+
+      Await.result(remoteOut.pull(), 5.seconds) must beSome(closeMessage(CloseCodes.Regular))
+      offer(remoteIn, rawClose(CloseCodes.ConnectionAbort))
       Await.result(remoteOut.pull(), 1.second) must beNone
     }
 
@@ -324,26 +358,74 @@ class WebSocketFlowHandlerSpec extends Specification {
       remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
     }
 
+    "reject reserved bits on a Close frame without waiting for another close" in withActorSystem {
+      implicit materializer =>
+        val invalidClose = rawMessage(
+          WebSocketFlowHandler.MessageType.CloseWithReservedBits,
+          ByteString.empty,
+          isFinal = true
+        )
+        val (appMessages, remoteMessages) = runRejectedPeerClose(invalidClose)
+
+        appMessages must beEmpty
+        remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
+    }
+
+    "reject an invalid remote close without waiting for another close" in withActorSystem { implicit materializer =>
+      val (appMessages, remoteMessages) = runRejectedPeerClose(rawClose(CloseCodes.ConnectionAbort))
+
+      appMessages must beEmpty
+      remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
+    }
+
+    "reject an invalid UTF-8 close reason without waiting for another close" in withActorSystem {
+      implicit materializer =>
+        val invalidClose = rawMessage(
+          WebSocketFlowHandler.MessageType.Close,
+          rawCloseData(CloseCodes.Regular) ++ ByteString(0xc3.toByte, 0x28.toByte),
+          isFinal = true
+        )
+        val (appMessages, remoteMessages) = runRejectedPeerClose(invalidClose)
+
+        appMessages must beEmpty
+        remoteMessages must contain(exactly(closeMessage(CloseCodes.InconsistentData)))
+    }
+
+    "reject a one-byte remote close without waiting for another close" in withActorSystem { implicit materializer =>
+      val invalidClose                  = rawMessage(WebSocketFlowHandler.MessageType.Close, ByteString(0x03), isFinal = true)
+      val (appMessages, remoteMessages) = runRejectedPeerClose(invalidClose)
+
+      appMessages must beEmpty
+      remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
+    }
+
     Seq(
       WebSocketFlowHandler.MessageType.Ping,
       WebSocketFlowHandler.MessageType.Pong,
       WebSocketFlowHandler.MessageType.Close
     ).foreach { messageType =>
       s"reject a fragmented $messageType control frame" in withActorSystem { implicit materializer =>
-        val (appMessages, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(
-          rawMessage(messageType, ByteString("control"), isFinal = false),
-          rawClose(CloseCodes.ProtocolError)
-        )
+        val invalidControl                = rawMessage(messageType, ByteString("control"), isFinal = false)
+        val (appMessages, remoteMessages) =
+          if (messageType == WebSocketFlowHandler.MessageType.Close) {
+            runRejectedPeerClose(invalidControl)
+          } else {
+            runRemoteInputAndCollectAppAndRemoteMessages(invalidControl, rawClose(CloseCodes.ProtocolError))
+          }
 
         appMessages must beEmpty
         remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
       }
 
       s"reject an oversized $messageType control frame" in withActorSystem { implicit materializer =>
-        val (appMessages, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(
-          rawMessage(messageType, ByteString(Array.fill[Byte](126)('a'.toByte)), isFinal = true),
-          rawClose(CloseCodes.ProtocolError)
-        )
+        val invalidControl =
+          rawMessage(messageType, ByteString(Array.fill[Byte](126)('a'.toByte)), isFinal = true)
+        val (appMessages, remoteMessages) =
+          if (messageType == WebSocketFlowHandler.MessageType.Close) {
+            runRejectedPeerClose(invalidControl)
+          } else {
+            runRemoteInputAndCollectAppAndRemoteMessages(invalidControl, rawClose(CloseCodes.ProtocolError))
+          }
 
         appMessages must beEmpty
         remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
@@ -415,6 +497,26 @@ class WebSocketFlowHandlerSpec extends Specification {
       messages: WebSocketFlowHandler.RawMessage*
   )(implicit materializer: Materializer): (Seq[Message], Seq[Message]) = {
     runRemoteInputAndCollectAppAndRemoteMessages(Source(messages.toList))
+  }
+
+  private def runRejectedPeerClose(
+      message: WebSocketFlowHandler.RawMessage
+  )(implicit materializer: Materializer): (Seq[Message], Seq[Message]) = {
+    val appFlow = Flow.fromSinkAndSourceMat(Sink.seq[Message], Source.maybe[Message])(Keep.left)
+    val flow    = protocol(closeTimeout = 30.seconds).joinMat(appFlow)(Keep.right)
+
+    val ((remoteIn, appMessages), remoteOut) =
+      Source
+        .queue[WebSocketFlowHandler.RawMessage](1, OverflowStrategy.backpressure)
+        .viaMat(flow)(Keep.both)
+        .toMat(Sink.queue[Message]())(Keep.both)
+        .run()
+
+    offer(remoteIn, message)
+    val remoteMessages = Await.result(remoteOut.pull(), 1.second).toSeq
+
+    Await.result(remoteOut.pull(), 1.second) must beNone
+    (Await.result(appMessages, 1.second), remoteMessages)
   }
 
   private def runAppClose(close: CloseMessage)(implicit materializer: Materializer): Message = {

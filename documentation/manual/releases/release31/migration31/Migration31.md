@@ -153,10 +153,16 @@ Play now normalizes additional WebSocket Close frame edge cases in the common We
 | **Case** | **Previous behavior** | **New behavior** |
 | --- | --- | --- |
 | Play echoes an empty Close frame from the remote peer | Play could represent the echoed frame as `CloseMessage(Some(1005), "")`. | Play sends an empty Close frame, represented as `CloseMessage(None, "")`, so `1005` is not sent on the wire. |
+| Remote peer sends a reserved or invalid close status code, such as `1006`, `2000`, or `5000` | Backend behavior differed; the status could be delivered to application code or echoed to the peer. | Play rejects the frame and does not deliver it to the application. Depending on which backend detects the violation, it either sends status `1002` before closing or terminates the transport immediately. |
+| Remote peer sends a Close reason containing malformed UTF-8 | The Pekko HTTP backend could decode the reason with replacement characters and deliver it to application code. | Play rejects the frame and does not deliver it to the application. Depending on which backend detects the violation, it either sends status `1007` before closing or terminates the transport immediately. |
+| Remote peer sends a one-byte Close payload | Backend behavior differed; the Pekko HTTP backend could expose a synthetic `1002` as though the peer had sent it. | Play rejects the frame with status `1002` and does not deliver it to the application. |
 | Application code sends `CloseMessage(Some(1005), "")` | Play could pass `1005` toward the backend as a status code. | Play sends an empty Close frame, represented as `CloseMessage(None, "")`. |
 | Application code sends a reserved or invalid close status code, such as `1006` or `999` | Play sent the status code unchanged. | Play still sends the status code unchanged for compatibility, but logs a warning because the value is not valid in a Close frame. |
 | Application code sends a Close reason that cannot be encoded as UTF-8 | Play could pass the reason toward the backend unchanged. | Play logs a warning and drops the reason. |
 | Application code sends a Close reason longer than 123 UTF-8 bytes | Play could pass an invalid oversized Close frame toward the backend. | Play logs a warning and truncates the reason to the longest valid UTF-8 prefix that fits in 123 bytes. |
 | Application code sends `CloseMessage(None, "reason")` | The close reason had no valid wire encoding because Close reasons require a status code. | Play logs a warning and sends `CloseMessage(None, "")`, dropping the reason. |
+
+When Play can send an error Close in response to a malformed peer Close frame, it terminates the connection after
+sending the error and does not wait for another Close acknowledgement.
 
 Applications that create raw `CloseMessage` values should avoid sending reserved status codes such as `1005`, `1006`, and `1015`, and should keep Close reasons short enough to fit in 123 UTF-8 bytes.

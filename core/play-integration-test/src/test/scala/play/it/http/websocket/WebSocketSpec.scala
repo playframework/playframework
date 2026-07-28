@@ -54,6 +54,7 @@ import play.it._
 import play.it.http.websocket.WebSocketClient.CompressionMode
 import play.it.http.websocket.WebSocketClient.ContinuationMessage
 import play.it.http.websocket.WebSocketClient.ExtendedMessage
+import play.it.http.websocket.WebSocketClient.RawCloseMessage
 import play.it.http.websocket.WebSocketClient.RawTextMessage
 import play.it.http.websocket.WebSocketClient.RawWebSocketFrame
 import play.it.http.websocket.WebSocketClient.SimpleMessage
@@ -539,6 +540,16 @@ class PekkoHttpWebSocketSpec
     with PekkoHttpIntegrationSpecification
     with WebSocketCompressionSpec {
   override def backendName: String = "pekko-http backend"
+
+  "Plays WebSockets using pekko-http backend" should {
+    "reject an unnegotiated RSV1 Close frame without waiting for another Close" in {
+      val (frames, messages) =
+        sendProtocolFrames(RawWebSocketFrame("close", ByteString.empty, rsv = 4, finalFragment = true))
+
+      frames must contain(exactly(closeFrame(CloseCodes.ProtocolError)))
+      messages must beEmpty
+    }
+  }
 
   "Plays WebSockets using pekko-http backend with HTTP2 enabled" should {
     "time out after play.server.http.idleTimeout" in delayedSend(
@@ -1218,6 +1229,36 @@ trait WebSocketSpec
       "reject an oversized Close control frame" in {
         val (frames, messages) =
           sendProtocolFrames(CloseMessage(CloseCodes.Regular, "a" * 124))
+
+        frames must contain(exactly(closeFrame(CloseCodes.ProtocolError)))
+        messages must beEmpty
+      }
+
+      Seq(999, 1004, 1005, 1006, 1015, 1016, 1100, 2000, 2999, 5000).foreach { statusCode =>
+        s"reject invalid peer Close status $statusCode" in {
+          val data               = ByteString((statusCode >> 8).toByte, statusCode.toByte)
+          val (frames, messages) = sendProtocolFrames(RawCloseMessage(data, finalFragment = true))
+
+          terminateWithOptionalClose(frames, CloseCodes.ProtocolError)
+          messages must beEmpty
+        }
+      }
+
+      "reject an invalid UTF-8 Close reason" in {
+        val data = ByteString(
+          (CloseCodes.Regular >> 8).toByte,
+          CloseCodes.Regular.toByte,
+          0xc3.toByte,
+          0x28.toByte
+        )
+        val (frames, messages) = sendProtocolFrames(RawCloseMessage(data, finalFragment = true))
+
+        terminateWithOptionalClose(frames, CloseCodes.InconsistentData)
+        messages must beEmpty
+      }
+
+      "reject a one-byte Close payload" in {
+        val (frames, messages) = sendProtocolFrames(RawCloseMessage(ByteString(0x03), finalFragment = true))
 
         frames must contain(exactly(closeFrame(CloseCodes.ProtocolError)))
         messages must beEmpty
@@ -2020,6 +2061,14 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
 
   def closeFrame(status: Int = 1000): Matcher[ExtendedMessage] = beLike {
     case SimpleMessage(CloseMessage(statusCode, _), _) => statusCode must beSome(status)
+  }
+
+  def terminateWithOptionalClose(frames: List[ExtendedMessage], status: Int): Unit = {
+    // Netty treats a malformed Close as an already received closing handshake and may terminate without replying.
+    frames.foreach { frame =>
+      frame must closeFrame(status)
+    }
+    frames.size must be_<=(1)
   }
 
   def closeMessage(status: Int): Matcher[Message] = beLike {
