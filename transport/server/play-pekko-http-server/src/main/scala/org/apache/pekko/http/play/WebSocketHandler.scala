@@ -248,8 +248,16 @@ object WebSocketHandler {
   }
 
   private def frameToRawMessage(header: FrameHeader, data: ByteString) = {
-    val unmasked = FrameEventParser.mask(data, header.mask)
-    RawMessage(frameOpCodeToMessageType(header.opcode), unmasked, header.fin)
+    if (header.rsv1 || header.rsv2 || header.rsv3) {
+      RawMessage(
+        MessageType.ReservedBits,
+        ByteString.empty,
+        header.fin
+      )
+    } else {
+      val unmasked = FrameEventParser.mask(data, header.mask)
+      RawMessage(frameOpCodeToMessageType(header.opcode), unmasked, header.fin)
+    }
   }
 
   /**

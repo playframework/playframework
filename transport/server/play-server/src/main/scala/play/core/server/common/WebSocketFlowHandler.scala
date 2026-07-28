@@ -191,6 +191,11 @@ object WebSocketFlowHandler {
           val read = grab(remoteIn)
 
           read.messageType match {
+            case MessageType.ReservedBits =>
+              serverInitiatedClose(
+                CloseMessage(CloseCodes.ProtocolError, "WebSocket frame contained unexpected reserved bits")
+              )
+              null
             case messageType if isControlMessage(messageType) && !read.isFinal =>
               serverInitiatedClose(CloseMessage(CloseCodes.ProtocolError, "Control frames must not be fragmented"))
               null
@@ -537,7 +542,7 @@ object WebSocketFlowHandler {
   )
   object MessageType extends Enumeration {
     type Type = Value
-    val Ping, Pong, Text, Binary, Continuation, Close = Value
+    val Ping, Pong, Text, Binary, Continuation, Close, ReservedBits = Value
   }
 
   private[server] final class BackendHandledProtocolViolation(cause: Throwable) extends RuntimeException(cause)

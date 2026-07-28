@@ -1132,6 +1132,25 @@ trait WebSocketSpec
         messages must beEmpty
       }
 
+      Seq(
+        ("RSV1 text", RawWebSocketFrame("text", ByteString("text"), rsv = 4, finalFragment = true)),
+        ("RSV2 text", RawWebSocketFrame("text", ByteString("text"), rsv = 2, finalFragment = true)),
+        ("RSV3 text", RawWebSocketFrame("text", ByteString("text"), rsv = 1, finalFragment = true)),
+        ("combined RSV text", RawWebSocketFrame("text", ByteString("text"), rsv = 7, finalFragment = true)),
+        ("RSV1 binary", RawWebSocketFrame("binary", ByteString("binary"), rsv = 4, finalFragment = true)),
+        ("combined RSV binary", RawWebSocketFrame("binary", ByteString("binary"), rsv = 7, finalFragment = true)),
+        ("combined RSV Ping", RawWebSocketFrame("ping", ByteString("ping"), rsv = 6, finalFragment = true)),
+        ("RSV2 Pong", RawWebSocketFrame("pong", ByteString("pong"), rsv = 2, finalFragment = true))
+      ).foreach {
+        case (name, frame) =>
+          s"reject an unnegotiated $name frame" in {
+            val (frames, messages) = sendProtocolFrames(frame)
+
+            frames must contain(exactly(closeFrame(CloseCodes.ProtocolError)))
+            messages must beEmpty
+          }
+      }
+
       "reject invalid UTF-8 split across text message fragments" in {
         val (frames, messages) = sendProtocolFrames(
           RawTextMessage(ByteString(0xe2.toByte), false),

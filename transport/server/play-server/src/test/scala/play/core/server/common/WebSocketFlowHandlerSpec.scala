@@ -310,6 +310,20 @@ class WebSocketFlowHandlerSpec extends Specification {
       remoteMessages must contain(exactly(beEqualTo(CloseMessage(None))))
     }
 
+    "reject reserved bits reported by a frame adapter" in withActorSystem { implicit materializer =>
+      val (appMessages, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(
+        rawMessage(
+          WebSocketFlowHandler.MessageType.ReservedBits,
+          ByteString.empty,
+          isFinal = true
+        ),
+        rawClose(CloseCodes.ProtocolError)
+      )
+
+      appMessages must beEmpty
+      remoteMessages must contain(exactly(closeMessage(CloseCodes.ProtocolError)))
+    }
+
     Seq(
       WebSocketFlowHandler.MessageType.Ping,
       WebSocketFlowHandler.MessageType.Pong,
