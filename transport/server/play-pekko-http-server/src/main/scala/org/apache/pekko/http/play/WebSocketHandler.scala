@@ -249,8 +249,12 @@ object WebSocketHandler {
 
   private def frameToRawMessage(header: FrameHeader, data: ByteString) = {
     if (header.rsv1 || header.rsv2 || header.rsv3) {
+      val messageType = header.opcode match {
+        case Protocol.Opcode.Close => MessageType.CloseWithReservedBits
+        case _                     => MessageType.ReservedBits
+      }
       RawMessage(
-        MessageType.ReservedBits,
+        messageType,
         ByteString.empty,
         header.fin
       )

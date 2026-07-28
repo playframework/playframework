@@ -80,6 +80,7 @@ object WebSocketClient {
   }
   case class SimpleMessage(message: Message, finalFragment: Boolean)       extends ExtendedMessage
   case class RawTextMessage(data: ByteString, finalFragment: Boolean)      extends ExtendedMessage
+  case class RawCloseMessage(data: ByteString, finalFragment: Boolean)     extends ExtendedMessage
   case class ContinuationMessage(data: ByteString, finalFragment: Boolean) extends ExtendedMessage
   case class RawWebSocketFrame(frameType: String, data: ByteString, rsv: Int, finalFragment: Boolean)
       extends ExtendedMessage
@@ -271,6 +272,8 @@ object WebSocketClient {
           new PongWebSocketFrame(finalFragment, 0, Unpooled.wrappedBuffer(data.asByteBuffer))
         case SimpleMessage(CloseMessage(statusCode, reason), finalFragment) =>
           new CloseWebSocketFrame(finalFragment, 0, statusCode.getOrElse(CloseCodes.NoStatus), reason)
+        case RawCloseMessage(data, finalFragment) =>
+          new CloseWebSocketFrame(finalFragment, 0, Unpooled.wrappedBuffer(data.asByteBuffer))
         case ContinuationMessage(data, finalFragment) =>
           new ContinuationWebSocketFrame(finalFragment, 0, Unpooled.wrappedBuffer(data.asByteBuffer))
         case RawWebSocketFrame(frameType, data, rsv, finalFragment) =>
