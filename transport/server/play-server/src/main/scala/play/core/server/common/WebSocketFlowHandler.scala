@@ -123,9 +123,9 @@ object WebSocketFlowHandler {
         // independently of the application, allowing a peer control message to be processed while the application
         // is applying backpressure. Once that slot is occupied, further frames wait until the application pulls.
 
-        // For the remoteOut, we have a few buffers - a server or client initiated close buffer, a server message, and a pong
-        // message.  Multiple ping messages could arrive at any time, according to the WebSocket spec, we only need to
-        // respond to the most recent one, so pong messages just overwrite each other.
+        // For remoteOut, we have a few buffers: a server or client initiated close buffer, a server message, a Pong,
+        // and a keep-alive Ping. While a Pong is pending, remoteIn is backpressured until remoteOut accepts it. This
+        // preserves the response to each peer Ping while keeping the buffer bounded to one Pong.
 
         // There can only ever be one server message to send, since we only ever pull if there's none to send.
 
@@ -135,7 +135,14 @@ object WebSocketFlowHandler {
         // server initiated close.  Note that no additional server messages can be received once the state has gone into
         // server initiated close, since this is either triggered by the appIn closing, or, when appOut cancels, we
         // cancel appIn. So server messages cannot starve server initiated close from being sent.
-        // The lowest priority is pong messages.
+        // Pong messages follow server messages, and keep-alive Ping messages have the lowest priority.
+
+        def pullRemoteInIfReady(): Unit = {
+          val canPull = state != Open || (isAvailable(appOut) && pongToSend == null)
+          if (canPull && !isClosed(remoteIn) && !hasBeenPulled(remoteIn)) {
+            pull(remoteIn)
+          }
+        }
 
         def serverInitiatedClose(close: CloseMessage) = {
           val closeToSend = toValidCloseFrame(close)
@@ -149,8 +156,8 @@ object WebSocketFlowHandler {
               push(remoteOut, closeToSend)
               scheduleOnce(CloseHandshakeTimeout, wsCloseTimeout)
               // If appOut is closed, then we may need to do our own pull so that we can get the ack
-              if (isClosed(appOut) && !isClosed(remoteIn) && !hasBeenPulled(remoteIn)) {
-                pull(remoteIn)
+              if (isClosed(appOut)) {
+                pullRemoteInIfReady()
               }
             } else {
               state = ServerInitiatingClose(closeToSend)
@@ -334,11 +341,8 @@ object WebSocketFlowHandler {
           appOut,
           new OutHandler {
             override def onPull(): Unit = {
-              // We always pull from the remote in when the app pulls, even if closing, since if we get a message from
-              // the client and we're still open, we still want to send it.
-              if (!hasBeenPulled(remoteIn)) {
-                pull(remoteIn)
-              }
+              // A pending Pong must reach the peer before another inbound message can be accepted.
+              pullRemoteInIfReady()
             }
 
             override def onDownstreamFinish(cause: Throwable): Unit = {
@@ -391,22 +395,23 @@ object WebSocketFlowHandler {
                           push(appOut, other)
                         } else {
                           // appIn is closed, we're ignoring the message and it's not going to pull, so we need to pull
-                          pull(remoteIn)
+                          pullRemoteInIfReady()
                         }
                     }
                   case Open =>
                     message match {
                       case ping @ PingMessage(data) =>
-                        // Forward down to app
-                        push(appOut, ping)
                         // Return to client
+                        val pong = PongMessage(data)
                         if (isAvailable(remoteOut)) {
                           // Send immediately
-                          push(remoteOut, PongMessage(data))
+                          push(remoteOut, pong)
                         } else {
                           // Store to send later
-                          pongToSend = PongMessage(data)
+                          pongToSend = pong
                         }
+                        // Forward down to app after recording the Pong so synchronous demand cannot pull another Ping.
+                        push(appOut, ping)
 
                       case close: CloseMessage =>
                         // Forward down to app
@@ -434,9 +439,7 @@ object WebSocketFlowHandler {
                     }
                 }
               } else {
-                if (!isClosed(remoteIn)) {
-                  pull(remoteIn)
-                }
+                pullRemoteInIfReady()
               }
             }
           }
@@ -514,8 +517,10 @@ object WebSocketFlowHandler {
                     messageToSend = null
                   } else if (pongToSend != null) {
                     // We have a pong to send
-                    push(remoteOut, pongToSend)
+                    val pong = pongToSend
                     pongToSend = null
+                    push(remoteOut, pong)
+                    pullRemoteInIfReady()
                   } else if (pingToSend != null) {
                     // We have a ping to send
                     push(remoteOut, pingToSend)

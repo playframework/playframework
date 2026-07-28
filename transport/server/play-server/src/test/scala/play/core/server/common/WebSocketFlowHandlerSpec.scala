@@ -16,6 +16,7 @@ import org.apache.pekko.stream.OverflowStrategy
 import org.apache.pekko.stream.QueueOfferResult
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.Done
+import org.reactivestreams.Publisher
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import play.api.http.websocket.CloseCodes
@@ -210,6 +211,31 @@ class WebSocketFlowHandlerSpec extends Specification {
 
       Await.result(remoteOut.pull(), 1.second) must beSome(beEqualTo(PongMessage(payload)))
       Await.result(appMessages.pull(), 1.second) must beSome(beEqualTo(PingMessage(payload)))
+
+      appOut.complete()
+      Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.Regular))
+      offer(remoteIn, rawClose(CloseCodes.Regular))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
+    "backpressure peer pings until each pong is emitted" in withActorSystem { implicit materializer =>
+      val (remoteIn, remoteOutPublisher, appMessages, appOut) = runUnsubscribedRemoteOutWebSocket()
+      val firstPayload                                        = ByteString("first")
+      val secondPayload                                       = ByteString("second")
+
+      val firstAppMessage = appMessages.pull()
+      offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Ping, firstPayload, isFinal = true))
+      Await.result(firstAppMessage, 1.second) must beSome(beEqualTo(PingMessage(firstPayload)))
+
+      val secondAppMessage = appMessages.pull()
+      offer(remoteIn, rawMessage(WebSocketFlowHandler.MessageType.Ping, secondPayload, isFinal = true))
+      Thread.sleep(200)
+      secondAppMessage.isCompleted must beFalse
+
+      val remoteOut = Source.fromPublisher(remoteOutPublisher).runWith(Sink.queue[Message]())
+      Await.result(remoteOut.pull(), 1.second) must beSome(beEqualTo(PongMessage(firstPayload)))
+      Await.result(secondAppMessage, 1.second) must beSome(beEqualTo(PingMessage(secondPayload)))
+      Await.result(remoteOut.pull(), 1.second) must beSome(beEqualTo(PongMessage(secondPayload)))
 
       appOut.complete()
       Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.Regular))
@@ -604,6 +630,28 @@ class WebSocketFlowHandlerSpec extends Specification {
         .queue[WebSocketFlowHandler.RawMessage](1, OverflowStrategy.backpressure)
         .viaMat(flow)(Keep.both)
         .toMat(Sink.queue[Message]())(Keep.both)
+        .run()
+
+    (remoteIn, remoteOut, appMessages, appOut)
+  }
+
+  private def runUnsubscribedRemoteOutWebSocket()(implicit materializer: Materializer): (
+      SourceQueueWithComplete[WebSocketFlowHandler.RawMessage],
+      Publisher[Message],
+      SinkQueueWithCancel[Message],
+      SourceQueueWithComplete[Message]
+  ) = {
+    val appFlow = Flow.fromSinkAndSourceMat(
+      Sink.queue[Message](),
+      Source.queue[Message](1, OverflowStrategy.backpressure)
+    )(Keep.both)
+    val flow = protocol().joinMat(appFlow)(Keep.right)
+
+    val ((remoteIn, (appMessages, appOut)), remoteOut) =
+      Source
+        .queue[WebSocketFlowHandler.RawMessage](1, OverflowStrategy.backpressure)
+        .viaMat(flow)(Keep.both)
+        .toMat(Sink.asPublisher(fanout = false))(Keep.both)
         .run()
 
     (remoteIn, remoteOut, appMessages, appOut)
