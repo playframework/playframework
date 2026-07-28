@@ -48,6 +48,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: autobahn-${{ matrix.backend }}-core
-          path: target/autobahn/${{ matrix.backend }}/core
-          if-no-files-found: warn
+          path: core/play-integration-test/target/autobahn/${{ matrix.backend }}/core
+          if-no-files-found: error
           retention-days: 7
