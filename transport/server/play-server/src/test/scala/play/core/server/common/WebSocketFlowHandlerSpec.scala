@@ -234,6 +234,76 @@ class WebSocketFlowHandlerSpec extends Specification {
         Await.result(remoteOut.pull(), 1.second) must beNone
     }
 
+    "send 1001 only to the peer and complete graceful shutdown after its acknowledgement" in withActorSystem {
+      implicit materializer =>
+        val gracefulShutdown                   = new WebSocketGracefulShutdown
+        val (remoteIn, remoteOut, appMessages) = runGracefullyClosingWebSocket(gracefulShutdown, 5.seconds)
+
+        val shutdownComplete = gracefulShutdown.shutdown(CloseMessage(CloseCodes.GoingAway), 5.seconds)(
+          materializer.system.scheduler,
+          materializer.executionContext
+        )
+        Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+        shutdownComplete.isCompleted must beFalse
+
+        offer(remoteIn, rawClose(CloseCodes.GoingAway))
+        Await.result(remoteOut.pull(), 1.second) must beNone
+        Await.result(appMessages.pull(), 1.second) must beNone
+        Await.result(shutdownComplete, 1.second) must_== Done
+    }
+
+    "complete graceful shutdown when the close handshake times out" in withActorSystem { implicit materializer =>
+      val gracefulShutdown         = new WebSocketGracefulShutdown
+      val (remoteIn, remoteOut, _) = runGracefullyClosingWebSocket(gracefulShutdown, 100.millis)
+
+      val shutdownComplete = gracefulShutdown.shutdown(CloseMessage(CloseCodes.GoingAway), 5.seconds)(
+        materializer.system.scheduler,
+        materializer.executionContext
+      )
+      Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+      Await.result(shutdownComplete, 1.second) must_== Done
+      remoteIn.complete()
+      ok
+    }
+
+    "wait for every WebSocket close handshake during graceful shutdown" in withActorSystem { implicit materializer =>
+      val gracefulShutdown = new WebSocketGracefulShutdown
+      val first            = runGracefullyClosingWebSocket(gracefulShutdown, 5.seconds)
+      val second           = runGracefullyClosingWebSocket(gracefulShutdown, 5.seconds)
+
+      val shutdownComplete = gracefulShutdown.shutdown(CloseMessage(CloseCodes.GoingAway), 5.seconds)(
+        materializer.system.scheduler,
+        materializer.executionContext
+      )
+      Await.result(first._2.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+      Await.result(second._2.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+
+      offer(first._1, rawClose(CloseCodes.GoingAway))
+      Await.result(first._2.pull(), 1.second) must beNone
+      shutdownComplete.isCompleted must beFalse
+
+      offer(second._1, rawClose(CloseCodes.GoingAway))
+      Await.result(second._2.pull(), 1.second) must beNone
+      Await.result(shutdownComplete, 1.second) must_== Done
+    }
+
+    "bound graceful shutdown while the close output is backpressured" in withActorSystem { implicit materializer =>
+      val gracefulShutdown         = new WebSocketGracefulShutdown
+      val (remoteIn, remoteOut, _) = runGracefullyClosingWebSocket(gracefulShutdown, 5.seconds)
+
+      val shutdownComplete = gracefulShutdown.shutdown(CloseMessage(CloseCodes.GoingAway), 100.millis)(
+        materializer.system.scheduler,
+        materializer.executionContext
+      )
+      shutdownComplete.isCompleted must beFalse
+      Await.result(shutdownComplete, 1.second) must_== Done
+
+      Await.result(remoteOut.pull(), 1.second) must beSome(closeMessage(CloseCodes.GoingAway))
+      offer(remoteIn, rawClose(CloseCodes.GoingAway))
+      Await.result(remoteOut.pull(), 1.second) must beNone
+    }
+
     "echo an empty remote close frame without serializing 1005" in withActorSystem { implicit materializer =>
       val (_, remoteMessages) = runRemoteInputAndCollectAppAndRemoteMessages(rawClose(None))
 
@@ -423,6 +493,33 @@ class WebSocketFlowHandlerSpec extends Specification {
     (remoteIn, remoteOut, appMessages, appOut)
   }
 
+  private def runGracefullyClosingWebSocket(
+      gracefulShutdown: WebSocketGracefulShutdown,
+      closeTimeout: FiniteDuration
+  )(implicit materializer: Materializer): (
+      SourceQueueWithComplete[WebSocketFlowHandler.RawMessage],
+      SinkQueueWithCancel[Message],
+      SinkQueueWithCancel[Message]
+  ) = {
+    val registered = Promise[Unit]()
+    val register   = (close: CloseMessage => Unit) => {
+      val unregister = gracefulShutdown.register(close)
+      registered.success(())
+      unregister
+    }
+    val appFlow =
+      Flow.fromSinkAndSourceMat(Sink.queue[Message](), Source.maybe[Message])(Keep.left)
+    val flow = protocol(closeTimeout, gracefulShutdown = Some(register)).joinMat(appFlow)(Keep.right)
+
+    val ((remoteIn, appMessages), remoteOut) = Source
+      .queue[WebSocketFlowHandler.RawMessage](1, OverflowStrategy.backpressure)
+      .viaMat(flow)(Keep.both)
+      .toMat(Sink.queue[Message]())(Keep.both)
+      .run()
+    Await.result(registered.future, 1.second)
+    (remoteIn, remoteOut, appMessages)
+  }
+
   private def offer(
       queue: SourceQueueWithComplete[WebSocketFlowHandler.RawMessage],
       message: WebSocketFlowHandler.RawMessage
@@ -448,13 +545,15 @@ class WebSocketFlowHandlerSpec extends Specification {
   private def protocol(
       closeTimeout: FiniteDuration = 3.seconds,
       wsKeepAliveMode: String = "ping",
-      wsKeepAliveMaxIdle: Duration = Duration.Inf
+      wsKeepAliveMaxIdle: Duration = Duration.Inf,
+      gracefulShutdown: Option[(CloseMessage => Unit) => (() => Unit)] = None
   ) =
     WebSocketFlowHandler.webSocketProtocol(
       bufferLimit = 65536,
       wsKeepAliveMode = wsKeepAliveMode,
       wsKeepAliveMaxIdle = wsKeepAliveMaxIdle,
-      wsCloseTimeout = closeTimeout
+      wsCloseTimeout = closeTimeout,
+      gracefulShutdown = gracefulShutdown
     )
 
   private def rawClose(statusCode: Int): WebSocketFlowHandler.RawMessage = {

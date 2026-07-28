@@ -40,6 +40,8 @@ import org.apache.pekko.util.ByteString
 import org.apache.pekko.Done
 import play.api._
 import play.api.http.{ HttpProtocol => PlayHttpProtocol }
+import play.api.http.websocket.CloseCodes
+import play.api.http.websocket.CloseMessage
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.DevHttpErrorHandler
 import play.api.http.HeaderNames
@@ -56,6 +58,7 @@ import play.core.server.common.ClientCertificateHeaderHandler.InvalidClientCerti
 import play.core.server.common.ReloadCache
 import play.core.server.common.ServerDebugInfo
 import play.core.server.common.ServerResultUtils
+import play.core.server.common.WebSocketGracefulShutdown
 import play.core.server.pekkohttp.HttpRequestDecoder
 import play.core.server.pekkohttp.PekkoModelConversion
 import play.core.server.pekkohttp.PekkoServerConfigReader
@@ -121,6 +124,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     "websocket.closeTimeout",
     "play.server.websocket.closeTimeout"
   )
+  private val wsGracefulShutdown     = new WebSocketGracefulShutdown
   private val wsCompressionConfig    = serverConfig.get[Configuration]("websocket.compression")
   private val wsCompressionThreshold = wsCompressionConfig.get[ConfigMemorySize]("threshold").toBytes
 
@@ -465,7 +469,8 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
                     ),
                   wsKeepAliveMode,
                   wsKeepAliveMaxIdle,
-                  wsCloseTimeout
+                  wsCloseTimeout,
+                  Some(wsGracefulShutdown.register)
                 )
               Future.successful(response.withHeaders(response.headers ++ handshakeHeaders))
           }
@@ -605,12 +610,18 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
     }
 
     cs.addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "pekko-http-server-terminate") { () =>
+      val startTime                                       = System.nanoTime()
+      def remainingServerTerminateTimeout: FiniteDuration = {
+        val elapsed = (System.nanoTime() - startTime).nanos
+        (serverTerminateTimeout - elapsed - 100.millis).max(Duration.Zero)
+      }
+
       def terminate(binding: Option[Http.ServerBinding]): Future[Done] = {
         binding
           .map { binding =>
             org.apache.pekko.pattern.after(terminationDelay) {
               logger.info(s"Terminating server binding for ${binding.localAddress}")
-              binding.terminate(serverTerminateTimeout - 100.millis).map(_ => Done)
+              binding.terminate(remainingServerTerminateTimeout).map(_ => Done)
             }(using context.actorSystem)
           }
           .getOrElse {
@@ -619,6 +630,10 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       }
 
       for {
+        _ <- wsGracefulShutdown.shutdown(CloseMessage(CloseCodes.GoingAway), wsCloseTimeout)(
+          context.actorSystem.scheduler,
+          exCtx
+        )
         _ <- terminate(httpServerBinding)
         _ <- terminate(httpsServerBinding)
       } yield Done

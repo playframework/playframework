@@ -109,6 +109,8 @@ play.server.websocket.closeTimeout = 3 seconds
 
 This setting applies to both the Netty and Pekko HTTP server backends and is independent of the HTTP idle timeout.
 
+Graceful server shutdown now sends status `1001` (Going Away) to every open WebSocket and waits up to this timeout from shutdown initiation for the peer's Close acknowledgement before terminating the connection. This overall bound also applies to a connection that is too backpressured to emit its Close frame. The framework-generated `1001` is sent only to the peer; the application's input stream completes normally without receiving it as a `CloseMessage`. The wait is part of Pekko Coordinated Shutdown's `service-requests-done` phase.
+
 ### Malformed WebSocket frames are rejected more strictly
 
 Play now validates incoming WebSocket text and control frames consistently across the Netty and Pekko HTTP server backends.

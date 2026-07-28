@@ -99,6 +99,8 @@ The timeout starts when Play emits the Close frame, is not extended by subsequen
 play.server.websocket.closeTimeout = 3 seconds
 ```
 
+Graceful server shutdown now starts a closing handshake for every open WebSocket using status `1001` (Going Away). Play waits for each peer's Close acknowledgement up to the same timeout before terminating the remaining connection. The framework-generated `1001` is sent only to the peer; the application's input stream completes normally without receiving it as a `CloseMessage`.
+
 ### WebSocket Abnormal Closure Status
 
 Play now reports abnormal WebSocket connection loss to raw WebSocket handlers with close status `1006`.

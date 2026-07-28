@@ -941,6 +941,99 @@ trait WebSocketSpec
         }
       }
 
+      "send 1001 and finish graceful server shutdown after the client acknowledges" in {
+        val (app, testServer) = createTestServer(app =>
+          WebSocket.accept[Message, Message] { _ =>
+            Flow.fromSinkAndSource(Sink.ignore, Source.maybe[Message])
+          }
+        )
+        testServer.start()
+
+        try {
+          import app.materializer
+          val connected = Promise[Unit]()
+          val frames    = Future {
+            runWebSocket(
+              testServer.runningHttpPort.get,
+              { flow =>
+                val result = Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)
+                connected.success(())
+                result
+              }
+            )
+          }
+
+          await(connected.future)
+          val serverStopped = Future(testServer.stop())
+
+          (await(frames) must contain(exactly(closeFrame(CloseCodes.GoingAway))))
+            .and(await(serverStopped) must beEqualTo(()))
+        } finally {
+          if (testServer.isRunning) {
+            testServer.stop()
+          }
+        }
+      }
+
+      "finish graceful server shutdown after closeTimeout when the client does not acknowledge" in {
+        val (app, testServer) = createTestServer(
+          app =>
+            WebSocket.accept[Message, Message] { _ =>
+              Flow.fromSinkAndSource(Sink.ignore, Source.maybe[Message])
+            },
+          Map(
+            "play.server.http.idleTimeout"                       -> "infinite",
+            "play.server.https.idleTimeout"                      -> "infinite",
+            "play.server.websocket.closeTimeout"                 -> "300 milliseconds",
+            "play.server.websocket.periodic-keep-alive-max-idle" -> "infinite"
+          )
+        )
+        testServer.start()
+
+        try {
+          import app.materializer
+          val connected     = Promise[Unit]()
+          val closeReceived = Promise[Long]()
+          val frames        = Future {
+            runWebSocket(
+              testServer.runningHttpPort.get,
+              { flow =>
+                val result = Source
+                  .maybe[ExtendedMessage]
+                  .via(flow)
+                  .map { frame =>
+                    frame match {
+                      case SimpleMessage(_: CloseMessage, _) => closeReceived.trySuccess(System.nanoTime())
+                      case _                                 =>
+                    }
+                    frame
+                  }
+                  .runWith(consumeFrames)
+                connected.success(())
+                result
+              },
+              acknowledgeServerClose = false
+            )
+          }
+
+          await(connected.future)
+          val serverStopped = Future(testServer.stop())
+          val closeTime     = await(closeReceived.future)
+
+          val receivedFrames         = await(frames)
+          val closeHandshakeDuration = (System.nanoTime() - closeTime).nanos
+          await(serverStopped)
+
+          (receivedFrames must contain(exactly(closeFrame(CloseCodes.GoingAway))))
+            .and(closeHandshakeDuration must be_>=(200.millis))
+            .and(closeHandshakeDuration must beLessThan(2.seconds))
+        } finally {
+          if (testServer.isRunning) {
+            testServer.stop()
+          }
+        }
+      }
+
       "close the websocket with the exception close code when the application source fails" in {
         withServer(app =>
           WebSocket.accept[Message, Message] { req =>
@@ -1802,6 +1895,15 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
   )(
       block: (Application, Int) => A
   ): A = {
+    val (app, testServer) = createTestServer(webSocket, extraConfig, errorHandler)
+    runningWithPort(testServer)(port => block(app, port))
+  }
+
+  def createTestServer(
+      webSocket: Application => Handler,
+      extraConfig: Map[String, Any] = Map.empty,
+      errorHandler: Option[HttpErrorHandler] = None
+  ): (Application, play.api.test.TestServer) = {
     val currentApp = new AtomicReference[Application]
     val config     = Configuration(ConfigFactory.parseMap(extraConfig.asJava))
     val builder    = GuiceApplicationBuilder().configure(config)
@@ -1817,7 +1919,7 @@ trait WebSocketSpecMethods extends PlaySpecification with WsTestClient with Serv
       testServer.copy(config =
         testServer.config.copy(configuration = config.withFallback(testServer.config.configuration))
       )
-    runningWithPort(configuredTestServer)(port => block(app, port))
+    app -> configuredTestServer
   }
 
   def runWebSocket[A](

@@ -211,6 +211,8 @@ play.server.websocket.closeTimeout = 3 seconds
 
 The timeout starts when the Close frame is emitted and is not extended by subsequent client traffic, including Ping and Pong frames. Play also stops sending periodic keep-alive frames while awaiting the acknowledgement. The configured value must be a positive finite duration and applies to both the Netty and Pekko HTTP server backends independently of the HTTP idle timeout.
 
+During graceful server shutdown, Play sends every open WebSocket a Close frame with status `1001` (Going Away). Shutdown waits for the clients to acknowledge their closing handshakes, but only up to `play.server.websocket.closeTimeout` from shutdown initiation, before the backend terminates the remaining connections. This overall bound also applies when a backpressured connection cannot emit its Close frame. The framework-generated `1001` is sent only to the peer; the application's input stream completes normally without receiving this locally generated `CloseMessage`. Applications that need an explicit signal before WebSockets are closed can register a task in the `before-service-unbind` phase; see [[Coordinated Shutdown|Shutdown]]. The wait occurs within Pekko Coordinated Shutdown's `service-requests-done` phase, so that phase's timeout must leave enough time for the WebSocket closing handshakes and the rest of server termination.
+
 Like other backend server settings, `play.server.websocket.closeTimeout` must be set through `PlayKeys.devSettings` in `build.sbt` to affect the server used by `sbt run`.
 
 ## WebSockets and Action composition
