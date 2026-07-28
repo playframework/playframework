@@ -28,6 +28,8 @@ There are a variety of options that can be configured for the Pekko HTTP server.
 
 Play's Pekko HTTP server also supports HTTP/2. This feature is labeled "incubating" because the API may change in the future, and it has not been thoroughly tested in the wild. However, if you'd like to help Play improve please do test out HTTP/2 support and give us feedback about your experience.
 
+> **Note:** Enabling HTTP/2 does not enable WebSockets over HTTP/2. Play currently establishes WebSockets using the HTTP/1.1 Upgrade mechanism and does not support RFC 8441 Extended CONNECT.
+
 You also should [[Configure HTTPS|ConfiguringHttps]] on your server before enabling HTTP/2. In general, browsers require TLS to work with HTTP/2, and Play's Pekko HTTP server uses ALPN (a TLS extension) to negotiate the protocol with clients that support it.
 
 To add support for HTTP/2, add the `PlayPekkoHttp2Support` plugin. You can do this in an `enablePlugins` call for your project in `build.sbt`, for example:

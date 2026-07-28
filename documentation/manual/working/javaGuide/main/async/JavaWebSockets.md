@@ -8,6 +8,8 @@ Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript
 
 > **Tip:** Check [caniuse.com](https://caniuse.com/#feat=websockets) to see more about which browsers supports WebSockets, known issues and more information.
 
+> **Note:** Play currently establishes WebSockets using the HTTP/1.1 Upgrade mechanism. Enabling HTTP/2 for the Pekko HTTP backend does not enable RFC 8441 WebSockets over HTTP/2.
+
 ## Handling WebSockets
 
 Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
