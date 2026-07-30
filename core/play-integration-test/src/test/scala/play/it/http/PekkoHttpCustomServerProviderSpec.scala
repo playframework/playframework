@@ -27,7 +27,7 @@ class PekkoHttpCustomServerProviderSpec
     with EndpointIntegrationSpecification
     with OkHttpEndpointSupport
     with ApplicationFactories {
-  final val emptyRequest = RequestBody.create(null, ByteString.EMPTY)
+  final val emptyRequest = RequestBody.create(ByteString.EMPTY, null)
 
   val appFactory: ApplicationFactory = withRouter { components =>
     import play.api.routing.sird.{ GET => SirdGet, _ }

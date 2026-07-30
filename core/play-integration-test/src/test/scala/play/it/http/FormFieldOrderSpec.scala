@@ -41,7 +41,7 @@ class FormFieldOrderSpec
     "preserve form field order" in fakeAppFactory.withAllOkHttpEndpoints { (okep: OkHttpEndpoint) =>
       val request = new okhttp3.Request.Builder()
         .url(okep.endpoint.pathUrl("/"))
-        .post(okhttp3.RequestBody.create(okhttp3.MediaType.parse(contentType), urlEncoded))
+        .post(okhttp3.RequestBody.create(urlEncoded, okhttp3.MediaType.parse(contentType)))
         .build()
       val response = okep.client.newCall(request).execute()
       response.code must equalTo(OK)
