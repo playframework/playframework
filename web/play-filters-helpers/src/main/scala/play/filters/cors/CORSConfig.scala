@@ -4,10 +4,13 @@
 
 package play.filters.cors
 
+import java.util.regex.PatternSyntaxException
+
 import scala.concurrent.duration._
 
 import play.api.Configuration
 import play.filters.cors.CORSConfig.Origins
+import com.typesafe.config.ConfigException
 
 /**
  * Configuration for play.filters.cors.AbstractCORSPolicy.
@@ -159,6 +162,22 @@ object CORSConfig {
   private[cors] def fromUnprefixedConfiguration(config: Configuration): CORSConfig = {
     CORSConfig(
       allowedOrigins = config.get[Option[Seq[String]]]("allowedOrigins") match {
+        case Some(allowed) if config.get[Boolean]("allowedOriginsAsRegex") =>
+          val regexes =
+            allowed.zipWithIndex.map {
+              case (pattern, idx) =>
+                try {
+                  pattern.r
+                } catch {
+                  case e: PatternSyntaxException =>
+                    throw new ConfigException.BadValue(
+                      "allowedOrigins",
+                      s"Invalid regex in play.filters.cors.allowedOrigins[$idx]: $pattern",
+                      e,
+                    )
+                }
+            }
+          Origins.Matching(origin => regexes.exists(_.matches(origin)))
         case Some(allowed) => Origins.Matching(allowed.toSet)
         case None          => Origins.All
       },
