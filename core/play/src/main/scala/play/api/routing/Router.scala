@@ -124,6 +124,11 @@ object Router {
      * Key for the [[HandlerDef]] used to handle the request.
      */
     val HandlerDef: TypedKey[HandlerDef] = TypedKey("HandlerDef")
+
+    /**
+     * Key for the [[Map]] that stores the path and query params which get passed to the eventually called action method.
+     */
+    val RouteParams: TypedKey[Map[String, Any]] = TypedKey("RouteParams")
   }
 
   /**

@@ -59,4 +59,37 @@ public class Application extends Controller {
   public Result interpolatorWarning(Http.Request req, String parameter) {
     return ok(req.uri() + " " + parameter);
   }
+  public Result routeParamsReqAttr(final Http.Request req, Long id, String clazz, java.util.Optional<Integer> page, List<String> items, List<String> books, Integer section) {
+
+    final String actionMethodParams =
+      "id=" + id + "[" + id.getClass().getName() + "]|" +
+      "class=" + clazz + "[" + clazz.getClass().getName() + "]|" +
+      "page=" + page + "[" + page.getClass().getName() + "]|" +
+      "items=" + items + "[" + items.getClass().getName() + "]|" +
+      "books=" + books + "[" + books.getClass().getName() + "]|" +
+      "section=" + section + "[" + section.getClass().getName() + "]";
+
+    final String javaAttrRouteParams = req.attrs().getOptional(play.routing.Router.Attrs.ROUTE_PARAMS).map(routeParamsMap ->
+      routeParamsMap.iterator().map(entryTuple -> entryTuple._1 + "=" + entryTuple._2 + "[" + entryTuple._2.getClass().getName() + "]").mkString("|")
+    ).get();
+
+    final String scalaAttrRouteParams = req.asScala().attrs().get(play.api.routing.Router.Attrs$.MODULE$.RouteParams()).map(routeParamsMap ->
+      routeParamsMap.iterator().map(entryTuple -> entryTuple._1 + "=" + entryTuple._2 + "[" + entryTuple._2.getClass().getName() + "]").mkString("|")
+    ).get();
+
+    return ok(
+      replaceScalaCollectionWrappers(
+        actionMethodParams + "\n" +
+        javaAttrRouteParams + "\n" +
+        scalaAttrRouteParams + "\n"
+      )
+    );
+  }
+
+  // The scripted tests run with Scala 2.12 and 2.13, which use different collection implementations
+  private static String replaceScalaCollectionWrappers(String source) {
+    return source
+      .replace("scala.collection.convert.JavaCollectionWrappers$SeqWrapper", "List") // used in Scala 2.13
+      .replace("scala.collection.convert.Wrappers$SeqWrapper", "List"); // used in Scala 2.12
+  }
 }
