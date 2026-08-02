@@ -352,7 +352,7 @@ object HttpErrorHandlerExceptions {
   private val logger: Logger = Logger(getClass)
 
   private[play] lazy val handlers: mutable.Map[String, PartialFunction[Throwable, Throwable]] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     // Use a LinkedHashMap for predictable behavior when two handlers handle the same type
     Collections.synchronizedMap(new LinkedHashMap()).asScala
   }
