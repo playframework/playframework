@@ -89,7 +89,7 @@ object MediaType {
           }
           Some(mt)
         }
-        case MediaRangeParser.NoSuccess(err, next) => {
+        case MediaRangeParser.NoSuccess.I(err, next) => {
           logger.debug(s"Unable to parse media type '${next.source}'")
           None
         }
@@ -125,7 +125,7 @@ object MediaRange {
             logger.debug(s"Unable to parse part of media range header '${next.source}'")
           }
           mrs.sorted
-        case MediaRangeParser.NoSuccess(err, _) =>
+        case MediaRangeParser.NoSuccess.I(err, _) =>
           logger.debug(s"Unable to parse media range header '$mediaRanges': $err")
           Seq.empty
       }

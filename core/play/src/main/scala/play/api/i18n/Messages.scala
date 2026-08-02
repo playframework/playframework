@@ -157,8 +157,8 @@ object Messages extends MessagesImplicits {
 
     def parse: Either[PlayException.ExceptionSource, Seq[Message]] = {
       parser(new CharSequenceReader(messageSource.read + "\n")) match {
-        case Success(messages, _)   => Right(messages)
-        case NoSuccess(message, in) =>
+        case Success(messages, _)     => Right(messages)
+        case NoSuccess.I(message, in) =>
           Left(
             new PlayException.ExceptionSource("Configuration error", message) {
               def line()       = in.pos.line
