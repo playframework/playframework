@@ -3,22 +3,22 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .dependsOn(playmodule, nonplaymodule)
-  .settings(common: _*)
+  .settings(common)
 
 lazy val playmodule = (project in file("playmodule"))
   .enablePlugins(PlayScala)
   .dependsOn(transitive)
-  .settings(common: _*)
+  .settings(common)
 
 // A transitive dependency of playmodule, to check that we are pulling in transitive deps
 lazy val transitive = (project in file("transitive"))
   .enablePlugins(PlayScala)
-  .settings(common: _*)
+  .settings(common)
 
 // A non play module, to check that play settings that are not defined don't cause errors
 // and are still included in compilation
 lazy val nonplaymodule = (project in file("nonplaymodule"))
-  .settings(common: _*)
+  .settings(common)
 
 def common: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
@@ -72,7 +72,7 @@ TaskKey[Unit]("checkPlayCompileEverything") := {
         val path  =
           if (names.head.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
             // It's an relative path, skip the first element (which usually is "${BASE}")
-            java.nio.file.Paths.get(names.drop(1).head, names.drop(2): _*).toAbsolutePath
+            java.nio.file.Paths.get(names.drop(1).head, names.drop(2) *).toAbsolutePath
           } else {
             // It's an absolute path, sbt uses them e.g. for subprojects located outside of the base project
             val id = vf.getClass.getMethod("id").invoke(vf).asInstanceOf[String]
