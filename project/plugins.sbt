@@ -26,7 +26,7 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 
 addSbtPlugin("com.typesafe.play"  % "sbt-twirl"             % sbtTwirl)
 addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
-addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.0.2")
+addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.1.1")
 addSbtPlugin("com.github.sbt"     % "sbt-java-formatter"    % sbtJavaFormatter)
 addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
 addSbtPlugin("com.github.sbt"     % "sbt-header"            % sbtHeader)
