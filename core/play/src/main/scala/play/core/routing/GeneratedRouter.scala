@@ -464,6 +464,13 @@ a1 <- pa1.value
       .fold(badRequest, generator)
   def fakeValue[A]: A = throw new UnsupportedOperationException("Can't get a fake value")
 
+  def call[T](
+      params: java.util.List[Param[?]]
+  )(generator: java.util.function.Function[java.util.List[?], Handler]): Handler =
+    call(params.asScala.toList) { (seq: Seq[?]) =>
+      generator.apply(seq.asJava)
+    }
+
   /**
    * Create a HandlerInvoker for a route by simulating a call to the
    * controller method. This method is called by the code-generated routes

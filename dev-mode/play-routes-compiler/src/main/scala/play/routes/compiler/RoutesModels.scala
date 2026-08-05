@@ -8,6 +8,9 @@ import java.io.File
 
 import scala.util.parsing.input.Positional
 
+import play.routes.compiler.templates.encodeStringJavaConstant
+import play.routes.compiler.templates.safeJavaIdentifier
+
 /**
  * A routing rule
  */
@@ -61,9 +64,10 @@ case class HandlerCall(
     parameters: Option[Seq[Parameter]]
 ) extends Positional {
   private val dynamic                  = if (instantiate) "@" else ""
-  lazy val routeParams: Seq[Parameter] = parameters.toIndexedSeq.flatten.filterNot(_.isJavaRequest)
-  lazy val passJavaRequest: Boolean    = parameters.getOrElse(Nil).exists(_.isJavaRequest)
-  override def toString                =
+  lazy val routeParams: Seq[Parameter] =
+    parameters.toIndexedSeq.flatten.filterNot(_.isJavaRequest).zipWithIndex.map(p => p._1.copy(index = p._2))
+  lazy val passJavaRequest: Boolean = parameters.getOrElse(Nil).exists(_.isJavaRequest)
+  override def toString             =
     dynamic + packageName.map(_ + ".").getOrElse("") + controller + dynamic + "." + method + parameters
       .map { params => "(" + params.mkString(", ") + ")" }
       .getOrElse("")
@@ -82,24 +86,28 @@ object Parameter {
  * @param fixed The fixed value for the parameter, if defined.
  * @param default A default value for the parameter, if defined.
  */
-case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String])
+case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String], index: Int = 0)
     extends Positional {
   import Parameter._
 
-  def isJavaRequest = typeName == requestClass || typeName == requestClassFQ
-  def typeNameReal  =
+  def isJavaRequest: Boolean = typeName == requestClass || typeName == requestClassFQ
+  def typeNameReal: String   =
     if (isJavaRequest) {
       requestClassFQ
     } else {
       typeName
     }
-  def nameClean =
+  def genericTypes: List[String] = typeNameReal.split('[').map(_.replaceAll("]", "")).toList
+  def typeNameErasure: String    = typeNameReal.takeWhile(_ != '[')
+  def nameClean: String          =
     if (isJavaRequest) {
       "req"
     } else {
       name
     }
-  override def toString =
+
+  def localName: String         = safeJavaIdentifier(nameClean) + index
+  override def toString: String =
     name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 
@@ -120,7 +128,9 @@ case class Modifier(value: String) extends Sentence
 /**
  * A part of the path
  */
-trait PathPart
+trait PathPart {
+  def toJavaString: String
+}
 
 /**
  * A dynamic part, which gets extracted into a parameter.
@@ -132,13 +142,16 @@ trait PathPart
 case class DynamicPart(name: String, constraint: String, encode: Boolean) extends PathPart with Positional {
   override def toString =
     """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\", encodeable=" + encode + ")" // "
+  def toJavaString: String =
+    """new DynamicPart("""" + name + "\", \"" + encodeStringJavaConstant(constraint) + "\", " + encode + ")" // "
 }
 
 /**
  * A static part of the path, which is matched as is.
  */
 case class StaticPart(value: String) extends PathPart {
-  override def toString = """StaticPart("""" + value + """")"""
+  override def toString             = """StaticPart("""" + value + """")"""
+  override def toJavaString: String = """new StaticPart("""" + encodeStringJavaConstant(value) + """")"""
 }
 
 /**
