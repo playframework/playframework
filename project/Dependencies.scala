@@ -231,7 +231,7 @@ object Dependencies {
     "org.apache.pekko"   %% "pekko-stream"     % pekkoVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val bouncyCastleVersion    = "1.85"
+  val bouncyCastleVersion    = "1.85.2"
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion,
     "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion,
