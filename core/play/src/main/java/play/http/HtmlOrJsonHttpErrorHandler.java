@@ -18,6 +18,7 @@ public class HtmlOrJsonHttpErrorHandler extends PreferredMediaTypeHttpErrorHandl
     LinkedHashMap<String, HttpErrorHandler> map = new LinkedHashMap<>();
     map.put("text/html", htmlHandler);
     map.put("application/json", jsonHandler);
+    map.put("application/problem+json", jsonHandler);
     return map;
   }
 
