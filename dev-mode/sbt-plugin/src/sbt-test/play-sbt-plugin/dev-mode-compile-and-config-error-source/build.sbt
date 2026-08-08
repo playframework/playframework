@@ -2,7 +2,7 @@
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
   .settings(
     libraryDependencies += guice,
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
@@ -19,7 +19,7 @@ def commonSettings: Seq[Setting[?]] = Seq(
 )
 
 lazy val `sub-project-inside` = (project in file("./modules/sub-project-inside"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings)
 
 lazy val `sub-project-outside` =
   ProjectRef(file("./dev-mode-compile-and-config-error-source-sub-project-outside"), "sub-project-outside")
