@@ -594,6 +594,17 @@ public abstract class AbstractRoutingDslTest {
   }
 
   @Test
+  public void query() {
+    Router router =
+        router(
+            routingDsl ->
+                routingDsl.QUERY("/hello/world").routingTo(req -> ok("Hello world")).build());
+
+    assertThat(makeRequest(router, "QUERY", "/hello/world")).isEqualTo("Hello world");
+    assertNull(makeRequest(router, "POST", "/hello/world"));
+  }
+
+  @Test
   public void withSessionAndHeader() {
     Router router =
         router(
