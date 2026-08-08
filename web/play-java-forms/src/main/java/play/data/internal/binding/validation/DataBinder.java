@@ -22,6 +22,7 @@ package play.data.internal.binding.validation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import play.data.internal.binding.beans.AutoGrowBudget;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 import play.data.internal.binding.beans.MutablePropertyValues;
 import play.data.internal.binding.beans.PropertyAccessException;
@@ -85,6 +86,11 @@ public class DataBinder {
 	/** Default limit for bean property array and collection growing: 256. */
 	public static final int DEFAULT_AUTO_GROW_COLLECTION_LIMIT = 256;
 
+	/**
+	 * Default limit for cumulative auto-growing while binding a single object graph.
+	 */
+	public static final int DEFAULT_AUTO_GROW_OPERATIONS = 1024;
+
 
 	/**
 	 * We'll create a lot of DataBinder instances: Let's use a static logger.
@@ -102,6 +108,8 @@ public class DataBinder {
 	private boolean autoGrowNestedPaths = true;
 
 	private int autoGrowCollectionLimit = DEFAULT_AUTO_GROW_COLLECTION_LIMIT;
+
+	private int maxAutoGrowOperations = DEFAULT_AUTO_GROW_OPERATIONS;
 
 	private String [] allowedFields;
 
@@ -189,12 +197,30 @@ public class DataBinder {
 	}
 
 	/**
+	 * Specify the limit for cumulative auto-growing.
+	 * <p>Default is 1024, preventing excessive nested object graph growth.
+	 */
+	public void setMaxAutoGrowOperations(int maxAutoGrowOperations) {
+		Assert.state(this.bindingResult == null,
+				"DataBinder is already initialized - call setMaxAutoGrowOperations before other configuration methods");
+		this.maxAutoGrowOperations = maxAutoGrowOperations;
+	}
+
+	/**
+	 * Return the current limit for cumulative auto-growing.
+	 */
+	public int getMaxAutoGrowOperations() {
+		return this.maxAutoGrowOperations;
+	}
+
+	/**
 	 * Create the {@link AbstractPropertyBindingResult} instance using standard
 	 * JavaBean property access.
 	 */
 	protected AbstractPropertyBindingResult createBeanPropertyBindingResult() {
 		BeanPropertyBindingResult result = new BeanPropertyBindingResult(getTarget(),
-				getObjectName(), isAutoGrowNestedPaths(), getAutoGrowCollectionLimit());
+				getObjectName(), isAutoGrowNestedPaths(), getAutoGrowCollectionLimit(),
+				new AutoGrowBudget(getMaxAutoGrowOperations()));
 
 		if (this.conversionService != null) {
 			result.initConversion(this.conversionService);
@@ -220,7 +246,8 @@ public class DataBinder {
 	 */
 	protected AbstractPropertyBindingResult createDirectFieldBindingResult() {
 		DirectFieldBindingResult result = new DirectFieldBindingResult(getTarget(),
-				getObjectName(), isAutoGrowNestedPaths(), getAutoGrowCollectionLimit());
+				getObjectName(), isAutoGrowNestedPaths(), getAutoGrowCollectionLimit(),
+				new AutoGrowBudget(getMaxAutoGrowOperations()));
 
 		if (this.conversionService != null) {
 			result.initConversion(this.conversionService);

@@ -61,6 +61,8 @@ By default, Play Java forms can bind common scalar types, including their primit
 
 Concrete enum types, `java.util.Date`, `java.util.Optional`, arrays, collections, and maps using supported element, key, or value types can also be bound.
 
+When binding indexed arrays, collections, maps, or nested objects, Play may need to auto-grow intermediate values. Play limits each indexed collection path with `play.forms.binding.autoGrowCollectionLimit`, which defaults to `256`, and also limits cumulative auto-grow work for one Java form binding with `play.forms.binding.maxAutoGrowOperations`, which defaults to `1024`. You can override the cumulative limit for one form with `withMaxAutoGrowOperations`.
+
 If you have a request available in the scope, you can bind directly from the request content:
 
 @[bind-from-request](code/javaguide/forms/JavaForms.java)
