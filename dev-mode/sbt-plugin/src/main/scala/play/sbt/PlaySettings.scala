@@ -136,6 +136,7 @@ object PlaySettings {
     playReload            := uncached { PlayCommands.playReloadTask.value },
     ivyLoggingLevel       := UpdateLogging.DownloadOnly,
     playMonitoredFiles    := uncached { PlayCommands.playMonitoredFilesTask.value },
+    playMonitoredFilesExcludes := Seq.empty,
     fileWatchService      := {
       FileWatchService.detect(pollInterval.value.toMillis.toInt, sLog.value)
     },
