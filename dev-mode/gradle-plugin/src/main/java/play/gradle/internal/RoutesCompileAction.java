@@ -15,6 +15,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.work.ChangeType;
 import org.gradle.workers.WorkAction;
+import play.routes.compiler.Language;
 import play.routes.compiler.RoutesCompiler$;
 import play.routes.compiler.RoutesCompiler.GeneratedSource;
 import play.routes.compiler.RoutesCompiler.GeneratedSource$;
@@ -84,6 +85,7 @@ public abstract class RoutesCompileAction implements WorkAction<RoutesCompilePar
               generateReverseRouter,
               generateJsReverseRouter,
               namespaceReverseRouter,
+              Language.SCALA,
               destinationDirectory);
       if (compileResult.isLeft()) {
         compileResult
