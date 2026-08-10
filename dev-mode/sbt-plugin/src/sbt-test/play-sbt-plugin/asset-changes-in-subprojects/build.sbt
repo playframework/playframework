@@ -4,7 +4,7 @@ import scala.sys.process.Process
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
-  .settings(common: _*)
+  .settings(common)
   .settings(
     name                                     := "asset-changes-main",
     InputKey[Unit]("verifyResourceContains") := {
@@ -121,7 +121,7 @@ lazy val root = (project in file("."))
 
 lazy val subproj = (project in file("subproj"))
   .enablePlugins(PlayScala)
-  .settings(common: _*)
+  .settings(common)
   .settings(
     name    := "asset-changes-sub",
     version := "1.1-SNAPSHOT",
