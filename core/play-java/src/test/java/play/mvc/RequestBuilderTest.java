@@ -10,11 +10,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import com.google.common.net.InetAddresses;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.Inet6Address;
-import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import org.apache.pekko.stream.javadsl.FileIO;
 import org.apache.pekko.stream.javadsl.Source;
 import org.apache.pekko.util.ByteString;
 import org.junit.Test;
@@ -753,18 +752,24 @@ public class RequestBuilderTest {
   }
 
   @Test
-  public void multipartForm_bodyRaw_correctEscapedParams() throws URISyntaxException, IOException {
+  public void multipartForm_bodyRaw_correctEscapedParams() throws IOException {
     Application app = new GuiceApplicationBuilder().build();
     Play.start(app);
 
-    File file = new File(this.getClass().getResource("/testassets/foo.txt").toURI());
+    ByteString fileContents;
+    try (InputStream stream =
+        Objects.requireNonNull(
+            getClass().getResourceAsStream("/testassets/foo.txt"),
+            "Missing test resource /testassets/foo.txt")) {
+      fileContents = ByteString.fromArray(stream.readAllBytes());
+    }
     Http.MultipartFormData.Part<Source<ByteString, ?>> filePart =
         new Http.MultipartFormData.FilePart<>(
             "f\"i\rl\nef\"ie\nld\r1",
             "f\rir\"s\ntf\ril\"e\n.txt",
             "text/plain",
-            FileIO.fromPath(file.toPath()),
-            java.nio.file.Files.size(file.toPath()));
+            Source.single(fileContents),
+            fileContents.size());
 
     Http.MultipartFormData.DataPart dataPart =
         new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "value1");
