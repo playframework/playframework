@@ -30,7 +30,7 @@ class ResourcesSpec extends Specification {
   lazy val dirSpacesRes    = createTempDir("dir spaces ", ".tmp", tmpDir)
   lazy val spacesDir       = createTempDir("spaces ", ".tmp", tmpDir)
   lazy val spacesJar       = Files.createTempFile(spacesDir.toPath, "jar-spaces", ".tmp").toFile
-  lazy val resourcesDir    = new File(app.classloader.getResource("").getPath)
+  lazy val resourcesDir    = tmpDir
   lazy val tmpResourcesDir = createTempDir("test-bundle-", ".tmp", resourcesDir)
   lazy val fileBundle      = Files.createTempFile(tmpResourcesDir.toPath, "file-", ".tmp").toFile
   lazy val dirBundle       = createTempDir("dir-", ".tmp", tmpResourcesDir)

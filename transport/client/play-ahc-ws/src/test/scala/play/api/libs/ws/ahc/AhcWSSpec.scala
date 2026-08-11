@@ -11,7 +11,6 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.language.implicitConversions
 
-import org.apache.pekko.stream.scaladsl.FileIO
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -45,6 +44,14 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     with FutureAwaits
     with DefaultAwaitTimeout {
   sequential
+
+  private def resourceBytes(name: String): ByteString = {
+    val stream = Option(getClass.getResourceAsStream(name)).getOrElse {
+      throw new IllegalArgumentException(s"Resource not found: $name")
+    }
+    try ByteString.fromArray(stream.readAllBytes())
+    finally stream.close()
+  }
 
   "Ahc WSClient" should {
     "support several query string values for a parameter" in {
@@ -443,10 +450,10 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     override def running() = {
       {
         val wsClient = app.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
-        val file     = new java.io.File(this.getClass.getResource("/testassets/foo.txt").toURI)
+        val fileBody = Source.single(resourceBytes("/testassets/foo.txt"))
         val dp       = MultipartFormData.DataPart("h\"e\rl\nl\"o\rwo\nrld", "world")
         val fp       =
-          MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, FileIO.fromPath(file.toPath))
+          MultipartFormData.FilePart("u\"p\rl\no\"a\rd", "f\"o\ro\n_\"b\ra\nr.txt", None, fileBody)
         val source         = Source(List(dp, fp))
         val futureResponse = wsClient.url(s"http://localhost:${port}/").post(source)
 

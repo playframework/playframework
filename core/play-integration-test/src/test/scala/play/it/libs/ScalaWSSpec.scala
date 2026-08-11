@@ -26,7 +26,6 @@ trait ScalaWSSpec
     with ServerIntegrationSpecification
     with WSBodyWritables
     with WSBodyReadables {
-  import java.io.File
   import java.nio.charset.Charset
   import java.nio.charset.StandardCharsets
   import java.nio.ByteBuffer
@@ -36,7 +35,6 @@ trait ScalaWSSpec
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
 
-  import org.apache.pekko.stream.scaladsl.FileIO
   import org.apache.pekko.stream.scaladsl.Sink
   import org.apache.pekko.stream.scaladsl.Source
   import org.apache.pekko.util.ByteString
@@ -50,6 +48,14 @@ trait ScalaWSSpec
   import play.it.tools.HttpBinApplication
   import play.shaded.ahc.org.asynchttpclient.RequestBuilderBase
   import play.shaded.ahc.org.asynchttpclient.SignatureCalculator
+
+  private def resourceBytes(name: String): ByteString = {
+    val stream = Option(getClass.getResourceAsStream(name)).getOrElse {
+      throw new IllegalArgumentException(s"Resource not found: $name")
+    }
+    try ByteString.fromArray(stream.readAllBytes())
+    finally stream.close()
+  }
 
   "Web service client" title
 
@@ -93,9 +99,9 @@ trait ScalaWSSpec
     }
 
     "send a multipart request body" in withServer { ws =>
-      val file                                                             = new File(this.getClass.getResource("/testassets/foo.txt").toURI).toPath
+      val fileBody                                                         = Source.single(resourceBytes("/testassets/foo.txt"))
       val dp                                                               = MultipartFormData.DataPart("hello", "world")
-      val fp                                                               = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file))
+      val fp                                                               = MultipartFormData.FilePart("upload", "foo.txt", None, fileBody)
       val source: Source[MultipartFormData.Part[Source[ByteString, ?]], ?] = Source(List(dp, fp))
       val res                                                              = ws.url("/post").post(source)
       val jsonBody                                                         = await(res).json
@@ -105,25 +111,25 @@ trait ScalaWSSpec
     }
 
     "send a multipart request body via withBody" in withServer { ws =>
-      val file   = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
-      val dp     = MultipartFormData.DataPart("hello", "world")
-      val fp     = MultipartFormData.FilePart("upload", "foo.txt", None, FileIO.fromPath(file.toPath))
-      val source = Source(List(dp, fp))
-      val res    = ws.url("/post").withBody(source).withMethod("POST").execute()
-      val body   = await(res).json
+      val fileBody = Source.single(resourceBytes("/testassets/foo.txt"))
+      val dp       = MultipartFormData.DataPart("hello", "world")
+      val fp       = MultipartFormData.FilePart("upload", "foo.txt", None, fileBody)
+      val source   = Source(List(dp, fp))
+      val res      = ws.url("/post").withBody(source).withMethod("POST").execute()
+      val body     = await(res).json
 
       (body \ "form" \ "hello").toOption must beSome(JsString("world"))
       (body \ "file").toOption must beSome(JsString("This is a test asset."))
     }
 
     "send a multipart request body with escaped 'name' and 'filename' params" in withEchoServer { ws =>
-      val file = new File(this.getClass.getResource("/testassets/foo.txt").toURI)
-      val dp   = MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
-      val fp   = MultipartFormData.FilePart(
+      val fileBody = Source.single(resourceBytes("/testassets/foo.txt"))
+      val dp       = MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
+      val fp       = MultipartFormData.FilePart(
         "f\"i\rl\nef\"ie\nld\r1",
         "f\rir\"s\ntf\ril\"e\n.txt",
         None,
-        FileIO.fromPath(file.toPath)
+        fileBody
       )
       val source = Source(List(dp, fp))
       val res    = ws.url("/post").withBody(source).withMethod("POST").execute()

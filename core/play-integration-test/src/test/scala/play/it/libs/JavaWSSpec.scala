@@ -4,7 +4,6 @@
 
 package play.it.libs
 
-import java.io.File
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
@@ -17,7 +16,6 @@ import scala.concurrent.Future
 import scala.language.postfixOps
 
 import org.apache.pekko.stream.javadsl
-import org.apache.pekko.stream.scaladsl.FileIO
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
@@ -57,6 +55,14 @@ trait JavaWSSpec
   implicit val ec: ExecutionContext = ee.executionContext
 
   import play.libs.ws.WSSignatureCalculator
+
+  private def resourceBytes(name: String): ByteString = {
+    val stream = Option(getClass.getResourceAsStream(name)).getOrElse {
+      throw new IllegalArgumentException(s"Resource not found: $name")
+    }
+    try ByteString.fromArray(stream.readAllBytes())
+    finally stream.close()
+  }
 
   "Web service client" title
 
@@ -159,10 +165,10 @@ trait JavaWSSpec
     }
 
     "sending a multipart form body" in withServer { ws =>
-      val file   = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
-      val dp     = new Http.MultipartFormData.DataPart("hello", "world")
-      val fp     = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file).asJava)
-      val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
+      val fileBody = javadsl.Source.single(resourceBytes("/testassets/bar.txt"))
+      val dp       = new Http.MultipartFormData.DataPart("hello", "world")
+      val fp       = new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", fileBody)
+      val source   = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").post(source)
       val body = res.toCompletableFuture.get().asJson()
@@ -172,13 +178,13 @@ trait JavaWSSpec
     }
 
     "sending a multipart form body with escaped 'name' and 'filename' params" in withEchoServer { ws =>
-      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI).toPath
-      val dp   = new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
-      val fp   = new Http.MultipartFormData.FilePart(
+      val fileBody = javadsl.Source.single(resourceBytes("/testassets/bar.txt"))
+      val dp       = new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "world")
+      val fp       = new Http.MultipartFormData.FilePart(
         "f\"i\rl\nef\"ie\nld\r1",
         "f\rir\"s\ntf\ril\"e\n.txt",
         "text/plain",
-        FileIO.fromPath(file).asJava
+        fileBody
       )
       val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
@@ -192,10 +198,10 @@ trait JavaWSSpec
     }
 
     "send a multipart request body via multipartBody()" in withServer { ws =>
-      val file = new File(this.getClass.getResource("/testassets/bar.txt").toURI)
-      val dp   = new Http.MultipartFormData.DataPart("hello", "world")
-      val fp   =
-        new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", FileIO.fromPath(file.toPath).asJava)
+      val fileBody = javadsl.Source.single(resourceBytes("/testassets/bar.txt"))
+      val dp       = new Http.MultipartFormData.DataPart("hello", "world")
+      val fp       =
+        new Http.MultipartFormData.FilePart("upload", "bar.txt", "text/plain", fileBody)
       val source = org.apache.pekko.stream.javadsl.Source.from(util.Arrays.asList(dp, fp))
 
       val res  = ws.url("/post").setBody(multipartBody(source)).setMethod("POST").execute()
