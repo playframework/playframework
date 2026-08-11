@@ -21,7 +21,7 @@ class EssentialActionSpec extends PlaySpecification {
   "an EssentialAction" should {
     "use the classloader of the running application" in {
       // start fake application with its own classloader
-      val applicationClassLoader = new ClassLoader() {}
+      val applicationClassLoader = new ClassLoader(getClass.getClassLoader) {}
 
       running(_.in(Environment.simple().copy(classLoader = applicationClassLoader))) { app =>
         import app.materializer
@@ -35,23 +35,29 @@ class EssentialActionSpec extends PlaySpecification {
           (await(actionClassLoader.future) must be).equalTo(applicationClassLoader)
         }
 
-        // make sure running thread has applicationClassLoader set
-        Thread.currentThread.setContextClassLoader(applicationClassLoader)
+        val thread              = Thread.currentThread
+        val originalClassLoader = thread.getContextClassLoader
+        try {
+          // make sure running thread has applicationClassLoader set
+          thread.setContextClassLoader(applicationClassLoader)
 
-        // test with simple sync action
-        checkAction { reportCL =>
-          Action {
-            reportCL(Thread.currentThread.getContextClassLoader)
-            Ok("")
+          // test with simple sync action
+          checkAction { reportCL =>
+            Action {
+              reportCL(Thread.currentThread.getContextClassLoader)
+              Ok("")
+            }
           }
-        }
 
-        // test with async action
-        checkAction { reportCL =>
-          Action(BodyParsers.utils.maxLength(100, BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))) { _ =>
-            reportCL(Thread.currentThread.getContextClassLoader)
-            Ok("")
+          // test with async action
+          checkAction { reportCL =>
+            Action(BodyParsers.utils.maxLength(100, BodyParsers.utils.ignore(AnyContentAsEmpty: AnyContent))) { _ =>
+              reportCL(Thread.currentThread.getContextClassLoader)
+              Ok("")
+            }
           }
+        } finally {
+          thread.setContextClassLoader(originalClassLoader)
         }
       }
     }
