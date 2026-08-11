@@ -399,7 +399,7 @@ class ConfigurationSpec extends Specification {
     }
 
     "reference values from system properties" in {
-      val configuration = Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, Mode.Test))
+      val configuration = Configuration.load(Environment(new File("."), getClass.getClassLoader, Mode.Test))
 
       val javaVersion       = System.getProperty("java.specification.version")
       val configJavaVersion = configuration.get[String]("test.system.property.java.spec.version")
@@ -409,7 +409,7 @@ class ConfigurationSpec extends Specification {
 
     "reference values from system properties when passing additional properties" in {
       val configuration = Configuration.load(
-        ClassLoader.getSystemClassLoader,
+        getClass.getClassLoader,
         new Properties(), // empty so that we can check that System Properties are still considered
         directSettings = Map.empty,
         allowMissingApplicationConf = true
@@ -426,7 +426,7 @@ class ConfigurationSpec extends Specification {
       userProperties.setProperty("java.specification.version", "my java version")
 
       val configuration = Configuration.load(
-        ClassLoader.getSystemClassLoader,
+        getClass.getClassLoader,
         userProperties,
         directSettings = Map.empty,
         allowMissingApplicationConf = true
