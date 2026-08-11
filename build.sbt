@@ -236,6 +236,9 @@ lazy val PlayJavaFormsProject = PlayCrossBuiltProject("Play-Java-Forms", "web/pl
 lazy val PlayDocsProject = PlayCrossBuiltProject("Play-Docs", "dev-mode/play-docs")
   .settings(Docs.settings *)
   .settings(
+    // sbt 2 defaults exportJars to true, but this project's packageBin generates the aggregate API docs.
+    // Using that JAR as an internal classpath product creates a cycle through apiMappings.
+    exportJars := false,
     libraryDependencies ++= playDocsDependencies
   )
   .dependsOn(PlayNettyServerProject)
