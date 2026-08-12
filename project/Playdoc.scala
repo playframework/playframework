@@ -6,13 +6,15 @@ import sbt._
 import sbt.io.IO
 import sbt.Keys._
 
+import xsbti.HashedVirtualFileRef
+
 object Playdoc extends AutoPlugin {
 
   final val Docs = config("docs")
 
   object autoImport {
     val playdocDirectory = settingKey[File]("Base directory of play documentation")
-    val playdocPackage   = taskKey[File]("Package play documentation")
+    val playdocPackage   = taskKey[HashedVirtualFileRef]("Package play documentation")
   }
 
   import autoImport._
@@ -27,7 +29,10 @@ object Playdoc extends AutoPlugin {
         playdocDirectory          := (ThisBuild / baseDirectory).value / "docs" / "manual",
         playdocPackage / mappings := {
           val base: File = playdocDirectory.value
-          base.allPaths.pair(IO.relativize(base.getParentFile(), _))
+          val converter  = fileConverter.value
+          base.allPaths
+            .pair(IO.relativize(base.getParentFile(), _))
+            .map { case (file, path) => converter.toVirtualFile(file.toPath) -> path }
         },
         playdocPackage / artifactClassifier := Some("playdoc"),
         playdocPackage / artifact ~= { _.withConfigurations(Vector(Docs)) }

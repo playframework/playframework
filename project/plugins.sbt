@@ -2,8 +2,6 @@
 
 enablePlugins(BuildInfoPlugin)
 
-addDependencyTreePlugin
-
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.11.7"
@@ -22,16 +20,15 @@ buildInfoKeys := Seq[BuildInfoKey](
 
 logLevel := Level.Warn
 
-scalacOptions ++= Seq("-deprecation", "-language:_")
+scalacOptions += "-deprecation"
 
-addSbtPlugin("org.playframework.twirl" % "sbt-twirl"             % sbtTwirl)
-addSbtPlugin("com.typesafe"            % "sbt-mima-plugin"       % mima)
-addSbtPlugin("com.lightbend.sbt"       % "sbt-bill-of-materials" % "1.1.1")
-addSbtPlugin("com.github.sbt"          % "sbt-java-formatter"    % sbtJavaFormatter)
-addSbtPlugin("pl.project13.scala"      % "sbt-jmh"               % sbtJmh)
-addSbtPlugin("com.github.sbt"          % "sbt-header"            % sbtHeader)
-addSbtPlugin("org.scalameta"           % "sbt-scalafmt"          % scalafmt)
-addSbtPlugin("com.github.sbt"          % "sbt-ci-release"        % "1.12.0")
+addSbtPlugin("org.playframework.twirl" % "sbt-twirl"          % sbtTwirl)
+addSbtPlugin("com.typesafe"            % "sbt-mima-plugin"    % mima)
+addSbtPlugin("com.github.sbt"          % "sbt-java-formatter" % sbtJavaFormatter)
+addSbtPlugin("pl.project13.scala"      % "sbt-jmh"            % sbtJmh)
+addSbtPlugin("com.github.sbt"          % "sbt-header"         % sbtHeader)
+addSbtPlugin("org.scalameta"           % "sbt-scalafmt"       % scalafmt)
+addSbtPlugin("com.github.sbt"          % "sbt-ci-release"     % "1.12.0")
 
 addSbtPlugin("nl.gn0s1s" % "sbt-pekko-version-check" % "0.0.9")
 

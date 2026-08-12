@@ -4,7 +4,8 @@
 
 package sbt.internal
 
-import sbt._
+import sbt.*
+
 import xsbti.FileConverter
 
 object PlayDocsCompat:

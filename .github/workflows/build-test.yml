@@ -67,7 +67,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "savePlayVersion; validateCode"
         cd dev-mode/gradle-plugin
         ./gradlew clean spotlessCheck --no-daemon
       gradle-build-root: dev-mode/gradle-plugin
@@ -114,7 +114,7 @@ jobs:
         ]
       cmd: |
         rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal +publishM2
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "crossScalaVersions; crossSbtVersions; +publishLocal; +publishM2"
       cache-path: |
         ~/.ivy2/local/org.playframework
         ~/.m2/repository/org/playframework
@@ -182,13 +182,15 @@ jobs:
         [
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
+      # Scripted tests still target sbt 1, whose plugin variant uses
+      # Scala 2.12 rather than the build's default Scala 3 variant.
       cmd: >-
-        export SCALA_CROSS_VERSIONS=`sbt -batch -error 'print Play/crossScalaVersions' | sed "s/\*//g" | xargs`;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
+          ++ 2.12.x;
           set scriptedSbt := \"$MATRIX_SBT\";
           set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
-          set scriptedLaunchOpts += \"-Dscala.crossversions=$SCALA_CROSS_VERSIONS\";
+          set scriptedLaunchOpts += \"-Dscala.crossversions=\" + (LocalProject(\"Play\") / crossScalaVersions).value.mkString(\" \");
           show scriptedSbt;
           show scriptedLaunchOpts;
           disableIncompatibleScriptedTests;

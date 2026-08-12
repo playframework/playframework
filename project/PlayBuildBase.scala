@@ -3,6 +3,7 @@
  */
 
 import sbt._
+import sbt.librarymanagement.License
 import sbt.plugins.JvmPlugin
 import sbt.Keys._
 
@@ -51,9 +52,9 @@ object PlayBuildBase extends AutoPlugin {
     // General settings
     organization         := "org.playframework",
     organizationName     := "The Play Framework Project",
-    organizationHomepage := Some(url("https://playframework.com")),
-    homepage             := Some(url(s"https://github.com/playframework/${(ThisBuild / playBuildRepoName).value}")),
-    licenses             := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+    organizationHomepage := Some(uri("https://playframework.com")),
+    homepage             := Some(uri(s"https://github.com/playframework/${(ThisBuild / playBuildRepoName).value}")),
+    licenses             := Seq(License("Apache-2.0", uri("http://www.apache.org/licenses/LICENSE-2.0.html"))),
     scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8") ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, _)) => Seq("-Xsource:3")
@@ -71,7 +72,7 @@ object PlayBuildBase extends AutoPlugin {
       "playframework",
       "The Play Framework Contributors",
       "contact@playframework.com",
-      url("https://github.com/playframework")
+      uri("https://github.com/playframework")
     ),
     pomIncludeRepository := { _ => false }
   )

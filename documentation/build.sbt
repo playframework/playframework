@@ -34,7 +34,7 @@ lazy val main = Project("Play-Documentation", file("."))
     ivyConfigurations += DocsApplication,
     // We need to publishLocal playDocs since its jar file is
     // a dependency of `docsJarFile` setting.
-    Test / test := (Test / test).dependsOn(playDocs / publishLocal).value,
+    Test / test := (Test / test).dependsOn(playDocs / publishLocal).evaluated,
     version     := PlayVersion.current,
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.4"   % Test,
@@ -45,7 +45,9 @@ lazy val main = Project("Play-Documentation", file("."))
       ("net.logstash.logback" % "logstash-logback-encoder" % "9.0" % Test)
         .excludeAll(ExclusionRule("com.fasterxml.jackson.core")), // Avoid conflicts with Play's Jackson dependency
     ),
-    PlayDocsKeys.docsJarFile              := Some((playDocs / Compile / packageBin).value),
+    PlayDocsKeys.docsJarFile := Def.uncached {
+      Some(fileConverter.value.toPath((playDocs / Compile / packageBin).value).toFile)
+    },
     PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(
       downstreamWikiPages = Set(
         "JavaEbean",
@@ -65,22 +67,25 @@ lazy val main = Project("Play-Documentation", file("."))
       )
     ),
     PlayDocsKeys.javaManualSourceDirectories :=
-      (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get ++
-        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
+      (baseDirectory.value / "manual" / "working" / "javaGuide" ** "code").get() ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get(),
     PlayDocsKeys.scalaManualSourceDirectories :=
-      (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get ++
-        (baseDirectory.value / "manual" / "tutorial" ** "code").get ++
-        (baseDirectory.value / "manual" / "experimental" ** "code").get,
+      (baseDirectory.value / "manual" / "working" / "scalaGuide" ** "code").get() ++
+        (baseDirectory.value / "manual" / "tutorial" ** "code").get() ++
+        (baseDirectory.value / "manual" / "experimental" ** "code").get(),
     PlayDocsKeys.commonManualSourceDirectories :=
-      (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get ++
-        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get,
-    Test / unmanagedSourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
-    Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get,
+      (baseDirectory.value / "manual" / "working" / "commonGuide" ** "code").get() ++
+        (baseDirectory.value / "manual" / "gettingStarted" ** "code").get(),
+    Test / unmanagedSourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get(),
+    Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get(),
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
     crossScalaVersions                        := Seq("2.13.18", "3.9.0-RC1"),
     scalaVersion                              := "2.13.18",
-    Test / fork                               := true,
+    // Documentation samples are both test sources and resources and cannot be packaged into one JAR without
+    // duplicate entry names. Keep test products as a class directory, matching sbt 1 behavior.
+    Test / exportJars := false,
+    Test / fork       := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(
       HeaderLicense.Custom(
@@ -100,11 +105,14 @@ lazy val main = Project("Play-Documentation", file("."))
       FileType("less")             -> HeaderCommentStyle.cStyleBlockComment,
       FileType("md")               -> CommentStyle(new LineCommentCreator("<!---", "-->"), commentBetween("<!---", "*", "-->")),
     ),
-    Compile / headerSources ++=
+    Compile / headerSources ++= Def.uncached {
       ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less" || "*.css"))
-        --- (baseDirectory.value ** "target" ** "*")).get ++
-        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get,
-    Test / headerSources ++= (baseDirectory.value ** "*.md").get,
+        --- (baseDirectory.value ** "target" ** "*")).get() ++
+        (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get()
+    },
+    Test / headerSources ++= Def.uncached {
+      (baseDirectory.value ** "*.md").get()
+    },
     javafmtSortImports := false,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedResourceDirectories).value,
@@ -139,7 +147,7 @@ lazy val playDocs = playProject("Play-Docs")
 
 def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile, name)
 
-val _ = sys.props += ("sbt_validateCode" -> List(
+val sbtValidateCodeProp = sys.props += ("sbt_validateCode" -> List(
   "evaluateSbtFiles",
   "validateDocs",
 ).mkString(";"))
