@@ -73,9 +73,7 @@ lazy val PlayStreamsProject = PlayCrossBuiltProject("Play-Streams", "core/play-s
 lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "core/play-exceptions")
 
 lazy val PlayBillOfMaterials = PlayCrossBuiltProject("Play-Bom", "dev-mode/play-bill-of-materials")
-  .enablePlugins(BillOfMaterialsPlugin)
   .settings(
-    bomIncludeProjects    := userProjects,
     mimaPreviousArtifacts := Set.empty
   )
 
