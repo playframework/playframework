@@ -5,6 +5,7 @@
 import sbt._
 import sbt.plugins.JvmPlugin
 import sbt.Keys._
+import sbt.librarymanagement.License
 
 import com.jsuereth.sbtpgp.SbtPgp
 
@@ -53,7 +54,7 @@ object PlayBuildBase extends AutoPlugin {
     organizationName     := "The Play Framework Project",
     organizationHomepage := Some(url("https://playframework.com")),
     homepage             := Some(url(s"https://github.com/playframework/${(ThisBuild / playBuildRepoName).value}")),
-    licenses             := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+    licenses             := Seq(License("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))),
     scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8") ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, _)) => Seq("-Xsource:3")
