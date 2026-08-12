@@ -546,3 +546,4 @@ savePlayVersion := {
   IO.write(file, writer.getBuffer.toString)
   Seq(file)
 }
+savePlayVersion / aggregate := false

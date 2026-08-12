@@ -67,7 +67,7 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
       cmd: |
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" savePlayVersion validateCode
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "savePlayVersion; validateCode"
         cd dev-mode/gradle-plugin
         ./gradlew clean spotlessCheck --no-daemon
       gradle-build-root: dev-mode/gradle-plugin
@@ -114,7 +114,7 @@ jobs:
         ]
       cmd: |
         rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" crossScalaVersions crossSbtVersions +publishLocal +publishM2
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "crossScalaVersions; crossSbtVersions; +publishLocal; +publishM2"
       cache-path: |
         ~/.ivy2/local/org.playframework
         ~/.m2/repository/org/playframework
