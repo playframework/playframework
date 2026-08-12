@@ -27,6 +27,8 @@ object Docs {
   @transient
   val apiDocsScalaSources = taskKey[Seq[File]]("All the scala sources for all projects")
   @transient
+  val apiDocsScalaTastyFiles = taskKey[Seq[File]]("All the Scala TASTy files for all projects")
+  @transient
   val apiDocsJavaSources = taskKey[Seq[File]]("All the Java sources for all projects")
   @transient
   val apiDocsClasspath = taskKey[Seq[File]]("The classpath for API docs generation")
@@ -47,6 +49,11 @@ object Docs {
       val pr = thisProjectRef.value
       val bs = buildStructure.value
       Def.task(allSources(Compile, ".scala", pr, bs).value)
+    }.value,
+    apiDocsScalaTastyFiles := Def.taskDyn {
+      val pr = thisProjectRef.value
+      val bs = buildStructure.value
+      Def.task(allScalaTastyFiles(pr, bs).value)
     }.value,
     apiDocsClasspath := Def.taskDyn {
       val pr = thisProjectRef.value
@@ -199,22 +206,12 @@ object Docs {
   }
 
   // Keeps Scala 3 Scaladoc input limited to public Play TASTy files.
-  // Scala 3 docs are generated from classpath TASTy, so filtering has to happen on compiled relative paths.
+  // Scala 3 docs are generated from TASTy, so filtering has to happen on compiled relative paths.
   private def isPublicScala3TastyFile(classpathDirectory: File, tastyFile: File): Boolean = {
     val path = classpathDirectory.toPath.relativize(tastyFile.toPath).toString.replace(java.io.File.separatorChar, '/')
 
     !path.contains(InternalApiPathSegment) &&
     !ExcludedTopLevelScalaPackages.exists(packageName => path.startsWith(s"$packageName/"))
-  }
-
-  private def scala3TastyFiles(classpath: Seq[File], baseDirectory: File): Seq[File] = {
-    val basePath = baseDirectory.getAbsolutePath.replace(java.io.File.separatorChar, '/')
-
-    classpath
-      .filter(_.isDirectory)
-      .filter(_.getAbsolutePath.replace(java.io.File.separatorChar, '/').startsWith(basePath))
-      .flatMap(dir => (dir ** "*.tasty").get().filter(isPublicScala3TastyFile(dir, _)))
-      .distinct
   }
 
   // Builds Scala 3 source-link options for actual Play source roots.
@@ -275,6 +272,7 @@ object Docs {
     }
     val rootDirectory = (ThisBuild / baseDirectory).value
     val scalaSources  = apiDocsScalaSources.value
+    val tastyFiles    = apiDocsScalaTastyFiles.value
 
     val options =
       if (scalaBinaryVersion.value == "2.13") {
@@ -306,28 +304,30 @@ object Docs {
 
     val classpath = apiDocsClasspath.value.toList
     val sources   =
-      if (scalaBinaryVersion.value == "3") scala3TastyFiles(classpath, rootDirectory)
+      if (scalaBinaryVersion.value == "3") tastyFiles
       else scalaSources.filter(isNotInternalApiSource)
     val outputDir = apiDocsDir.value / "scala"
     val log       = streams.value.log
 
-    if (sources.nonEmpty) {
-      IO.delete(outputDir)
-      IO.createDirectory(outputDir)
-      scalac.doc(
-        sources.map(_.toPath).map(new PlainVirtualFile(_)),
-        classpath.map(_.toPath).map(new PlainVirtualFile(_)),
-        converter,
-        outputDir.toPath,
-        options,
-        10,
-        log,
-      )
-      if (scalaBinaryVersion.value == "2.13") {
-        cleanUpInvalidScala2SourceLinks(outputDir)
-      } else {
-        fixScala3Specs2Links(outputDir)
-      }
+    if (sources.isEmpty) {
+      sys.error(s"No Scala API documentation inputs were found for Scala ${scalaVersion.value}")
+    }
+
+    IO.delete(outputDir)
+    IO.createDirectory(outputDir)
+    scalac.doc(
+      sources.map(_.toPath).map(new PlainVirtualFile(_)),
+      classpath.map(_.toPath).map(new PlainVirtualFile(_)),
+      converter,
+      outputDir.toPath,
+      options,
+      10,
+      log,
+    )
+    if (scalaBinaryVersion.value == "2.13") {
+      cleanUpInvalidScala2SourceLinks(outputDir)
+    } else {
+      fixScala3Specs2Links(outputDir)
     }
   }
 
@@ -420,7 +420,7 @@ object Docs {
   // this cleanup.
   private def cleanUpInvalidScala2SourceLinks(apiTarget: File): Unit = {
     val generatedSourceLinkRegex =
-      """<dt>Source</dt><dd><a href="https://github\.com/playframework/playframework/tree/[^"]+/[^"]*/target/[^"]+" target="_blank">[^<]+</a></dd>""".r
+      """<dt>Source</dt><dd><a href="https://github\.com/playframework/playframework/tree/[^"]+/(?:[^"]*/)?target/[^"]+" target="_blank">[^<]+</a></dd>""".r
 
     (apiTarget ** "*.html").get().foreach { f =>
       val content    = IO.read(f)
@@ -581,6 +581,17 @@ object Docs {
     // Full classpath is necessary to ensure that scaladoc and javadoc can see the compiled classes of the other language.
     val tasks = projects.flatMap { p => (p / Compile / fullClasspath).get(structure.data) }
     tasks.join.map(_.flatten.map(entry => converter.toPath(entry.data).toFile).distinct)
+  }
+
+  def allScalaTastyFiles(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
+    val projects = allApiProjects(projectRef.build, structure)
+    val tasks    = projects.flatMap { p =>
+      for {
+        classDirectory <- (p / Compile / Keys.classDirectory).get(structure.data)
+        tastyFilesTask <- (p / Compile / Keys.tastyFiles).get(structure.data)
+      } yield tastyFilesTask.map(_.filter(isPublicScala3TastyFile(classDirectory, _)))
+    }
+    tasks.join.map(_.flatten.distinct)
   }
 
   // Note: webjars are extracted without versions
