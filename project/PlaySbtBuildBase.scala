@@ -11,8 +11,8 @@ object PlaySbtBuildBase extends AutoPlugin {
   override def requires = PlayBuildBase
 
   override def projectSettings = Seq(
-    scalaVersion                  := ScalaVersions.scala212,
-    crossScalaVersions            := Seq(ScalaVersions.scala212, ScalaVersions.scala39),
+    scalaVersion                  := ScalaVersions.scala38,
+    crossScalaVersions            := Seq(ScalaVersions.scala212, ScalaVersions.scala38),
     pluginCrossBuild / sbtVersion := {
       scalaBinaryVersion.value match {
         case "2.12" =>
