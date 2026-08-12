@@ -105,6 +105,7 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     (Compile / TwirlKeys.compileTemplates / sourceDirectories) := (Compile / unmanagedSourceDirectories).value,
     TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
     (Compile / packageSrc / mappings) ++= {
+      val converter = fileConverter.value
       // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
       // so omnidoc can compile and produce scaladocs for them.
       val twirlSources = (Compile / TwirlKeys.compileTemplates / sources).value
@@ -115,7 +116,10 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
       // managed sources
       val twirlCompiledSources = (Compile / managedSources).value.pair(relativeTo(twirlTarget), errorIfNone = false)
 
-      twirlSources ++ twirlCompiledSources
+      (twirlSources ++ twirlCompiledSources).map {
+        case (file, path) =>
+          converter.toVirtualFile(file.toPath) -> path
+      }
     },
     Docs.apiDocsIncludeManaged := true
   )
@@ -275,7 +279,9 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
       }
        */
     },
-    (Compile / headerSources) ++= (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get,
+    (Compile / headerSources) ++= Def.uncached {
+      (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get()
+    },
   )
   .dependsOn(SbtRoutesCompilerProject, PlayRunSupportProject)
 
@@ -385,10 +391,12 @@ lazy val PlayMicrobenchmarkProject = PlayCrossBuiltProject("Play-Microbenchmark"
     // See: https://github.com/ktoso/sbt-jmh/pull/73#issue-163891528
     (Jmh / classDirectory)                 := (Test / classDirectory).value,
     (Jmh / dependencyClasspath)            := (Test / dependencyClasspath).value,
-    (Jmh / generateJmhSourcesAndResources) := (Jmh / generateJmhSourcesAndResources).dependsOn(Test / compile).value,
-    (Jmh / run / mainClass)                := Some("org.openjdk.jmh.Main"),
-    (Test / parallelExecution)             := false,
-    mimaPreviousArtifacts                  := Set.empty
+    (Jmh / generateJmhSourcesAndResources) := Def.uncached {
+      (Jmh / generateJmhSourcesAndResources).dependsOn(Test / compile).value
+    },
+    (Jmh / run / mainClass)    := Some("org.openjdk.jmh.Main"),
+    (Test / parallelExecution) := false,
+    mimaPreviousArtifacts      := Set.empty
   )
   .dependsOn(
     PlayProject                % "test->test",
@@ -518,7 +526,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
     mimaReportBinaryIssues     := (()),
     commands += Commands.quickPublish,
     publish / skip := true,
-    (Compile / headerSources) ++=
+    (Compile / headerSources) ++= Def.uncached {
       ((baseDirectory.value ** ("*.default" || "*.properties" || "*.md" || "*.sbt" || "*.routes" || "routes" || "*.js" || "*.less"))
         --- (baseDirectory.value ** "jquery*js")
         --- (baseDirectory.value ** "target" ** "*")
@@ -527,8 +535,9 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
         --- (baseDirectory.value / "documentation" ** "*")).get() ++
         (baseDirectory.value / "web" / "play-openid" ** "*.html" --- (baseDirectory.value ** "target" ** "*")).get() ++
         (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get()
+    }
   )
-  .aggregate((userProjects ++ nonUserProjects): _*)
+  .aggregate((userProjects ++ nonUserProjects) *)
 
 val sbtValidateCodeProp = sys.props += ("sbt_validateCode" -> List(
   "+pekkoVersionCheck",

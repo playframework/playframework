@@ -124,23 +124,24 @@ object BuildSettings {
       if (isSnapshot.value) {
         v match {
           case VersionPattern(epoch, major, _, _) =>
-            Some(url(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
-          case _ => Some(url("https://www.playframework.com/documentation/latest/api/scala/index.html"))
+            Some(uri(raw"https://www.playframework.com/documentation/$epoch.$major.x/api/scala/index.html"))
+          case _ => Some(uri("https://www.playframework.com/documentation/latest/api/scala/index.html"))
         }
       } else {
-        Some(url(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
+        Some(uri(raw"https://www.playframework.com/documentation/$v/api/scala/index.html"))
       }
     },
     autoAPIMappings := true,
-    apiMappings ++= {
+    apiMappings ++= Def.uncached {
+      val converter     = fileConverter.value
       val scalaInstance = Keys.scalaInstance.value
       scalaInstance.libraryJars.map { libraryJar =>
-        libraryJar -> url(
+        converter.toVirtualFile(libraryJar.toPath) -> uri(
           raw"""http://scala-lang.org/files/archive/api/${scalaInstance.actualVersion}/index.html"""
         )
       }.toMap
     },
-    apiMappings ++= {
+    apiMappings ++= Def.uncached {
       // Finds appropriate scala apidoc from dependencies when autoAPIMappings are insufficient.
       // See the following:
       //
@@ -157,11 +158,11 @@ object BuildSettings {
       def docsUrl(apiOrganization: String, apiName: String, apiVersion: String, jarBaseFile: String) =
         apiOrganization match {
           case "org.apache.pekko" =>
-            Some(url(raw"https://pekko.apache.org/api/pekko/$apiVersion/"))
+            Some(uri(raw"https://pekko.apache.org/api/pekko/$apiVersion/"))
 
           case default =>
             val link = Docs.artifactToJavadoc(apiOrganization, apiName, apiVersion, jarBaseFile)
-            Some(url(link))
+            Some(uri(link))
         }
 
       def coursierMavenCoordinates(path: String): Option[(String, String, String, String)] = {
@@ -193,16 +194,17 @@ object BuildSettings {
       (for {
         jar <- (Compile / doc / dependencyClasspath).value.toSet ++ (Test / doc / dependencyClasspath).value
         fullyFile = jar.data
-        urlOption = fullyFile.getCanonicalPath match {
+        fullPath  = fileConverter.value.toPath(fullyFile).toFile.getCanonicalPath
+        urlOption = fullPath match {
           case ScalaLibraryRegex(v) =>
-            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+            Some(uri(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
 
           case Scala3LibraryRegex(v) =>
-            Some(url(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
+            Some(uri(raw"""http://scala-lang.org/files/archive/api/$v/index.html"""))
 
           case JakartaInjectRegex(v) =>
             // the jar file doesn't match up with $apiName-
-            Some(url(Docs.jakartaInjectUrl))
+            Some(uri(Docs.jakartaInjectUrl))
 
           case re @ IvyRegex(apiOrganization, apiName, jarBaseFile) if jarBaseFile.startsWith(s"$apiName-") =>
             val apiVersion = jarBaseFile.substring(apiName.length + 1, jarBaseFile.length)

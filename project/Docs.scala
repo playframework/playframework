@@ -2,18 +2,16 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import java.net.URL
+import java.net.URI
 import java.net.URLClassLoader
-import java.util.Optional
 
 import sbt._
 import sbt.internal.inc.AnalyzingCompiler
+import sbt.internal.inc.CompileOutput
 import sbt.internal.inc.LoggedReporter
 import sbt.internal.inc.PlainVirtualFile
-import sbt.internal.inc.PlainVirtualFileConverter
 import sbt.internal.BuildStructure
 import sbt.io.Path._
-import sbt.util.CacheStoreFactory
 import sbt.Keys._
 
 import org.webjars.WebJarExtractor
@@ -26,14 +24,21 @@ object Docs {
   val apiDocsInclude        = settingKey[Boolean]("Whether this sub project should be included in the API docs")
   val apiDocsIncludeManaged =
     settingKey[Boolean]("Whether managed sources from this project should be included in the API docs")
-  val apiDocsScalaSources     = taskKey[Seq[File]]("All the scala sources for all projects")
-  val apiDocsJavaSources      = taskKey[Seq[File]]("All the Java sources for all projects")
-  val apiDocsClasspath        = taskKey[Seq[File]]("The classpath for API docs generation")
-  val apiDocs                 = taskKey[File]("Generate the API docs")
+  @transient
+  val apiDocsScalaSources = taskKey[Seq[File]]("All the scala sources for all projects")
+  @transient
+  val apiDocsJavaSources = taskKey[Seq[File]]("All the Java sources for all projects")
+  @transient
+  val apiDocsClasspath = taskKey[Seq[File]]("The classpath for API docs generation")
+  @transient
+  val apiDocs = taskKey[File]("Generate the API docs")
+  @transient
   val checkApiDocsPackageTree =
     taskKey[Unit]("Check the generated API docs top-level package directory tree")
+  @transient
   val extractWebjars = taskKey[File]("Extract webjar contents")
-  val allConfs       = taskKey[Seq[(String, File)]]("Gather all configuration files")
+  @transient
+  val allConfs = taskKey[Seq[(String, File)]]("Gather all configuration files")
 
   lazy val settings = Seq(
     apiDocsInclude        := false,
@@ -46,7 +51,7 @@ object Docs {
     apiDocsClasspath := Def.taskDyn {
       val pr = thisProjectRef.value
       val bs = buildStructure.value
-      Def.task(allClasspaths(pr, bs).value)
+      Def.task(allClasspaths(pr, bs, fileConverter.value).value)
     }.value,
     apiDocsJavaSources := Def.taskDyn {
       val pr = thisProjectRef.value
@@ -63,8 +68,9 @@ object Docs {
     ivyConfigurations += Webjars,
     extractWebjars := extractWebjarContents.value,
     (Compile / packageBin / mappings) ++= {
-      val apiBase = apiDocs.value
-      val webjars = extractWebjars.value
+      val apiBase   = apiDocs.value
+      val webjars   = extractWebjars.value
+      val converter = fileConverter.value
       // Include documentation and API docs in main binary JAR
       val docBase     = baseDirectory.value / "../../documentation"
       val raw         = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
@@ -81,7 +87,9 @@ object Docs {
         case (projectName, conf) => conf -> s"play/docs/content/confs/$projectName/${conf.getName}"
       }
 
-      docMappings ++ apiDocMappings ++ webjarMappings ++ referenceConfMappings
+      (docMappings ++ apiDocMappings ++ webjarMappings ++ referenceConfMappings).map {
+        case (file, path) => converter.toVirtualFile(file.toPath) -> path
+      }
     }
   )
 
@@ -92,6 +100,7 @@ object Docs {
     libraryDependencies ++= Dependencies.playdocWebjarDependencies,
     (playdocPackage / mappings) := {
       val base        = (ThisBuild / baseDirectory).value
+      val converter   = fileConverter.value
       val docBase     = base / "documentation"
       val raw         = (docBase / "manual").allPaths +++ (docBase / "style").allPaths
       val filtered    = raw.filter(_.getName != ".DS_Store")
@@ -107,7 +116,9 @@ object Docs {
         case (projectName, conf) => conf -> s"confs/$projectName/${conf.getName}"
       }
 
-      docMappings ++ webjarMappings ++ referenceConfs
+      (docMappings ++ webjarMappings ++ referenceConfs).map {
+        case (file, path) => converter.toVirtualFile(file.toPath) -> path
+      }
     }
   )
 
@@ -122,8 +133,7 @@ object Docs {
     Def.task(apiDocsDir)
   }
 
-  val apiDocsDir                 = Def.setting(crossTarget.value / "apidocs")
-  def apiDocsCache(name: String) = Def.setting(CacheStoreFactory(crossTarget.value / name))
+  val apiDocsDir = Def.setting(crossTarget.value / "apidocs")
 
   // Returns the first generated directory level under java/ and scala/ API docs.
   // This is used by the check task to catch accidental publication of internal or third-party packages.
@@ -131,7 +141,7 @@ object Docs {
     val scalaDocAssetDirectories = Set("fonts", "hljs", "images", "lib", "scripts", "styles", "webfonts")
 
     def children(dir: File): Seq[String] =
-      IO.listFiles(dir).filter(_.isDirectory).map(_.getName).sorted
+      IO.listFiles(dir).iterator.filter(_.isDirectory).map(_.getName).toSeq.sorted
 
     children(base / "java").map(name => s"java/$name") ++
       children(base / "scala").filterNot(scalaDocAssetDirectories).map(name => s"scala/$name")
@@ -231,9 +241,9 @@ object Docs {
 
   // Converts sbt apiMappings into Scala 3 Scaladoc external mapping options.
   // Scala 3 needs explicit mapping format tags, unlike the Scala 2 -doc-external-doc option.
-  private def scala3ExternalMappings(mappings: Map[File, URL]): Seq[String] = {
+  private def scala3ExternalMappings(mappings: Map[File, URI]): Seq[String] = {
     // Scala 3 external mappings expect the API base URL, not the index.html page used by sbt apiMappings.
-    def apiBase(url: URL): String =
+    def apiBase(url: URI): String =
       url.toString.stripSuffix("index.html")
 
     mappings.toSeq.sortBy { case (jar, _) => jar.getAbsolutePath }.map {
@@ -254,32 +264,33 @@ object Docs {
     }
   }
 
-  def genApiScaladocs = Def.task {
+  def genApiScaladocs = Def.uncachedTask {
     val version = Keys.version.value
-    val label   = s"Play $version"
 
-    val commitish   = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
-    val mappings    = apiMappings.value
-    val externalDoc =
-      Opts.doc.externalAPI(mappings).head.replace("-doc-external-doc:", "") // from the "doc" task
+    val commitish = if (version.endsWith("-SNAPSHOT")) BuildSettings.snapshotBranch else version
+    val converter = fileConverter.value
+    val mappings  = apiMappings.value.map {
+      case (file, uri) =>
+        converter.toPath(file).toFile -> uri
+    }
     val rootDirectory = (ThisBuild / baseDirectory).value
     val scalaSources  = apiDocsScalaSources.value
 
     val options =
       if (scalaBinaryVersion.value == "2.13") {
+        // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
+        // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
+        // into the FILE_SOURCE variable below, which is definitely not what we want.
+        // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
         Seq(
-          // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
-          // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
-          // into the FILE_SOURCE variable below, which is definitely not what we want.
-          // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
           "-sourcepath",
           rootDirectory.getAbsolutePath,
           "-doc-source-url",
           s"https://github.com/playframework/playframework/tree/${commitish}€{FILE_PATH}.scala",
-          s"-doc-external-doc:$externalDoc",
+        ) ++ Opts.doc.externalAPI(mappings) ++ Seq(
           "-skip-packages",
           ExcludedTopLevelScalaPackages.mkString(":"),
-          "-Xsource:3"
+          "-Xsource:3",
         )
       } else {
         Seq(
@@ -291,10 +302,7 @@ object Docs {
         )
       }
 
-    val cache  = apiDocsCache("scalaapidocs.cache").value
     val scalac = (Compile / doc / compilers).value.scalac().asInstanceOf[AnalyzingCompiler]
-
-    val scaladoc = Doc.scaladoc(label, cache, scalac)
 
     val classpath = apiDocsClasspath.value.toList
     val sources   =
@@ -303,15 +311,27 @@ object Docs {
     val outputDir = apiDocsDir.value / "scala"
     val log       = streams.value.log
 
-    scaladoc(sources, classpath, outputDir, options, 10, log)
-    if (scalaBinaryVersion.value == "2.13") {
-      cleanUpInvalidScala2SourceLinks(outputDir)
-    } else {
-      fixScala3Specs2Links(outputDir)
+    if (sources.nonEmpty) {
+      IO.delete(outputDir)
+      IO.createDirectory(outputDir)
+      scalac.doc(
+        sources.map(_.toPath).map(new PlainVirtualFile(_)),
+        classpath.map(_.toPath).map(new PlainVirtualFile(_)),
+        converter,
+        outputDir.toPath,
+        options,
+        10,
+        log,
+      )
+      if (scalaBinaryVersion.value == "2.13") {
+        cleanUpInvalidScala2SourceLinks(outputDir)
+      } else {
+        fixScala3Specs2Links(outputDir)
+      }
     }
   }
 
-  def genApiJavadocs = Def.task {
+  def genApiJavadocs = Def.uncachedTask {
     val label = s"Play ${version.value}"
 
     val options = List(
@@ -335,28 +355,27 @@ object Docs {
       "17"
     )
 
-    val cache     = apiDocsCache("javaapidocs.cache").value
     val javaTools = compilers.value.javaTools
 
-    val javadoc = sbt.inc.Doc.cachedJavadoc(label, cache, javaTools)
+    val sources   = apiDocsJavaSources.value.toList.filter(isPublicJavaApiSource)
+    val classpath = apiDocsClasspath.value.toList
+    val outputDir = apiDocsDir.value / "java"
+    val log       = streams.value.log
+    val reporter  = new LoggedReporter(10, log)
+    val converter = fileConverter.value
 
-    val sources    = apiDocsJavaSources.value.toList.filter(isPublicJavaApiSource)
-    val classpath  = apiDocsClasspath.value.toList
-    val outputDir  = apiDocsDir.value / "java"
-    val incToolOpt = IncToolOptions.create(Optional.empty[ClassFileManager](), false)
-    val log        = streams.value.log
-    val reporter   = new LoggedReporter(10, log)
-
-    javadoc.run(
-      sources = sources.map(s => PlainVirtualFile(s.toPath)),
-      classpath = classpath.map(s => PlainVirtualFile(s.toPath)),
-      converter = PlainVirtualFileConverter.converter,
-      outputDirectory = outputDir.toPath,
-      options = options,
-      incToolOptions = incToolOpt,
-      log = log,
-      reporter = reporter
-    )
+    if (sources.nonEmpty) {
+      IO.delete(outputDir)
+      IO.createDirectory(outputDir)
+      javaTools.javadoc.run(
+        sources.map(file => converter.toVirtualFile(file.toPath)).toArray,
+        (Seq("-classpath", classpath.mkString(java.io.File.pathSeparator)) ++ options).toArray,
+        CompileOutput(outputDir.toPath),
+        IncToolOptionsUtil.defaultIncToolOptions(),
+        reporter,
+        log,
+      )
+    }
   }
 
   def fixJavadocLinks(apiTarget: File) = {
@@ -557,11 +576,11 @@ object Docs {
     aggregated(rootProjectRef)
   }
 
-  def allClasspaths(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
+  def allClasspaths(projectRef: ProjectRef, structure: BuildStructure, converter: FileConverter): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     // Full classpath is necessary to ensure that scaladoc and javadoc can see the compiled classes of the other language.
     val tasks = projects.flatMap { p => (p / Compile / fullClasspath).get(structure.data) }
-    tasks.join.map(_.flatten.map(_.data).distinct)
+    tasks.join.map(_.flatten.map(entry => converter.toPath(entry.data).toFile).distinct)
   }
 
   // Note: webjars are extracted without versions

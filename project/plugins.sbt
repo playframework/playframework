@@ -2,8 +2,6 @@
 
 enablePlugins(BuildInfoPlugin)
 
-addDependencyTreePlugin
-
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.11.7"
@@ -22,7 +20,7 @@ buildInfoKeys := Seq[BuildInfoKey](
 
 logLevel := Level.Warn
 
-scalacOptions ++= Seq("-deprecation", "-language:_")
+scalacOptions += "-deprecation"
 
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl"             % sbtTwirl)
 addSbtPlugin("com.typesafe"            % "sbt-mima-plugin"       % mima)
