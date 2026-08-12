@@ -82,7 +82,10 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
     crossScalaVersions                        := Seq("2.13.18", "3.9.0-RC1"),
     scalaVersion                              := "2.13.18",
-    Test / fork                               := true,
+    // Documentation samples are both test sources and resources and cannot be packaged into one JAR without
+    // duplicate entry names. Keep test products as a class directory, matching sbt 1 behavior.
+    Test / exportJars := false,
+    Test / fork       := true,
     Test / javaOptions ++= Seq("-Xmx512m", "-Xms128m"),
     headerLicense := Some(
       HeaderLicense.Custom(

@@ -48,7 +48,7 @@ public class JavaGuiceApplicationBuilderTest {
 
   @Test
   public void setEnvironment() {
-    ClassLoader classLoader = new URLClassLoader(new URL[0]);
+    ClassLoader classLoader = new URLClassLoader(new URL[0], getClass().getClassLoader());
     // #set-environment
     Application application =
         new GuiceApplicationBuilder()
@@ -70,7 +70,7 @@ public class JavaGuiceApplicationBuilderTest {
 
   @Test
   public void setEnvironmentValues() {
-    ClassLoader classLoader = new URLClassLoader(new URL[0]);
+    ClassLoader classLoader = new URLClassLoader(new URL[0], getClass().getClassLoader());
     // #set-environment-values
     Application application =
         new GuiceApplicationBuilder()
@@ -228,6 +228,6 @@ public class JavaGuiceApplicationBuilderTest {
   // #test-guiceapp
 
   private ClassLoader classLoader() {
-    return new URLClassLoader(new URL[0]);
+    return new URLClassLoader(new URL[0], getClass().getClassLoader());
   }
 }

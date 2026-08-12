@@ -29,7 +29,7 @@ import play.api.inject.guice.GuiceInjectorBuilder
 class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
   "Scala GuiceApplicationBuilder" should {
     "set environment" in {
-      val classLoader = new URLClassLoader(Array.empty)
+      val classLoader = new URLClassLoader(Array.empty, getClass.getClassLoader)
       // #set-environment
       val application = new GuiceApplicationBuilder()
         .load(
@@ -49,7 +49,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
     }
 
     "set environment values" in {
-      val classLoader = new URLClassLoader(Array.empty)
+      val classLoader = new URLClassLoader(Array.empty, getClass.getClassLoader)
       // #set-environment-values
       val application = new GuiceApplicationBuilder()
         .load(
