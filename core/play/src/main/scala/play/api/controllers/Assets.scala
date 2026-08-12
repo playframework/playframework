@@ -798,9 +798,9 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
     // otherwise we can't.
     val requestedDigest = f.getName.takeWhile(_ != '-')
     if (!requestedDigest.isEmpty) {
-      val bareFile     = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
-      val bareFullPath = path + "/" + bareFile
-      blocking(digest(bareFullPath)) match {
+      val bareFile         = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
+      val bareResourceName = resourceNameAt(path, bareFile)
+      blocking(bareResourceName.flatMap(digest)) match {
         case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
         case _                       => assetAt(path, file.name, aggressiveCaching = false)
       }

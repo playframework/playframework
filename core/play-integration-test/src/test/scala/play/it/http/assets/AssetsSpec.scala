@@ -10,9 +10,11 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.io.CharStreams
 import com.typesafe.config.ConfigFactory
+import controllers.Assets
 import controllers.AssetsComponents
 import play.api._
 import play.api.libs.ws._
+import play.api.mvc.ResponseHeader
 import play.api.routing.Router
 import play.api.test._
 import play.core.server.Server
@@ -346,10 +348,16 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
     }
 
     "return asset when modified since" in withServer() { client =>
-      val result = await(
+      // sbt 2 exports test resources in reproducible JARs whose timestamps default to 2010. The previous fixed 2012
+      // date therefore made the asset appear unmodified and produced a 304. Derive an earlier date from the actual
+      // resource timestamp so this test remains independent of how the build tool timestamps packaged resources.
+      val Some(lastModified)       = await(client.url("/foo.txt").get()).header(LAST_MODIFIED)
+      val Some(parsedLastModified) = Assets.parseModifiedDate(lastModified)
+      val earlier                  = ResponseHeader.httpDateFormat.format(parsedLastModified.toInstant.minusSeconds(1))
+      val result                   = await(
         client
           .url("/foo.txt")
-          .addHttpHeaders(IF_MODIFIED_SINCE -> "Tue, 13 Mar 2012 13:08:36 GMT")
+          .addHttpHeaders(IF_MODIFIED_SINCE -> earlier)
           .get()
       )
 
