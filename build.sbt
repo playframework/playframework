@@ -106,17 +106,12 @@ lazy val PlayProject = PlayCrossBuiltProject("Play", "core/play")
     TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
     (Compile / packageSrc / mappings) ++= {
       val converter = fileConverter.value
-      // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
-      // so omnidoc can compile and produce scaladocs for them.
+      // Add the templates, useful for end users to read. The generated Scala sources are already included in
+      // the default packageSrc mappings, so omnidoc can compile and produce scaladocs for them.
       val twirlSources = (Compile / TwirlKeys.compileTemplates / sources).value
         .pair(relativeTo((Compile / TwirlKeys.compileTemplates / sourceDirectories).value))
 
-      val twirlTarget = (Compile / TwirlKeys.compileTemplates / target).value
-      // The pair with errorIfNone being false both creates the mappings, and filters non twirl outputs out of
-      // managed sources
-      val twirlCompiledSources = (Compile / managedSources).value.pair(relativeTo(twirlTarget), errorIfNone = false)
-
-      (twirlSources ++ twirlCompiledSources).map {
+      twirlSources.map {
         case (file, path) =>
           converter.toVirtualFile(file.toPath) -> path
       }
