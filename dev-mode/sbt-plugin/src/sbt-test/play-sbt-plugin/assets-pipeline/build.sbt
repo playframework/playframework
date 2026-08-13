@@ -1,13 +1,18 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
 import java.nio.file._
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.sys.process.Process
 
+import com.typesafe.sbt.coffeescript.SbtCoffeeScript.autoImport.CoffeeScriptKeys.coffeescript
 import com.typesafe.sbt.web.pipeline.Pipeline
 import com.typesafe.sbt.web.PathMapping
 
-val transform = taskKey[Pipeline.Stage]("transformer")
+@transient val transform = taskKey[Pipeline.Stage]("transformer")
+
+@transient val transformRuns    = new AtomicInteger
+@transient val coffeeScriptRuns = new AtomicInteger
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
@@ -18,18 +23,20 @@ lazy val root = (project in file("."))
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    // In sbt 1.4 extraLoggers got deprecated in favor of extraAppenders (new in sbt 1.4) and as a consequence logManager switched to use extraAppenders.
-    // To be able to run the tests in sbt 1.2+ however we can't use extraAppenders yet and to run the tests in sbt 1.4+ we need to make logManager use extraLoggers again.
-    // https://github.com/sbt/sbt/commit/2e9805b9d01c6345214c14264c61692d9c21651c#diff-6d9589bfb3f1247d2eace99bab7e928590337680d1aebd087d9da286586fba77R455
-    logManager := sbt.internal.LogManager.defaults(extraLoggers.value, ConsoleOut.systemOut),
-    extraLoggers ~= (fn => BufferLogger +: fn(_)),
+    WebKeys.webTarget            := baseDirectory.value / "target" / "web",
+    cleanFiles += WebKeys.webTarget.value,
     libraryDependencies += guice,
     // can't use test directory since scripted calls its script "test"
     Test / sourceDirectory := baseDirectory.value / "tests",
     Test / scalaSource     := baseDirectory.value / "tests",
-    transform              := { (mappings: Seq[PathMapping]) =>
-      streams.value.log.info("Running transform")
+    transform              := play.sbt.PluginCompat.uncached { (mappings: Seq[PathMapping]) =>
+      transformRuns.incrementAndGet()
       mappings
+    },
+    Assets / coffeescript := play.sbt.PluginCompat.uncached {
+      val result = (Assets / coffeescript).value
+      coffeeScriptRuns.incrementAndGet()
+      result
     },
     Assets / pipelineStages                  := Seq(transform),
     InputKey[Unit]("verifyResourceContains") := {
@@ -40,25 +47,22 @@ lazy val root = (project in file("."))
       ScriptedTools.verifyResourceContains(path, status, assertions)
     },
     InputKey[Unit]("checkLogPipelineStages") := {
-      val transformCount = BufferLogger.messages.count(_ == "Running transform")
+      val transformCount = transformRuns.get()
       if (transformCount != 1) {
         sys.error(
-          s"""sbt web pipeline stage "transform" found $transformCount time(s) in logs, should run exactly once however.
-             |Output:
-             |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
+          s"""sbt web pipeline stage "transform" ran $transformCount time(s), expected exactly once"""
         )
       }
-      val csCount = BufferLogger.messages.count(_ == "CoffeeScript compiling on 1 source(s)")
+      val csCount = coffeeScriptRuns.get()
       if (csCount != 1) {
         sys.error(
-          s"""sbt web pipeline stage "coffeescript" found $csCount time(s) in logs, should run exactly once however.
-             |Output:
-             |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
+          s"""sbt web pipeline stage "coffeescript" ran $csCount time(s), expected exactly once"""
         )
       }
     },
     InputKey[Unit]("resetBufferLoggerHelper") := {
-      BufferLogger.resetMessages()
+      transformRuns.set(0)
+      coffeeScriptRuns.set(0)
     },
     InputKey[Unit]("countFiles") := {
       val args            = Def.spaceDelimited("<filename> <expectedCount> [subDirPath]").parsed
@@ -116,6 +120,19 @@ lazy val root = (project in file("."))
 
         val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
 
+        // Compiled class sizes vary between Scala compiler releases, and sbt-web
+        // adds an Sbt-Web-Module manifest attribute when products are JARs. The
+        // archive entry names and timestamps are what this test needs to compare.
+        // "      303  2010-01-01 00:00   META-INF/MANIFEST.MF"
+        // becomes
+        // "<size>  2010-01-01 00:00   META-INF/MANIFEST.MF".
+        def normalizeArchiveSizes(listing: String) =
+          listing.linesIterator
+            .map { line =>
+              line.replaceFirst("^\\s*\\d+(?=\\s)", "<size>")
+            }
+            .mkString("\n") + "\n"
+
         println(s"\nComparing unzip listing of file $zipfile with contents of $difffile")
         println(s"### $zipfile")
         print(unzipOutput)
@@ -123,7 +140,7 @@ lazy val root = (project in file("."))
         print(difffile_content)
         println(s"###")
 
-        if (unzipOutput != difffile_content) {
+        if (normalizeArchiveSizes(unzipOutput) != normalizeArchiveSizes(difffile_content)) {
           sys.error(s"Unzip listing ('$unzipcmd') does not match expected content!")
         } else {
           println(s"Listing of $zipfile as expected.")

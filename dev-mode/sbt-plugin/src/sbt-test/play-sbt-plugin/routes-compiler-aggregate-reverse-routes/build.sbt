@@ -12,8 +12,9 @@ def commonSettings: Seq[Setting[?]] = Seq(
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice,
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,
-  // This makes it possible to run tests on the output regardless of scala version
-  crossPaths := false
+  // Keep the output stable so scripted can inspect it with filesystem assertions.
+  Compile / routes / target := baseDirectory.value / "target" / "routes" / "main",
+  crossPaths                := false
 )
 
 lazy val common = (project in file("common"))

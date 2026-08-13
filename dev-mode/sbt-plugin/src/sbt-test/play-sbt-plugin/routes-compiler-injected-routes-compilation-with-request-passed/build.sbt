@@ -15,28 +15,28 @@ Test / sourceDirectory := baseDirectory.value / "tests"
 Test / scalaSource := baseDirectory.value / "tests"
 
 // Generate a js router so we can test it with mocha
-val generateJsRouter        = TaskKey[Seq[File]]("generate-js-router")
-val generateJsRouterBadHost = TaskKey[Seq[File]]("generate-js-router-bad-host")
+@transient val generateJsRouter        = TaskKey[Seq[File]]("generate-js-router")
+@transient val generateJsRouterBadHost = TaskKey[Seq[File]]("generate-js-router-bad-host")
 
 generateJsRouter := {
   (Compile / runMain).toTask(" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutes.js").value
-  Seq(target.value / "web" / "jsrouter" / "jsRoutes.js")
+  Seq(baseDirectory.value / "target" / "web" / "jsrouter" / "jsRoutes.js")
 }
 
 generateJsRouterBadHost := {
   (Compile / runMain)
     .toTask(""" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutesBadHost.js "'}}};alert(1);a={a:{a:{a:'" """)
     .value
-  Seq(target.value / "web" / "jsrouter" / "jsRoutesBadHost.js")
+  Seq(baseDirectory.value / "target" / "web" / "jsrouter" / "jsRoutesBadHost.js")
 }
 
 TestAssets / resourceGenerators += generateJsRouter.taskValue
 TestAssets / resourceGenerators += generateJsRouterBadHost.taskValue
 
-(TestAssets / managedResourceDirectories) += target.value / "web" / "jsrouter"
+(TestAssets / managedResourceDirectories) += baseDirectory.value / "target" / "web" / "jsrouter"
 
 // We don't want source position mappers is this will make it very hard to debug
-sourcePositionMappers := Nil
+sourcePositionMappers := play.sbt.PluginCompat.uncached(Nil)
 
 routesGenerator := play.routes.compiler.InjectedRoutesGenerator
 

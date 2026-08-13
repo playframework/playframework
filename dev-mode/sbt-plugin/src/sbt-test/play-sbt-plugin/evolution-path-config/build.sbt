@@ -26,6 +26,7 @@ lazy val itTests = (project in file("integration-tests"))
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     publish / skip               := true,
+    evictionErrorLevel           := Level.Warn,
     // test dependencies
     libraryDependencies ++= Seq(
       "org.scalatestplus.play" %% "scalatestplus-play" % "8.0.0-M1" % Test
