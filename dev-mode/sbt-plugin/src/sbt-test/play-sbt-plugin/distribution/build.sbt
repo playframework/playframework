@@ -62,7 +62,9 @@ def retry[B](max: Int = 20, sleep: Long = 500, current: Int = 1)(block: => B): B
 InputKey[Unit]("checkConfig") := {
   val expected = Def.spaceDelimited().parsed.head
   val config   = retry() {
-    IO.readLinesURL(url("http://localhost:9000/config")).mkString("\n")
+    IO
+      .readLinesURL(java.net.URI.create("http://localhost:9000/config").toURL, java.nio.charset.StandardCharsets.UTF_8)
+      .mkString("\n")
   }
   if (expected != config) {
     sys.error(s"Expected config $expected but got $config")
@@ -72,7 +74,12 @@ InputKey[Unit]("checkConfig") := {
 InputKey[Unit]("countApplicationConf") := {
   val expected = Def.spaceDelimited().parsed.head
   val count    = retry() {
-    IO.readLinesURL(url("http://localhost:9000/countApplicationConf")).mkString("\n")
+    IO
+      .readLinesURL(
+        java.net.URI.create("http://localhost:9000/countApplicationConf").toURL,
+        java.nio.charset.StandardCharsets.UTF_8
+      )
+      .mkString("\n")
   }
   if (expected != count) {
     sys.error(s"Expected application.conf to be $expected times on classpath, but it was there $count times")

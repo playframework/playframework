@@ -16,6 +16,7 @@ lazy val root = (project in file("."))
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    evictionErrorLevel := Level.Warn,
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "8.0.0-M1" % Test,
     test / fork                                     := true,

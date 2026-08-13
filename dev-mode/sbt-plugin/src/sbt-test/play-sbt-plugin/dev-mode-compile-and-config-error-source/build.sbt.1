@@ -1,21 +1,21 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(commonSettings)
   .settings(
     libraryDependencies += guice,
-    PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
+    PlayKeys.playInteractionMode                       := play.sbt.StaticPlayNonBlockingInteractionMode,
     InputKey[Unit]("makeRequestAndRecordResponseBody") := {
       val args = Def.spaceDelimited("<path> <dest> ...").parsed
 
       // <dest> is a relative path where the returned body will be stored/recorded
       val path :: dest :: Nil = args
 
-      val destination = target.value / dest
+      val destination = baseDirectory.value / "target" / dest
 
       println(s"Firing request to $path...")
       val (status, body) = ScriptedTools.callUrl(path)
@@ -28,14 +28,28 @@ lazy val root = (project in file("."))
       ScriptedTools.checkLinesPartially(source, target)
     },
     InputKey[Unit]("checkLinesPartiallyScala2") := {
-      if(scalaBinaryVersion.value != "3") {
+      if (scalaBinaryVersion.value != "3") {
         val args                  = Def.spaceDelimited("<source> <target>").parsed
         val source :: target :: _ = args
         ScriptedTools.checkLinesPartially(source, target)
       }
     },
     InputKey[Unit]("checkLinesPartiallyScala3") := {
-      if(scalaBinaryVersion.value == "3") {
+      if (scalaBinaryVersion.value == "3") {
+        val args                  = Def.spaceDelimited("<source> <target>").parsed
+        val source :: target :: _ = args
+        ScriptedTools.checkLinesPartially(source, target)
+      }
+    },
+    InputKey[Unit]("checkLinesPartiallySbt1") := {
+      if (sbtVersion.value.startsWith("1.")) {
+        val args                  = Def.spaceDelimited("<source> <target>").parsed
+        val source :: target :: _ = args
+        ScriptedTools.checkLinesPartially(source, target)
+      }
+    },
+    InputKey[Unit]("checkLinesPartiallySbt2") := {
+      if (sbtVersion.value.startsWith("2.")) {
         val args                  = Def.spaceDelimited("<source> <target>").parsed
         val source :: target :: _ = args
         ScriptedTools.checkLinesPartially(source, target)
@@ -55,8 +69,8 @@ lazy val root = (project in file("."))
   .dependsOn(`sub-project-inside`, `sub-project-outside`)
   .aggregate(`sub-project-inside`, `sub-project-outside`)
 
-def commonSettings: Seq[Setting[_]] = Seq(
-  scalaVersion := ScriptedTools.scalaVersionFromJavaProperties(),
+def commonSettings: Seq[Setting[?]] = Seq(
+  scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
   updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   // This makes it possible to run tests on the output regardless of scala version
@@ -66,4 +80,5 @@ def commonSettings: Seq[Setting[_]] = Seq(
 lazy val `sub-project-inside` = (project in file("./modules/sub-project-inside"))
   .settings(commonSettings)
 
-lazy val `sub-project-outside` = ProjectRef(file("../dev-mode-compile-and-config-error-source-sub-project-outside"), "sub-project-outside")
+lazy val `sub-project-outside` =
+  ProjectRef(file("../dev-mode-compile-and-config-error-source-sub-project-outside"), "sub-project-outside")

@@ -13,5 +13,8 @@ lazy val root = (project in file("."))
     Compile / scalacOptions := Seq("-Werror", "-deprecation"),
     libraryDependencies += guice,
     play.sbt.PlayImport.PlayKeys.includeDocumentationInBinary := false,
-    Compile / packageDoc                                      := file(".")
+    Compile / packageDoc                                      := {
+      implicit val fileConverter: xsbti.FileConverter = Keys.fileConverter.value
+      play.sbt.PluginCompat.toFileRef(file("."))
+    }
   )

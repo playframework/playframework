@@ -175,19 +175,23 @@ jobs:
       scala: 2.13.x, 3.x
       add-dimensions: >-
         {
-          "sbt": [ "1.12.15" ],
+          "sbt": [ "1.12.15", "2.0.6" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
-      # Scripted tests still target sbt 1, whose plugin variant uses
-      # Scala 2.12 rather than the build's default Scala 3 variant.
+      # Match each scripted sbt version with the Scala version used to
+      # build its plugin variant.
       cmd: >-
+        case "$MATRIX_SBT" in
+          1.*) export SBT_PLUGIN_SCALA=2.12.x ;;
+          *) export SBT_PLUGIN_SCALA=3.x ;;
+        esac;
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
-          ++ 2.12.x;
+          ++ $SBT_PLUGIN_SCALA;
           set scriptedSbt := \"$MATRIX_SBT\";
           set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
           set scriptedLaunchOpts += \"-Dscala.crossversions=\" + (LocalProject(\"Play\") / crossScalaVersions).value.mkString(\" \");

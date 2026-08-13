@@ -1,5 +1,8 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+@transient val checkPlayMonitoredFiles    = taskKey[Unit]("Check Play's monitored files")
+@transient val checkPlayCompileEverything = taskKey[Unit]("Check Play's compile results")
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .dependsOn(playmodule, nonplaymodule)
@@ -27,10 +30,10 @@ def common: Seq[Setting[?]] = Seq(
   libraryDependencies += guice
 )
 
-TaskKey[Unit]("checkPlayMonitoredFiles") := {
-  val files: Seq[File] = PlayKeys.playMonitoredFiles.value.distinct
+root / checkPlayMonitoredFiles := {
+  val files: Seq[File] = (root / PlayKeys.playMonitoredFiles).value.distinct
   val sorted           = files.map(_.toPath).sorted.map(_.toFile)
-  val base             = baseDirectory.value
+  val base             = (root / baseDirectory).value
   // Expect all source, resource, assets, public directories that exist
   val expected = Seq(
     base / "app",
@@ -50,12 +53,12 @@ TaskKey[Unit]("checkPlayMonitoredFiles") := {
   }
 }
 
-TaskKey[Unit]("checkPlayCompileEverything") := {
-  val analyses = play.sbt.PlayInternalKeys.playCompileEverything.value
+root / checkPlayCompileEverything := {
+  val analyses = (root / play.sbt.PlayInternalKeys.playCompileEverything).value
   if (analyses.size != 4) {
     sys.error(s"Expected 4 analysis objects, but got ${analyses.size}")
   }
-  val base                = baseDirectory.value
+  val base                = (root / baseDirectory).value
   val expectedSourceFiles = Seq(
     base / "app" / "Root.scala",
     base / "nonplaymodule" / "src" / "main" / "scala" / "NonPlayModule.scala",

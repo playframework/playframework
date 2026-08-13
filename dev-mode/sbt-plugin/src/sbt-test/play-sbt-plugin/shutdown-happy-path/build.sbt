@@ -19,6 +19,7 @@ lazy val root = (project in file("."))
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    evictionErrorLevel := Level.Warn,
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "8.0.0-M1" % Test,
     test / fork                                     := false,
@@ -51,7 +52,7 @@ lazy val root = (project in file("."))
       // <dest> is a relative path where the returned body will be stored/recorded
       val path :: dest :: Nil = args
 
-      val destination = target.value / dest
+      val destination = baseDirectory.value / "target" / dest
 
       println(s"Preparing to run request to $path...")
 
@@ -66,7 +67,7 @@ lazy val root = (project in file("."))
     InputKey[Unit]("checkRecordedRequestContains") := {
       val args                   = Def.spaceDelimited("<file> <content> ...").parsed
       val file :: content :: Nil = args
-      val finalFile              = target.value / file
+      val finalFile              = baseDirectory.value / "target" / file
 
       val fileContent = IO.read(finalFile)
       assert(fileContent.contains(content), s"$fileContent in $finalFile does not contains $content")

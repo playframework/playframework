@@ -38,6 +38,19 @@ lazy val root = (project in file("."))
 
         val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
 
+        // Compiled class sizes vary between Scala compiler releases, and sbt-web
+        // adds an Sbt-Web-Module manifest attribute when products are JARs. The
+        // archive entry names and timestamps are what this test needs to compare.
+        // "      303  2010-01-01 00:00   META-INF/MANIFEST.MF"
+        // becomes
+        // "<size>  2010-01-01 00:00   META-INF/MANIFEST.MF".
+        def normalizeArchiveSizes(listing: String) =
+          listing.linesIterator
+            .map { line =>
+              line.replaceFirst("^\\s*\\d+(?=\\s)", "<size>")
+            }
+            .mkString("\n") + "\n"
+
         println(s"\nComparing unzip listing of file $zipfile with contents of $difffile")
         println(s"### $zipfile")
         print(unzipOutput)
@@ -45,7 +58,7 @@ lazy val root = (project in file("."))
         print(difffile_content)
         println(s"###")
 
-        if (unzipOutput != difffile_content) {
+        if (normalizeArchiveSizes(unzipOutput) != normalizeArchiveSizes(difffile_content)) {
           sys.error(s"Unzip listing ('$unzipcmd') does not match expected content!")
         } else {
           println(s"Listing of $zipfile as expected.")
@@ -101,6 +114,9 @@ lazy val root = (project in file("."))
         val difffile         = vanilla_difffile
         val difffile_content = IO.readLines(new File(difffile)).mkString("\n") + "\n"
 
+        def normalizeSbtWebModule(content: String) =
+          content.linesIterator.filterNot(_.startsWith("Sbt-Web-Module:")).mkString("\n") + "\n"
+
         println(s"\nComparing unzip listing of file $zipfile with contents of $difffile")
         println(s"### $zipfile")
         print(unzipOutput)
@@ -108,7 +124,7 @@ lazy val root = (project in file("."))
         print(difffile_content)
         println(s"###")
 
-        if (unzipOutput != difffile_content) {
+        if (normalizeSbtWebModule(unzipOutput) != normalizeSbtWebModule(difffile_content)) {
           sys.error(s"Unzip listing ('$unzipcmd') does not match expected content!")
         } else {
           println(s"Listing of $zipfile as expected.")
