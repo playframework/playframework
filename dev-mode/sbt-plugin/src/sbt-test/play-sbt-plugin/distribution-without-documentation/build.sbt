@@ -3,6 +3,7 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     name          := "dist-no-documentation-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),

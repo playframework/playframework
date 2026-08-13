@@ -8,11 +8,14 @@ import scala.concurrent.Future
 import sbt._
 import sbt.Keys.libraryDependencies
 
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.{ stagingDirectory => universalStagingDirectory }
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   // disable PlayLayoutPlugin because the `test` file used by `sbt-scripted` collides with the `test/` Play expects.
   .disablePlugins(PlayLayoutPlugin)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
@@ -22,7 +25,7 @@ lazy val root = (project in file("."))
     PlayKeys.playInteractionMode                    := play.sbt.StaticPlayNonBlockingInteractionMode,
     commands += ScriptedTools.assertProcessIsStopped,
     InputKey[Unit]("awaitPidfileDeletion") := {
-      val pidFile = target.value / "universal" / "stage" / "RUNNING_PID"
+      val pidFile = (Universal / universalStagingDirectory).value / "RUNNING_PID"
       // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on
       // before the application has finished to shut down
       val secs = 30

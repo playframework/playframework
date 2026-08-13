@@ -3,6 +3,7 @@
 lazy val root = (project in file("."))
   .enablePlugins(PlayService)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),

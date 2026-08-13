@@ -7,6 +7,7 @@ import com.typesafe.sbt.packager.Keys.executableScriptName
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     name          := "assets-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),

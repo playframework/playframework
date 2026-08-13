@@ -12,6 +12,7 @@ val transform = taskKey[Pipeline.Stage]("transformer")
 lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     name          := "assets-pipeline",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
     updateOptions := updateOptions.value.withLatestSnapshots(false),
