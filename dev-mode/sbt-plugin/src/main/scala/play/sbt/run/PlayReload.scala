@@ -32,23 +32,34 @@ import xsbti.FileConverter
 import xsbti.Position
 import xsbti.Problem
 import xsbti.Severity
+import xsbti.VirtualFileRef
 
 object PlayReload {
-  def taskFailureHandler(
-      incomplete: Incomplete,
-      streams: Option[Streams],
-      state: State,
-      scope: Scope
-  ): PlayException = {
+  private[sbt] def mapPosition(
+      position: Position,
+      mappers: Seq[Position => Option[Position]]
+  )(implicit fileConverter: FileConverter): Position = {
+    def legacySourceFile(sourcePath: String) = {
+      val virtualRootEnd = sourcePath.indexOf('}')
+      val relativePath   =
+        if (sourcePath.startsWith("${") && virtualRootEnd >= 0) {
+          sourcePath.substring(virtualRootEnd + 1).stripPrefix("/").stripPrefix("\\")
+        } else {
+          sourcePath
+        }
+      new File(relativePath).getAbsoluteFile
+    }
 
-    def convertSbtVirtualFile(sourcePath: String) =
-      new File(if (sourcePath.startsWith("${")) { // check for ${BASE} or similar (in case it changes)
-        // Like: ${BASE}/app/controllers/MyController.scala
-        sourcePath.substring(sourcePath.indexOf("}") + 2)
-      } else {
-        // A file outside of the base project folder or using sbt <1.4
-        sourcePath
-      }).getAbsoluteFile
+    def convertSbtVirtualFile(sourcePath: String) = {
+      try {
+        val converted             = fileConverter.toPath(VirtualFileRef.of(sourcePath))
+        val unresolvedVirtualRoot =
+          sourcePath.startsWith("${") && converted.getNameCount > 0 && converted.getName(0).toString.startsWith("${")
+        if (unresolvedVirtualRoot) legacySourceFile(sourcePath) else converted.toFile.getAbsoluteFile
+      } catch {
+        case NonFatal(_) => legacySourceFile(sourcePath)
+      }
+    }
 
     // Stolen from https://github.com/sbt/sbt/blob/v1.4.8/main/src/main/scala/sbt/Defaults.scala#L466-L515
     // Slightly modified because fileConverter settings do not exist pre sbt 1.4 yet
@@ -81,7 +92,7 @@ object PlayReload {
 
     // Stolen from https://github.com/sbt/sbt/blob/v1.4.8/main/src/main/scala/sbt/Defaults.scala#L2299-L2316
     // Slightly modified because reportAbsolutePath and fileConverter settings do not exist pre sbt 1.4 yet
-    def foldMappers(mappers: Seq[Position => Option[Position]]) =
+    val foldMappers =
       mappers.foldRight { (p: Position) => toAbsoluteSource(p) } { // Fallback if sourcePositionMappers is empty
         (mapper, previousPosition) =>
           { (p: Position) =>
@@ -89,6 +100,17 @@ object PlayReload {
             mapper(toAbsoluteSource(p)).getOrElse(previousPosition(p))
           }
       }
+
+    foldMappers(position)
+  }
+
+  def taskFailureHandler(
+      incomplete: Incomplete,
+      streams: Option[Streams],
+      state: State,
+      scope: Scope
+  ): PlayException = {
+    implicit val fileConverter: FileConverter = Project.extract(state).get(scope / Keys.fileConverter)
 
     Incomplete
       .allExceptions(incomplete)
@@ -114,7 +136,7 @@ object PlayReload {
                     override def category(): String           = problem.category()
                     override def severity(): Severity         = problem.severity()
                     override def message(): String            = problem.message()
-                    override def position(): Position         = foldMappers(mappers)(problem.position())
+                    override def position(): Position         = mapPosition(problem.position(), mappers)
                     override def rendered(): Optional[String] = problem.rendered()
                   }
                 )
