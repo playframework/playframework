@@ -98,15 +98,16 @@ object PlayRun {
             state.put(Keys.loggerContext, loggerContext)
           case _ => state
         }
+        val reloadState = newState.put(playProjectWithDisabledAssetExports, thisProjectRef.value)
         PlayReload.compile(
-          () => PluginCompat.runTask(scope / playReload, newState).map(_._2).get,
+          () => PluginCompat.runTask(scope / playReload, reloadState).map(_._2).get,
           () =>
             PluginCompat
-              .runTask(scope / reloaderClasspath, newState.put(WebKeys.disableExportedProducts, true))
+              .runTask(scope / reloaderClasspath, reloadState.put(WebKeys.disableExportedProducts, true))
               .map(_._2)
               .get,
-          () => PluginCompat.runTask(scope / streamsManager, newState).map(_._2).get.toEither.toOption,
-          newState,
+          () => PluginCompat.runTask(scope / streamsManager, reloadState).map(_._2).get.toEither.toOption,
+          reloadState,
           scope
         )
       } finally {

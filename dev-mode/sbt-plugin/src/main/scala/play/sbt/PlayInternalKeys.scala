@@ -13,6 +13,11 @@ import sbt.Keys.*
 object PlayInternalKeys {
   type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
 
+  val playProjectWithDisabledAssetExports = AttributeKey[ProjectRef](
+    "playProjectWithDisabledAssetExports",
+    "The project whose assets should not be exported while Play recompiles it in dev mode."
+  )
+
   val playDependencyClasspath = taskKey[Classpath](
     "The classpath containing all the jar dependencies of the project"
   )
