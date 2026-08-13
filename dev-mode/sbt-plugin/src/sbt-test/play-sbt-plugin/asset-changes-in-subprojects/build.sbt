@@ -6,6 +6,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(common)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     name                                     := "asset-changes-main",
     InputKey[Unit]("verifyResourceContains") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed

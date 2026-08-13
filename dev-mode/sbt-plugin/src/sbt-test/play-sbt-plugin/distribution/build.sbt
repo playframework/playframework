@@ -1,8 +1,11 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.{ stagingDirectory => universalStagingDirectory }
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
+    ScriptedTools.stableUniversalStagingDirectory,
     name          := "dist-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
@@ -17,7 +20,7 @@ val checkStartScript = InputKey[Unit]("checkStartScript")
 
 checkStartScript := {
   val args                                            = Def.spaceDelimited().parsed
-  val startScript                                     = target.value / "universal/stage/bin/dist-sample"
+  val startScript                                     = (Universal / universalStagingDirectory).value / "bin/dist-sample"
   def startScriptError(contents: String, msg: String) = {
     println("Error in start script, dumping contents:")
     println(contents)

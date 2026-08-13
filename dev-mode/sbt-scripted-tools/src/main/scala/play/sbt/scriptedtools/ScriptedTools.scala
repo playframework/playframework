@@ -19,7 +19,10 @@ import scala.sys.process.Process
 import sbt._
 import sbt.Keys._
 
-import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.{
+  stagingDirectory => universalStagingDirectory,
+  _
+}
 import play.sbt.routes.RoutesCompiler.autoImport._
 import play.sbt.run.PlayRun
 import play.sbt.PluginCompat._
@@ -33,6 +36,13 @@ object ScriptedTools extends AutoPlugin {
     // If this is a scheduled GitHub Action
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     resolvers += Resolver.ApacheMavenSnapshotsRepo
+  )
+
+  def stableUniversalStagingDirectory: Seq[Def.Setting[?]] = Seq(
+    // sbt 2's target is configuration-specific, but these fixtures assert the stable sbt 1 path.
+    Universal / universalStagingDirectory := baseDirectory.value / "target" / "universal" / "stage",
+    // The pinned directory is outside sbt 2's normal target tree, so clean it explicitly.
+    cleanFiles += (Universal / universalStagingDirectory).value
   )
 
   def scalaVersionFromJavaProperties() =
