@@ -302,9 +302,15 @@ object PlaySettings {
       val packageBinMappings = (packageBin / mappings).value
       val externalized       = playExternalizedResources.value.map(_._1).toSet
       val copied             = copyResources.value
-      val toExclude          = copied.collect {
-        case (source, dest) if externalized(toFileRef(source)) => toFileRef(dest)
-      }.toSet
+      val toExclude          = copied
+        .filter { case (source, _) => externalized(toFileRef(source)) }
+        .flatMap {
+          case (source, dest) =>
+            // sbt 1 package mappings refer to the copied resource, while sbt 2
+            // mappings retain the original source. Exclude either representation.
+            Seq(toFileRef(source), toFileRef(dest))
+        }
+        .toSet
       packageBinMappings.filterNot {
         case (file, _) => toExclude(file)
       }
