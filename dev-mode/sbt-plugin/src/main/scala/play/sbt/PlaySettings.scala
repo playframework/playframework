@@ -125,9 +125,41 @@ object PlaySettings {
     playDependencyClasspath := uncached((Runtime / externalDependencyClasspath).value),
     // all user classes, in this project and any other subprojects that it depends on
     playReloaderClasspath := uncached {
-      Classpaths
-        .concatDistinct(Runtime / exportedProducts, Runtime / internalDependencyClasspath)
-        .value
+      // Select the classpath dynamically so the unselected strategy does not add
+      // unnecessary product or packaging tasks to the task graph.
+      Def.taskDyn {
+        if (exportJars.value) {
+          Def.task {
+            // Play's reloader needs live classes and resources from the current
+            // project. Dependencies may remain JAR-backed because Play recompiles
+            // them before creating a fresh application classloader.
+            implicit val fc: FileConverter = fileConverter.value
+            val currentProjectDirectories  =
+              ((Compile / productDirectories).value ++
+                (Compile / resourceDirectories).value.filter(_.exists())).distinct
+            val currentProjectArtifact = toNioPath((Compile / packageBin / artifactPath).value).toAbsolutePath
+              .normalize()
+            val currentProjectPaths = (currentProjectDirectories.map(_.toPath) :+ currentProjectArtifact)
+              .map(_.toAbsolutePath.normalize())
+              .toSet
+            val dependencyProducts = (Runtime / internalDependencyClasspath).value.filterNot { entry =>
+              currentProjectPaths(toNioPath(entry.data).toAbsolutePath.normalize())
+            }
+            val currentProjectProducts = currentProjectDirectories.map { directory =>
+              Attributed.blank(toFileRef(directory))
+            }
+            currentProjectProducts ++ dependencyProducts
+          }
+        } else {
+          // Preserve the directory-backed classpath used when JAR exports are
+          // disabled, including the sbt 1 default behavior.
+          Def.task {
+            Classpaths
+              .concatDistinct(Runtime / exportedProducts, Runtime / internalDependencyClasspath)
+              .value
+          }
+        }
+      }.value
     },
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(toKey(WebKeys.webModulesLib)).isEmpty) },
@@ -279,8 +311,70 @@ object PlaySettings {
           if (testAssetsDir.exists()) Seq(Attributed.blank(toFileRef(testAssetsDir))) else Nil
         }
       }.value
+    },
+    // With JAR exports, sbt-web can discover a module from both its JAR manifest
+    // and Play's separately exported asset directory.
+    Assets / WebKeys.internalWebModules ~= (_.distinct),
+    TestAssets / WebKeys.internalWebModules ~= (_.distinct),
+  ) ++ exportedAssetsSettings(Compile, Assets) ++ exportedAssetsSettings(Test, TestAssets)
+
+  /**
+   * sbt-web normally exports asset directories with project products. It skips those
+   * directories when exportJars is enabled, but Play intentionally keeps assets out of
+   * the main project JAR and publishes them in a separate assets JAR. Keep exporting
+   * the directories inside the build so dependent projects and tests can use them.
+   * These contributions are uncached because their state markers are evaluated at
+   * runtime and therefore cannot participate in sbt 2's action cache.
+   */
+  private def exportedAssetsSettings(
+      productsConfiguration: Configuration,
+      assetsConfiguration: Configuration
+  ): Seq[Setting[?]] = Def.settings(
+    productsConfiguration / exportedProducts ++= uncached {
+      exportedAssetsForDependencies(assetsConfiguration / exportedAssets).value
+    },
+    productsConfiguration / exportedProductsIfMissing ++= uncached {
+      exportedAssetsForDependencies(assetsConfiguration / exportedAssetsIfMissing).value
+    },
+    productsConfiguration / exportedProductsNoTracking ++= uncached {
+      exportedAssetsForDependencies(assetsConfiguration / exportedAssetsNoTracking).value
     }
   )
+
+  /**
+   * Exports an sbt-web asset directory as an additional classpath product when
+   * normal products are exported as JARs. Play keeps assets out of the main
+   * project JAR, so dependent projects still need this directory.
+   *
+   * The state markers suppress asset exports without evaluating the asset task.
+   * Play's marker applies only to the application being reloaded, allowing its
+   * dependencies to keep exporting assets. sbt-web's marker disables all asset
+   * exports while the reloader classpath itself is constructed.
+   */
+  private def exportedAssetsForDependencies(
+      directoryTask: ScopedTaskable[File]
+  ): Def.Initialize[Task[Classpath]] = Def.taskDyn {
+    val currentState   = state.value
+    val jarsExported   = exportJars.value
+    val exportDisabled = currentState
+      .get(playProjectWithDisabledAssetExports)
+      .contains(thisProjectRef.value)
+    if (!jarsExported || exportDisabled || currentState.get(WebKeys.disableExportedProducts).getOrElse(false)) {
+      // Do not evaluate directoryTask: producing the directory can run the asset
+      // pipeline that these state markers are intended to suppress.
+      Def.task(Nil)
+    } else {
+      Def.task {
+        implicit val fc: FileConverter = fileConverter.value
+        val directory                  = directoryTask.toTask.value
+        if (directory.exists()) {
+          Seq(Attributed.blank(toFileRef(directory)).put(toKey(webModulesLib), moduleName.value))
+        } else {
+          Nil
+        }
+      }
+    }
+  }
 
   /**
    * Settings for creating a jar that excludes externalized resources
