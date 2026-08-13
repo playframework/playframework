@@ -153,8 +153,8 @@ object Configuration {
         This is necessary to keep the Exception serializable, because ConfigOrigin is not serializable.
          */
         val originLine       = o.lineNumber: java.lang.Integer
-        val originSourceName = o.filename
         val originUrlOpt     = Option(o.url)
+        val originSourceName = Option(o.filename).orElse(originUrlOpt.map(_.toString)).orNull
         new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
           def line              = originLine
           def position: Integer = null

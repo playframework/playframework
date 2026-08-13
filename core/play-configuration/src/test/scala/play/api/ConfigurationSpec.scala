@@ -22,6 +22,7 @@ import scala.util.control.NonFatal
 
 import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigOriginFactory
 import org.specs2.execute.FailureException
 import org.specs2.mutable.Specification
 
@@ -356,6 +357,17 @@ class ConfigurationSpec extends Specification {
       cl.findResource("reference.conf") must_== url
       cl.getResource("reference.conf") must_== url
       cl.getResources("reference.conf").asScala.toList must_== List(url)
+    }
+
+    "use the URL as the source name when an origin has no filename" in {
+      val url    = new URL("jar:file:/tmp/application.jar!/application.conf")
+      val origin = ConfigOriginFactory.newURL(url)
+
+      origin.filename must_== null
+      Configuration
+        .configError("Invalid configuration", Some(origin))
+        .asInstanceOf[PlayException.ExceptionSource]
+        .sourceName must_== url.toString
     }
 
     "direct settings should have precedence over system properties when reading config.resource and config.file" in {
