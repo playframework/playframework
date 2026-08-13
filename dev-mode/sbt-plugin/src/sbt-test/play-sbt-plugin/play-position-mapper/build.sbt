@@ -1,5 +1,10 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+@transient val compileIgnoreErrors        = taskKey[Unit]("Compile and capture the expected errors")
+@transient val checkCompilerProblem       = inputKey[Unit]("Check the captured compiler errors")
+@transient val checkCompilerProblemScala2 = inputKey[Unit]("Check a Scala 2 compiler error")
+@transient val checkCompilerProblemScala3 = inputKey[Unit]("Check a Scala 3 compiler error")
+
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
@@ -9,79 +14,20 @@ lazy val root = (project in file("."))
     updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
-    // In sbt 1.4 extraLoggers got deprecated in favor of extraAppenders (new in sbt 1.4) and as a consequence logManager switched to use extraAppenders.
-    // To be able to run the tests in sbt 1.2+ however we can't use extraAppenders yet and to run the tests in sbt 1.4+ we need to make logManager use extraLoggers again.
-    // https://github.com/sbt/sbt/commit/2e9805b9d01c6345214c14264c61692d9c21651c#diff-6d9589bfb3f1247d2eace99bab7e928590337680d1aebd087d9da286586fba77R455
-    logManager := sbt.internal.LogManager.defaults(extraLoggers.value, ConsoleOut.systemOut),
-    extraLoggers ~= (fn => BufferLogger +: fn(_)),
-    TaskKey[Unit]("compileIgnoreErrors")  := state.map(s => Project.runTask(Compile / compile, s)).value,
-    InputKey[Boolean]("checkLogContains") := {
+    compileIgnoreErrors  := ScriptedTools.compileIgnoringErrors(state.value, fileConverter.value),
+    checkCompilerProblem := {
       import sbt.complete.DefaultParsers._
-      InputTask
-        .separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
-          state(_ =>
-            (msg: String) =>
-              task {
-                if (BufferLogger.messages.forall(!_.contains(msg))) {
-                  sys.error(
-                    s"""Did not find log message:
-                       |    '$msg'
-                       |in output:
-                       |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
-                  )
-                }
-                true
-              }
-          )
-        }
-        .evaluated
+      val expected = (Space ~> any.+.map(_.mkString(""))).parsed
+      ScriptedTools.assertCompilerProblemContains(expected)
     },
-    InputKey[Boolean]("checkLogContainsScala2") := {
+    checkCompilerProblemScala2 := {
       import sbt.complete.DefaultParsers._
-      InputTask
-        .separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
-          state(_ =>
-            (msg: String) =>
-              task {
-                if (
-                  ScriptedTools.scalaVersionFromJavaProperties().startsWith("2") && BufferLogger.messages
-                    .forall(!_.contains(msg))
-                ) {
-                  sys.error(
-                    s"""Did not find log message:
-                       |    '$msg'
-                       |in output:
-                       |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
-                  )
-                }
-                true
-              }
-          )
-        }
-        .evaluated
+      val expected = (Space ~> any.+.map(_.mkString(""))).parsed
+      if (scalaVersion.value.startsWith("2")) ScriptedTools.assertCompilerProblemContains(expected)
     },
-    InputKey[Boolean]("checkLogContainsScala3") := {
+    checkCompilerProblemScala3 := {
       import sbt.complete.DefaultParsers._
-      InputTask
-        .separate[String, Boolean]((_: State) => Space ~> any.+.map(_.mkString(""))) {
-          state(_ =>
-            (msg: String) =>
-              task {
-                if (
-                  ScriptedTools.scalaVersionFromJavaProperties().startsWith("3") && BufferLogger.messages
-                    .forall(!_.contains(msg))
-                ) {
-                  sys.error(
-                    s"""Did not find log message:
-                       |    '$msg'
-                       |in output:
-                       |    ${BufferLogger.messages.reverse.mkString("\n    ")}""".stripMargin
-                  )
-                }
-                true
-              }
-          )
-        }
-        .evaluated
+      val expected = (Space ~> any.+.map(_.mkString(""))).parsed
+      if (scalaVersion.value.startsWith("3")) ScriptedTools.assertCompilerProblemContains(expected)
     }
   )

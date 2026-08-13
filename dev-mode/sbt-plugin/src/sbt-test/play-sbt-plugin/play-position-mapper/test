@@ -4,13 +4,13 @@
 # Check that the compile errors are successfully mapped from the generated Scala back to the original source
 
 # view errors
-> checkLogContains app/views/index.scala.html:3
-> checkLogContainsScala2 not found: value foo
-> checkLogContainsScala3 Not found: foo
-> checkLogContains Foo: @foo.bar
+> checkCompilerProblem app/views/index.scala.html:3
+> checkCompilerProblemScala2 not found: value foo
+> checkCompilerProblemScala3 Not found: foo
+> checkCompilerProblem Foo: @foo.bar
 
 # route errors
-> checkLogContains conf/routes:3
-> checkLogContainsScala2 type Foo is not a member of package controllers
-> checkLogContainsScala3 type Foo is not a member of controllers
-> checkLogContains GET / controllers.Foo.index
+> checkCompilerProblem conf/routes:3
+> checkCompilerProblemScala2 type Foo is not a member of package controllers
+> checkCompilerProblemScala3 type Foo is not a member of controllers
+> checkCompilerProblem GET / controllers.Foo.index

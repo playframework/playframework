@@ -24,10 +24,15 @@ import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.{
   _
 }
 import play.sbt.routes.RoutesCompiler.autoImport._
+import play.sbt.run.PlayReload
 import play.sbt.run.PlayRun
-import play.sbt.PluginCompat._
+import play.sbt.PluginCompat.{ runTask => runTaskCompat, _ }
 
 object ScriptedTools extends AutoPlugin {
+  private case class CapturedCompilerProblems(errorCount: Int, messages: Seq[String])
+
+  @volatile private var compilerProblems = CapturedCompilerProblems(0, Nil)
+
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[?]] = Def.settings(
@@ -62,6 +67,61 @@ object ScriptedTools extends AutoPlugin {
 
   def callIndex(): Unit                   = callUrl("/")
   def applyEvolutions(path: String): Unit = callUrl(path)
+
+  def compileIgnoringErrors(state: State, fileConverter: xsbti.FileConverter): Unit = {
+    compilerProblems = CapturedCompilerProblems(0, Nil)
+    runTaskCompat(Compile / compile, state) match {
+      case Some((nextState, Inc(incomplete))) =>
+        implicit val fc: xsbti.FileConverter = fileConverter
+        val positionMappers                  = runTaskCompat(Compile / sourcePositionMappers, nextState)
+          .flatMap(_._2.toEither.toOption)
+          .getOrElse(Nil)
+        val problems = Incomplete
+          .allExceptions(incomplete)
+          .collect { case failed: xsbti.CompileFailed => failed.problems().toSeq }
+          .flatten
+          .toSeq
+        val messages = problems.flatMap { problem =>
+          val position       = PlayReload.mapPosition(problem.position(), positionMappers)
+          val sourcePath     = position.sourcePath()
+          val line           = position.line()
+          val rendered       = problem.rendered()
+          val sourcePosition =
+            if (sourcePath.isPresent) {
+              Seq(sourcePath.get() + (if (line.isPresent) s":${line.get()}" else ""))
+            } else {
+              Nil
+            }
+          Seq(problem.message()) ++ Option(position.lineContent()).toSeq ++ sourcePosition ++
+            (if (rendered.isPresent) Seq(rendered.get()) else Nil)
+        }
+        val errorCount = problems.count(_.severity == xsbti.Severity.Error)
+        compilerProblems = CapturedCompilerProblems(errorCount, messages)
+      case Some((_, Value(_))) =>
+        sys.error("Expected compilation to fail")
+      case None =>
+        sys.error("Unable to run the compile task")
+    }
+  }
+
+  def assertCompilerProblemContains(expected: String): Unit = {
+    val captured = compilerProblems
+    if (captured.messages.forall(!_.contains(expected))) {
+      sys.error(
+        s"""Did not find compiler problem:
+           |    '$expected'
+           |in output:
+           |    ${captured.messages.mkString("\n    ")}""".stripMargin
+      )
+    }
+  }
+
+  def assertCompilerErrorCount(expected: Int): Unit = {
+    val actual = compilerProblems.errorCount
+    if (actual != expected) {
+      sys.error(s"Expected $expected compiler errors, but captured $actual")
+    }
+  }
 
   private val trustAllManager: TrustManager = new X509TrustManager() {
     def getAcceptedIssuers: Array[X509Certificate]                                = null
