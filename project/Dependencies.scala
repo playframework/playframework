@@ -15,7 +15,7 @@ object Dependencies {
 
   val playJsonVersion = "3.0.6"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.2"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.3"
 
   val bytebuddyVersion = "1.17.8"
   val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
