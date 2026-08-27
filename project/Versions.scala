@@ -6,7 +6,7 @@ object ScalaVersions {
   val scala212 = "2.12.21"
   val scala213 = "2.13.18"
   val scala38  = "3.8.4" // used to build sbt 2 plugins
-  val scala39  = "3.9.0-RC6"
+  val scala39  = "3.9.0"
 }
 
 object SbtVersions {
