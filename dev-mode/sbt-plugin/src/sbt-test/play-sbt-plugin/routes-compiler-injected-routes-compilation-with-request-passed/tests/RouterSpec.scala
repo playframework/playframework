@@ -238,4 +238,11 @@ object RouterSpec extends PlaySpecification {
       }
     }
   }
+
+  "add route params the request using a request attribute" in new WithApplication() {
+    val result = route(implicitApp, FakeRequest(GET, "/23/abc?page=2&someOtherParam=34&page=4&books=Moby%20Dick&books=War%20and%20Peace")).get
+    contentAsString(result) must equalTo(
+      "id=23[java.lang.Long]|class=abc[java.lang.String]|page=Optional[2][java.util.Optional]|items=[][List]|books=[Moby Dick, War and Peace][List]|section=5[java.lang.Integer]\n" * 3
+    )
+  }
 }
