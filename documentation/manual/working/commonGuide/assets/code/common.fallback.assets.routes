@@ -1,0 +1,3 @@
+#assets-wildcard-spa
+GET  /assets/*file        controllers.Assets.at(path="/public", file, fallback = "index.html")
+#assets-wildcard-spa
