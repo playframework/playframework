@@ -13,7 +13,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M10"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.2"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.3"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -29,7 +29,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.19.0"      % Test
   )
 
-  val jacksonVersion  = "2.21.5"
+  val jacksonVersion  = "2.21.6"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
