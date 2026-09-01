@@ -7,26 +7,20 @@ package play.filters.gzip
 import java.util.function.BiFunction
 import java.util.zip.Deflater
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
 import scala.jdk.FunctionConverters._
 
 import com.typesafe.config.ConfigMemorySize
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 import jakarta.inject.Singleton
-import org.apache.pekko.stream.scaladsl._
-import org.apache.pekko.stream.FlowShape
 import org.apache.pekko.stream.Materializer
-import org.apache.pekko.stream.OverflowStrategy
-import org.apache.pekko.util.ByteString
 import play.api.http._
 import play.api.inject._
 import play.api.libs.streams.GzipFlow
 import play.api.mvc._
-import play.api.mvc.RequestHeader.acceptHeader
 import play.api.Configuration
 import play.api.Logger
+import play.filters.encoding.ContentEncodingFilter
 
 /**
  * A gzip filter.
@@ -49,7 +43,13 @@ import play.api.Logger
  */
 @Singleton
 class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
-  import play.api.http.HeaderNames._
+  private val contentEncodingFilter = new ContentEncodingFilter(
+    encodingName = "gzip",
+    createFlow = () => GzipFlow.gzip(config.bufferSize, config.compressionLevel),
+    shouldTranscode = config.shouldGzip,
+    chunkedThreshold = config.chunkedThreshold,
+    threshold = config.threshold
+  )
 
   def this(
       bufferSize: Int = 8192,
@@ -60,135 +60,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
   )(implicit mat: Materializer) =
     this(GzipFilterConfig(bufferSize, chunkedThreshold, threshold, shouldGzip, compressionLevel))
 
-  def apply(next: EssentialAction): EssentialAction = new EssentialAction {
-    implicit val ec: ExecutionContext = mat.executionContext
-
-    def apply(request: RequestHeader) = {
-      if (mayCompress(request)) {
-        next(request).mapFuture(result => handleResult(request, result))
-      } else {
-        next(request)
-      }
-    }
-  }
-
-  private def createGzipFlow: Flow[ByteString, ByteString, ?] =
-    GzipFlow.gzip(config.bufferSize, config.compressionLevel)
-
-  private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
-    implicit val ec = mat.executionContext
-    if (shouldCompress(result) && config.shouldGzip(request, result)) {
-      val header = result.header.copy(headers = setupHeader(result.header))
-
-      result.body match {
-        case HttpEntity.Strict(data, contentType) =>
-          compressStrictEntity(Source.single(data), contentType)
-            .map(entity => result.copy(header = header, body = entity))
-
-        case entity @ HttpEntity.Streamed(_, Some(contentLength), contentType)
-            if contentLength <= config.chunkedThreshold =>
-          // It's below the chunked threshold, so buffer then compress and send
-          compressStrictEntity(entity.data, contentType)
-            .map(strictEntity => result.copy(header = header, body = strictEntity))
-
-        case HttpEntity.Streamed(data, _, contentType) if request.version == HttpProtocol.HTTP_1_0 =>
-          // It's above the chunked threshold, but we can't chunk it because we're using HTTP 1.0.
-          // Instead, we use a close delimited body (ie, regular body with no content length)
-          val gzipped = data.via(createGzipFlow)
-          Future.successful(
-            result.copy(header = header, body = HttpEntity.Streamed(gzipped, None, contentType))
-          )
-
-        case HttpEntity.Streamed(data, _, contentType) =>
-          // It's above the chunked threshold, compress through the gzip flow, and send as chunked
-          val gzipped = data.via(createGzipFlow).map(d => HttpChunk.Chunk(d))
-          Future.successful(
-            result.copy(header = header, body = HttpEntity.Chunked(gzipped, contentType))
-          )
-
-        case HttpEntity.Chunked(chunks, contentType) =>
-          val gzipFlow = Flow.fromGraph(GraphDSL.create[FlowShape[HttpChunk, HttpChunk]]() { implicit builder =>
-            import GraphDSL.Implicits._
-
-            val extractChunks   = Flow[HttpChunk].collect { case HttpChunk.Chunk(data) => data }
-            val createChunks    = Flow[ByteString].map[HttpChunk](HttpChunk.Chunk.apply)
-            val filterLastChunk = Flow[HttpChunk]
-              .filter(_.isInstanceOf[HttpChunk.LastChunk])
-              // Since we're doing a merge by concatenating, the filter last chunk won't receive demand until the gzip
-              // flow is finished. But the broadcast won't start broadcasting until both flows start demanding. So we
-              // put a buffer of one in to ensure the filter last chunk flow demands from the broadcast.
-              .buffer(1, OverflowStrategy.backpressure)
-
-            val broadcast = builder.add(Broadcast[HttpChunk](2))
-            val concat    = builder.add(Concat[HttpChunk]())
-
-            // Broadcast the stream through two separate flows, one that collects chunks and turns them into
-            // ByteStrings, sends those ByteStrings through the Gzip flow, and then turns them back into chunks,
-            // the other that just allows the last chunk through. Then concat those two flows together.
-            broadcast.out(0) ~> extractChunks ~> createGzipFlow ~> createChunks ~> concat.in(0)
-            broadcast.out(1) ~> filterLastChunk ~> concat.in(1)
-
-            new FlowShape(broadcast.in, concat.out)
-          })
-
-          Future.successful(
-            result.copy(header = header, body = HttpEntity.Chunked(chunks.via(gzipFlow), contentType))
-          )
-      }
-    } else {
-      Future.successful(result)
-    }
-  }
-
-  private def compressStrictEntity(source: Source[ByteString, Any], contentType: Option[String])(
-      implicit ec: ExecutionContext
-  ) = {
-    val compressed = source.via(createGzipFlow).runFold(ByteString.empty)(_ ++ _)
-    compressed.map(data => HttpEntity.Strict(data, contentType))
-  }
-
-  /**
-   * Whether this request may be compressed.
-   */
-  private def mayCompress(request: RequestHeader) =
-    request.method != "HEAD" && gzipIsAcceptedAndPreferredBy(request)
-
-  private def gzipIsAcceptedAndPreferredBy(request: RequestHeader) = {
-    val codings                        = acceptHeader(request.headers, ACCEPT_ENCODING)
-    def explicitQValue(coding: String) = codings.collectFirst { case (q, c) if c.equalsIgnoreCase(coding) => q }
-    def defaultQValue(coding: String)  = if (coding == "identity") 0.001d else 0d
-    def qvalue(coding: String)         = explicitQValue(coding).orElse(explicitQValue("*")).getOrElse(defaultQValue(coding))
-
-    qvalue("gzip") > 0d && qvalue("gzip") >= qvalue("identity")
-  }
-
-  /**
-   * Whether this response should be compressed.  Responses that may not contain content won't be compressed, nor will
-   * responses that already define a content encoding.  Empty responses also shouldn't be compressed, as they will
-   * actually always get bigger.  Also responses whose body size are equal or lower than the given byte threshold won't
-   * be compressed, because it's assumed they end up being bigger than the original body.
-   */
-  private def shouldCompress(result: Result) =
-    isAllowedContent(result.header) &&
-      isNotAlreadyCompressed(result.header) &&
-      !result.body.isKnownEmpty &&
-      result.body.contentLength.forall(_ > config.threshold)
-
-  /**
-   * Certain response codes are forbidden by the HTTP spec to contain content, but a gzipped response always contains
-   * a minimum of 20 bytes, even for empty responses.
-   */
-  private def isAllowedContent(header: ResponseHeader) =
-    header.status != Status.NO_CONTENT && header.status != Status.NOT_MODIFIED
-
-  /**
-   * Of course, we don't want to double compress responses
-   */
-  private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(CONTENT_ENCODING).isEmpty
-
-  private def setupHeader(rh: ResponseHeader): Map[String, String] = {
-    rh.headers + (CONTENT_ENCODING -> "gzip") + rh.varyWith(ACCEPT_ENCODING)
-  }
+  def apply(next: EssentialAction): EssentialAction = contentEncodingFilter(next)
 }
 
 /**
