@@ -8,7 +8,7 @@ import buildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M3")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M4")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+236-096a7671-SNAPSHOT")
 
   val playJsonVersion = "3.1.0-M10"
@@ -289,7 +289,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M13"
+  val playWsStandaloneVersion = "3.1.0-M14"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
