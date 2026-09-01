@@ -563,6 +563,19 @@ object BuildSettings {
       ProblemFilters.exclude[IncompatibleMethTypeProblem](
         "org.apache.pekko.http.play.WebSocketHandler.handleWebSocket"
       ),
+      // Add HTTP QUERY method support (RFC 9110 / RFC 10008)
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HeaderNames.ACCEPT_QUERY"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.http.HeaderNames.play$api$http$HeaderNames$_setter_$ACCEPT_QUERY_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.http.HttpVerbs.QUERY"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.http.HttpVerbs.play$api$http$HttpVerbs$_setter_$QUERY_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.routing.sird.RequestMethodExtractors.QUERY"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.routing.sird.RequestMethodExtractors.play$api$routing$sird$RequestMethodExtractors$_setter_$QUERY_="
+      ),
       // Replace legacy request connection APIs and reshape private forwarded-header models
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.mvc.request.DefaultRequestFactory.createRequest"),
       ProblemFilters.exclude[DirectMissingMethodProblem](

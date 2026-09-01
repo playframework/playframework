@@ -14,7 +14,7 @@ A simple example of its use is:
 
 @[simple](code/ScalaSirdRouter.scala)
 
-In this case, the `$to` parameter in the interpolated path pattern will extract a single path segment for use in the action.  The `GET` extractor extracts requests with the `GET` method.  It takes a `RequestHeader` and extracts the same `RequestHeader` parameter, it's only used as a convenient filter.  Other method extractors, including `POST`, `PUT` and `DELETE` are also supported.
+In this case, the `$to` parameter in the interpolated path pattern will extract a single path segment for use in the action.  The `GET` extractor extracts requests with the `GET` method.  It takes a `RequestHeader` and extracts the same `RequestHeader` parameter, it's only used as a convenient filter.  Other method extractors, including `POST`, `PUT`, `DELETE` and `QUERY` are also supported.
 
 Like Play's compiled router, sird supports matching multi path segment parameters, this is done by postfixing the parameter with `*`:
 
