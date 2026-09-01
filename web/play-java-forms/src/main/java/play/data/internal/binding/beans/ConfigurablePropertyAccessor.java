@@ -56,4 +56,14 @@ public interface ConfigurablePropertyAccessor extends PropertyAccessor {
 	 */
 	int getAutoGrowCollectionLimit();
 
+	/**
+	 * Specify the shared budget for cumulative auto-growing.
+	 */
+	void setAutoGrowBudget(AutoGrowBudget autoGrowBudget);
+
+	/**
+	 * Return the shared budget for cumulative auto-growing.
+	 */
+	AutoGrowBudget getAutoGrowBudget();
+
 }
