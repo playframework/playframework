@@ -64,6 +64,7 @@ class CaffeineCacheModule
 
       val defaultCacheName = configuration.underlying.getString("play.cache.defaultCache")
       val bindCaches       = configuration.underlying.getStringList("play.cache.bindCaches").asScala
+      val hashResponse     = configuration.underlying.getBoolean("play.cache.hashResponse")
 
       // Creates a named cache qualifier
       def named(name: String): NamedCache = {
@@ -73,7 +74,7 @@ class CaffeineCacheModule
       // bind wrapper classes
       def wrapperBindings(cacheApiKey: BindingKey[AsyncCacheApi], namedCache: NamedCache): Seq[Binding[?]] = Seq(
         bind[JavaAsyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaAsyncCacheApiProvider(cacheApiKey)),
-        bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey)),
+        bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey, hashResponse)),
         bind[SyncCacheApi].qualifiedWith(namedCache).to(new NamedSyncCacheApiProvider(cacheApiKey)),
         bind[JavaSyncCacheApi].qualifiedWith(namedCache).to(new NamedJavaSyncCacheApiProvider(cacheApiKey))
       )
@@ -173,10 +174,11 @@ private[play] class NamedJavaSyncCacheApiProvider(key: BindingKey[AsyncCacheApi]
     new SyncCacheApiAdapter(injector.instanceOf(key).sync)
 }
 
-private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi]) extends Provider[Cached] {
+private[play] class NamedCachedProvider(key: BindingKey[AsyncCacheApi], hashResponse: Boolean)
+    extends Provider[Cached] {
   @Inject private var injector: Injector = _
   lazy val get: Cached                   =
-    new Cached(injector.instanceOf(key))(using injector.instanceOf[Materializer])
+    new Cached(injector.instanceOf(key), hashResponse)(using injector.instanceOf[Materializer])
 }
 
 private[play] case class CaffeineCacheExistsException(msg: String, cause: Throwable)
