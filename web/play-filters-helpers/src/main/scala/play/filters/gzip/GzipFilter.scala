@@ -186,8 +186,18 @@ class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer
    */
   private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(CONTENT_ENCODING).isEmpty
 
+  /**
+   * Weakens a strong ETag, since gzip encoding changes the byte representation.
+   */
+  private def weakenETag(etag: String): Option[String] = etag match {
+    case weak if weak.startsWith("W/")     => Some(weak)         // already weak, leave as-is
+    case strong if strong.startsWith("\"") => Some(s"W/$strong") // strong ETag: "tag" → W/"tag"
+    case _                                 => None               // invalid ETag: can't be weakened correctly, drop it
+  }
+
   private def setupHeader(rh: ResponseHeader): Map[String, String] = {
-    rh.headers + (CONTENT_ENCODING -> "gzip") + rh.varyWith(ACCEPT_ENCODING)
+    val headers = rh.headers.updatedWith(ETAG)(_.flatMap(weakenETag))
+    headers + (CONTENT_ENCODING -> "gzip") + rh.copy(headers = headers).varyWith(ACCEPT_ENCODING)
   }
 }
 

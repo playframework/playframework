@@ -225,6 +225,46 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
       threshold = 18
     ) { implicit app => checkGzippedBody(makeGzipRequest(app), "these are 18 bytes")(using app.materializer) }
 
+    "weaken ETag header when gziping a response" in withApplication(
+      Ok("hello").withHeaders(ETAG -> "\"abc123\"")
+    ) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzippedBody(result, "hello")(using app.materializer)
+      header(ETAG, result) must beSome("W/\"abc123\"")
+    }
+
+    "not weaken ETag header when not gziping a response" in withApplication(
+      Ok("hello").withHeaders(ETAG -> "\"abc123\"")
+    ) { implicit app =>
+      val result = route(app, FakeRequest().withHeaders(ACCEPT_ENCODING -> "identity")).get
+      checkNotGzipped(result, "hello")(using app.materializer)
+      header(ETAG, result) must beSome("\"abc123\"")
+    }
+
+    "not add ETag header when gziping a response without an ETag header" in withApplication(
+      Ok("hello")
+    ) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzippedBody(result, "hello")(using app.materializer)
+      header(ETAG, result) must beNone
+    }
+
+    "not modify ETag header when gziping a response with an already weak ETag header" in withApplication(
+      Ok("hello").withHeaders(ETAG -> "W/\"abc123\"")
+    ) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzippedBody(result, "hello")(using app.materializer)
+      header(ETAG, result) must beSome("W/\"abc123\"")
+    }
+
+    "remove invalid ETag header when gzipping a response" in withApplication(
+      Ok("hello").withHeaders(ETAG -> "abc123") // unquoted ETag value; a common violation of RFC 9110
+    ) { implicit app =>
+      val result = makeGzipRequest(app)
+      checkGzippedBody(result, "hello")(using app.materializer)
+      header(ETAG, result) must beNone
+    }
+
     val body = Random.nextString(1000)
 
     "a streamed body" should {
