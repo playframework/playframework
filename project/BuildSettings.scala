@@ -704,6 +704,7 @@ object BuildSettings {
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin, MimaPlugin)
       .settings(playRuntimeSettings*)
       .settings(omnidocSettings*)
+      .settings(AutomaticModuleName.settings(name)*)
       .settings(
         autoScalaLibrary := false,
         crossPaths       := false,
@@ -718,6 +719,7 @@ object BuildSettings {
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin)
+      .settings(AutomaticModuleName.settings(name)*)
       .settings(
         playCommonSettings,
         mimaPreviousArtifacts := Set.empty,
@@ -730,6 +732,7 @@ object BuildSettings {
       .enablePlugins(PlayLibrary, AutomateHeaderPlugin, PekkoSnapshotRepositories, MimaPlugin)
       .settings(playRuntimeSettings*)
       .settings(omnidocSettings*)
+      .settings(AutomaticModuleName.settings(name)*)
   }
 
   def omnidocSettings: Seq[Setting[?]] = Def.settings(
@@ -765,6 +768,7 @@ object BuildSettings {
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtLibrary, AutomateHeaderPlugin)
+      .settings(AutomaticModuleName.settings(name)*)
       .settings(
         playCommonSettings,
         mimaPreviousArtifacts := Set.empty,
@@ -775,6 +779,7 @@ object BuildSettings {
   def PlaySbtPluginProject(name: String, dir: String): Project = {
     Project(name, file(dir))
       .enablePlugins(PlaySbtPlugin, AutomateHeaderPlugin)
+      .settings(AutomaticModuleName.settings(name)*)
       .settings(
         playCommonSettings,
         playScriptedSettings,
