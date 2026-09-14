@@ -586,6 +586,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.RequestHeaderImpl.clientCertificateChain"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.j.RequestHeaderImpl.remoteAddress"),
       ProblemFilters.exclude[DirectMissingMethodProblem](
+        "play.core.server.common.ForwardedHeaderHandler.forwardedConnection"
+      ),
+      ProblemFilters.exclude[DirectMissingMethodProblem](
         "play.core.server.common.ForwardedHeaderHandler#ForwardedEntry.apply"
       ),
       ProblemFilters.exclude[DirectMissingMethodProblem](
@@ -621,6 +624,9 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem](
         "play.core.server.common.ForwardedHeaderHandler#ParsedForwardedEntry.this"
       ),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.NettyModelConversion.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.netty.PlayRequestHandler.this"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.core.server.pekkohttp.PekkoModelConversion.this"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestBuilder.clientCertificateChain"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestBuilder.remoteAddress"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.mvc.Http#RequestHeader.clientCertificateChain"),
