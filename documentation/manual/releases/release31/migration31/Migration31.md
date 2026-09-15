@@ -32,13 +32,11 @@ Play replaces the legacy combined connection APIs with typed `remote`, `transpor
 
 Forwarded-header parsing, Host and absolute-target validation, scheme retention, CORS origin checks, and Redirect HTTPS behavior have also changed. See [[Request metadata and forwarded-header migration|RequestMetadataMigration31]] for the complete migration instructions and [[Typed request and forwarded metadata|RequestMetadataHighlights31]] for a conceptual overview.
 
-### HEAD responses no longer include generated Content-Length headers
+### HEAD and Pekko HTTP/2 response framing changes
 
-Play no longer renders generated `Content-Length` headers for `HEAD` responses. `HEAD` responses still do not include a response body, but applications and tests should not rely on `Content-Length` being present on a `HEAD` response, even when the equivalent `GET` response has a known length.
+For HTTP/1.x, a `HEAD` response backed by an empty entity no longer includes `Content-Length: 0`. For statuses that allow an entity, declared positive lengths continue to be rendered, while chunked, close-delimited, and streamed entities without a known length continue to omit `Content-Length`. Matching the Pekko HTTP backend, Netty now also ignores a manually supplied `Content-Length` for a `HEAD` response when the entity does not declare a positive length; declare the length on the response entity instead. Applications are generally unaffected, but tests that explicitly expect `Content-Length: 0` on an empty HTTP/1.x `HEAD` response should be updated. These changes follow [apache/pekko-http#962](https://github.com/apache/pekko-http/pull/962) and [apache/pekko-http#1237](https://github.com/apache/pekko-http/pull/1237).
 
-This behavior follows Pekko HTTP 2, which changed generated `Content-Length` rendering in [apache/pekko-http#962](https://github.com/apache/pekko-http/pull/962), ported from [akka/akka-http#4214](https://github.com/akka/akka-http/pull/4214). The original upstream change fixed response framing for statuses such as `205 Reset Content` and made `Content-Length` rendering depend on the request method and response status.
-
-If your tests compare `HEAD` and `GET` response headers, exclude `Content-Length` from that comparison. If your application needs to expose resource size metadata for `HEAD` requests, use an application-specific header.
+With the Pekko HTTP backend over HTTP/2, `HEAD` responses no longer send their response entities as DATA frames. This corrects the Play 3.0.x behavior so that `HEAD` responses do not include a response body. Pekko HTTP/2 responses with status `204 No Content` or `304 Not Modified` also no longer receive an automatically generated `content-length: 0`. These changes come from [apache/pekko-http#1239](https://github.com/apache/pekko-http/pull/1239).
 
 ### Clustered Pekko applications may require additional JVM add-opens
 

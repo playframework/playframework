@@ -281,17 +281,35 @@ private[server] class NettyModelConversion(
 
       // Content type and length
       if (skipEntity) {
-        if (HttpUtil.isContentLengthSet(response)) {
-          val manualContentLength = response.headers.get(CONTENT_LENGTH)
-          logger.warn(
-            s"Ignoring manual Content-Length ($manualContentLength) since it is not rendered for HEAD responses."
-          )
-          response.headers.remove(CONTENT_LENGTH)
+        val declaredContentLength =
+          if (resultUtils.mayHaveEntity(result.header.status)) result.body.contentLength.filter(_ > 0) else None
+        declaredContentLength match {
+          case Some(contentLength) =>
+            if (HttpUtil.isContentLengthSet(response)) {
+              val manualContentLength = response.headers.get(CONTENT_LENGTH)
+              if (manualContentLength == contentLength.toString) {
+                logger.info("Manual Content-Length header, ignoring manual header.")
+              } else {
+                logger.warn(
+                  s"Content-Length header was set manually in the header ($manualContentLength) but is not the same as declared content length ($contentLength)."
+                )
+              }
+            }
+            HttpUtil.setContentLength(response, contentLength)
+
+          case None =>
+            if (HttpUtil.isContentLengthSet(response)) {
+              val manualContentLength = response.headers.get(CONTENT_LENGTH)
+              logger.warn(
+                s"Ignoring manual Content-Length ($manualContentLength) since the HEAD response entity does not declare a non-zero length."
+              )
+              response.headers.remove(CONTENT_LENGTH)
+            }
+            // HttpStreamsServerHandler is not HEAD-aware. Without Content-Length or Transfer-Encoding it assumes a
+            // 200 response can only be delimited by closing the connection. Mark it as chunked inside the Netty
+            // pipeline so keep-alive is preserved; PlayHttpResponseEncoder strips the marker before bytes are written.
+            HttpUtil.setTransferEncodingChunked(response, true)
         }
-        // HttpStreamsServerHandler is not HEAD-aware. Without Content-Length or Transfer-Encoding it assumes a 200
-        // response can only be delimited by closing the connection. Mark it as chunked inside the Netty pipeline so
-        // keep-alive is preserved; PlayHttpResponseEncoder strips the marker before bytes are written.
-        HttpUtil.setTransferEncodingChunked(response, true)
       } else if (resultUtils.mayHaveEntity(result.header.status)) {
         result.body.contentLength.foreach { contentLength =>
           if (HttpUtil.isContentLengthSet(response)) {

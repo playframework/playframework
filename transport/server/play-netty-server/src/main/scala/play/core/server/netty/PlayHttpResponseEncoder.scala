@@ -22,8 +22,14 @@ private[server] final class PlayHttpResponseEncoder extends HttpResponseEncoder 
   protected override def sanitizeHeadersBeforeEncode(response: HttpResponse, isAlwaysEmpty: Boolean): Unit = {
     super.sanitizeHeadersBeforeEncode(response, isAlwaysEmpty)
     if (response.isInstanceOf[HeadHttpResponse]) {
-      response.headers().remove(HttpHeaderNames.CONTENT_LENGTH)
+      // HttpStreamsServerHandler needs a synthetic chunked marker when no length is known. Strip both that marker
+      // and any application-supplied Transfer-Encoding before writing a HEAD response; a declared Content-Length
+      // remains useful response metadata.
       response.headers().remove(HttpHeaderNames.TRANSFER_ENCODING)
+      if (response.status().code() == HttpResponseStatus.RESET_CONTENT.code()) {
+        // Netty adds Content-Length: 0 while sanitizing 205 responses, but Pekko HTTP omits it for HEAD.
+        response.headers().remove(HttpHeaderNames.CONTENT_LENGTH)
+      }
     }
   }
 }

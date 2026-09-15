@@ -44,6 +44,11 @@ trait HeadActionSpec
         Action { request => Results.Ok.chunked(Source(List("a", "b", "c"))) }
     }
 
+    def emptyResponses(implicit Action: DefaultActionBuilder): Routes = {
+      case GET(p"/empty")         => Action(Results.Ok)
+      case GET(p"/reset-content") => Action(Results.ResetContent)
+    }
+
     def routes(implicit Action: DefaultActionBuilder) =
       get                          // GET /get
         .orElse(patch)             // PATCH /patch
@@ -52,6 +57,7 @@ trait HeadActionSpec
         .orElse(delete)            // DELETE /delete
         .orElse(stream)            // GET /stream/0
         .orElse(chunkedResponse)   // GET /chunked
+        .orElse(emptyResponses)    // GET /empty, /reset-content
         .orElse(webSocketResponse) // GET /ws
 
     def withServer[T](block: WSClient => T): T = {
@@ -95,16 +101,12 @@ trait HeadActionSpec
       val headHeaders             = responses(0).underlying[NettyResponse].getHeaders
       val getHeaders: HttpHeaders = responses(1).underlying[NettyResponse].getHeaders
 
-      // Exclude `Date` because it can vary between requests. Exclude `Content-Length` because Pekko HTTP 2 changed
-      // its HEAD response rendering to omit it in apache/pekko-http#962, porting akka/akka-http#4214
-      // (pekko-http commit 1a65bf1a5). Match the Netty backend to keep Play's server behavior consistent.
+      // Pekko HTTP 2 initially omitted Content-Length for HEAD in apache/pekko-http#962 (porting
+      // akka/akka-http#4214), then apache/pekko-http#1237 (commit dd0a4a334) restored declared non-zero lengths.
+      // Content-Length should therefore match the GET response; only Date can vary between requests.
       import scala.jdk.CollectionConverters._
-      Seq(DATE, CONTENT_LENGTH).foreach { header =>
-        headHeaders.remove(header)
-        getHeaders.remove(header)
-      }
-      val firstHeaders  = headHeaders
-      val secondHeaders = getHeaders
+      val firstHeaders  = headHeaders.remove(DATE)
+      val secondHeaders = getHeaders.remove(DATE)
 
       // HTTPHeaders doesn't seem to be anything as simple as an equals method, so let's compare A !< B && B >! A
       val notInFirst = secondHeaders.asScala.collectFirst {
@@ -157,13 +159,30 @@ trait HeadActionSpec
       response.header(CONTENT_LENGTH) must beNone
     }
 
+    "omit Content-Length for empty responses" in withServer { client =>
+      val response = await(client.url("/empty").head())
+
+      response.status must_== OK
+      response.body[String] must_== ""
+      response.header(CONTENT_LENGTH) must beNone
+    }
+
+    "omit Content-Length for empty 205 responses" in withServer { client =>
+      val response = await(client.url("/reset-content").head())
+
+      response.status must_== RESET_CONTENT
+      response.body[String] must_== ""
+      response.header(CONTENT_LENGTH) must beNone
+    }
+
     "handle Content-Length for streamed responses" in withServer { client =>
       val response = await(client.url("/stream/10").head())
 
       response.body[String] must_== ""
-      // Pekko HTTP 2 omits generated Content-Length headers for HEAD responses after apache/pekko-http#962,
-      // ported from akka/akka-http#4214. Netty follows that behavior here for backend consistency.
-      response.header(CONTENT_LENGTH) must beNone
+      // Pekko HTTP 2 initially omitted Content-Length for HEAD in apache/pekko-http#962 (porting
+      // akka/akka-http#4214), then apache/pekko-http#1237 (commit dd0a4a334) restored lengths explicitly declared by
+      // an entity. This streamed entity declares a length of 10; Netty follows the same behavior for consistency.
+      response.header(CONTENT_LENGTH) must beSome("10")
     }
   }
 }
