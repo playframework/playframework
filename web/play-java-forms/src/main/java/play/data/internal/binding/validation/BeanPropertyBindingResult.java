@@ -22,6 +22,7 @@ package play.data.internal.binding.validation;
 
 import java.io.Serializable;
 
+import play.data.internal.binding.beans.AutoGrowBudget;
 import play.data.internal.binding.beans.BeanWrapperImpl;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
 
@@ -49,6 +50,8 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 
 	private final int autoGrowCollectionLimit;
 
+	private final AutoGrowBudget autoGrowBudget;
+
 	private transient BeanWrapperImpl beanWrapper;
 
 	/**
@@ -57,14 +60,16 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 	 * @param objectName the name of the target object
 	 * @param autoGrowNestedPaths whether to "auto-grow" a nested path that contains a null value
 	 * @param autoGrowCollectionLimit the limit for array and collection auto-growing
+	 * @param autoGrowBudget the budget for cumulative auto-growing
 	 */
 	public BeanPropertyBindingResult(Object target, String objectName,
-			boolean autoGrowNestedPaths, int autoGrowCollectionLimit) {
+			boolean autoGrowNestedPaths, int autoGrowCollectionLimit, AutoGrowBudget autoGrowBudget) {
 
 		super(objectName);
 		this.target = target;
 		this.autoGrowNestedPaths = autoGrowNestedPaths;
 		this.autoGrowCollectionLimit = autoGrowCollectionLimit;
+		this.autoGrowBudget = autoGrowBudget;
 	}
 
 
@@ -84,6 +89,7 @@ public class BeanPropertyBindingResult extends AbstractPropertyBindingResult imp
 			this.beanWrapper = createBeanWrapper();
 			this.beanWrapper.setAutoGrowNestedPaths(this.autoGrowNestedPaths);
 			this.beanWrapper.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
+			this.beanWrapper.setAutoGrowBudget(this.autoGrowBudget);
 		}
 		return this.beanWrapper;
 	}
