@@ -3,6 +3,7 @@
  */
 package play.gradle.plugin;
 
+import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.plugins.ApplicationPlugin.APPLICATION_GROUP;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME;
@@ -20,16 +21,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -38,11 +42,14 @@ import org.jetbrains.annotations.Nullable;
 import play.gradle.task.PlayRun;
 
 @Incubating
-public class PlayRunPlugin implements Plugin<Project> {
+public abstract class PlayRunPlugin implements Plugin<Project> {
 
   public static final int DEFAULT_HTTP_PORT = 9000;
 
   public static final String PLAY_RUN_TASK_NAME = "playRun";
+
+  @Inject
+  protected abstract ObjectFactory getObjectFactory();
 
   @Override
   public void apply(@NotNull final Project project) {
@@ -62,8 +69,22 @@ public class PlayRunPlugin implements Plugin<Project> {
         .getFiles();
   }
 
-  private ConfigurableFileCollection findClasspathDirectories(@Nullable Project project) {
-    if (project == null) return null;
+  private FileCollection childProjectsClasspath(Configuration runtime, String libraryElements) {
+    return runtime
+        .getIncoming()
+        .artifactView(
+            view -> {
+              view.setLenient(true);
+              view.componentFilter(component -> isProjectComponent(component));
+              view.getAttributes()
+                  .attribute(
+                      LIBRARY_ELEMENTS_ATTRIBUTE,
+                      getObjectFactory().named(LibraryElements.class, libraryElements));
+            })
+        .getFiles();
+  }
+
+  private ConfigurableFileCollection findClasspathDirectories(final Project project) {
     var mainSourceSet = mainSourceSet(project);
     var processResources =
         (ProcessResources) project.getTasks().findByName(PROCESS_RESOURCES_TASK_NAME);
@@ -117,14 +138,14 @@ public class PlayRunPlugin implements Plugin<Project> {
               var runtime =
                   project.getConfigurations().getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME);
               playRun.getRuntimeClasspath().from(filterNonChangingArtifacts(runtime));
+              playRun.getClasses().from(childProjectsClasspath(runtime, LibraryElements.CLASSES));
+              playRun.getClasses().from(childProjectsClasspath(runtime, LibraryElements.RESOURCES));
 
               filterProjectComponents(runtime)
                   .forEach(
                       path -> {
                         Project child = project.findProject(path);
                         if (child == null) return;
-                        playRun.getClasses().from(findClasspathDirectories(child));
-                        playRun.dependsOn(child.getTasks().findByName(PROCESS_RESOURCES_TASK_NAME));
                         if (isPlayProject(child)) {
                           playRun.getAssetsDirs().from(findAssetsDirectories(child));
                           playRun.dependsOn(child.getTasks().findByName(PROCESS_ASSETS_TASK_NAME));
