@@ -3180,6 +3180,7 @@ public class Http {
     String ACCEPT_CHARSET = "Accept-Charset";
     String ACCEPT_ENCODING = "Accept-Encoding";
     String ACCEPT_LANGUAGE = "Accept-Language";
+    String ACCEPT_QUERY = "Accept-Query";
     String ACCEPT_RANGES = "Accept-Ranges";
     String AGE = "Age";
     String ALLOW = "Allow";
@@ -3370,5 +3371,6 @@ public class Http {
     String DELETE = "DELETE";
     String HEAD = "HEAD";
     String OPTIONS = "OPTIONS";
+    String QUERY = "QUERY";
   }
 }
