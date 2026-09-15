@@ -3,6 +3,8 @@
  */
 package play.gradle.plugin;
 
+import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 import static org.gradle.api.plugins.BasePlugin.ASSEMBLE_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
@@ -15,6 +17,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -35,6 +40,9 @@ public class PlayAssetsPlugin implements Plugin<Project> {
 
   public static final String PUBLIC_SOURCE_NAME = "public";
   public static final String ASSETS_SOURCE_NAME = "assets";
+
+  public static final String PLAY_ASSETS_USAGE = "play-assets";
+
   private final ObjectFactory objectFactory;
 
   @Inject
@@ -51,6 +59,7 @@ public class PlayAssetsPlugin implements Plugin<Project> {
     TaskProvider<Task> processAssets = createProcessAssetsTask(project, processPublic);
     TaskProvider<Jar> assetsJar =
         createAssetsJarTask(project, publicSource, assetsSource, processAssets);
+    createAssetsElementsConfiguration(project, publicSource, assetsSource, processAssets);
     project.getTasks().named(ASSEMBLE_TASK_NAME, assembleTask -> assembleTask.dependsOn(assetsJar));
     project.getDependencies().add(RUNTIME_ONLY_CONFIGURATION_NAME, project.files(assetsJar));
   }
@@ -123,6 +132,31 @@ public class PlayAssetsPlugin implements Plugin<Project> {
               task.setDescription("Process assets.");
               task.dependsOn(processPublic);
             });
+  }
+
+  private void createAssetsElementsConfiguration(
+      final Project project,
+      SourceDirectorySet publicSource,
+      SourceDirectorySet assetsSource,
+      TaskProvider<Task> processAssets) {
+    var mainSourceSet = mainSourceSet(project);
+    Configuration conf = project.getConfigurations().create("playAssetsElements");
+    conf.setDescription("Assets directories of the application running in DEV-mode.");
+    conf.setVisible(false);
+    conf.setCanBeConsumed(true);
+    conf.setCanBeResolved(false);
+    conf.extendsFrom(
+        project.getConfigurations().getByName(mainSourceSet.getImplementationConfigurationName()),
+        project.getConfigurations().getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
+    conf.getAttributes()
+        .attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, PLAY_ASSETS_USAGE))
+        .attribute(CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
+    conf.getOutgoing()
+        .artifact(
+            publicSource.getDestinationDirectory(), artifact -> artifact.builtBy(processAssets));
+    conf.getOutgoing()
+        .artifact(
+            assetsSource.getDestinationDirectory(), artifact -> artifact.builtBy(processAssets));
   }
 
   private TaskProvider<Jar> createAssetsJarTask(
