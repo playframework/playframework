@@ -7,8 +7,6 @@ import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 import static org.gradle.api.plugins.ApplicationPlugin.APPLICATION_GROUP;
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
-import static org.gradle.api.plugins.JavaPlugin.PROCESS_RESOURCES_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static play.gradle.internal.Utils.isProjectComponent;
 import static play.gradle.internal.Utils.mainSourceSet;
@@ -20,8 +18,6 @@ import static play.gradle.plugin.PlayAssetsPlugin.PUBLIC_SOURCE_NAME;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -32,14 +28,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.language.jvm.tasks.ProcessResources;
 import org.jetbrains.annotations.NotNull;
 import play.gradle.task.PlayRun;
 
@@ -84,21 +77,6 @@ public abstract class PlayRunPlugin implements Plugin<Project> {
                       getObjectFactory().named(LibraryElements.class, libraryElements));
             })
         .getFiles();
-  }
-
-  private ConfigurableFileCollection findClasspathDirectories(final Project project) {
-    var mainSourceSet = mainSourceSet(project);
-    var processResources =
-        (ProcessResources) project.getTasks().findByName(PROCESS_RESOURCES_TASK_NAME);
-    var compileJava = (AbstractCompile) project.getTasks().findByName(COMPILE_JAVA_TASK_NAME);
-    return project.files(
-        (processResources != null) ? processResources.getDestinationDir() : null,
-        (compileJava != null) ? compileJava.getDestinationDirectory() : null,
-        Stream.of("scala", "kotlin")
-            .map(source -> ((SourceDirectorySet) mainSourceSet.getExtensions().findByName(source)))
-            .filter(Objects::nonNull)
-            .map(SourceDirectorySet::getClassesDirectory)
-            .toList());
   }
 
   private Configuration createAssetsPathConfiguration(final Project project) {
@@ -156,7 +134,7 @@ public abstract class PlayRunPlugin implements Plugin<Project> {
               playRun.dependsOn(project.getTasks().findByName(JavaPlugin.CLASSES_TASK_NAME));
               playRun.getOutputs().upToDateWhen(task -> ((PlayRun) task).isUpToDate());
               playRun.getWorkingDir().convention(project.getLayout().getProjectDirectory());
-              playRun.getClasses().from(findClasspathDirectories(project));
+              playRun.getClasses().from(mainSourceSet(project).getOutput());
               playRun.getAssetsDirs().from(assetsDirs(project));
               playRun.getAssetsDirs().from(childProjectsAssetsDirs(assetsPath));
               playRun.getAssetsPath().convention(playExtension(project).getAssets().getPath());
