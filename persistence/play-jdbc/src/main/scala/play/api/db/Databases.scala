@@ -195,7 +195,7 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
           connection.commit()
           throw e
         case e: Throwable =>
-          connection.rollback()
+          rollbackQuietly(connection)
           throw e
       }
     }
@@ -214,11 +214,33 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
           connection.commit()
           throw e
         case e: Throwable =>
-          connection.rollback()
+          rollbackQuietly(connection)
           throw e
       } finally {
-        connection.setTransactionIsolation(oldIsolationLevel)
+        restoreIsolationLevelQuietly(connection, oldIsolationLevel)
       }
+    }
+  }
+
+  private def rollbackQuietly(connection: Connection): Unit = {
+    try {
+      // attempt to do things in a clean way, with explicit rollback
+      connection.rollback()
+    } catch {
+      // we failed to rollback: the connection handle is dead anyways
+      // it will be, or has already been, rollbacked server-side
+      // swallow the exception so we can throw the original one from the block statement
+      case NonFatal(_) => ()
+    }
+  }
+
+  private def restoreIsolationLevelQuietly(connection: Connection, isolationLevel: Int): Unit = {
+    try {
+      connection.setTransactionIsolation(isolationLevel)
+    } catch {
+      // the connection is already dead, its isolation level no longer matters
+      // swallow the exception so we can throw the original one from the block statement
+      case NonFatal(_) => ()
     }
   }
 
