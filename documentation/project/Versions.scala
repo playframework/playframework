@@ -2,15 +2,14 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+// Keep in sync with ../../project/Versions.scala.
 object ScalaVersions {
-  val scala212Version   = "2.12.21"
   val scala213Version   = "2.13.18"
   val scala33LTSVersion = "3.3.8"
   val scala39LTSVersion = "3.9.0"
   val scala3NextVersion = "3.10.0-RC2"
 
-  val publishedScalaVersions = Seq(scala213Version, scala33LTSVersion)
-  val testedScalaVersions    =
+  val testedScalaVersions =
     Seq(scala213Version, scala33LTSVersion, scala39LTSVersion, scala3NextVersion)
 
   private val scalaVersionAliases = Map(
@@ -21,9 +20,4 @@ object ScalaVersions {
   )
 
   def resolveScalaVersion(version: String): String = scalaVersionAliases.getOrElse(version, version)
-}
-
-object SbtVersions {
-  val sbt1 = "1.12.15"
-  val sbt2 = "2.1.0-M2"
 }

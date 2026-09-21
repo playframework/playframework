@@ -11,7 +11,7 @@ object Dependencies {
   val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M4")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+293-40b07a21-SNAPSHOT")
 
-  val playJsonVersion = "3.1.0-M10"
+  val playJsonVersion = "3.1.0-M10+89-827e146f-SNAPSHOT"
 
   val logback = "ch.qos.logback" % "logback-classic" % "1.6.3"
 
@@ -221,7 +221,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion       = "3.1.0-M1"
+  val playDocVersion       = "3.1.0-M1+52-b086c05b-SNAPSHOT"
   val playDocsDependencies = Seq(
     "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -289,7 +289,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M14"
+  val playWsStandaloneVersion = "3.1.0-M14+18-e10c553c-SNAPSHOT"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

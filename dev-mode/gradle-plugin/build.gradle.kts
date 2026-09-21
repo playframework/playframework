@@ -32,6 +32,7 @@ version = playVersion
 repositories {
     mavenCentral()
     mavenLocal()
+    maven("https://central.sonatype.com/repository/maven-snapshots/")
     gradlePluginPortal()
 }
 
@@ -62,8 +63,10 @@ testing {
                     testTask.configure {
                         systemProperty("play.version", playVersion)
                         project.findProperty("scala.version")?.let { scalaVersion ->
-                            val ver = (scalaVersion as String).trimEnd { !it.isDigit() }
-                            systemProperty("scala.version", ver)
+                            val components = (scalaVersion as String).split('.')
+                            val binaryVersion =
+                                if (components.first() == "3") "3" else components.take(2).joinToString(".")
+                            systemProperty("scala.version", binaryVersion)
                         }
                     }
                 }

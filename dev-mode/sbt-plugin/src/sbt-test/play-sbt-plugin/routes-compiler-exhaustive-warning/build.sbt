@@ -2,10 +2,10 @@
 
 enablePlugins(PlayScala)
 
-def Scala3 = "3.9.0"
+val selectedScalaVersion = ScriptedTools.scalaVersionFromJavaProperties()
 
-scalaVersion := Scala3
+scalaVersion := selectedScalaVersion
 
-crossScalaVersions := Seq("2.13.18", Scala3)
+crossScalaVersions := Seq("2.13.18", selectedScalaVersion).distinct
 
 scalacOptions += "-Werror"

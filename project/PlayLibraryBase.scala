@@ -2,8 +2,6 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-import sbt.librarymanagement.SemanticSelector
-import sbt.librarymanagement.VersionNumber
 import sbt.AutoPlugin
 import sbt.Keys._
 import sbt.ThisBuild
@@ -29,17 +27,12 @@ object PlayLibraryBase extends AutoPlugin {
     omnidocTagPrefix  := "",
     compile / javacOptions ++= Seq("--release", "17"),
     doc / javacOptions := Seq("-source", "17"),
-    crossScalaVersions := Seq(scalaVersion.value, ScalaVersions.scala39),
-    scalaVersion       := (Seq(ScalaVersions.scala213, ScalaVersions.scala39)
-      .filter(v =>
-        SemanticSelector(sys.props.get("scala.version").getOrElse(ScalaVersions.scala213)).matches(VersionNumber(v))
-      ) match {
-      case Nil          => sys.error("Unable to detect scalaVersion!")
-      case Seq(version) => version
-      case multiple     =>
-        sys.error(
-          s"Multiple crossScalaVersions matched query '${sys.props("scala.version")}': ${multiple.mkString(", ")}"
-        )
-    }),
+    scalaVersion       := ScalaVersions.resolveScalaVersion(
+      sys.props.getOrElse("scala.version", ScalaVersions.scala213Version)
+    ),
+    crossScalaVersions := ScalaVersions.publishedScalaVersions,
+    scalacOptions ++= {
+      if (scalaVersion.value.startsWith("3.3.")) Seq("-Yfuture-lazy-vals") else Seq.empty
+    },
   )
 }

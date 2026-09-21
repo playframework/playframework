@@ -3,6 +3,8 @@
 // Comment to get more information during initialization
 logLevel := Level.Warn
 
+resolvers += Resolver.sonatypeCentralSnapshots
+
 lazy val plugins = (project in file(".")).dependsOn(playDocsPlugin)
 
 lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile, "Play-Docs-Sbt-Plugin")
@@ -16,7 +18,7 @@ addSbtPlugin("com.github.sbt" % "sbt-java-formatter" % "0.13.1")
 addSbtPlugin("org.scalameta"  % "sbt-scalafmt"       % "2.6.2")
 
 // Required for Tutorial
-addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.1.0-M9") // sync with project/plugins.sbt
+addSbtPlugin("org.playframework.twirl" % "sbt-twirl" % "2.1.0-M9+126-adca2222-SNAPSHOT") // sync with project/plugins.sbt
 
 // Required for IDE docs
 addSbtPlugin("com.github.sbt" % "sbt-eclipse" % "6.3.0-M1")
