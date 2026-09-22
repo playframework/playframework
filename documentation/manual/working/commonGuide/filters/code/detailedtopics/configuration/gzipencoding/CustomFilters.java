@@ -7,7 +7,6 @@ package detailedtopics.configuration.gzipencoding;
 import jakarta.inject.Inject;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiPredicate;
 import org.apache.pekko.stream.Materializer;
 import play.filters.gzip.GzipFilter;
 import play.filters.gzip.GzipFilterConfig;
@@ -27,8 +26,8 @@ public class CustomFilters implements HttpFilters {
     GzipFilter gzipFilter =
         new GzipFilter(
             gzipFilterConfig.withShouldGzip(
-                (BiPredicate<Http.RequestHeader, Result>)
-                    (req, res) -> res.body().contentType().orElse("").startsWith("text/html")),
+                (Http.RequestHeader req, Result res) ->
+                    res.body().contentType().orElse("").startsWith("text/html")),
             materializer);
     // #gzip-filter
     filters = Collections.singletonList(gzipFilter.asJava());
