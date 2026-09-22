@@ -178,7 +178,7 @@ jobs:
       scala: 2.13.x, 3.3.x, 3.9.x, 3.next
       add-dimensions: >-
         {
-          "sbt": [ "1.12.15", "2.1.0-M2" ],
+          "sbt": [ "1.12.15", "2.1.0-bin-20260921-2124f13-NIGHTLY" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       exclude: >-
