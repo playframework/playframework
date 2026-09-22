@@ -15,6 +15,7 @@ import scala.util.control.NonFatal
 import com.typesafe.config.Config
 import play.api.Configuration
 import play.api.Environment
+import play.api.Logger
 import play.utils.ProxyDriver
 import play.utils.Reflect
 
@@ -112,6 +113,8 @@ object Databases {
  * Provides driver registration and connection methods.
  */
 abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
+  import DefaultDatabase._
+
   private val config                 = Configuration(configuration)
   val databaseConfig: DatabaseConfig = DatabaseConfig.fromConfig(config, environment)
 
@@ -230,7 +233,8 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
       // we failed to rollback: the connection handle is dead anyways
       // it will be, or has already been, rollbacked server-side
       // swallow the exception so we can throw the original one from the block statement
-      case NonFatal(_) => ()
+      case NonFatal(ex) =>
+        logger.warn(s"Could not rollback transaction on database [$name], its connection is likely already dead", ex)
     }
   }
 
@@ -240,7 +244,8 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
     } catch {
       // the connection is already dead, its isolation level no longer matters
       // swallow the exception so we can throw the original one from the block statement
-      case NonFatal(_) => ()
+      case NonFatal(ex) =>
+        logger.warn(s"Could not restore transaction isolation level on database [$name]", ex)
     }
   }
 
@@ -254,6 +259,10 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
   def deregisterDriver(): Unit = {
     driver.foreach(DriverManager.deregisterDriver)
   }
+}
+
+object DefaultDatabase {
+  private val logger = Logger(classOf[DefaultDatabase])
 }
 
 /**
