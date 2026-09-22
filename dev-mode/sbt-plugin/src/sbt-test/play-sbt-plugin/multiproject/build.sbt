@@ -25,7 +25,6 @@ lazy val nonplaymodule = (project in file("nonplaymodule"))
 
 def common: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-  update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice
 )
 

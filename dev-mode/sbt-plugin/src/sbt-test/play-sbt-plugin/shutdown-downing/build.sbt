@@ -14,7 +14,6 @@ lazy val root = (project in file("."))
   .settings(
     ScriptedTools.stableUniversalStagingDirectory,
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     evictionErrorLevel := Level.Warn,
     libraryDependencies += guice,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "8.0.0-M1" % Test,

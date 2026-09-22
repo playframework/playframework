@@ -9,7 +9,6 @@ lazy val root = (project in file("."))
     name          := "dist-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies += guice,
     routesGenerator := InjectedRoutesGenerator

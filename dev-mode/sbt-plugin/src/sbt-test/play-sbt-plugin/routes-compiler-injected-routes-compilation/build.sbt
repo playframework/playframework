@@ -6,7 +6,6 @@ lazy val root = (project in file("."))
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
-update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // can't use test directory since scripted calls its script "test"
 Test / sourceDirectory := baseDirectory.value / "tests"

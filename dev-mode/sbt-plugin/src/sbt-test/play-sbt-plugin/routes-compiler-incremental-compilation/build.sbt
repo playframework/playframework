@@ -4,7 +4,6 @@ lazy val root = (project in file("."))
   .enablePlugins(RoutesCompiler)
   .settings(
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     Compile / routes / sources := Seq(baseDirectory.value / "a.routes", baseDirectory.value / "b.routes"),
     // Keep the output stable so scripted can inspect files and timestamps directly.
     Compile / routes / target := baseDirectory.value / "target" / "routes" / "main",
