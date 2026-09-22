@@ -80,10 +80,8 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get(),
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions := ScalaVersions.testedScalaVersions,
-    scalaVersion := ScalaVersions.resolveScalaVersion(
-      sys.props.getOrElse("scala.version", ScalaVersions.scala213Version)
-    ),
+    crossScalaVersions                        := (playProject("Play") / crossScalaVersions).value,
+    scalaVersion                              := (playProject("Play") / scalaVersion).value,
     // Documentation samples are both test sources and resources and cannot be packaged into one JAR without
     // duplicate entry names. Keep test products as a class directory, matching sbt 1 behavior.
     Test / exportJars := false,

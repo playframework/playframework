@@ -16,7 +16,8 @@ val scalafmt           = "2.5.6"
 val sbtTwirl: String   =
   sys.props.getOrElse("twirl.version", "2.1.0-M9+129-bab5ac69-SNAPSHOT") // sync with documentation/project/plugins.sbt
 
-buildInfoKeys := Seq[BuildInfoKey](
+buildInfoPackage := "playbuildinfo"
+buildInfoKeys    := Seq[BuildInfoKey](
   "sbtNativePackagerVersion" -> sbtNativePackager,
   "sbtTwirlVersion"          -> sbtTwirl,
 )
