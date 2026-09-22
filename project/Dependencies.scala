@@ -221,7 +221,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion       = "3.1.0-M1+52-b086c05b-SNAPSHOT"
+  val playDocVersion       = "3.1.0-M1+56-edd838f4-SNAPSHOT"
   val playDocsDependencies = Seq(
     "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
