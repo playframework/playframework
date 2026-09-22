@@ -4,7 +4,7 @@
 
 import sbt._
 
-import buildinfo.BuildInfo
+import playbuildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
