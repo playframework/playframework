@@ -4,6 +4,7 @@
 
 package play.api.libs.ws.ahc
 
+import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util
 
@@ -11,6 +12,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.language.implicitConversions
 
+import com.sun.net.httpserver.HttpServer
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -84,6 +86,24 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
     val client     = StandaloneAhcWSClient(AhcWSClientConfig())
     val standalone = StandaloneAhcWSRequest(client, url)
     AhcWSRequest(standalone)
+  }
+
+  def withQueryServer[T](block: String => T): T = {
+    val server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0)
+    server.createContext(
+      "/",
+      exchange => {
+        val requestBody = exchange.getRequestBody.readAllBytes()
+        val response    = s"${exchange.getRequestMethod}\n".getBytes(StandardCharsets.UTF_8) ++ requestBody
+        exchange.sendResponseHeaders(200, response.length)
+        val output = exchange.getResponseBody
+        try output.write(response)
+        finally output.close()
+      }
+    )
+    server.start()
+    try block(s"http://127.0.0.1:${server.getAddress.getPort}")
+    finally server.stop(0)
   }
 
   "not make Content-Type header if there is Content-Type in headers already" in {
@@ -382,6 +402,33 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
         rep.status must ===(200)
         (rep.json \ "data").asOpt[String] must beSome("body")
       }
+    }
+  }
+
+  "support query method" in withQueryServer { baseUrl =>
+    val application = GuiceApplicationBuilder().build()
+    Helpers.running(application) {
+      val wsClient = application.injector.instanceOf(classOf[play.api.libs.ws.WSClient])
+
+      val textResponse = await(wsClient.url(s"$baseUrl/text").query("query body"))
+      textResponse.status must ===(200)
+      textResponse.body[String] must_== "QUERY\nquery body"
+
+      val file = java.nio.file.Files.createTempFile("play-ws-query-", ".txt")
+      try {
+        java.nio.file.Files.writeString(file, "file body")
+        val fileResponse = await(wsClient.url(s"$baseUrl/file").query(file.toFile))
+        fileResponse.status must ===(200)
+        fileResponse.body[String] must_== "QUERY\nfile body"
+      } finally {
+        java.nio.file.Files.deleteIfExists(file)
+      }
+
+      val multipartBody     = Source.single(MultipartFormData.DataPart("key", "multipart body"))
+      val multipartResponse = await(wsClient.url(s"$baseUrl/multipart").query(multipartBody))
+      multipartResponse.status must ===(200)
+      multipartResponse.body[String] must contain("QUERY\n")
+      multipartResponse.body[String] must contain("multipart body")
     }
   }
 
