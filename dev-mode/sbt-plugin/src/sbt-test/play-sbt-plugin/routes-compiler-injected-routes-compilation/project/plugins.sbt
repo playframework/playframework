@@ -1,5 +1,7 @@
 // Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
 
+resolvers += Resolver.sonatypeCentralSnapshots
+
 addSbtPlugin("org.playframework" % "sbt-plugin"         % sys.props("project.version"))
 addSbtPlugin("org.playframework" % "sbt-scripted-tools" % sys.props("project.version"))
 addSbtPlugin("com.github.sbt"    % "sbt-mocha"          % "2.2.0-M3")

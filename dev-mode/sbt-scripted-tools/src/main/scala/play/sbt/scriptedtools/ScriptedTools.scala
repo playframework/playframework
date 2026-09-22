@@ -36,6 +36,7 @@ object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[?]] = Def.settings(
+    resolvers += Resolver.sonatypeCentralSnapshots,
     // This is copy/pasted from PekkoSnapshotRepositories since scripted tests also need
     // the snapshot resolvers in `cron` builds.
     // If this is a scheduled GitHub Action
