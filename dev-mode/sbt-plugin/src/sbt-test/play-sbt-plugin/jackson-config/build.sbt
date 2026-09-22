@@ -6,7 +6,6 @@ lazy val root = (project in file("."))
   .settings(
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     InputKey[Unit]("makeRequest") := {
       val args                         = Def.spaceDelimited("<path> <status> <words> ...").parsed

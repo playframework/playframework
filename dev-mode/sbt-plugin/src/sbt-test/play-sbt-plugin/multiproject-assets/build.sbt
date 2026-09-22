@@ -22,7 +22,6 @@ lazy val root = (project in file("."))
     name          := "assets-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     Assets / LessKeys.less / includeFilter := "*.less",
     Assets / LessKeys.less / excludeFilter := "_*.less"
@@ -35,7 +34,6 @@ lazy val runtimeModule = (project in file("runtime-module"))
     name          := "runtime-module-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false)
   )
 
 root / unzipAssetsJar := {
