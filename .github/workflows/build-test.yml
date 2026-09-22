@@ -44,10 +44,16 @@ jobs:
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
-          sbt +update                                             # Runs with adoptium:8 (default)
-          # sbt --sbt-version 1.12.15 +update                      # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
+          sbt +update                                             # Fetches dependencies for published 2.13/3.3 artifacts
+          sbt "-Dscala.version=3.9.x" update                      # Fetches dependencies for the Scala 3 LTS test lane
+          sbt "-Dscala.version=3.next" update                     # Fetches dependencies for the Scala 3 next test lane
+          # sbt --sbt-version 1.12.15 +update                     # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
-          cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
+          cd documentation
+          sbt +update                                             # Fetches documentation dependencies for published artifacts
+          sbt "-Dscala.version=3.9.x" update                      # Fetches documentation dependencies for the Scala 3 LTS lane
+          sbt "-Dscala.version=3.next" update                     # Fetches documentation dependencies for the Scala 3 next lane
+          cd ..
           sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:25` exit    # Init sbt with new JVM that will be downloaded
@@ -131,7 +137,8 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
       java: 25, 21, 17
-      scala: 2.13.x, 3.x
+      # Symbolic lanes resolve to exact versions in project/Versions.scala.
+      scala: 2.13.x, 3.3.x, 3.9.x, 3.next
       add-dimensions: >-
         {
           "sbt_test_task": [ "test", "Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true" ]
@@ -142,7 +149,7 @@ jobs:
           { "sbt_test_task": "${{ github.event_name == 'schedule' || 'Play-Microbenchmark/jmh:run -i 1 -wi 0 -f 1 -t 1 $JMH_PARAMS -foe=true' }}" }
         ]
       cmd: >-
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA "$(eval "echo $MATRIX_SBT_TEST_TASK")"
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "-Dscala.version=$MATRIX_SCALA" "show scalaVersion;" "$(eval "echo $MATRIX_SBT_TEST_TASK")"
 
   docs-tests:
     name: Docs Tests
@@ -155,13 +162,14 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
       java: 25, 21, 17
-      scala: 2.13.x, 3.x
+      # Symbolic lanes resolve to exact versions in project/Versions.scala.
+      scala: 2.13.x, 3.3.x, 3.9.x, 3.next
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: >-
-        cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" ++$MATRIX_SCALA test
+        cd documentation && sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "-Dscala.version=$MATRIX_SCALA" "show scalaVersion;" test
 
   scripted-tests:
     name: Scripted Tests
@@ -172,7 +180,8 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
       java: 25, 21, 17
-      scala: 2.13.x, 3.x
+      # Scripted tests consume locally published 2.13/3.3 artifacts with each supported compiler line.
+      scala: 2.13.x, 3.3.x, 3.9.x, 3.next
       add-dimensions: >-
         {
           "sbt": [ "1.12.15", "2.1.0-bin-20260921-2124f13-NIGHTLY" ],
@@ -193,8 +202,8 @@ jobs:
           project Sbt-Plugin;
           ++ $SBT_PLUGIN_SCALA;
           set scriptedSbt := \"$MATRIX_SBT\";
-          set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
-          set scriptedLaunchOpts += \"-Dscala.crossversions=\" + (LocalProject(\"Play\") / crossScalaVersions).value.mkString(\" \");
+          set scriptedLaunchOpts += \"-Dscala.version=\" + ScalaVersions.resolveScalaVersion(\"$MATRIX_SCALA\");
+          set scriptedLaunchOpts += \"-Dscala.crossversions=\" + ScalaVersions.testedScalaVersions.mkString(\" \");
           show scriptedSbt;
           show scriptedLaunchOpts;
           disableIncompatibleScriptedTests;
@@ -213,7 +222,8 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
       java: 25, 21, 17
-      scala: 2.13.x, 3.x
+      # Gradle only consumes the locally published artifacts by binary suffix, so one lane per suffix is enough.
+      scala: 2.13.x, 3.3.x
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }

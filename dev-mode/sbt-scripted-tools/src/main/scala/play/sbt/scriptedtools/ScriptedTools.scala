@@ -51,18 +51,21 @@ object ScriptedTools extends AutoPlugin {
     cleanFiles += (Universal / universalStagingDirectory).value
   )
 
-  def scalaVersionFromJavaProperties() =
+  def scalaVersionFromJavaProperties(): String =
+    scalaVersionFromJavaProperties(sys.props("scala.version"))
+
+  def scalaVersionFromJavaProperties(selector: String): String =
     sys
       .props("scala.crossversions")
       .split(" ")
       .toSeq
-      .filter(v => SemanticSelector(sys.props("scala.version")).matches(VersionNumber(v))) match {
+      .filter(v => SemanticSelector(selector).matches(VersionNumber(v))) match {
       case Nil =>
         sys.error("Unable to detect scalaVersion! Did you pass scala.crossversions and scala.version Java properties?")
       case Seq(version) => version
       case multiple     =>
         sys.error(
-          s"Multiple crossScalaVersions matched query '${sys.props("scala.version")}': ${multiple.mkString(", ")}"
+          s"Multiple crossScalaVersions matched query '$selector': ${multiple.mkString(", ")}"
         )
     }
 
