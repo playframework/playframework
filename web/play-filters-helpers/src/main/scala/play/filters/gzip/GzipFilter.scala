@@ -4,12 +4,11 @@
 
 package play.filters.gzip
 
-import java.util.function.BiFunction
+import java.util.function.BiPredicate
 import java.util.zip.Deflater
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.jdk.FunctionConverters._
 
 import com.typesafe.config.ConfigMemorySize
 import jakarta.inject.Inject
@@ -213,8 +212,8 @@ case class GzipFilterConfig(
 
   def withShouldGzip(shouldGzip: (RequestHeader, Result) => Boolean): GzipFilterConfig = copy(shouldGzip = shouldGzip)
 
-  def withShouldGzip(shouldGzip: BiFunction[play.mvc.Http.RequestHeader, play.mvc.Result, Boolean]): GzipFilterConfig =
-    withShouldGzip((req: RequestHeader, res: Result) => shouldGzip.asScala(req.asJava, res.asJava))
+  def withShouldGzip(shouldGzip: BiPredicate[play.mvc.Http.RequestHeader, play.mvc.Result]): GzipFilterConfig =
+    withShouldGzip((req: RequestHeader, res: Result) => shouldGzip.test(req.asJava, res.asJava))
 
   def withChunkedThreshold(threshold: Int): GzipFilterConfig = copy(chunkedThreshold = threshold)
 

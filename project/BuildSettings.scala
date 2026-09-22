@@ -318,6 +318,8 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.this"),
       ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
+      // Use the Java BiPredicate type for the gzip decision callback
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.gzip.GzipFilterConfig.withShouldGzip"),
       // Switch to Jakarta DI
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpErrorHandler.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpRequestHandler.this"),
