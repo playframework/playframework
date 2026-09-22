@@ -216,8 +216,8 @@ jobs:
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
       java: 25, 21, 17
-      # Gradle consumes the locally published 2.13/3.3 artifacts through their binary suffixes.
-      scala: 2.13.x, 3.3.x, 3.9.x, 3.next
+      # Gradle only consumes the locally published artifacts by binary suffix, so one lane per suffix is enough.
+      scala: 2.13.x, 3.3.x
       exclude: >-
         [
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
