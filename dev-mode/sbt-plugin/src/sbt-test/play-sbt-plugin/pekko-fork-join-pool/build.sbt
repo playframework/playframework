@@ -9,8 +9,6 @@ lazy val root = (project in file("."))
   .settings(
     ScriptedTools.stableUniversalStagingDirectory,
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies += guice,
     InputKey[Unit]("callIndex") := {

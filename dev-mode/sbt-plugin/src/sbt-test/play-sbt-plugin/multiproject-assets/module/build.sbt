@@ -5,8 +5,6 @@ name := "assets-module-sample"
 version := "1.0-SNAPSHOT"
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
-updateOptions := updateOptions.value.withLatestSnapshots(false)
-update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 Assets / LessKeys.less / includeFilter := "*.less"
 

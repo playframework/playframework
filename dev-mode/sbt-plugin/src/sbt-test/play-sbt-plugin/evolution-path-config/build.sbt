@@ -5,8 +5,6 @@ lazy val root = (project in file("."))
   .settings(
     name          := "evolutions-path-config",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies ++= Seq(
       guice,
@@ -22,8 +20,6 @@ lazy val itTests = (project in file("integration-tests"))
   .settings(
     name          := "evolutions-path-config-integration-tests",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     publish / skip               := true,
     evictionErrorLevel           := Level.Warn,
