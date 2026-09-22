@@ -10,7 +10,6 @@ libraryDependencies ++= Seq(
 )
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
-update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // can't use test directory since scripted calls its script "test"
 Test / sourceDirectory := baseDirectory.value / "tests"

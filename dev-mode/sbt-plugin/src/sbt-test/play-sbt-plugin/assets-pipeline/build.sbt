@@ -20,7 +20,6 @@ lazy val root = (project in file("."))
     ScriptedTools.stableUniversalStagingDirectory,
     name          := "assets-pipeline",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     WebKeys.webTarget            := baseDirectory.value / "target" / "web",
     cleanFiles += WebKeys.webTarget.value,

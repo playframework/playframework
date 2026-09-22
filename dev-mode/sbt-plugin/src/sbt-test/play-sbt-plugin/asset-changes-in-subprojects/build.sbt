@@ -150,6 +150,5 @@ def common: Seq[Setting[?]] = Seq(
   version                      := "1.0-SNAPSHOT",
   PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
   scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
-  update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice,
 )

@@ -11,7 +11,6 @@ lazy val root = (project in file("."))
     name          := "secret-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     libraryDependencies += guice,
     compileIgnoreErrors  := ScriptedTools.compileIgnoringErrors(state.value, fileConverter.value),
     checkCompilerProblem := {

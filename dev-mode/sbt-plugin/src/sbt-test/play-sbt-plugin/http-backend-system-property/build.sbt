@@ -5,7 +5,6 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 name := "http-backend-system-property"
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
-update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // because the "test" directory clashes with the scripted test file
 (Test / scalaSource) := (baseDirectory.value / "tests")

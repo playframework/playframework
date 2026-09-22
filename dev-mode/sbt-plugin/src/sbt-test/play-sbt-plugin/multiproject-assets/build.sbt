@@ -22,7 +22,6 @@ lazy val root = (project in file("."))
     name          := "assets-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     Assets / LessKeys.less / includeFilter := "*.less",
     Assets / LessKeys.less / excludeFilter := "_*.less"
   )
