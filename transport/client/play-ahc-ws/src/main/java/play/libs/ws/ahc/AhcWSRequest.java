@@ -163,6 +163,38 @@ public class AhcWSRequest implements WSRequest {
   }
 
   @Override
+  public CompletionStage<WSResponse> query(String string) {
+    return request.query(writables.body(string)).thenApply(responseFunction);
+  }
+
+  @Override
+  public CompletionStage<WSResponse> query(JsonNode json) {
+    return request.query(writables.body(json)).thenApply(responseFunction);
+  }
+
+  @Override
+  public CompletionStage<WSResponse> query(Document doc) {
+    return request.query(writables.body(doc)).thenApply(responseFunction);
+  }
+
+  @Override
+  @Deprecated
+  public CompletionStage<WSResponse> query(InputStream is) {
+    return request.query(writables.body(() -> is)).thenApply(responseFunction);
+  }
+
+  @Override
+  public CompletionStage<WSResponse> query(File file) {
+    return request.query(writables.body(file)).thenApply(responseFunction);
+  }
+
+  @Override
+  public CompletionStage<WSResponse> query(
+      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> bodyPartSource) {
+    return request.query(writables.multipartBody(bodyPartSource)).thenApply(responseFunction);
+  }
+
+  @Override
   public CompletionStage<WSResponse> delete() {
     return request.delete().thenApply(responseFunction);
   }

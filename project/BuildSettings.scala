@@ -495,6 +495,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingList$"),
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap"),
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap$"),
+      // Add QUERY request support to the Java WS API
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.ws.WSRequest.query"),
       // Remove unused, package-private method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.ahc.AhcWSClient.loggerFactory"),
       // Actually following classes / traits / objects still exists, but were moved from play-java to play
