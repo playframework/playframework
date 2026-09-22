@@ -2,11 +2,12 @@
 
 enablePlugins(PlayScala)
 
-def Scala3 = "3.9.0"
+val selectedScalaVersion = ScriptedTools.scalaVersionFromJavaProperties()
+val scala213Version       = ScriptedTools.scalaVersionFromJavaProperties("2.13.x")
 
-scalaVersion := Scala3
+scalaVersion := selectedScalaVersion
 
-crossScalaVersions := Seq("2.13.18", Scala3)
+crossScalaVersions := Seq(scala213Version, selectedScalaVersion).distinct
 
 TaskKey[Unit]("check") := {
   val dir = crossTarget.value
