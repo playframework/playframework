@@ -11,6 +11,7 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
@@ -405,7 +406,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
   }
 
   def remoteAddressOfRequest(req: HttpRequest): InetSocketAddress = {
-    req.attribute(AttributeKeys.remoteAddress) match {
+    req.getAttribute(AttributeKeys.remoteAddress).toScala match {
       case Some(attr) =>
         attr.toIP match {
           case Some(address) if address.port.isDefined =>
@@ -422,7 +423,7 @@ class PekkoHttpServer(context: PekkoHttpServer.Context) extends Server {
       taggedRequestHeader: RequestHeader,
       handler: Handler
   ): Future[HttpResponse] = {
-    val upgradeToWebSocket = request.attribute(AttributeKeys.webSocketUpgrade)
+    val upgradeToWebSocket = request.getAttribute(AttributeKeys.webSocketUpgrade).toScala
 
     // default execution context used for executing the action
     implicit val defaultExecutionContext: ExecutionContext = tryApp match {
