@@ -36,10 +36,7 @@ object ScriptedTools extends AutoPlugin {
   override def trigger = allRequirements
 
   override def projectSettings: Seq[Def.Setting[?]] = Def.settings(
-    // This is copy/pasted from PekkoSnapshotRepositories since scripted tests also need
-    // the snapshot resolvers in `cron` builds.
-    // If this is a scheduled GitHub Action
-    // https://docs.github.com/en/actions/learn-github-actions/environment-variables
+    // Scripted builds resolve Play ecosystem snapshots from Sonatype and Pekko snapshots from Apache.
     resolvers ++= Seq(Resolver.sonatypeCentralSnapshots, Resolver.ApacheMavenSnapshotsRepo)
   )
 
