@@ -4,7 +4,6 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
   .settings(
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     PlayKeys.fileWatchService    := play.dev.filewatch.FileWatchService.polling(500),

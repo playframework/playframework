@@ -8,7 +8,6 @@ lazy val root = (project in file("."))
 
 def commonSettings: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-  updateOptions := updateOptions.value.withLatestSnapshots(false),
   update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
   libraryDependencies += guice,
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,

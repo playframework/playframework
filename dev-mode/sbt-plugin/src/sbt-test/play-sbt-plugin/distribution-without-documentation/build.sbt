@@ -7,7 +7,6 @@ lazy val root = (project in file("."))
     name          := "dist-no-documentation-sample",
     version       := "1.0-SNAPSHOT",
     scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
     update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
     // actually it should fail on any warning so that we can check that packageBin won't include any documentation
     Compile / scalacOptions := Seq("-Werror", "-deprecation"),
