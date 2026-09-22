@@ -5,7 +5,14 @@
 package play.api.db
 
 import java.sql.SQLException
+import java.sql.SQLNonTransientConnectionException
+import java.sql.SQLSyntaxErrorException
 
+import acolyte.jdbc.ConnectionHandler
+import acolyte.jdbc.QueryResult
+import acolyte.jdbc.ResourceHandler
+import acolyte.jdbc.StatementHandler
+import acolyte.jdbc.UpdateResult
 import org.jdbcdslog.ConnectionPoolDataSourceProxy
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
@@ -124,6 +131,14 @@ class DatabasesSpec extends Specification {
       }
     }
 
+    "resurface the original error when the rollback fails" in new WithDatabase {
+      val db = deadConnectionDatabase("test-withTransaction-deadConnection")
+
+      db.withTransaction { c =>
+        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+      } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+    }
+
     "manual setup transaction isolation level" in new WithDatabase {
       val db = Databases.inMemory(name = "test-manualSetupTrasactionIsolationLevel")
 
@@ -131,6 +146,14 @@ class DatabasesSpec extends Specification {
         c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
         c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
       }
+    }
+
+    "resurface the original error when the rollback fails, with isolation level" in new WithDatabase {
+      val db = deadConnectionDatabase("test-withTransactionIsolationLevel-deadConnection")
+
+      db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
+        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+      } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
     }
 
     "not supply connections after shutdown" in {
@@ -150,6 +173,45 @@ class DatabasesSpec extends Specification {
       db.shutdown()
       db.getConnection().close() must throwA[SQLException]
     }
+  }
+
+  // statement-level error, as reported on invalid SQL
+  def invalidSql(): SQLException = new SQLSyntaxErrorException("Invalid SQL", "42000")
+
+  // connection-level error, as reported on lost socket
+  def connectionLost(): SQLException = new SQLNonTransientConnectionException("Socket error", "08S01")
+
+  /**
+   * A database that rejects every statement as invalid SQL, and whose connections turn out to be
+   * gone once the transaction is cleaned up, so that the rollback fails. The two errors are
+   * deliberately distinct, so that a test can tell which one the caller ends up with.
+   */
+  def deadConnectionDatabase(name: String): Database = {
+    acolyte.jdbc.Driver.register(
+      "DatabasesSpec-deadConnection",
+      new ConnectionHandler.Default(
+        new StatementHandler {
+          def isQuery(sql: String): Boolean = false
+
+          def whenSQLQuery(sql: String, parameters: java.util.List[StatementHandler.Parameter]): QueryResult =
+            throw invalidSql()
+
+          def whenSQLUpdate(sql: String, parameters: java.util.List[StatementHandler.Parameter]): UpdateResult =
+            throw invalidSql()
+        },
+        new ResourceHandler {
+          // only the rollback matters here, the transaction is never committed
+          def whenCommitTransaction(connection: acolyte.jdbc.Connection): Unit   = ()
+          def whenRollbackTransaction(connection: acolyte.jdbc.Connection): Unit = throw connectionLost()
+        }
+      )
+    )
+
+    Databases(
+      driver = "acolyte.jdbc.Driver",
+      url = "jdbc:acolyte:DatabasesSpec?handler=DatabasesSpec-deadConnection",
+      name = name
+    )
   }
 
   trait WithDatabase extends After {
