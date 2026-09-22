@@ -196,7 +196,7 @@ jobs:
           project Sbt-Plugin;
           ++ $SBT_PLUGIN_SCALA;
           set scriptedSbt := \"$MATRIX_SBT\";
-          set scriptedLaunchOpts += \"-Dscala.version=$MATRIX_SCALA\";
+          set scriptedLaunchOpts += \"-Dscala.version=\" + ScalaVersions.resolveScalaVersion(\"$MATRIX_SCALA\");
           set scriptedLaunchOpts += \"-Dscala.crossversions=\" + ScalaVersions.testedScalaVersions.mkString(\" \");
           show scriptedSbt;
           show scriptedLaunchOpts;
