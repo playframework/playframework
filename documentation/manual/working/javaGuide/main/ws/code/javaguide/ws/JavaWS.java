@@ -128,6 +128,11 @@ public class JavaWS {
           .post("key1=value1&key2=value2");
       // #ws-post-form-data
 
+      // #ws-query
+      CompletionStage<WSResponse> queryResponse =
+          ws.url(url).setContentType("application/json").query("{\"search\": \"play framework\"}");
+      // #ws-query
+
       // #ws-post-json
       JsonNode json = Json.newObject().put("key1", "value1").put("key2", "value2");
 

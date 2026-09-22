@@ -6,6 +6,10 @@ This section highlights the new features of Play 3.1. If you want to learn about
 
 ## Other Additions
 
+### HTTP QUERY support in Play WS
+
+Play WS now supports the [HTTP QUERY method](https://www.rfc-editor.org/rfc/rfc10008) for requests carrying a safe, idempotent query body. The new `query(...)` APIs are available to both Scala and Java users.
+
 ### Typed request and forwarded metadata
 
 Play now keeps the selected remote identity, direct transport connection, and effective request scheme and authority as separate typed values. The model supports RFC 7239 unknown and obfuscated identities, retained forwarding paths and `by` nodes, trusted forwarded hosts and schemes, endpoint ports, and identity-aware IP filtering.
