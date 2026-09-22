@@ -158,6 +158,11 @@ public class AhcWSRequest implements WSRequest {
   }
 
   @Override
+  public CompletionStage<WSResponse> query(BodyWritable body) {
+    return request.query(body).thenApply(responseFunction);
+  }
+
+  @Override
   public CompletionStage<WSResponse> delete() {
     return request.delete().thenApply(responseFunction);
   }

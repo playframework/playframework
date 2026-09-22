@@ -241,6 +241,30 @@ trait WSRequest extends StandaloneWSRequest with WSBodyWritables {
   def put(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[Response]
 
   // ------------------------------------------------
+  // QUERY
+  // ------------------------------------------------
+
+  /**
+   * Performs a QUERY request.
+   *
+   * @param body the payload wsBody submitted with this request
+   * @return a future with the response for the QUERY request
+   */
+  override def query[T: BodyWritable](body: T): Future[Response]
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   * Request body won't be chunked
+   */
+  def query(body: File): Future[Response] = query[File](body)
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   */
+  def query(body: Source[MultipartFormData.Part[Source[ByteString, ?]], ?]): Future[Response] =
+    query[Source[MultipartFormData.Part[Source[ByteString, ?]], ?]](body)
+
+  // ------------------------------------------------
   // DELETE, HEAD, OPTIONS
   // ------------------------------------------------
 

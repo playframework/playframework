@@ -109,6 +109,12 @@ If the body is empty, you must pass play.api.libs.ws.EmptyBody into the post met
 
 @[url-encoded](code/ScalaWSSpec.scala)
 
+### Submitting a QUERY request
+
+The [QUERY method](https://www.rfc-editor.org/rfc/rfc10008) is safe and idempotent like GET, but carries a request body.
+
+@[scalaws-query](code/ScalaWSSpec.scala)
+
 ### Submitting multipart/form data
 
 To post multipart-form-encoded data a `Source[play.api.mvc.MultipartFormData.Part[Source[ByteString, Any]], Any]` needs to be passed into `post`.

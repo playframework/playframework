@@ -100,6 +100,14 @@ class ScalaWSSpec extends PlaySpecification with Results with AfterAll {
     (1 to 9).foldLeft(source) { (acc, _) => acc ++ source }
   }
 
+  def submitQuery(ws: WSClient): Future[WSResponse] = {
+    // #scalaws-query
+    ws.url(url)
+      .addHttpHeaders("Content-Type" -> "application/json")
+      .query("""{"search": "play framework"}""")
+    // #scalaws-query
+  }
+
   "WSClient" should {
     "allow making a request" in withSimpleServer { ws =>
       // #simple-holder
