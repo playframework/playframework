@@ -3,6 +3,8 @@
 // Comment to get more information during initialization
 logLevel := Level.Warn
 
+resolvers += Resolver.sonatypeCentralSnapshots
+
 lazy val plugins = (project in file(".")).dependsOn(playDocsPlugin)
 
 lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile, "Play-Docs-Sbt-Plugin")
