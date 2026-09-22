@@ -11,6 +11,21 @@ class GzipEncoding extends PlaySpecification {
   import play.api.http.DefaultHttpFilters
   import play.filters.gzip.GzipFilter
 
+  // #custom-content-encoding
+  object CustomContentEncoding {
+    import org.apache.pekko.stream.scaladsl.Flow
+    import org.apache.pekko.stream.Materializer
+    import org.apache.pekko.util.ByteString
+    import play.filters.encoding.ContentEncodingFilter
+
+    class BrotliFilter(createBrotliFlow: () => Flow[ByteString, ByteString, ?])(implicit mat: Materializer)
+        extends ContentEncodingFilter(
+          encodingName = "br",
+          createFlow = createBrotliFlow
+        )
+  }
+  // #custom-content-encoding
+
   class Filters @Inject() (gzipFilter: GzipFilter) extends DefaultHttpFilters(gzipFilter)
 
   "gzip filter" should {
