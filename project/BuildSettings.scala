@@ -320,6 +320,10 @@ object BuildSettings {
       ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
       // Use the Java BiPredicate type for the gzip decision callback
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.gzip.GzipFilterConfig.withShouldGzip"),
+      // Use Java Predicate types for the CORS decision callbacks
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.cors.CORSConfig.withOriginsAllowed"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.cors.CORSConfig.withMethodsAllowed"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.cors.CORSConfig.withHeadersAllowed"),
       // Switch to Jakarta DI
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpErrorHandler.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpRequestHandler.this"),

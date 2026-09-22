@@ -36,6 +36,10 @@ Forwarded-header parsing, Host and absolute-target validation, scheme retention,
 
 The Java overload of `GzipFilterConfig.withShouldGzip` now accepts a `java.util.function.BiPredicate<Http.RequestHeader, Result>` instead of a `java.util.function.BiFunction<Http.RequestHeader, Result, Boolean>`. Java callers must recompile and can remove any cast that was needed for the old callback type; the body of a boolean-returning lambda does not otherwise need to change.
 
+### Java CORS predicate callbacks use `Predicate`
+
+The Java overloads of `CORSConfig.withOriginsAllowed`, `withMethodsAllowed`, and `withHeadersAllowed` now accept `java.util.function.Predicate<String>` instead of `java.util.function.Function<String, Boolean>`. Java callers must recompile and replace any explicit `Function` declaration or cast with `Predicate`; the body of a boolean-returning lambda does not otherwise need to change.
+
 ### HEAD and Pekko HTTP/2 response framing changes
 
 For HTTP/1.x, a `HEAD` response backed by an empty entity no longer includes `Content-Length: 0`. For statuses that allow an entity, declared positive lengths continue to be rendered, while chunked, close-delimited, and streamed entities without a known length continue to omit `Content-Length`. Matching the Pekko HTTP backend, Netty now also ignores a manually supplied `Content-Length` for a `HEAD` response when the entity does not declare a positive length; declare the length on the response entity instead. Applications are generally unaffected, but tests that explicitly expect `Content-Length: 0` on an empty HTTP/1.x `HEAD` response should be updated. These changes follow [apache/pekko-http#962](https://github.com/apache/pekko-http/pull/962) and [apache/pekko-http#1237](https://github.com/apache/pekko-http/pull/1237).
