@@ -44,10 +44,16 @@ jobs:
     with:
       cmd: |
         if [ "$CACHE_HIT_COURSIER" = "false" ]; then
-          sbt +update                                             # Runs with adoptium:8 (default)
+          sbt +update                                             # Fetches dependencies for published 2.13/3.3 artifacts
+          sbt "-Dscala.version=3.9.x" update                       # Fetches dependencies for the Scala 3 LTS test lane
+          sbt "-Dscala.version=3.next" update                      # Fetches dependencies for the Scala 3 next test lane
           # sbt --sbt-version 1.12.15 +update                      # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
-          cd documentation && sbt +update && cd ..                # Fetches dependencies of the documentation project
+          cd documentation
+          sbt +update                                             # Fetches documentation dependencies for published artifacts
+          sbt "-Dscala.version=3.9.x" update                       # Fetches documentation dependencies for the Scala 3 LTS lane
+          sbt "-Dscala.version=3.next" update                      # Fetches documentation dependencies for the Scala 3 next lane
+          cd ..
           sbt -java-home `cs java-home --jvm adoptium:17` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:21` exit    # Init sbt with new JVM that will be downloaded
           sbt -java-home `cs java-home --jvm adoptium:25` exit    # Init sbt with new JVM that will be downloaded
