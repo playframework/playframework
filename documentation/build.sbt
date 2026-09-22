@@ -111,7 +111,7 @@ lazy val main = Project("Play-Documentation", file("."))
         (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get()
     },
     Test / headerSources ++= Def.uncached {
-      (baseDirectory.value ** "*.md").get()
+      ((baseDirectory.value ** "*.md") --- (baseDirectory.value ** "target" ** "*")).get()
     },
     javafmtSortImports := false,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,
