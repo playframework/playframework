@@ -44,6 +44,8 @@ Since filters are applied after routing is done, it is possible to access routin
 
 @[routing-info-access](code/javaguide/application/httpfilters/RoutedLoggingFilter.java)
 
+For routes generated from a `routes` file, the bound action parameters are available in declaration order through `Router.Attrs.ROUTE_PARAMS`. The values retain the types declared by the route. This attribute is added only after parameter binding succeeds. Use `play.libs.Scala.asJava` to view the value as a Java map.
+
 > **Note:** Routing attributes are a feature of the Play router. If you use a custom router these parameters may not be available.
 
 ## More powerful filters

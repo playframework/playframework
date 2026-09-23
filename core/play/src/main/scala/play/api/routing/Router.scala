@@ -127,6 +127,9 @@ object Router {
 
     /**
      * Key for the route parameters passed to the action method, in declaration order.
+     *
+     * This attribute is present after parameter binding succeeds for a generated route. Parameter values retain
+     * the types declared in the routes file.
      */
     val RouteParams: TypedKey[collection.immutable.SeqMap[String, Any]] = TypedKey("RouteParams")
   }
