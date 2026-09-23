@@ -11,8 +11,12 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 import jakarta.inject._
+import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.scaladsl.Source
+import org.apache.pekko.util.ByteString
 import play.api.cache.ehcache.EhCacheApi
 import play.api.http
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.test._
 import play.api.Application
@@ -120,6 +124,46 @@ class CachedSpec extends PlaySpecification {
         header(EXPIRES, result2) must_== header(EXPIRES, result1)
 
         invoked.get() must_== 1
+      }
+    }
+
+    "forward the request body when populating the cache" in new WithApplication() {
+      override def running() = {
+        implicit val executionContext = app.materializer.executionContext
+        val invoked                   = new AtomicInteger()
+        val underlying                = EssentialAction { _ =>
+          Accumulator(Sink.fold[ByteString, ByteString](ByteString.empty)(_ ++ _)).map { body =>
+            Results.Ok(s"${body.utf8String}-${invoked.incrementAndGet()}")
+          }
+        }
+        val action = cached(using app).everything(_ => "body").build(underlying)
+
+        contentAsString(action(FakeRequest("POST", "/")).run(ByteString("first"))(app.materializer)) must_== "first-1"
+        contentAsString(action(FakeRequest("POST", "/")).run(ByteString("second"))(app.materializer)) must_== "first-1"
+        invoked.get() must_== 1
+      }
+    }
+
+    "pass through streamed responses that are not cacheable" in new WithApplication() {
+      override def running() = {
+        val invoked    = new AtomicInteger()
+        val underlying = EssentialAction { _ =>
+          val invocation = invoked.incrementAndGet()
+          Accumulator.done(Results.NotFound.chunked(Source.single(s"missing-$invocation")))
+        }
+        val action = cached(using app).status(_ => "streamed", OK, 1.minute).build(underlying)
+
+        contentAsString(action(FakeRequest()).run()(app.materializer))(
+          using defaultAwaitTimeout,
+          app.materializer
+        ) must_==
+          "missing-1"
+        contentAsString(action(FakeRequest()).run()(app.materializer))(
+          using defaultAwaitTimeout,
+          app.materializer
+        ) must_==
+          "missing-2"
+        invoked.get() must_== 2
       }
     }
 

@@ -5,17 +5,21 @@
 package play.api.cache
 
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
 
 import jakarta.inject.Inject
+import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import play.api._
 import play.api.http.HeaderNames.ETAG
 import play.api.http.HeaderNames.EXPIRES
 import play.api.http.HeaderNames.IF_NONE_MATCH
 import play.api.libs.streams.Accumulator
+import play.api.libs.typedmap.TypedKey
 import play.api.libs.Codecs
 import play.api.mvc._
 import play.api.mvc.Results.NotModified
@@ -117,6 +121,12 @@ class Cached @Inject() (cache: AsyncCacheApi)(implicit materializer: Materialize
     empty(key).includeStatus(status)
 }
 
+private object CachedAttrs {
+  val Expiration: TypedKey[Duration] = TypedKey("cache-expiration")
+  val Owner: TypedKey[AnyRef]        = TypedKey("cache-owner")
+  val Retained: TypedKey[Boolean]    = TypedKey("cache-retained")
+}
+
 /**
  * Builds an action with caching behavior. Typically created with one of the methods in the `Cached`
  * class. Uses both server and client caches:
@@ -173,22 +183,65 @@ final class CachedBuilder(
             Future.successful(result)
           case None =>
             // Otherwise try to serve the resource from the cache, if it has not yet expired
-            cache
-              .get[SerializableResult](resultKey)
-              .map { result =>
-                result.collect {
-                  case sr: SerializableResult => Accumulator.done(sr.result)
+            Future.successful {
+              Accumulator.source[ByteString].mapFuture { body =>
+                val bodyMaterialized = new AtomicBoolean(false)
+                val requestOwner     = new Object()
+
+                def runAction(): Future[SerializableResult] = {
+                  val accumulatorResult = action(request)
+                  val result            = accumulatorResult
+                    .mapFuture(handleResult(_, etagKey, requestOwner))
+                    .run(body)(materializer)
+                  bodyMaterialized.set(true)
+                  result
+                }
+
+                val result = cache
+                  .getOrElseUpdate[SerializableResult](
+                    resultKey,
+                    (r: SerializableResult) =>
+                      r.result.attrs
+                        .get(CachedAttrs.Expiration)
+                        .getOrElse(Duration.Zero)
+                  ) {
+                    // The resource was not in the cache, so run the underlying action with this request's body.
+                    runAction()
+                  }
+                  .flatMap { cachedResult =>
+                    val attrs                   = cachedResult.result.attrs
+                    val isForeignUncachedResult =
+                      attrs.get(CachedAttrs.Retained).contains(false) &&
+                        attrs.get(CachedAttrs.Owner).exists(_ ne requestOwner)
+
+                    if (isForeignUncachedResult) {
+                      // Do not share a non-cacheable response, particularly a one-shot streamed entity, with another
+                      // request that happened to arrive while the cache loader was in flight.
+                      runAction().flatMap { ownResult =>
+                        val ownAttrs = ownResult.result.attrs
+                        if (ownAttrs.get(CachedAttrs.Retained).contains(true)) {
+                          cache
+                            .set(
+                              resultKey,
+                              ownResult,
+                              ownAttrs.get(CachedAttrs.Expiration).getOrElse(Duration.Zero)
+                            )
+                            .map(_ => ownResult.result)
+                        } else {
+                          Future.successful(ownResult.result)
+                        }
+                      }
+                    } else {
+                      Future.successful(cachedResult.result)
+                    }
+                  }
+
+                result.andThen {
+                  // A cache hit does not run the underlying accumulator, but its request body must still be cancelled.
+                  case _ if !bodyMaterialized.get() => body.runWith(Sink.cancelled)(materializer)
                 }
               }
-              .map {
-                case Some(cachedResource) => cachedResource
-                case None                 =>
-                  // The resource was not in the cache, so we have to run the underlying action
-                  val accumulatorResult = action(request)
-
-                  // Add cache information to the response, so clients can cache its content
-                  accumulatorResult.mapFuture(handleResult(_, etagKey, resultKey))
-              }
+            }
         }
     )
   }
@@ -206,8 +259,14 @@ final class CachedBuilder(
     }
   }
 
-  private def handleResult(result: Result, etagKey: String, resultKey: String): Future[Result] = {
+  private def handleResult(result: Result, etagKey: String, owner: AnyRef): Future[SerializableResult] = {
     import play.core.Execution.Implicits.trampoline
+
+    def retained(duration: Duration): Boolean = duration match {
+      case Duration.MinusInf      => false
+      case finite: FiniteDuration => finite > Duration.Zero
+      case _                      => true
+    }
 
     cachingWithEternity
       .andThen { duration =>
@@ -218,16 +277,32 @@ final class CachedBuilder(
         // Use quoted sha1 hash of expiration date as ETAG
         val etag = s""""${Codecs.sha1(expirationDate)}""""
 
-        val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
-
+        val shouldRetain      = retained(duration)
+        val resultWithHeaders = result
+          .withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
+          .addAttr(CachedAttrs.Expiration, duration)
+          .addAttr(CachedAttrs.Owner, owner)
+          .addAttr(CachedAttrs.Retained, shouldRetain)
+        val serializableResult =
+          if (shouldRetain) new SerializableResult(resultWithHeaders)
+          else SerializableResult.uncached(resultWithHeaders)
         for {
           // Cache the new ETAG of the resource
           _ <- cache.set(etagKey, etag, duration)
-          // Cache the new Result of the resource
-          _ <- cache.set(resultKey, new SerializableResult(resultWithHeaders), duration)
-        } yield resultWithHeaders
+        } yield serializableResult
       }
-      .applyOrElse(result.header, (_: ResponseHeader) => Future.successful(result))
+      .applyOrElse(
+        result.header,
+        (_: ResponseHeader) =>
+          Future.successful(
+            SerializableResult.uncached(
+              result
+                .addAttr(CachedAttrs.Expiration, Duration.Zero)
+                .addAttr(CachedAttrs.Owner, owner)
+                .addAttr(CachedAttrs.Retained, false)
+            )
+          )
+      )
   }
 
   /**
