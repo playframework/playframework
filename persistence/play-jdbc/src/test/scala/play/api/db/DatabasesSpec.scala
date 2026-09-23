@@ -131,11 +131,19 @@ class DatabasesSpec extends Specification {
       }
     }
 
-    "resurface the original error when the rollback fails" in {
-      withDeadConnectionDatabase("test-withTransaction-deadConnection") { db =>
+    "resurface a non-fatal error when the rollback fails" in {
+      withNonFatalErrorDatabase("test-withTransaction-nonFatalError") { db =>
         db.withTransaction { c =>
           c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
         } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+      }
+    }
+
+    "resurface a fatal error when the rollback fails" in {
+      withFatalErrorDatabase("test-withTransaction-fatalError") { db =>
+        db.withTransaction { c =>
+          c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+        } must throwA[SQLNonTransientConnectionException](message = "Socket error")
       }
     }
 
@@ -148,11 +156,19 @@ class DatabasesSpec extends Specification {
       }
     }
 
-    "resurface the original error when the rollback fails, with isolation level" in {
-      withDeadConnectionDatabase("test-withTransactionIsolationLevel-deadConnection") { db =>
+    "resurface a non-fatal error when the rollback fails, with isolation level" in {
+      withNonFatalErrorDatabase("test-withTransactionIsolationLevel-nonFatalError") { db =>
         db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
           c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
         } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+      }
+    }
+
+    "resurface a fatal error when the rollback fails, with isolation level" in {
+      withFatalErrorDatabase("test-withTransactionIsolationLevel-fatalError") { db =>
+        db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
+          c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+        } must throwA[SQLNonTransientConnectionException](message = "Socket error")
       }
     }
 
@@ -182,13 +198,15 @@ class DatabasesSpec extends Specification {
   def connectionLost(): SQLException = new SQLNonTransientConnectionException("Socket error", "08S01")
 
   /**
-   * A database that rejects every statement as invalid SQL, and whose connections turn out to be
-   * gone once the transaction is cleaned up, so that the rollback fails. The two errors are
-   * deliberately distinct, so that a test can tell which one the caller ends up with.
+   * A database that rejects every statement as invalid SQL, which leaves the connection alive, and
+   * whose connections turn out to be gone by the time the transaction is rolled back, so that the
+   * rollback fails in turn. The two errors are deliberately distinct, so that a test can tell which
+   * one the caller ends up with.
    */
-  private def deadConnectionDatabase(name: String): Database = {
-    acolyte.jdbc.Driver.register(
-      "DatabasesSpec-deadConnection",
+  private def nonFatalErrorDatabase(name: String): Database =
+    acolyteDatabase(
+      name,
+      "DatabasesSpec-nonFatalError",
       new ConnectionHandler.Default(
         new StatementHandler {
           def isQuery(sql: String): Boolean = false
@@ -207,17 +225,47 @@ class DatabasesSpec extends Specification {
       )
     )
 
+  /**
+   * A database that loses its connection on every statement. Nothing needs to break the rollback
+   * here: the pool sees a fatal error, evicts the connection, and refuses the rollback on its own.
+   */
+  private def fatalErrorDatabase(name: String): Database =
+    acolyteDatabase(
+      name,
+      "DatabasesSpec-fatalError",
+      new ConnectionHandler.Default(
+        new StatementHandler {
+          def isQuery(sql: String): Boolean = false
+
+          def whenSQLQuery(sql: String, parameters: java.util.List[StatementHandler.Parameter]): QueryResult =
+            throw connectionLost()
+
+          def whenSQLUpdate(sql: String, parameters: java.util.List[StatementHandler.Parameter]): UpdateResult =
+            throw connectionLost()
+        },
+        new ResourceHandler.Default
+      )
+    )
+
+  private def acolyteDatabase(name: String, handlerId: String, handler: ConnectionHandler): Database = {
+    acolyte.jdbc.Driver.register(handlerId, handler)
+
     Databases(
       driver = "acolyte.jdbc.Driver",
-      url = "jdbc:acolyte:DatabasesSpec?handler=DatabasesSpec-deadConnection",
+      url = s"jdbc:acolyte:DatabasesSpec?handler=$handlerId",
       name = name
     )
   }
 
-  // Runs the given block against such a database, then shuts it down.
-  // Provides isolations for Acolyte testing.
-  def withDeadConnectionDatabase[T](name: String)(block: Database => T): T = {
-    val db = deadConnectionDatabase(name)
+  private def withNonFatalErrorDatabase[T](name: String)(block: Database => T): T =
+    withShutdown(nonFatalErrorDatabase(name))(block)
+
+  private def withFatalErrorDatabase[T](name: String)(block: Database => T): T =
+    withShutdown(fatalErrorDatabase(name))(block)
+
+  // Runs the given block against a database, then shuts it down.
+  // Provides isolation for Acolyte testing.
+  private def withShutdown[T](db: Database)(block: Database => T): T = {
     try block(db)
     finally db.shutdown()
   }
