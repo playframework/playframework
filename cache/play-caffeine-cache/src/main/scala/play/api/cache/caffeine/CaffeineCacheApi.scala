@@ -8,7 +8,6 @@ import java.util.concurrent.Executor
 import javax.cache.CacheException
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.FutureConverters._
@@ -187,11 +186,12 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
   private val syncCache: Cache[Any, Any] = cache.synchronous()
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    if (!expiration.isFinite || !expiration.lteq(0.seconds)) {
-      // Cache only if expiration is greater than 0 (0 and below won't cache)
+    if (expiration == Duration.MinusInf || (expiration.isFinite && expiration.lteq(Duration.Zero))) {
+      // Setting an already expired value also needs to remove a value previously stored under the same key.
+      syncCache.invalidate(key)
+    } else {
       syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
     }
-    Done
   }
 
   override def remove(key: String): Unit = syncCache.invalidate(key)

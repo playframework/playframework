@@ -4,7 +4,6 @@
 
 package play.api.cache.caffeine
 
-import scala.concurrent.duration._
 import scala.concurrent.duration.Duration
 
 import com.github.benmanes.caffeine.cache.Expiry
@@ -31,8 +30,9 @@ private[caffeine] class DefaultCaffeineExpiry extends Expiry[String, ExpirableCa
 
   private def calculateExpirationTime(durationMaybe: Option[Duration]): Long = {
     durationMaybe match {
-      case Some(duration) if duration.isFinite && duration.lteq(0.second) =>
-        0.seconds.toNanos // Will always end up in a cache miss, so this equals to not caching at all: https://github.com/ben-manes/caffeine/discussions/803
+      case Some(Duration.MinusInf)                                             => 0L
+      case Some(duration) if duration.isFinite && duration.lteq(Duration.Zero) =>
+        0L // Will always end up in a cache miss, so this equals to not caching at all: https://github.com/ben-manes/caffeine/discussions/803
       case Some(duration) if duration.isFinite => duration.toNanos
       case _                                   => Long.MaxValue
     }
