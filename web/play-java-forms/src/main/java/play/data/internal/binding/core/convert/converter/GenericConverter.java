@@ -55,6 +55,7 @@ public interface GenericConverter {
 	 * @param source the source object to convert (may be {@code null})
 	 * @param sourceType the type descriptor of the field we are converting from
 	 * @param targetType the type descriptor of the field we are converting to
+	 * @param locale the locale to use while converting
 	 * @return the converted object
 	 */
 	Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale);

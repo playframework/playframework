@@ -37,6 +37,7 @@ public class Formatters {
    *
    * @param text the text to parse
    * @param clazz class representing the required type
+   * @param locale the locale to use while parsing
    * @param <T> the type to parse out of the text
    * @return the parsed value
    */
@@ -49,6 +50,7 @@ public class Formatters {
    *
    * @param field the related field (custom formatters are extracted from this field annotation)
    * @param text the text to parse
+   * @param locale the locale to use while parsing
    * @param <T> the type to parse out of the text
    * @return the parsed value
    */
@@ -61,6 +63,7 @@ public class Formatters {
    * Computes the display string for any value.
    *
    * @param t the value to print
+   * @param locale the locale to use while formatting
    * @param <T> the type to print
    * @return the formatted string
    */
@@ -80,6 +83,7 @@ public class Formatters {
    *
    * @param field the related field - custom formatters are extracted from this field annotation
    * @param t the value to print
+   * @param locale the locale to use while formatting
    * @param <T> the type to print
    * @return the formatted string
    */
@@ -92,6 +96,7 @@ public class Formatters {
    *
    * @param desc the field descriptor - custom formatters are extracted from this descriptor.
    * @param t the value to print
+   * @param locale the locale to use while formatting
    * @param <T> the type to print
    * @return the formatted string
    */
