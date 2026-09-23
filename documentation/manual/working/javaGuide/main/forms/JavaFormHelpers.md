@@ -20,6 +20,8 @@ There are several input helpers in the `views.html.helper` package. You feed the
 
 @[full-form](code/javaguide/forms/fullform.scala.html)
 
+For selects with grouped options, use the `selectGrouped` helper. Its `optionGroups` argument pairs each group label with that group's value-label options; an empty group label emits ungrouped options. Java maps can be converted to the required sequence with `views.html.helper.optionsGrouped`, and groups can be disabled by passing their labels in the reserved `_disabledGroups` argument.
+
 As for the `form` helper, you can specify an extra set of parameters that will be added to the generated HTML:
 
 @[extra-params](code/javaguide/forms/helpers.scala.html)

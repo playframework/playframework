@@ -5,7 +5,7 @@
  * {{{
  * @selectGrouped(
  *   field = myForm("mySelect"),
- *   options = Seq(
+ *   optionGroups = Seq(
  *     "" -> Seq(
  *       "opt1" -> "Option without a group",
  *       "opt2" -> "Another option without group"
@@ -20,14 +20,14 @@
  *     )
  *    ),
  *   Symbol("_default") -> "Choose One",
- *   Symbol("_disabled") -> Seq("opt1", "opt3")
- *   Symbol("_disabledGroups") -> Seq("Group 2")
+ *   Symbol("_disabled") -> Seq("opt1", "opt3"),
+ *   Symbol("_disabledGroups") -> Seq("Group 2"),
  *   Symbol("cust_att_name") -> "cust_att_value"
  * )
  * }}}
  *
  * @param field The form field.
- * @param options Sequence of options as pairs of value and HTML.
+ * @param optionGroups Sequence of group labels paired with their options. Use an empty group label for ungrouped options.
  * @param args Set of extra attributes.
  * @param handler The field constructor.
  *@

@@ -163,6 +163,25 @@ class HelpersSpec extends Specification {
   }
 
   "@selectGrouped" should {
+    "render grouped and ungrouped options, preserving selection and escaping content" in {
+      val form = Form(single("foo" -> Forms.text)).fill("2")
+      val body = selectGrouped
+        .apply(
+          form("foo"),
+          Seq(
+            ""              -> Seq("0" -> "Ungrouped"),
+            "Group <one>"   -> Seq("1" -> "One", "2" -> "Two & more"),
+            "Another group" -> Seq("3" -> "Three")
+          )
+        )
+        .body
+
+      body must contain("""<option value="0">Ungrouped</option>""")
+      body must contain("""<optgroup label="Group &lt;one&gt;">""")
+      body must contain("""<option value="2" selected="selected">Two &amp; more</option>""")
+      body must contain("""<optgroup label="Another group">""")
+    }
+
     "not create unnecessary optgroup" in {
       val body = selectGrouped.apply(Form(single("foo" -> Forms.text))("foo"), Seq("" -> Seq("0" -> "test"))).body
 
@@ -184,6 +203,23 @@ class HelpersSpec extends Specification {
 
       body must contain("""<optgroup label="Group 1" disabled>""")
       body must contain("""<optgroup label="Group 2">""")
+    }
+  }
+
+  "optionsGrouped" should {
+    "convert nested Java maps while preserving their iteration order" in {
+      val firstOptions = new java.util.LinkedHashMap[String, String]()
+      firstOptions.put("1", "One")
+      firstOptions.put("2", "Two")
+      val secondOptions = new java.util.LinkedHashMap[String, String]()
+      secondOptions.put("3", "Three")
+      val groups = new java.util.LinkedHashMap[String, java.util.Map[String, String]]()
+      groups.put("First", firstOptions)
+      groups.put("Second", secondOptions)
+
+      optionsGrouped(groups) must beEqualTo(
+        Seq("First" -> Seq("1" -> "One", "2" -> "Two"), "Second" -> Seq("3" -> "Three"))
+      )
     }
   }
 
