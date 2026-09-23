@@ -7,6 +7,7 @@ package play.core.server
 import java.io.File
 import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
@@ -153,15 +154,20 @@ final class DevServerStart(
         // This is usually done by Application itself when it's instantiated, which for other types of ApplicationProviders,
         // is usually instantiated along with or before the provider.  But in dev mode, no application exists initially, so
         // configure it here.
-        // The initialLoggerConfigurator will always be the LogbackLoggerConfigurator, because we don't have an app
-        // available yet, so we can't access and read the app's logger-configurator.properties (if it has one), but only
-        // the logger-configurator.properties Play ships with (which references the LogbackLoggerConfigurator)
-        var initialLoggerConfigurator = LoggerConfigurator(classLoader)
-        initialLoggerConfigurator match {
+        // Without an application, only the logger configurator visible to Play's classloader is available. Keep that
+        // exact instance so it can be shut down before the first application configures logging, or when the dev server
+        // stops without ever loading an application.
+        val initialLoggerConfigurator = new AtomicReference[LoggerConfigurator]()
+        LoggerConfigurator(classLoader) match {
           case Some(loggerConfigurator) =>
             loggerConfigurator.init(path, Mode.Dev)
+            initialLoggerConfigurator.set(loggerConfigurator)
           case None =>
             println("No play.logger.configurator found: logging must be configured entirely by the application.")
+        }
+
+        def shutdownInitialLoggerConfigurator(): Unit = {
+          Option(initialLoggerConfigurator.getAndSet(null)).foreach(_.shutdown())
         }
 
         println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
@@ -217,8 +223,18 @@ final class DevServerStart(
                 println()
               }
 
-              // First, stop the old application if it exists
-              lastState.foreach(Play.stop)
+              // First, stop the old application and its logger configurator if they exist. Use the old application's
+              // classloader as the thread context while shutting logging down; a custom configurator may rely on it.
+              lastState.foreach { app =>
+                Play.stop(app)
+                Threads.withContextClassLoader(app.classloader) {
+                  LoggerConfigurator(app.classloader).foreach(_.shutdown())
+                }
+              }
+
+              // Before building the first application, stop the configurator used to initialize dev-server logging.
+              // getAndSet above also makes this safe if shutdown races with the first reload.
+              shutdownInitialLoggerConfigurator()
 
               // Create the new environment
               val environment = Environment(path, projectClassloader, Mode.Dev)
@@ -234,15 +250,6 @@ final class DevServerStart(
                   devContext = Some(ApplicationLoader.DevContext(sourceMapper, buildLink))
                 )
                 val loader = ApplicationLoader(context)
-
-                // Before building a new app _the first time_, we make sure to shutdown the (Logback)LoggerConfigurator created initally by the dev server above,
-                // because the app that will be build configures its own LoggerConfigurator later (but then by using the app's classloader)
-                initialLoggerConfigurator.foreach(_.shutdown())
-                initialLoggerConfigurator = None
-                // However, if we build an app _not the first time_, but there was an app running before (= lastState is success), we make sure
-                // to shut down that old app's LoggerConfigurator, just before the app that will be build configures its own
-                lastState.foreach(app => LoggerConfigurator(app.classloader).foreach(lc => lc.shutdown()))
-                // FYI: initialLoggerConfigurator and lastState will never both be set at the same time, so in the lines above at most only one shutdown() gets called
 
                 loader.load(context)
               }
@@ -326,6 +333,7 @@ final class DevServerStart(
         // the Application and the Server use separate ActorSystems (e.g. DevMode).
         serverCs.addTask(CoordinatedShutdown.PhaseServiceStop, "shutdown-application-dev-mode") { () =>
           implicit val ctx = actorSystem.dispatcher
+          shutdownInitialLoggerConfigurator()
           appProvider.lastState.foreach(Play.stop)
           appProvider.isShutdown.set(true)
           Future(Done)
