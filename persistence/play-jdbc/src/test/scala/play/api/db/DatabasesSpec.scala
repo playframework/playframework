@@ -131,12 +131,12 @@ class DatabasesSpec extends Specification {
       }
     }
 
-    "resurface the original error when the rollback fails" in new WithDatabase {
-      val db = deadConnectionDatabase("test-withTransaction-deadConnection")
-
-      db.withTransaction { c =>
-        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
-      } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+    "resurface the original error when the rollback fails" in {
+      withDeadConnectionDatabase("test-withTransaction-deadConnection") { db =>
+        db.withTransaction { c =>
+          c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+        } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+      }
     }
 
     "manual setup transaction isolation level" in new WithDatabase {
@@ -148,12 +148,12 @@ class DatabasesSpec extends Specification {
       }
     }
 
-    "resurface the original error when the rollback fails, with isolation level" in new WithDatabase {
-      val db = deadConnectionDatabase("test-withTransactionIsolationLevel-deadConnection")
-
-      db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
-        c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
-      } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+    "resurface the original error when the rollback fails, with isolation level" in {
+      withDeadConnectionDatabase("test-withTransactionIsolationLevel-deadConnection") { db =>
+        db.withTransaction(TransactionIsolationLevel.Serializable) { c =>
+          c.createStatement.execute("insert into test (id, name) values (1, 'alice')")
+        } must throwA[SQLSyntaxErrorException](message = "Invalid SQL")
+      }
     }
 
     "not supply connections after shutdown" in {
@@ -186,7 +186,7 @@ class DatabasesSpec extends Specification {
    * gone once the transaction is cleaned up, so that the rollback fails. The two errors are
    * deliberately distinct, so that a test can tell which one the caller ends up with.
    */
-  def deadConnectionDatabase(name: String): Database = {
+  private def deadConnectionDatabase(name: String): Database = {
     acolyte.jdbc.Driver.register(
       "DatabasesSpec-deadConnection",
       new ConnectionHandler.Default(
@@ -212,6 +212,14 @@ class DatabasesSpec extends Specification {
       url = "jdbc:acolyte:DatabasesSpec?handler=DatabasesSpec-deadConnection",
       name = name
     )
+  }
+
+  // Runs the given block against such a database, then shuts it down.
+  // Provides isolations for Acolyte testing.
+  def withDeadConnectionDatabase[T](name: String)(block: Database => T): T = {
+    val db = deadConnectionDatabase(name)
+    try block(db)
+    finally db.shutdown()
   }
 
   trait WithDatabase extends After {
