@@ -4,8 +4,6 @@
 
 package play.api.mvc.request
 
-import java.util.UUID
-
 import scala.concurrent.Future
 
 import org.apache.pekko.util.ByteString
@@ -24,7 +22,7 @@ object RequestAttrKey {
   /**
    * The key for the request attribute storing a request id.
    */
-  val Id = TypedKey[UUID]("Id")
+  val Id = TypedKey[Long]("Id")
 
   /**
    * The key for the request attribute storing a [[Cell]] with

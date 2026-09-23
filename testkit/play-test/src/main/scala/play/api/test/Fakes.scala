@@ -5,7 +5,6 @@
 package play.api.test
 
 import java.net.URI
-import java.util.UUID
 
 import scala.xml.NodeSeq
 
@@ -259,7 +258,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       remote: RemoteInfo = defaultRemote,
       scheme: Scheme = Scheme.Http,
       version: String = "HTTP/1.1",
-      id: UUID = UUID.fromString("66666666-6666-6666-6666-666666666666"),
+      id: Long = 666,
       attrs: TypedMap = TypedMap.empty,
       clientCertificate: Option[ClientCertificateInfo] = None,
       xForwardedClientCertificates: Vector[XForwardedClientCert] = Vector.empty

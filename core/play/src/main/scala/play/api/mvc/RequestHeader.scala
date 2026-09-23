@@ -5,7 +5,6 @@
 package play.api.mvc
 
 import java.util.Locale
-import java.util.UUID
 
 import scala.annotation.implicitNotFound
 
@@ -18,8 +17,6 @@ import play.api.libs.typedmap.TypedEntry
 import play.api.libs.typedmap.TypedKey
 import play.api.libs.typedmap.TypedMap
 import play.api.mvc.request._
-
-import java.time.Instant
 
 /**
  * The HTTP request header. Note that it doesn't contain the request body yet.
@@ -162,17 +159,8 @@ trait RequestHeader {
 
   /**
    * The request id. The request id is stored as an attribute indexed by [[play.api.mvc.request.RequestAttrKey.Id]].
-   * The avlue stored is a UUIDv7.
-   * TODO: describe how to correctly read out the timestamp and how to correctly compare two UUIDv7.
-   * (because JDK itself does not support UUIDv7 yet)
    */
-  final def id: UUID = attrs(RequestAttrKey.Id)
-
-  /**
-   * TODO ?
-   * @return
-   */
-  final def createdAt: Instant = Instant.now() // TODO: read microsecond timestamp from id UUIDv7
+  final def id: Long = attrs(RequestAttrKey.Id)
 
   /**
    * The HTTP method.
