@@ -4,15 +4,9 @@
 
 package play.api.db
 
-import java.sql.SQLException
-import java.sql.SQLNonTransientConnectionException
-import java.sql.SQLSyntaxErrorException
+import java.sql.{ SQLException, SQLNonTransientConnectionException, SQLSyntaxErrorException }
 
-import acolyte.jdbc.ConnectionHandler
-import acolyte.jdbc.QueryResult
-import acolyte.jdbc.ResourceHandler
-import acolyte.jdbc.StatementHandler
-import acolyte.jdbc.UpdateResult
+import acolyte.jdbc.{ ConnectionHandler, QueryResult, ResourceHandler, StatementHandler, UpdateResult }
 import org.jdbcdslog.ConnectionPoolDataSourceProxy
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
@@ -192,10 +186,10 @@ class DatabasesSpec extends Specification {
   }
 
   // statement-level error, as reported on invalid SQL
-  def invalidSql(): SQLException = new SQLSyntaxErrorException("Invalid SQL", "42000")
+  def invalidSql: SQLException = new SQLSyntaxErrorException("Invalid SQL", "42000")
 
   // connection-level error, as reported on lost socket
-  def connectionLost(): SQLException = new SQLNonTransientConnectionException("Socket error", "08S01")
+  def connectionLost: SQLException = new SQLNonTransientConnectionException("Socket error", "08S01")
 
   /**
    * A database that rejects every statement as invalid SQL, which leaves the connection alive, and
@@ -212,15 +206,15 @@ class DatabasesSpec extends Specification {
           def isQuery(sql: String): Boolean = false
 
           def whenSQLQuery(sql: String, parameters: java.util.List[StatementHandler.Parameter]): QueryResult =
-            throw invalidSql()
+            throw invalidSql
 
           def whenSQLUpdate(sql: String, parameters: java.util.List[StatementHandler.Parameter]): UpdateResult =
-            throw invalidSql()
+            throw invalidSql
         },
         new ResourceHandler {
           // only the rollback matters here, the transaction is never committed
           def whenCommitTransaction(connection: acolyte.jdbc.Connection): Unit   = ()
-          def whenRollbackTransaction(connection: acolyte.jdbc.Connection): Unit = throw connectionLost()
+          def whenRollbackTransaction(connection: acolyte.jdbc.Connection): Unit = throw connectionLost
         }
       )
     )
@@ -238,10 +232,10 @@ class DatabasesSpec extends Specification {
           def isQuery(sql: String): Boolean = false
 
           def whenSQLQuery(sql: String, parameters: java.util.List[StatementHandler.Parameter]): QueryResult =
-            throw connectionLost()
+            throw connectionLost
 
           def whenSQLUpdate(sql: String, parameters: java.util.List[StatementHandler.Parameter]): UpdateResult =
-            throw connectionLost()
+            throw connectionLost
         },
         new ResourceHandler.Default
       )
