@@ -1564,6 +1564,8 @@ trait FormSpec extends CommonFormSpec {
         myForm.globalErrors().get(0).message() must beEqualTo("Form could not be processed")
         myForm.errors("name").size() must beEqualTo(1)
         myForm.errors("name").get(0).message() must beEqualTo("Name not correct")
+        myForm.errorsAsJson().has("") must beEqualTo(true)
+        myForm.errorsAsJson().has("name") must beEqualTo(true)
       }
       "when it returns an empty error list" in {
         val myForm = formFactory
@@ -1754,9 +1756,28 @@ trait FormSpec extends CommonFormSpec {
             errorsJson.get("author_name").get(0).asText must beEqualTo("This field is required")
           }
         }
+        "when a value cannot be converted, return a normal form error" in {
+          val json = Json.mapper.readTree("{\"author_name\": \"foo\", \"book_count\": \"not-a-number\"}")
+          val form = formFactory
+            .form(classOf[JacksonJsonNamingForm])
+            .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024)
+
+          form.hasErrors must beEqualTo(true)
+          form.error("bookCount").isPresent must beEqualTo(true)
+          form.field("authorName").value.get must beEqualTo("foo")
+        }
+        "when an invalid value is excluded, honor the allowed fields" in {
+          val json = Json.mapper.readTree("{\"author_name\": \"foo\", \"book_count\": \"not-a-number\"}")
+          val form = formFactory
+            .form(classOf[JacksonJsonNamingForm])
+            .bind(Lang.defaultLang(), TypedMap.empty(), json, 1024, "authorName")
+
+          form.hasErrors must beEqualTo(false)
+          form.field("authorName").value.get must beEqualTo("foo")
+        }
       }
       "that maps AuthorName to authorName when @JsonProperty(\"AuthorName\") is used" in {
-        val json = Json.mapper.readTree("{\"AuthorName\": \"foo\"}");
+        val json = Json.mapper.readTree("{\"AuthorName\": \"foo\", \"org.example.foo\": \"bar\"}");
         "when using bind" in {
           val form = formFactory
             .form(classOf[JacksonJsonPropertyForm])
@@ -1764,6 +1785,7 @@ trait FormSpec extends CommonFormSpec {
 
           form.hasErrors must beEqualTo(false)
           form.field("authorName").value.get must beEqualTo("foo")
+          form.field("dottedName").value.get must beEqualTo("bar")
         }
         "when using bindFromRequest" in {
           val request = FormSpec.dummyJsonRequest(json)
@@ -1773,6 +1795,7 @@ trait FormSpec extends CommonFormSpec {
 
           form.hasErrors must beEqualTo(false)
           form.field("authorName").value.get must beEqualTo("foo")
+          form.field("dottedName").value.get must beEqualTo("bar")
         }
         "when NOT supplying AuthorName the form should have an error" in {
           val json = Json.mapper.readTree("{\"author_name\": \"foo\"}");
@@ -1848,6 +1871,24 @@ trait FormSpec extends CommonFormSpec {
             errorsJson.get("title").get(0).asText must beEqualTo("This field is required")
           }
         }
+      }
+      "map nested Jackson property names in values and errors" in {
+        val validJson = Json.mapper.readTree("{\"publisher_details\": {\"company_name\": \"Acme\"}}")
+        val validForm = formFactory
+          .form(classOf[JacksonJsonNestedForm])
+          .bind(Lang.defaultLang(), TypedMap.empty(), validJson, 1024)
+
+        validForm.hasErrors must beEqualTo(false)
+        validForm.field("publisherDetails.companyName").value.get must beEqualTo("Acme")
+
+        val invalidJson = Json.mapper.readTree("{\"publisher_details\": {\"company_name\": \"\"}}")
+        val invalidForm = formFactory
+          .form(classOf[JacksonJsonNestedForm])
+          .bind(Lang.defaultLang(), TypedMap.empty(), invalidJson, 1024)
+
+        invalidForm.hasErrors must beEqualTo(true)
+        invalidForm.errors("publisherDetails.companyName").size must beEqualTo(1)
+        invalidForm.errorsAsJson().has("publisher_details.company_name") must beEqualTo(true)
       }
     }
   }

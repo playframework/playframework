@@ -14,11 +14,21 @@ public class JacksonJsonNamingForm {
 
   @Constraints.Required private String authorName;
 
+  private Integer bookCount;
+
   public String getAuthorName() {
     return authorName;
   }
 
   public void setAuthorName(String authorName) {
     this.authorName = authorName;
+  }
+
+  public Integer getBookCount() {
+    return bookCount;
+  }
+
+  public void setBookCount(Integer bookCount) {
+    this.bookCount = bookCount;
   }
 }
