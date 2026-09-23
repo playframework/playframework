@@ -17,11 +17,14 @@
  * Each action in the generated object also has the following properties:
  * * *type*: HTTP method
  * * *url*: the url to be used
+ *
+ * This helper keeps generating the deprecated jQuery-backed ajax function for compatibility.
+ * New router resources should use a JavaScriptReverseRouter overload without an ajaxMethod.
  * 
  * @param name The javascript object name.
  * @param routes Set of routes to include in this javascript router.
  *@
 @(name:String = "Router")(routes: play.api.routing.JavaScriptReverseRoute*)(implicit request: play.api.mvc.RequestHeader)
 @script(Symbol("type") -> "text/javascript") {
-    @Html(play.api.routing.JavaScriptReverseRouter(name)(routes: _*).body.replace("/", "\\/"))
+    @Html(play.api.routing.JavaScriptReverseRouter(name, Some("jQuery.ajax"))(routes: _*).body.replace("/", "\\/"))
 }

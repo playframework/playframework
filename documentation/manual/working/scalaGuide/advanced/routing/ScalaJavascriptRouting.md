@@ -38,7 +38,22 @@ Having implemented this action, and adding it to your routes file, you can then 
 
 ## Using the router
 
-Using jQuery as an example, making a call is as simple as:
+Calling a generated route does not make a request. It returns a plain JavaScript object with:
+
+* `method`: the HTTP method;
+* `type`: an alias of `method` for jQuery compatibility;
+* `url`: the application-relative URL;
+* `absoluteURL(secure)`: an absolute HTTP or HTTPS URL; and
+* `webSocketURL(secure)`: an absolute WebSocket URL.
+
+Pass `true` to either URL method to select its secure scheme. For example, the browser Fetch API can use the route object like this:
+
+```javascript
+const route = jsRoutes.controllers.Users.get(someId);
+fetch(route.url, { method: route.method });
+```
+
+With jQuery, making the same call is as simple as:
 
 ```javascript
 $.ajax(jsRoutes.controllers.Users.get(someId))
@@ -46,16 +61,14 @@ $.ajax(jsRoutes.controllers.Users.get(someId))
   .fail( /*...*/ );
 ```
 
-The router also makes a few other properties available including the ``url`` and the ``type`` (the HTTP method). For example the above call to jQuery's ajax function can also be made like:
+The fields can also be passed explicitly when other options are needed:
 
 ```javascript
 var r = jsRoutes.controllers.Users.get(someId);
 $.ajax({url: r.url, type: r.type, success: /*...*/, error: /*...*/ });
 ```
 
-The above approach is required where other properties need setting such as success, error, context etc.
-
-The ``absoluteURL`` and the ``webSocketURL`` are methods (not properties) which return the complete url string. A Websocket connection can be made like:
+A WebSocket connection can use `webSocketURL`:
 
 ```javascript
 var r = jsRoutes.controllers.Users.list();
@@ -64,13 +77,3 @@ ws.onmessage = function(msg) {
         /*...*/
 };
 ```
-
-## jQuery ajax method support
-
-> **Note:** Built-in support for jQuery's ajax function will be removed in a future release. This section on the built-in support is provided for reference purposes only. Please do not use the router's ajax function in new code and consider upgrading existing code as soon as possible. The previous section on using the router documents how jQuery should be used.
-
-If jQuery isn't your thing, or if you'd like to decorate the jQuery ajax method in some way, you can provide a function to the router to use to perform ajax queries. This function must accept the object that is passed to the ``ajax`` router method, and should expect the router to have set the ``type`` and ``url`` properties on it to the appropriate method and url for the router request.
-
-To define this function, in your action pass the ``ajaxMethod`` method parameter, eg:
-
-@[javascript-router-resource-custom-method](code/scalaguide/binder/controllers/Users.scala)
