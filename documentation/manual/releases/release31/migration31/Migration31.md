@@ -20,6 +20,26 @@ TBD
 
 TBD
 
+### JavaScript reverse router `ajax()` helpers are deprecated
+
+The built-in `ajax()` function on generated JavaScript routes has been discouraged and undocumented since Play 2.2. The Scala `JavaScriptReverseRouter` overloads that accept an `ajaxMethod` and the corresponding Java `JavaScriptReverseRouter.create` overload are now deprecated. Use the overloads without an Ajax method instead.
+
+For example, this legacy jQuery call:
+
+```javascript
+jsRoutes.controllers.Users.list().ajax({ success: onSuccess, error: onError });
+```
+
+can become:
+
+```javascript
+$.ajax(jsRoutes.controllers.Users.list()).done(onSuccess).fail(onError);
+```
+
+The `@helper.javascriptRouter` Twirl helper continues to include the legacy jQuery-backed `ajax()` function for compatibility. Applications that rely on it should migrate their client calls and generate the router with a non-deprecated `JavaScriptReverseRouter` overload before the legacy function is removed in a future major release.
+
+See the Java and Scala JavaScript routing documentation for the complete route-object fields and examples using jQuery and the browser Fetch API.
+
 ### Play upgraded to Pekko 2 and Pekko HTTP 2
 
 Play now uses Pekko 2 and Pekko HTTP 2. If your build overrides Play's Pekko dependencies, align those overrides with the Pekko 2 and Pekko HTTP 2 versions used by this Play release and review the upstream Pekko migration notes for any APIs you use directly.

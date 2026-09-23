@@ -32,7 +32,7 @@ public class JavaScriptReverseRouter {
    * @param host the host to use for the reverse route
    * @param routes the reverse routes for this router
    * @return the router
-   * @deprecated Deprecated as of 2.9.0 Use {@link #create(String, String,
+   * @deprecated Deprecated as of 3.1.0. Use {@link #create(String, String,
    *     JavaScriptReverseRoute...)} instead.
    */
   @Deprecated

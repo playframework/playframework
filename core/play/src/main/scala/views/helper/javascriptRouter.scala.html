@@ -17,6 +17,9 @@
  * Each action in the generated object also has the following properties:
  * * *type*: HTTP method
  * * *url*: the url to be used
+ *
+ * This helper keeps generating the deprecated jQuery-backed ajax function for compatibility.
+ * New router resources should use a JavaScriptReverseRouter overload without an ajaxMethod.
  * 
  * @param name The javascript object name.
  * @param routes Set of routes to include in this javascript router.
