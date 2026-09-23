@@ -227,8 +227,10 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   private def rollbackQuietly(connection: Connection): Unit = {
     try {
-      // attempt to do things in a clean way, with explicit rollback
-      connection.rollback()
+      if (!connection.isClosed) {
+        // attempt to do things in a clean way, with explicit rollback
+        connection.rollback()
+      }
     } catch {
       // we failed to rollback: the connection handle is dead anyways
       // it will be, or has already been, rollbacked server-side
@@ -240,7 +242,9 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   private def restoreIsolationLevelQuietly(connection: Connection, isolationLevel: Int): Unit = {
     try {
-      connection.setTransactionIsolation(isolationLevel)
+      if (!connection.isClosed) {
+        connection.setTransactionIsolation(isolationLevel)
+      }
     } catch {
       // the connection is already dead, its isolation level no longer matters
       // swallow the exception so we can throw the original one from the block statement
