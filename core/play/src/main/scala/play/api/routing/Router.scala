@@ -126,9 +126,9 @@ object Router {
     val HandlerDef: TypedKey[HandlerDef] = TypedKey("HandlerDef")
 
     /**
-     * Key for the [[Map]] that stores the path and query params which get passed to the eventually called action method.
+     * Key for the route parameters passed to the action method, in declaration order.
      */
-    val RouteParams: TypedKey[Map[String, Any]] = TypedKey("RouteParams")
+    val RouteParams: TypedKey[collection.immutable.SeqMap[String, Any]] = TypedKey("RouteParams")
   }
 
   /**

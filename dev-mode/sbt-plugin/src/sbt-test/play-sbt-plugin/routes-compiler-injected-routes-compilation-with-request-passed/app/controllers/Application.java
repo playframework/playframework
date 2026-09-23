@@ -86,7 +86,7 @@ public class Application extends Controller {
     );
   }
 
-  // The scripted tests run with Scala 2.12 and 2.13, which use different collection implementations
+  // Scala 2.13 and Scala 3 expose Java lists through the same wrapper with an unstable class name.
   private static String replaceScalaCollectionWrappers(String source) {
     return source
       .replace("scala.collection.convert.JavaCollectionWrappers$SeqWrapper", "List") // used in Scala 2.13
