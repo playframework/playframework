@@ -418,7 +418,9 @@ object HttpErrorHandlerExceptions {
 }
 
 /**
- * An alternative default HTTP error handler which will render errors as JSON messages instead of HTML pages.
+ * An alternative default HTTP error handler which renders errors as
+ * [[https://www.rfc-editor.org/rfc/rfc9457.html Problem Details]] JSON instead of HTML pages.
+ * Responses use the `application/problem+json` media type.
  *
  * In Dev mode, exceptions thrown by the server code will be rendered in JSON messages.
  * In Prod mode, they will not be rendered.
@@ -428,7 +430,8 @@ object HttpErrorHandlerExceptions {
  */
 class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[SourceMapper] = None)
     extends HttpErrorHandler {
-  private val logger = Logger(getClass)
+  private val logger                 = Logger(getClass)
+  private val problemJsonContentType = "application/problem+json"
 
   @Inject
   def this(environment: Environment, optionalSourceMapper: OptionalSourceMapper) = {
@@ -445,7 +448,9 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     if (play.api.http.Status.isClientError(statusCode)) {
       Future.successful(
-        Results.Status(statusCode)(Json.obj("requestId" -> request.id, "title" -> message, "status" -> statusCode))
+        Results
+          .Status(statusCode)(Json.obj("requestId" -> request.id, "title" -> message, "status" -> statusCode))
+          .as(problemJsonContentType)
       )
     } else {
       throw new IllegalArgumentException(
@@ -474,12 +479,12 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
         InternalServerError(
           if (isProd) prodServerError(request, usefulException)
           else devServerError(request, usefulException)
-        )
+        ).as(problemJsonContentType)
       )
     } catch {
       case NonFatal(e) =>
         logger.error("Error while handling error", e)
-        Future.successful(InternalServerError(fatalErrorJson(request, e)))
+        Future.successful(InternalServerError(fatalErrorJson(request, e)).as(problemJsonContentType))
     }
 
   /**

@@ -41,6 +41,8 @@ import play.i18n.MessagesApi
 class HttpErrorHandlerSpec extends Specification {
   import HttpErrorHandlerSpec._
 
+  private val ProblemJsonContentType = "application/problem+json"
+
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
   implicit val system: ActorSystem        = ActorSystem()
@@ -77,7 +79,15 @@ class HttpErrorHandlerSpec extends Specification {
     )(implicit system: ActorSystem, materializer: Materializer) = {
       lazy val errorHandler = _eh
 
-      def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)
+      def responseBody(result: Future[Result]): JsValue = {
+        val response = await(result)
+        response.body.contentType match {
+          case Some(ProblemJsonContentType) =>
+          case contentType                  =>
+            throw new AssertionError(s"Expected $ProblemJsonContentType but got $contentType")
+        }
+        Json.parse(await(response.body.consumeData).utf8String)
+      }
 
       "answer a JSON error message on bad request" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 400))
@@ -177,7 +187,12 @@ class HttpErrorHandlerSpec extends Specification {
         def errorHandler = handler(classOf[HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
         "json response" in {
           val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "application/json"), 400)
-          await(result).body.contentType must beSome("application/json")
+          await(result).body.contentType must beSome(ProblemJsonContentType)
+        }
+        "problem JSON response" in {
+          val result =
+            errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> ProblemJsonContentType), 400)
+          await(result).body.contentType must beSome(ProblemJsonContentType)
         }
         sharedSpecs(errorHandler)
       }
@@ -196,7 +211,12 @@ class HttpErrorHandlerSpec extends Specification {
         def errorHandler = handler(classOf[play.http.HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
         "json response" in {
           val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "application/json"), 400)
-          await(result).body.contentType must beSome("application/json")
+          await(result).body.contentType must beSome(ProblemJsonContentType)
+        }
+        "problem JSON response" in {
+          val result =
+            errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> ProblemJsonContentType), 400)
+          await(result).body.contentType must beSome(ProblemJsonContentType)
         }
         sharedSpecs(errorHandler)
       }

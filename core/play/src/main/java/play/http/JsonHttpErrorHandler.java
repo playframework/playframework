@@ -4,6 +4,8 @@
 
 package play.http;
 
+import static play.mvc.Http.Status.INTERNAL_SERVER_ERROR;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -22,10 +24,10 @@ import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 import play.mvc.Results;
 
-import static play.mvc.Http.Status.INTERNAL_SERVER_ERROR;
 /**
- * An alternative default HTTP error handler which will render errors as JSON messages instead of
- * HTML pages.
+ * An alternative default HTTP error handler which renders errors as <a
+ * href="https://www.rfc-editor.org/rfc/rfc9457.html">Problem Details</a> JSON instead of HTML
+ * pages. Responses use the {@code application/problem+json} media type.
  *
  * <p>In Dev mode, exceptions thrown by the server code will be rendered in JSON messages. In Prod
  * mode, they will not be rendered.
@@ -36,6 +38,7 @@ import static play.mvc.Http.Status.INTERNAL_SERVER_ERROR;
 public class JsonHttpErrorHandler implements HttpErrorHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(JsonHttpErrorHandler.class);
+  private static final String PROBLEM_JSON_CONTENT_TYPE = "application/problem+json";
 
   private final Environment environment;
   private final OptionalSourceMapper sourceMapper;
@@ -59,7 +62,8 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
     result.put("title", message);
     result.put("status", statusCode);
 
-    return CompletableFuture.completedFuture(Results.status(statusCode, result));
+    return CompletableFuture.completedFuture(
+        Results.status(statusCode, result).as(PROBLEM_JSON_CONTENT_TYPE));
   }
 
   @Override
@@ -72,15 +76,17 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
       switch (environment.mode()) {
         case PROD:
           return CompletableFuture.completedFuture(
-              Results.internalServerError(prodServerError(request, usefulException)));
+              Results.internalServerError(prodServerError(request, usefulException))
+                  .as(PROBLEM_JSON_CONTENT_TYPE));
         default:
           return CompletableFuture.completedFuture(
-              Results.internalServerError(devServerError(request, usefulException)));
+              Results.internalServerError(devServerError(request, usefulException))
+                  .as(PROBLEM_JSON_CONTENT_TYPE));
       }
     } catch (Exception e) {
       logger.error("Error while handling error", e);
       return CompletableFuture.completedFuture(
-          Results.internalServerError(fatalErrorJson(request, e)));
+          Results.internalServerError(fatalErrorJson(request, e)).as(PROBLEM_JSON_CONTENT_TYPE));
     }
   }
 
