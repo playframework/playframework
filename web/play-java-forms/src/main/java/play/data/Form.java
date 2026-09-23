@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.MessageInterpolator;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import jakarta.validation.groups.Default;
@@ -92,6 +93,27 @@ public class Form<T> {
       Pattern.compile("typeMismatch", Pattern.LITERAL);
 
   private static final String INVALID_MSG_KEY = "error.invalid";
+
+  private static final class FixedLocaleMessageInterpolator implements MessageInterpolator {
+
+    private final MessageInterpolator delegate;
+    private final Locale locale;
+
+    FixedLocaleMessageInterpolator(MessageInterpolator delegate, Locale locale) {
+      this.delegate = delegate;
+      this.locale = locale;
+    }
+
+    @Override
+    public String interpolate(String messageTemplate, Context context) {
+      return delegate.interpolate(messageTemplate, context, locale);
+    }
+
+    @Override
+    public String interpolate(String messageTemplate, Context context, Locale ignored) {
+      return delegate.interpolate(messageTemplate, context, locale);
+    }
+  }
 
   private static final class PlayDataBinder extends DataBinder {
 
@@ -1105,13 +1127,17 @@ public class Form<T> {
 
   private Set<ConstraintViolation<Object>> runValidation(
       Lang lang, TypedMap attrs, DataBinder dataBinder, Map<String, Object> objectData) {
-    dataBinder.bind(new MutablePropertyValues(objectData), locale(lang));
+    final Locale locale = locale(lang);
+    dataBinder.bind(new MutablePropertyValues(objectData), locale);
     final Messages messages = lang == null ? null : new MessagesImpl(lang, messagesApi);
     final ValidationPayload payload = new ValidationPayload(lang, messages, attrs, config);
     final Validator validator =
         validatorFactory
             .unwrap(HibernateValidatorFactory.class)
             .usingContext()
+            .messageInterpolator(
+                new FixedLocaleMessageInterpolator(
+                    validatorFactory.getMessageInterpolator(), locale))
             .constraintValidatorPayload(payload)
             .getValidator();
     if (groups != null) {
