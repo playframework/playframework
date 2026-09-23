@@ -2,4 +2,7 @@
 > stage
 $ absent target/universal/stage/share
 
--> compile:doc
+# TODO: The next line is not working currently in Scala 3. Enable as soon as one of following gets resolved:
+# https://github.com/lampepfl/dotty/pull/17022
+# https://github.com/lampepfl/dotty/pull/17023
+#-> compile:doc
