@@ -13,10 +13,7 @@ import scala.concurrent.Future
 
 import jakarta.inject.Inject
 import jakarta.inject.Provider
-import org.ehcache.config.builders.CacheConfigurationBuilder
-import org.ehcache.config.builders.ResourcePoolsBuilder
-import org.ehcache.CacheManager
-import play.api.cache.ehcache.EhCacheApi.EhExpirableCacheValue
+import net.sf.ehcache.CacheManager
 import play.api.cache.AsyncCacheApi
 import play.api.cache.SyncCacheApi
 import play.api.inject._
@@ -36,13 +33,12 @@ class EhCacheApiSpec extends PlaySpecification {
       override def running() = {
         val controller    = app.injector.instanceOf[NamedCacheController]
         val syncCacheName =
-          controller.cache.asInstanceOf[SyncEhCacheApi].cache
+          controller.cache.asInstanceOf[SyncEhCacheApi].cache.getName
         val asyncCacheName =
-          controller.asyncCache.asInstanceOf[EhCacheApi].cache
+          controller.asyncCache.asInstanceOf[EhCacheApi].cache.getName
 
-        // no way to get cache name anymore, so doing most basic test
-        syncCacheName.getClass.getSimpleName must_== "Ehcache"
-        asyncCacheName.getClass.getSimpleName must_== "Ehcache"
+        syncCacheName must_== "custom"
+        asyncCacheName must_== "custom"
       }
     }
     "bind already created named caches" in new WithApplication(
@@ -106,18 +102,8 @@ class EhCacheApiSpec extends PlaySpecification {
 class CustomCacheManagerProvider @Inject() (cacheManagerProvider: CacheManagerProvider) extends Provider[CacheManager] {
   lazy val get = {
     val mgr = cacheManagerProvider.get
-    mgr.close()
-    mgr.init()
-    mgr.removeCache("custom") // cache config is not cleared upon `close()` and causes auto-creation of cache on init()
-    mgr.createCache(
-      "custom",
-      CacheConfigurationBuilder.newCacheConfigurationBuilder(
-        classOf[String],
-        classOf[EhExpirableCacheValue],
-        ResourcePoolsBuilder.heap(100)
-      )
-    )
-    mgr.getCache("custom", classOf[String], classOf[EhExpirableCacheValue])
+    mgr.removeAllCaches()
+    mgr.addCache("custom")
     mgr
   }
 }
