@@ -204,14 +204,9 @@ package object templates {
       .getOrElse(keyword)
 
   /**
-   * Ensure that the given method name doesn't clash with any of the keywords that Play is using, including Scala keywords.
+   * Escape a method name so current and future Scala keywords remain valid method identifiers.
    */
-  def safeMethod(method: String): String =
-    scalaReservedWords
-      .collectFirst {
-        case reserved if reserved == method => s"`$reserved`"
-      }
-      .getOrElse(method)
+  def safeMethod(method: String): String = s"`$method`"
 
   /**
    * Calculate the parameters for the reverse route call for the given routes.
