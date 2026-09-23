@@ -57,6 +57,23 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
       new File(tmp, "controllers/routes.java") must exist
     }
 
+    "generate Java routes classes when requested" in withTempDir { tmp =>
+      val file = copyResource("generating.routes", tmp)
+      RoutesCompiler.compile(
+        RoutesCompilerTask(file, Seq.empty, true, true, true, false, Language.JAVA),
+        InjectedRoutesGenerator,
+        tmp
+      ) must beRight
+
+      new File(tmp, "generating/Routes.java") must exist
+      new File(tmp, "generating/RoutesPrefix.java") must exist
+      new File(tmp, "controllers/ReverseRoutes.java") must exist
+      new File(tmp, "controllers/javascript/JavaScriptReverseRoutes.java") must exist
+      new File(tmp, "controllers/routes.java") must exist
+      new File(tmp, "generating/Routes.scala") must not be exist
+      new File(tmp, "controllers/ReverseRoutes.scala") must not be exist
+    }
+
     "do not generate JavaScript routes when disabled in task" in withTempDir { tmp =>
       val file = copyResource("generating.routes", tmp)
       RoutesCompiler.compile(
