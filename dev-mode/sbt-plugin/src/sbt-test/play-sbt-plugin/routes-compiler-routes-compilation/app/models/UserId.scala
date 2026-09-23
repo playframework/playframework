@@ -24,4 +24,5 @@ object UserId {
       )
 }
 
+// Keep one value-class binder in the scripted suite to exercise generated routes for this shape.
 case class UserId(id: String) extends AnyVal
