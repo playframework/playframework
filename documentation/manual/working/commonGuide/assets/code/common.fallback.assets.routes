@@ -1,3 +1,7 @@
 #assets-wildcard-spa
 GET  /assets/*file        controllers.Assets.at(path="/public", file, fallback = "index.html")
 #assets-wildcard-spa
+
+#assets-versioned-wildcard-spa
+GET  /assets/*file        controllers.Assets.versioned(path="/public", file: _root_.controllers.Assets.Asset, fallback = "index.html")
+#assets-versioned-wildcard-spa
