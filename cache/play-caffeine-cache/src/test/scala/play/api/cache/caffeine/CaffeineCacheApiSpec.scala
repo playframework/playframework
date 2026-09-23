@@ -4,6 +4,7 @@
 
 package play.api.cache.caffeine
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
 
 import scala.concurrent.duration._
@@ -132,6 +133,63 @@ class CaffeineCacheApiSpec extends PlaySpecification {
             ) must_== "value"
             Await.result(asyncCacheApi.get[String](asyncUpdateKey), 2.seconds) must beNone
         }
+      }
+    }
+
+    "derive expiration from a newly computed value exactly once" in new WithApplication() {
+      override def running() = {
+        val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
+        val syncCacheApi  = app.injector.instanceOf[SyncCacheApi]
+
+        val syncLoads       = new AtomicInteger()
+        val syncExpirations = new AtomicInteger()
+        val syncSeenValue   = new AtomicInteger()
+        syncCacheApi.getOrElseUpdate[Int](
+          "sync-derived-expiration",
+          (value: Int) => {
+            syncExpirations.incrementAndGet()
+            syncSeenValue.set(value)
+            10.seconds
+          }
+        )(syncLoads.incrementAndGet()) must_== 1
+        syncCacheApi.getOrElseUpdate[Int](
+          "sync-derived-expiration",
+          (_: Int) => {
+            syncExpirations.incrementAndGet()
+            10.seconds
+          }
+        )(syncLoads.incrementAndGet()) must_== 1
+        syncLoads.get() must_== 1
+        syncExpirations.get() must_== 1
+        syncSeenValue.get() must_== 1
+
+        val asyncLoads       = new AtomicInteger()
+        val asyncExpirations = new AtomicInteger()
+        val asyncSeenValue   = new AtomicInteger()
+        Await.result(
+          asyncCacheApi.getOrElseUpdate[Int](
+            "async-derived-expiration",
+            (value: Int) => {
+              asyncExpirations.incrementAndGet()
+              asyncSeenValue.set(value)
+              10.seconds
+            }
+          )(Future.successful(asyncLoads.incrementAndGet())),
+          2.seconds
+        ) must_== 1
+        Await.result(
+          asyncCacheApi.getOrElseUpdate[Int](
+            "async-derived-expiration",
+            (_: Int) => {
+              asyncExpirations.incrementAndGet()
+              10.seconds
+            }
+          )(Future.successful(asyncLoads.incrementAndGet())),
+          2.seconds
+        ) must_== 1
+        asyncLoads.get() must_== 1
+        asyncExpirations.get() must_== 1
+        asyncSeenValue.get() must_== 1
       }
     }
 

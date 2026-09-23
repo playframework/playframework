@@ -196,13 +196,18 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
 
   override def remove(key: String): Unit = syncCache.invalidate(key)
 
-  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    syncCache.get(key, _ => ExpirableCacheValue(orElse, Some(expiration))).asInstanceOf[ExpirableCacheValue[A]].value
-  }
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A =
+    getOrElseUpdate(key, (_: A) => expiration)(orElse)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
     syncCache
-      .get(key, xx => ExpirableCacheValue(orElse, Some(expiration(orElse))))
+      .get(
+        key,
+        _ => {
+          val value = orElse
+          ExpirableCacheValue(value, Some(expiration(value)))
+        }
+      )
       .asInstanceOf[ExpirableCacheValue[A]]
       .value
   }
@@ -244,7 +249,10 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
     getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
 
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
+  override def getOrElseUpdate[A: ClassTag](
+      key: String,
+      expiration: A => Duration
+  )(orElse: => Future[A]): Future[A] = {
     lazy val orElseAsJavaFuture =
       orElse
         .map(value => ExpirableCacheValue(value, Some(expiration(value))).asInstanceOf[Any])(using trampoline)

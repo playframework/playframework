@@ -204,20 +204,13 @@ class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends Syn
 
   override def remove(key: String): Unit = cache.remove(key)
 
-  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    get[A](key) match {
-      case Some(value) => value
-      case None        =>
-        val value = orElse
-        set(key, value, expiration)
-        value
-    }
-  }
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A =
+    getOrElseUpdate(key, (_: A) => expiration)(orElse)
 
   override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
     get[A](key) match {
       case Some(value) => value
-      case None =>
+      case None        =>
         val value = orElse
         set(key, value, expiration(value))
         value

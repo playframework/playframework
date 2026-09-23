@@ -4,6 +4,8 @@
 
 package play.api.cache
 
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.CompletableFuture
 import java.util.Optional
 
@@ -124,6 +126,51 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
           cacheApi.get[String]("already-expired").asScala must beEqualTo(Optional.empty()).await
         }
       }
+      "derive expiration from the computed value exactly once" in new WithApplication {
+        override def running() = {
+          val cacheApi    = app.injector.instanceOf[JavaAsyncCacheApi]
+          val loads       = new AtomicInteger()
+          val expirations = new AtomicInteger()
+          val seenValue   = new AtomicReference[String]()
+
+          val value = cacheApi
+            .getOrElseUpdate[String](
+              "derived-expiration",
+              () => CompletableFuture.completedFuture(s"value-${loads.incrementAndGet()}"),
+              (computed: String) => {
+                expirations.incrementAndGet()
+                seenValue.set(computed)
+                tenSecondsExpiration
+              }
+            )
+            .asScala
+          val cached = cacheApi
+            .getOrElseUpdate[String](
+              "derived-expiration",
+              () => CompletableFuture.completedFuture(s"value-${loads.incrementAndGet()}"),
+              (_: String) => {
+                expirations.incrementAndGet()
+                tenSecondsExpiration
+              }
+            )
+            .asScala
+          val alreadyExpiredValue = cacheApi
+            .getOrElseUpdate[String](
+              "derived-already-expired",
+              () => CompletableFuture.completedFuture("expired"),
+              (_: String) => alreadyExpired
+            )
+            .asScala
+
+          value must beEqualTo("value-1").await
+          cached must beEqualTo("value-1").await
+          alreadyExpiredValue must beEqualTo("expired").await
+          loads.get() must_== 1
+          expirations.get() must_== 1
+          seenValue.get() must_== "value-1"
+          cacheApi.get[String]("derived-already-expired").asScala must beEqualTo(Optional.empty()).await
+        }
+      }
     }
     "remove values from cache" in new WithApplication {
       override def running() = {
@@ -227,6 +274,45 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
           alreadyExpiredValue must beEqualTo("bar")
           cacheApi.get[String]("no-expiration") must beEqualTo(Optional.of("bar"))
           cacheApi.get[String]("already-expired") must beEqualTo(Optional.empty())
+        }
+      }
+      "derive expiration from the computed value exactly once" in new WithApplication {
+        override def running() = {
+          val cacheApi    = app.injector.instanceOf[JavaSyncCacheApi]
+          val loads       = new AtomicInteger()
+          val expirations = new AtomicInteger()
+          val seenValue   = new AtomicReference[String]()
+
+          val value = cacheApi.getOrElseUpdate[String](
+            "derived-expiration",
+            () => s"value-${loads.incrementAndGet()}",
+            (computed: String) => {
+              expirations.incrementAndGet()
+              seenValue.set(computed)
+              tenSecondsExpiration
+            }
+          )
+          val cached = cacheApi.getOrElseUpdate[String](
+            "derived-expiration",
+            () => s"value-${loads.incrementAndGet()}",
+            (_: String) => {
+              expirations.incrementAndGet()
+              tenSecondsExpiration
+            }
+          )
+          val alreadyExpiredValue = cacheApi.getOrElseUpdate[String](
+            "derived-already-expired",
+            () => "expired",
+            (_: String) => alreadyExpired
+          )
+
+          value must beEqualTo("value-1")
+          cached must beEqualTo("value-1")
+          alreadyExpiredValue must beEqualTo("expired")
+          loads.get() must_== 1
+          expirations.get() must_== 1
+          seenValue.get() must_== "value-1"
+          cacheApi.get[String]("derived-already-expired") must beEqualTo(Optional.empty())
         }
       }
     }

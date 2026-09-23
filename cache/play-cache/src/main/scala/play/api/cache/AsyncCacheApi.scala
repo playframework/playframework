@@ -5,6 +5,7 @@
 package play.api.cache
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.parasitic
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
@@ -47,11 +48,17 @@ trait AsyncCacheApi {
   /**
    * Retrieve a value from the cache, or set it from a default function.
    *
-   * @param key        Item key.
-   * @param expiration Function that returns the expiration period in seconds.
-   * @param orElse     The default function to invoke if the value was not found in cache.
+   * @param key Item key.
+   * @param expiration Function invoked with the newly computed value to determine its expiration. It is not invoked
+   *                   for a cache hit. A non-positive duration returns the computed value without retaining it.
+   * @param orElse The default function to invoke if the value was not found in cache.
    */
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A]
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
+    get[A](key).flatMap {
+      case Some(value) => Future.successful(value)
+      case None        => orElse.flatMap(value => set(key, value, expiration(value)).map(_ => value)(parasitic))(parasitic)
+    }(parasitic)
+  }
 
   /**
    * Retrieve a value from the cache for the given type

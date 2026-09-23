@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
+import java.util.function.ToIntFunction;
 import org.apache.pekko.Done;
 import play.libs.Scala;
 import scala.concurrent.duration.Duration;
@@ -52,11 +52,11 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
 
   @Override
   public <T> CompletionStage<T> getOrElseUpdate(
-      String key, Callable<CompletionStage<T>> block, Function<T, Integer> expiration) {
+      String key, Callable<CompletionStage<T>> block, ToIntFunction<T> expiration) {
     return asJava(
         asyncCacheApi.getOrElseUpdate(
             key,
-            value -> intToDuration(expiration.apply(value)),
+            value -> intToDuration(expiration.applyAsInt(value)),
             Scala.asScalaWithFuture(block),
             Scala.<T>classTag()));
   }
