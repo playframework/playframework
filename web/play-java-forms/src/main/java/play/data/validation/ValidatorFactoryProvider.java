@@ -10,15 +10,11 @@ import jakarta.inject.Singleton;
 import jakarta.validation.ConstraintValidatorFactory;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import org.hibernate.validator.messageinterpolation.HibernateMessageInterpolatorContext;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
-import play.data.validation.Constraints.ValidationPayload;
-import play.i18n.Lang;
 import play.i18n.Langs;
 import play.inject.ApplicationLifecycle;
 
@@ -38,24 +34,7 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
     Locale defaultLocale = langs.preferred(langs.availables()).toLocale();
 
     ParameterMessageInterpolator messageInterpolator =
-        new ParameterMessageInterpolator(supportedLocales, defaultLocale, false) {
-          @Override
-          public String interpolate(String message, Context context) {
-            final Lang requestLang =
-                context
-                    .unwrap(HibernateMessageInterpolatorContext.class)
-                    .getConstraintValidatorPayload(ValidationPayload.class)
-                    .getLang();
-            return interpolate(
-                message,
-                context,
-                requestLang == null || requestLang.toLocale() == null
-                    ? defaultLocale
-                    : langs
-                        .preferred(Collections.singleton(new Lang(requestLang.toLocale())))
-                        .toLocale());
-          }
-        };
+        new ParameterMessageInterpolator(supportedLocales, defaultLocale, false);
 
     this.validatorFactory =
         Validation.byDefaultProvider()

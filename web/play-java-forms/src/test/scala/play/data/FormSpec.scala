@@ -52,6 +52,9 @@ class RuntimeDependencyInjectionFormSpec extends FormSpec {
 
   override def formFactory: FormFactory = app.getOrElse(application()).injector.instanceOf[FormFactory]
 
+  override def validatorFactory: ValidatorFactory =
+    app.getOrElse(application()).injector.instanceOf[ValidatorFactory]
+
   override def tempFileCreator: TemporaryFileCreator =
     app.getOrElse(application()).injector.instanceOf[TemporaryFileCreator]
 
@@ -92,6 +95,13 @@ class CompileTimeDependencyInjectionFormSpec extends FormSpec {
         new MyComponents(context)
       }
       .formFactory()
+
+  override def validatorFactory: ValidatorFactory =
+    components
+      .getOrElse {
+        new MyComponents(context)
+      }
+      .validatorFactory()
 
   override def tempFileCreator: TemporaryFileCreator =
     components
@@ -209,6 +219,7 @@ trait FormSpec extends CommonFormSpec {
   sequential
 
   def formFactory: FormFactory
+  def validatorFactory: ValidatorFactory
   def tempFileCreator: TemporaryFileCreator
   def application(extraConfig: (String, Any)*): Application
 
@@ -1705,6 +1716,20 @@ trait FormSpec extends CommonFormSpec {
           .form(classOf[JavaI18NValidatorForm])
           .bind(new Lang(Locale.FRENCH), TypedMap.empty(), Map("note" -> "foo").asJava)
         myFormFr.errors("note").get(0).message() must beEqualTo("Größe muss zwischen 10 und 100 sein")
+      }
+    }
+
+    "use the default validation locale when no validation payload is available" in new WithApplication(
+      application("play.i18n.langs" -> List("de", "en", "ja"))
+    ) {
+      override def running() = {
+        val value = new JavaI18NValidatorForm
+        value.note = "foo"
+
+        validatorFactory.getValidator
+          .validate(value)
+          .asScala
+          .map(_.getMessage) must contain("Größe muss zwischen 10 und 100 sein")
       }
     }
   }
