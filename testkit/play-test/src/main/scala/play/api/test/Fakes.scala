@@ -268,7 +268,7 @@ class FakeRequestFactory(requestFactory: RequestFactory) {
       override lazy val uri: URI                           = new URI(uriString)
       override def uriString: String                       = _uri
       override lazy val path: String                       = uriString.split('?').take(1).mkString
-      override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString) // TODO_QUERY
+      override lazy val queryMap: Map[String, Seq[String]] = FormUrlEncodedParser.parse(queryString)
     }
     val authority = RequestHeader
       .initialAuthority(method, target, headers)
