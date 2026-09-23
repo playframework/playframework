@@ -21,6 +21,18 @@ Play's default routes generator creates a router class that accepts controller i
 
 Before Play 2.7.0, Play supported a static routes generator that supported defining actions as `static` methods. That is no longer supported, as Play no longer relies on static state. If you wish to use your own static state you can still do so in a controller using instance methods.
 
+## Router source language
+
+By default, the sbt plugin generates the router implementation as Scala source code, including for Java applications. The generated Java-facing API, such as `controllers.routes`, is the same either way.
+
+To generate the router implementation entirely as Java source code, add this setting to `build.sbt`:
+
+```scala
+routesLang := play.routes.compiler.Language.JAVA
+```
+
+This setting changes only the generated implementation language. The routes-file syntax and the APIs used to call reverse routes remain unchanged.
+
 ## The routes file syntax
 
 `conf/routes` is the configuration file used by the router. This file lists all of the routes needed by the application. Each route consists of an HTTP method and URI pattern associated with a call to an action method.

@@ -4,7 +4,11 @@
 
 package play.routes.compiler;
 
+/** The implementation language used for generated router source files. */
 public enum Language {
+  /** Generate Java router sources. */
   JAVA,
+
+  /** Generate Scala router sources. */
   SCALA
 }
