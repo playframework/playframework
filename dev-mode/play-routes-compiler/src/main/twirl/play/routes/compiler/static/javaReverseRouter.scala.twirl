@@ -1,0 +1,61 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], packageName: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+
+@{packageName.map("package " + _ + ";").getOrElse("")}
+
+import play.api.mvc.Call;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.core.routing.*;
+import java.util.function.Supplier; @for(i <- imports) {
+import @i;}
+
+import java.util.*;
+
+@markLines(routes: _*)
+@@SuppressWarnings({"unchecked"})
+public class ReverseRoutes @ob
+@for((controller, routes) <- groupRoutesByController(routes)) {
+  @markLines(routes: _*)
+  public static class Reverse@(controller.replace(".", "_")) @ob
+    private final Supplier<String> _prefix;
+    public Reverse@(controller.replace(".", "_"))(Supplier<String> _prefix) @ob
+      this._prefix = _prefix;
+    @cb
+    private String _defaultPrefix() @ob
+      return _prefix.get().endsWith("/") ? "" : "/";
+    @cb
+
+  @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
+  case Seq(route: Route) => {
+    @markLines(route)
+    public Call @(method)@(javaReverseSignature(routes)) @ob
+      @javaReverseRouteContext(route)
+      @javaReverseCall(route)
+    @cb
+  }
+  case _ => {
+    @markLines(routes: _*)
+    public Call @(method)@(javaReverseSignature(routes)) @ob
+    @defining(reverseParameters(routes)) { params =>
+      @javaReverseUniqueConstraints(routes, params) { (route, parameters, parameterConstraints) =>
+      @markLines(route)
+        @if(parameterConstraints) {
+      @parameterConstraints @ob
+        @javaReverseRouteContext(route)
+        @javaReverseCall(route)
+      @cb
+        } else {
+      @javaReverseRouteContext(route)
+      @javaReverseCall(route)
+        }
+      }
+    }
+    @cb
+  }}}
+  @cb
+}
+@cb

@@ -79,6 +79,7 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated router sources.
    */
   case class RoutesCompilerTask(
       file: File,
@@ -86,15 +87,141 @@ object RoutesCompiler {
       forwardsRouter: Boolean,
       reverseRouter: Boolean,
       jsReverseRouter: Boolean,
-      namespaceReverseRouter: Boolean
+      namespaceReverseRouter: Boolean,
+      lang: Language
   ) {
+    def copy(
+        file: File = this.file,
+        additionalImports: Seq[String] = this.additionalImports,
+        forwardsRouter: Boolean = this.forwardsRouter,
+        reverseRouter: Boolean = this.reverseRouter,
+        jsReverseRouter: Boolean = this.jsReverseRouter,
+        namespaceReverseRouter: Boolean = this.namespaceReverseRouter,
+        lang: Language = this.lang
+    ): RoutesCompilerTask =
+      new RoutesCompilerTask(
+        file,
+        additionalImports,
+        forwardsRouter,
+        reverseRouter,
+        jsReverseRouter,
+        namespaceReverseRouter,
+        lang
+      )
+
+    /**
+     * Binary-compatible copy method for tasks created before the generated-source language was configurable.
+     */
+    def copy(
+        file: File,
+        additionalImports: Seq[String],
+        forwardsRouter: Boolean,
+        reverseRouter: Boolean,
+        jsReverseRouter: Boolean,
+        namespaceReverseRouter: Boolean
+    ): RoutesCompilerTask =
+      RoutesCompilerTask(
+        file,
+        additionalImports,
+        forwardsRouter,
+        reverseRouter,
+        jsReverseRouter,
+        namespaceReverseRouter,
+        lang
+      )
+
+    def this(
+        file: File,
+        additionalImports: Seq[String],
+        forwardsRouter: Boolean,
+        reverseRouter: Boolean,
+        jsReverseRouter: Boolean,
+        namespaceReverseRouter: Boolean
+    ) = this(
+      file,
+      additionalImports,
+      forwardsRouter,
+      reverseRouter,
+      jsReverseRouter,
+      namespaceReverseRouter,
+      Language.SCALA
+    )
+
     def this(
         file: File,
         additionalImports: Seq[String],
         forwardsRouter: Boolean,
         reverseRouter: Boolean,
         namespaceReverseRouter: Boolean
-    ) = this(file, additionalImports, forwardsRouter, reverseRouter, true, namespaceReverseRouter)
+    ) = this(file, additionalImports, forwardsRouter, reverseRouter, true, namespaceReverseRouter, Language.SCALA)
+  }
+
+  object RoutesCompilerTask
+      extends scala.runtime.AbstractFunction6[
+        File,
+        Seq[String],
+        Boolean,
+        Boolean,
+        Boolean,
+        Boolean,
+        RoutesCompilerTask
+      ] {
+
+    /**
+     * Source- and binary-compatible factory for tasks created before the generated-source language was configurable.
+     */
+    override def apply(
+        file: File,
+        additionalImports: Seq[String],
+        forwardsRouter: Boolean,
+        reverseRouter: Boolean,
+        jsReverseRouter: Boolean,
+        namespaceReverseRouter: Boolean
+    ): RoutesCompilerTask =
+      new RoutesCompilerTask(
+        file,
+        additionalImports,
+        forwardsRouter,
+        reverseRouter,
+        jsReverseRouter,
+        namespaceReverseRouter,
+        Language.SCALA
+      )
+
+    /**
+     * Source- and binary-compatible extractor for tasks created before the generated-source language was configurable.
+     */
+    def unapply(
+        task: RoutesCompilerTask
+    ): Option[(File, Seq[String], Boolean, Boolean, Boolean, Boolean)] =
+      Some(
+        (
+          task.file,
+          task.additionalImports,
+          task.forwardsRouter,
+          task.reverseRouter,
+          task.jsReverseRouter,
+          task.namespaceReverseRouter
+        )
+      )
+
+    /**
+     * Extract all task fields, including the generated-source language.
+     */
+    def unapplyWithLanguage(
+        task: RoutesCompilerTask
+    ): Option[(File, Seq[String], Boolean, Boolean, Boolean, Boolean, Language)] =
+      Some(
+        (
+          task.file,
+          task.additionalImports,
+          task.forwardsRouter,
+          task.reverseRouter,
+          task.jsReverseRouter,
+          task.namespaceReverseRouter,
+          task.lang
+        )
+      )
   }
 
   /**
@@ -141,6 +268,47 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated router sources.
+   * @param generatedDir The directory to place the generated source code in
+   * @return Either the list of files that were generated (right) or the routes compilation errors (left)
+   */
+  def compile(
+      file: File,
+      additionalImports: util.Collection[String],
+      forwardsRouter: Boolean,
+      reverseRouter: Boolean,
+      jsReverseRouter: Boolean,
+      namespaceReverseRouter: Boolean,
+      lang: Language,
+      generatedDir: File
+  ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] = {
+    compile(
+      RoutesCompilerTask(
+        file,
+        additionalImports.asScala.toSeq,
+        forwardsRouter,
+        reverseRouter,
+        jsReverseRouter,
+        namespaceReverseRouter,
+        lang
+      ),
+      InjectedRoutesGenerator,
+      generatedDir
+    ) match {
+      case Left(errors) => Left(errors.asJavaCollection)
+      case Right(files) => Right(files.asJavaCollection)
+    }
+  }
+
+  /**
+   * Java friendly method to compile the given routes file using the default Scala source generator.
+   *
+   * @param file The routes file to compile
+   * @param additionalImports The additional imports.
+   * @param forwardsRouter Whether a forwards router should be generated.
+   * @param reverseRouter Whether a reverse router should be generated.
+   * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
+   * @param namespaceReverseRouter Whether the reverse router should be namespaced.
    * @param generatedDir The directory to place the generated source code in
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
@@ -152,21 +320,15 @@ object RoutesCompiler {
       jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean,
       generatedDir: File
-  ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] = {
+  ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] =
     compile(
-      RoutesCompilerTask(
-        file,
-        additionalImports.asScala.toSeq,
-        forwardsRouter,
-        reverseRouter,
-        jsReverseRouter,
-        namespaceReverseRouter
-      ),
-      InjectedRoutesGenerator,
+      file,
+      additionalImports,
+      forwardsRouter,
+      reverseRouter,
+      jsReverseRouter,
+      namespaceReverseRouter,
+      Language.SCALA,
       generatedDir
-    ) match {
-      case Left(errors) => Left(errors.asJavaCollection)
-      case Right(files) => Right(files.asJavaCollection)
-    }
-  }
+    )
 }
