@@ -25,6 +25,20 @@ public class SanitizedFilenameTest {
   }
 
   @Test
+  public void sanitizeWindowsComponentsOnEveryPlatform() {
+    MultipartFormData.FilePart<Object> p =
+        new MultipartFormData.FilePart<Object>(null, "C:\\fakepath\\avatar.png", null, null);
+    assertEquals("avatar.png", p.getSanitizedFilename());
+  }
+
+  @Test
+  public void sanitizeMixedSeparators() {
+    MultipartFormData.FilePart<Object> p =
+        new MultipartFormData.FilePart<Object>(null, "../windows\\path/secret.txt", null, null);
+    assertEquals("secret.txt", p.getSanitizedFilename());
+  }
+
+  @Test
   public void sanitizeWithTrailingDots() {
     MultipartFormData.FilePart<Object> p =
         new MultipartFormData.FilePart<Object>(null, "a/b/c/././", null, null);
@@ -59,29 +73,40 @@ public class SanitizedFilenameTest {
     assertEquals("d", p.getSanitizedFilename());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void sanitizeThrowsOnEmptyPath() {
     (new MultipartFormData.FilePart<Object>(null, "", null, null)).getSanitizedFilename();
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void sanitizeThrowsOnCurrentDirectory() {
     (new MultipartFormData.FilePart<Object>(null, ".", null, null)).getSanitizedFilename();
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void sanitizeThrowsOnDoubleDots() {
     (new MultipartFormData.FilePart<Object>(null, "..", null, null)).getSanitizedFilename();
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void sanitizeThrowsPastRoot() {
     (new MultipartFormData.FilePart<Object>(null, "a/b/../../..", null, null))
         .getSanitizedFilename();
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void sanitizeThrowsOnParentAfterResolving() {
     (new MultipartFormData.FilePart<Object>(null, "../a/..", null, null)).getSanitizedFilename();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void sanitizeThrowsOnNull() {
+    (new MultipartFormData.FilePart<Object>(null, null, null, null)).getSanitizedFilename();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void sanitizeThrowsOnInvalidPath() {
+    (new MultipartFormData.FilePart<Object>(null, "bad\u0000name", null, null))
+        .getSanitizedFilename();
   }
 }

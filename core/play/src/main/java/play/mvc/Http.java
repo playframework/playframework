@@ -20,9 +20,6 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
@@ -42,6 +39,7 @@ import play.api.mvc.Headers$;
 import play.api.mvc.request.*;
 import play.core.j.JavaHelpers$;
 import play.core.j.JavaParsers;
+import play.core.parsers.MultipartFileName;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
@@ -2365,30 +2363,26 @@ public class Http {
       }
 
       /**
-       * @return the sanitized version of the file name (i.e. only the filename, no path components)
+       * Returns the normalized final path component of the untrusted filename supplied by the
+       * client. Both slash and backslash are treated as separators.
+       *
+       * <p>The result is still client-controlled. Applications must choose a trusted destination
+       * directory and apply their own rules for allowed characters, reserved names, collisions, and
+       * existing files.
+       *
+       * @return the final component of the filename, without directory components
+       * @throws IllegalArgumentException if the filename has no usable final component or is not a
+       *     valid path
        */
       public String getSanitizedFilename() {
-        try {
-          // Will throw InvalidPathException on invalid filepaths
-          Path name = Paths.get(filename).normalize().getFileName();
-
-          // This can occur if the filepath is empty when fully resolved
-          if (name == null || name.toString().isEmpty() || name.toString().equals("..")) {
-            throw new InvalidPathException(filename, "");
-          }
-          return name.toString();
-
-        } catch (InvalidPathException e) {
-          throw new RuntimeException(
-              "Unable to sanitize the filename given to MultipartFormData.FilePart: \""
-                  + e.getInput()
-                  + "\"");
-        }
+        return MultipartFileName.sanitize(filename);
       }
 
       /**
-       * @deprecated Use {@link #getSanitizedFilename()} instead.
-       * @return the raw file name
+       * Returns the untrusted filename exactly as supplied by the client.
+       *
+       * @return the raw, untrusted filename
+       * @deprecated Use {@link #getSanitizedFilename()} when only a final path component is needed.
        */
       @Deprecated
       public String getFilename() {
