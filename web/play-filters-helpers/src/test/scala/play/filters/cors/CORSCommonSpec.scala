@@ -6,6 +6,7 @@ package play.filters.cors
 
 import scala.concurrent.Future
 
+import com.typesafe.config.ConfigException
 import play.api.mvc.request.RequestAuthority
 import play.api.mvc.request.Scheme
 import play.api.mvc.Result
@@ -13,7 +14,6 @@ import play.api.test.FakeRequest
 import play.api.test.PlaySpecification
 import play.api.Application
 import play.api.Configuration
-import com.typesafe.config.ConfigException
 
 trait CORSCommonSpec extends PlaySpecification {
   def withApplication[T](conf: Map[String, ? <: Any] = Map.empty)(block: Application => T): T
@@ -543,7 +543,10 @@ trait CORSCommonSpec extends PlaySpecification {
     "forbid a preflight request with a restricted regex origin" in withApplication(conf = regexOrigins) { app =>
       val result = route(
         app,
-        fakeRequest("OPTIONS", "/").withHeaders(ORIGIN -> "http://localhost", ACCESS_CONTROL_REQUEST_METHOD -> "PUT")
+        fakeRequest("OPTIONS", "/").withHeaders(
+          ORIGIN                        -> "http://regex.example.org.evil",
+          ACCESS_CONTROL_REQUEST_METHOD -> "PUT"
+        )
       ).get
 
       status(result) must_== FORBIDDEN
@@ -561,6 +564,20 @@ trait CORSCommonSpec extends PlaySpecification {
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
       header(VARY, result) must beSome(ORIGIN)
+    }
+
+    val regexAndAllOrigins = Map(
+      "play.filters.cors.allowedOrigins"        -> Seq("*", "^http[s]?://[^\\.]+\\.example.org$"),
+      "play.filters.cors.allowedOriginsAsRegex" -> true
+    )
+
+    "preserve the special * origin when regex matching is enabled" in withApplication(conf = regexAndAllOrigins) {
+      app =>
+        val result = route(app, fakeRequest().withHeaders(ORIGIN -> "http://localhost")).get
+
+        status(result) must_== OK
+        header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+        header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("*")
     }
 
     val allOrigins = Map("play.filters.cors.allowedOrigins" -> Seq("*"))

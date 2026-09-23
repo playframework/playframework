@@ -8,9 +8,9 @@ import java.util.regex.PatternSyntaxException
 
 import scala.concurrent.duration._
 
+import com.typesafe.config.ConfigException
 import play.api.Configuration
 import play.filters.cors.CORSConfig.Origins
-import com.typesafe.config.ConfigException
 
 /**
  * Configuration for play.filters.cors.AbstractCORSPolicy.
@@ -146,6 +146,7 @@ object CORSConfig {
    *           play.filters.cors {
    *               pathPrefixes = ["/myresource", ...]  # ["/"] by default
    *               allowedOrigins = ["http://...", ...]  # If null, all origins are allowed
+   *               allowedOriginsAsRegex = false  # Treat allowedOrigins as regular expressions when true
    *               allowedHttpMethods = ["PATCH", ...]  # If null, all methods are allowed
    *               allowedHttpHeaders = ["Custom-Header", ...]  # If null, all headers are allowed
    *               exposedHeaders = [...]  # empty by default
@@ -165,21 +166,25 @@ object CORSConfig {
     CORSConfig(
       allowedOrigins = config.get[Option[Seq[String]]]("allowedOrigins") match {
         case Some(allowed) if config.get[Boolean]("allowedOriginsAsRegex") =>
-          val regexes =
-            allowed.zipWithIndex.map {
-              case (pattern, idx) =>
+          val wildcardAllowed = allowed.contains("*")
+          val regexes         =
+            allowed.zipWithIndex.collect {
+              case (pattern, idx) if pattern != "*" =>
                 try {
                   pattern.r
                 } catch {
                   case e: PatternSyntaxException =>
                     throw new ConfigException.BadValue(
-                      "allowedOrigins",
-                      s"Invalid regex in play.filters.cors.allowedOrigins[$idx]: $pattern",
+                      s"allowedOrigins[$idx]",
+                      s"Invalid regular expression: $pattern",
                       e,
                     )
                 }
             }
-          Origins.Matching(origin => regexes.exists(_.matches(origin)))
+          Origins.Matching {
+            case "*"    => wildcardAllowed
+            case origin => regexes.exists(_.matches(origin))
+          }
         case Some(allowed) => Origins.Matching(allowed.toSet)
         case None          => Origins.All
       },
