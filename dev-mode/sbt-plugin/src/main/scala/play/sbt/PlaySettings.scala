@@ -283,11 +283,14 @@ object PlaySettings {
     assetsPrefix := "public/",
     // Assets for distribution
     Assets / WebKeys.packagePrefix := assetsPrefix.value,
-    Assets / packageOptions += Package.setFixedTimestamp((Assets / packageTimestamp).value),
     // The ...-assets.jar should contain the same META-INF/MANIFEST.MF file like the main app jar
-    Assets / packageBin / packageOptions := (Runtime / packageBin / packageOptions).value,
-    playPackageAssets                    := uncached { (Assets / packageBin).value },
-    scriptClasspathOrdering              := Def.taskDyn {
+    Assets / packageBin / packageOptions := {
+      val runtimePackageOptions = (Runtime / packageBin / packageOptions).value
+      val assetTimestampOption  = Package.setFixedTimestamp((Assets / packageTimestamp).value)
+      runtimePackageOptions.filterNot(_.isInstanceOf[FixedTimestamp]) :+ assetTimestampOption
+    },
+    playPackageAssets       := uncached { (Assets / packageBin).value },
+    scriptClasspathOrdering := Def.taskDyn {
       val oldValue = scriptClasspathOrdering.value
       // only create a assets-jar if the task is active
       // this actually disables calling playPackageAssets, which in turn would call packageBin in Assets
