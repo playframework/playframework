@@ -47,7 +47,8 @@ public interface AsyncCacheApi {
    * @param <T> the type of the value
    * @param key Item key.
    * @param block block returning value to set if key does not exist
-   * @param expiration expiration period in seconds.
+   * @param expiration expiration period in seconds. A negative value returns the computed value
+   *     without retaining it; zero means no expiration.
    * @return a CompletionStage containing the value
    */
   <T> CompletionStage<T> getOrElseUpdate(
@@ -70,7 +71,8 @@ public interface AsyncCacheApi {
    *
    * @param key Item key.
    * @param value The value to set.
-   * @param expiration expiration in seconds
+   * @param expiration expiration in seconds. A negative value removes any existing value for the
+   *     key and does not retain the new value; zero means no expiration.
    * @return a CompletionStage containing the value
    */
   CompletionStage<Done> set(String key, Object value, int expiration);

@@ -186,8 +186,12 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
   private val syncCache: Cache[Any, Any] = cache.synchronous()
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
-    Done
+    if (expiration == Duration.MinusInf || (expiration.isFinite && expiration.lteq(Duration.Zero))) {
+      // Setting an already expired value also needs to remove a value previously stored under the same key.
+      syncCache.invalidate(key)
+    } else {
+      syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
+    }
   }
 
   override def remove(key: String): Unit = syncCache.invalidate(key)

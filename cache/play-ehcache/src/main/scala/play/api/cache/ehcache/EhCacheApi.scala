@@ -186,21 +186,20 @@ private[play] case class EhCacheExistsException(msg: String, cause: Throwable) e
 
 class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    val element = new Element(key, value)
     expiration match {
-      case infinite: Duration.Infinite => element.setEternal(true)
-      case finite: FiniteDuration      =>
-        val seconds = finite.toSeconds
-        if (seconds <= 0) {
-          element.setTimeToLive(1)
-        } else if (seconds > Int.MaxValue) {
-          element.setTimeToLive(Int.MaxValue)
-        } else {
-          element.setTimeToLive(seconds.toInt)
+      case Duration.MinusInf                                    => remove(key)
+      case finite: FiniteDuration if finite.lteq(Duration.Zero) => remove(key)
+      case duration                                             =>
+        val element = new Element(key, value)
+        duration match {
+          case _: Duration.Infinite   => element.setEternal(true)
+          case finite: FiniteDuration =>
+            // Ehcache only supports whole-second TTLs, so retain a positive sub-second value for one second.
+            val seconds = finite.toSeconds.max(1L)
+            element.setTimeToLive(seconds.min(Int.MaxValue.toLong).toInt)
         }
+        cache.put(element)
     }
-    cache.put(element)
-    Done
   }
 
   override def remove(key: String): Unit = cache.remove(key)
