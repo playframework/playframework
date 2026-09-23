@@ -13,7 +13,7 @@ The interface through which Play handles these errors is [`HttpErrorHandler`](ap
 By default, Play returns errors in a HTML format.
 For a JSON API, it's more consistent to return errors in JSON.
 
-Play proposes an alternative `HttpErrorHandler` implementation, named [`JsonHttpErrorHandler`](api/scala/play/api/http/JsonHttpErrorHandler.html), which will return errors formatted in JSON.
+Play provides an alternative `HttpErrorHandler` implementation, named [`JsonHttpErrorHandler`](api/scala/play/api/http/JsonHttpErrorHandler.html), which returns [Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457.html) encoded as JSON. Responses use the `application/problem+json` media type and include the HTTP `status`, a `title`, and Play's `requestId`. Development-mode server errors also include diagnostic details and a stack trace.
 
 To use that `HttpErrorHandler` implementation, you should configure the `play.http.errorHandler` configuration property in `application.conf` like this:
 
@@ -21,7 +21,7 @@ To use that `HttpErrorHandler` implementation, you should configure the `play.ht
 
 ## Using both HTML and JSON, and other content types
 
-If your application uses a mixture of HTML and JSON, as is common in modern web apps, Play offers another error handler that delegates to either the HTML or JSON error handler based on the preferences specified in the client's `Accept` header. This can be specified with:
+If your application uses a mixture of HTML and JSON, as is common in modern web apps, Play offers another error handler that delegates to either the HTML or JSON error handler based on the preferences specified in the client's `Accept` header. It recognizes both `application/json` and `application/problem+json` as requests for the JSON handler; its JSON responses use `application/problem+json`. This can be specified with:
 
     play.http.errorHandler = play.api.http.HtmlOrJsonHttpErrorHandler
 
