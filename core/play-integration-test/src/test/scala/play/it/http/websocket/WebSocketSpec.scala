@@ -1748,6 +1748,62 @@ trait WebSocketSpec
         invoker.call(javaHandler)
       }
 
+      def actionCompositionHandler(method: String)(javaWebSocket: => play.mvc.WebSocket): Handler = {
+        val controllerClass = classOf[WebSocketSpecJavaActions.ActionCompositionController]
+        HandlerInvokerFactory.javaWebSocket
+          .createInvoker(
+            javaWebSocket,
+            HandlerDef(
+              controllerClass.getClassLoader,
+              "",
+              controllerClass.getName,
+              method,
+              Nil,
+              "GET",
+              "/stream"
+            )
+          )
+          .call(javaWebSocket)
+      }
+
+      def actionCompositionMessage(configuration: Map[String, Any]): Option[String] = {
+        val controller = new WebSocketSpecJavaActions.ActionCompositionController()
+        withServer(_ => actionCompositionHandler("accepted")(controller.accepted()), configuration) { (app, port) =>
+          import app.materializer
+          runWebSocket(port, flow => Source.maybe[ExtendedMessage].via(flow).runWith(consumeFrames)).collectFirst {
+            case SimpleMessage(TextMessage(data), true) => data
+          }
+        }
+      }
+
+      "skip action composition and the action creator by default" in {
+        actionCompositionMessage(
+          Map(
+            "play.http.actionCreator" -> classOf[WebSocketSpecJavaActions.WebSocketActionCreator].getName
+          )
+        ) must beSome("missing:missing")
+      }
+
+      "apply controller composition and the action creator when enabled" in {
+        actionCompositionMessage(
+          Map(
+            "play.http.actionComposition.includeWebSocketActions" -> true,
+            "play.http.actionCreator"                             -> classOf[WebSocketSpecJavaActions.WebSocketActionCreator].getName
+          )
+        ) must beSome("controller:creator")
+      }
+
+      "reject the handshake before invoking the WebSocket action when composition short-circuits" in {
+        val controller = new WebSocketSpecJavaActions.ActionCompositionController()
+        withServer(
+          _ => actionCompositionHandler("rejected")(controller.rejected()),
+          Map("play.http.actionComposition.includeWebSocketActions" -> true)
+        ) { (app, port) =>
+          (webSocketHandshakeStatus(app, port, None) must_== UNAUTHORIZED)
+            .and(controller.wasRejectedInvoked() must beFalse)
+        }
+      }
+
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
         val javaConsumed = Promise[JList[String]]()
         consumed.completeWith(javaConsumed.future.map(_.asScala.toList))
