@@ -79,6 +79,7 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated router sources.
    */
   case class RoutesCompilerTask(
       file: File,
@@ -159,6 +160,7 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated router sources.
    * @param generatedDir The directory to place the generated source code in
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
