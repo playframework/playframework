@@ -148,6 +148,7 @@ There are several input helpers, but the most helpful are:
 * [`inputFile`](api/scala/views/html/helper/inputFile$.html): renders a [file input](https://www.w3.org/TR/html/sec-forms.html#file-upload-state-typefile) element.
 * [`inputRadioGroup`](api/scala/views/html/helper/inputRadioGroup$.html): renders a [radio input](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-radio-button) element.
 * [`select`](api/scala/views/html/helper/select$.html): renders a [select](https://www.w3.org/TR/html/sec-forms.html#the-select-element) element.
+* [`selectGrouped`](api/scala/views/html/helper/selectGrouped$.html): renders a select whose options may be arranged in [`optgroup`](https://html.spec.whatwg.org/multipage/form-elements.html#the-optgroup-element) elements. Pass an empty group label to render options outside a group, and use the reserved `_disabledGroups` argument to disable groups by label.
 * [`textarea`](api/scala/views/html/helper/textarea$.html): renders a [textarea](https://www.w3.org/TR/html/sec-forms.html#the-textarea-element) element.
 * [`checkbox`](api/scala/views/html/helper/checkbox$.html): renders a [checkbox](https://www.w3.org/TR/html/sec-forms.html#element-statedef-input-checkbox) element.
 * [`input`](api/scala/views/html/helper/input$.html): renders a generic input element (which requires explicit arguments).
