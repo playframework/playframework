@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.validation;
 
+import java.util.Locale;
 import play.data.internal.binding.beans.PropertyAccessException;
 
 /**
@@ -39,7 +40,8 @@ public interface BindingErrorProcessor {
 	 * error registered on the given BindingResult.
 	 * @param ex the {@code PropertyAccessException} to translate
 	 * @param bindingResult the errors object to add the error(s) to.
+	 * @param locale the locale to use for field formatting
 	 */
-	void processPropertyAccessException(PropertyAccessException ex, BindingResult bindingResult);
+	void processPropertyAccessException(PropertyAccessException ex, BindingResult bindingResult, Locale locale);
 
 }

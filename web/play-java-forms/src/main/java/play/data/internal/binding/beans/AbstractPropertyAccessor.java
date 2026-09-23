@@ -23,6 +23,7 @@ package play.data.internal.binding.beans;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import play.data.internal.binding.core.convert.ConversionService;
 
@@ -76,12 +77,12 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 	}
 
 
-	public void setPropertyValue(PropertyValue pv) throws BeansException {
-		setPropertyValue(pv.getName(), pv.getValue());
+	public void setPropertyValue(PropertyValue pv, Locale locale) throws BeansException {
+		setPropertyValue(pv.getName(), pv.getValue(), locale);
 	}
 
 	@Override
-	public void setPropertyValues(PropertyValues pvs) throws BeansException {
+	public void setPropertyValues(PropertyValues pvs, Locale locale) throws BeansException {
 
 		List<PropertyAccessException> propertyAccessExceptions = null;
 		List<PropertyValue> propertyValues = (pvs instanceof MutablePropertyValues mpvs ?
@@ -92,7 +93,7 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 				// here, if there is a critical failure such as no matching field.
 				// We can attempt to deal only with less serious exceptions.
 				try {
-					setPropertyValue(pv);
+					setPropertyValue(pv, locale);
 				}
 				catch (NotWritablePropertyException ex) {
 					// Otherwise, just ignore it and continue...
@@ -118,7 +119,7 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 
 	// Redefined with public visibility.
 	@Override
-	public Class<?> getPropertyType(String propertyPath) {
+	public Class<?> getPropertyType(String propertyPath, Locale locale) {
 		return null;
 	}
 
@@ -132,7 +133,7 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 	 * accessor method failed
 	 */
 	@Override
-	public abstract Object getPropertyValue(String propertyName) throws BeansException;
+	public abstract Object getPropertyValue(String propertyName, Locale locale) throws BeansException;
 
 	/**
 	 * Actually set a property value.
@@ -143,6 +144,6 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed or a type mismatch occurred
 	 */
-	public abstract void setPropertyValue(String propertyName, Object value) throws BeansException;
+	public abstract void setPropertyValue(String propertyName, Object value, Locale locale) throws BeansException;
 
 }
