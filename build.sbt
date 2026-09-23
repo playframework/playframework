@@ -534,6 +534,7 @@ lazy val PlayFramework = Project("Play-Framework", file("."))
 
 val sbtValidateCodeProp = sys.props += ("sbt_validateCode" -> List(
   "+pekkoVersionCheck",
+  "automaticModuleNameCheck",
 ).mkString(";"))
 
 lazy val savePlayVersion = taskKey[Unit]("Save Play version")
