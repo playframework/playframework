@@ -58,6 +58,7 @@ public final class DevServerRunner {
       Supplier<Boolean> triggerReload,
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
+      Runnable onChange,
       Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
       int defaultHttpPort,
       String defaultHttpAddress,
@@ -157,7 +158,8 @@ public final class DevServerRunner {
               monitoredFiles,
               fileWatchService,
               generatedSourceHandlers,
-              reloadLock);
+              reloadLock,
+              onChange);
 
       ReloadableServer server = getReloadableServer(applicationLoader, mainClassName, settings);
 
@@ -245,6 +247,51 @@ public final class DevServerRunner {
       List<String> args,
       String mainClassName,
       Object reloadLock) {
+    return startDevMode(
+        runHooks,
+        javaOptions,
+        commonClassLoader,
+        dependencyClasspath,
+        reloadCompile,
+        assetsClassLoader,
+        triggerReload,
+        monitoredFiles,
+        fileWatchService,
+        generatedSourceHandlers,
+        defaultHttpPort,
+        defaultHttpAddress,
+        projectPath,
+        devSettings,
+        args,
+        mainClassName,
+        reloadLock,
+        null);
+  }
+
+  /**
+   * Start the server in DEV-mode and invoke a callback whenever a monitored file changes.
+   *
+   * @return A closeable that can be closed to stop the server
+   */
+  public static DevServer startDevMode(
+      List<? extends RunHook> runHooks,
+      List<String> javaOptions,
+      ClassLoader commonClassLoader,
+      List<File> dependencyClasspath,
+      Supplier<CompileResult> reloadCompile,
+      Function<ClassLoader, ClassLoader> assetsClassLoader,
+      Supplier<Boolean> triggerReload,
+      List<File> monitoredFiles,
+      FileWatchService fileWatchService,
+      Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
+      int defaultHttpPort,
+      String defaultHttpAddress,
+      File projectPath,
+      Map<String, String> devSettings,
+      List<String> args,
+      String mainClassName,
+      Object reloadLock,
+      Runnable onChange) {
     return getInstance()
         .run(
             runHooks,
@@ -256,6 +303,7 @@ public final class DevServerRunner {
             triggerReload,
             monitoredFiles,
             fileWatchService,
+            onChange,
             generatedSourceHandlers,
             defaultHttpPort,
             defaultHttpAddress,
