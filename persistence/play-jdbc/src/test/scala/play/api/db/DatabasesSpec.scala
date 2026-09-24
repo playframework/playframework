@@ -4,9 +4,15 @@
 
 package play.api.db
 
-import java.sql.{ SQLException, SQLNonTransientConnectionException, SQLSyntaxErrorException }
+import java.sql.SQLException
+import java.sql.SQLNonTransientConnectionException
+import java.sql.SQLSyntaxErrorException
 
-import acolyte.jdbc.{ ConnectionHandler, QueryResult, ResourceHandler, StatementHandler, UpdateResult }
+import acolyte.jdbc.ConnectionHandler
+import acolyte.jdbc.QueryResult
+import acolyte.jdbc.ResourceHandler
+import acolyte.jdbc.StatementHandler
+import acolyte.jdbc.UpdateResult
 import org.jdbcdslog.ConnectionPoolDataSourceProxy
 import org.specs2.mutable.After
 import org.specs2.mutable.Specification
