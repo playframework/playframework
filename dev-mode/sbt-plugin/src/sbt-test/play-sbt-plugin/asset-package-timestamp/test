@@ -1,0 +1,7 @@
+# A ThisBuild timestamp is inherited by the Assets configuration.
+> checkAssetTimestamp 946684800000
+
+# An Assets timestamp can override the build-wide value.
+> set Assets / packageTimestamp := Some(978307200000L)
+> clean
+> checkAssetTimestamp 978307200000
