@@ -77,6 +77,21 @@ class RoutesFileParserSpec extends Specification {
       parseRoute("GET /s p.c.m").call.method must_== "m"
     }
 
+    "parse a backticked method" in {
+      parseRoute("GET /s p.c.`type`").call.method must_== "type"
+    }
+
+    "parse a backticked method on a controller without a package" in {
+      val call = parseRoute("GET /s c.`type`").call
+      call.packageName must beNone
+      call.controller must_== "c"
+      call.method must_== "type"
+    }
+
+    "reject a backticked method that is not a Java identifier" in {
+      parseError("GET /s p.c.` `")
+    }
+
     "parse a parameterless method" in {
       parseRoute("GET /s p.c.m").call.parameters must beNone
     }
