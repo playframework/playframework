@@ -124,6 +124,11 @@ class CSRFFilterSpec extends CSRFCommonSpecs {
     "not check safe methods" in {
       buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.addCookie("foo" -> "bar").options())(_.status must_== OK)
     }
+    "not check QUERY method" in {
+      buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.addCookie("foo" -> "bar").execute("QUERY"))(
+        _.status must_== OK
+      )
+    }
     "not check requests with no cookies" in {
       buildCsrfCheckRequest(sendUnauthorizedResult = false)(_.post(Map("foo" -> "bar")))(_.status must_== OK)
     }

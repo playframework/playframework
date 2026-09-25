@@ -95,7 +95,7 @@ case class CSRFConfig(
 }
 
 object CSRFConfig {
-  private val SafeMethods = Set("GET", "HEAD", "OPTIONS")
+  private val SafeMethods = Set("GET", "HEAD", "OPTIONS", "QUERY")
 
   private def defaultCreateIfNotFound(request: RequestHeader) = {
     // If the request isn't accepting HTML, then it won't be rendering a form, so there's no point in generating a

@@ -177,6 +177,16 @@ public class RoutingDsl {
   }
 
   /**
+   * Create a QUERY route for the given path pattern.
+   *
+   * @param pathPattern The path pattern.
+   * @return A QUERY route matcher.
+   */
+  public PathPatternMatcher QUERY(String pathPattern) {
+    return new PathPatternMatcher("QUERY", pathPattern);
+  }
+
+  /**
    * Create a route for the given method and path pattern.
    *
    * @param method The method;
