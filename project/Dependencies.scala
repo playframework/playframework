@@ -29,7 +29,7 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.20.0"      % Test
   )
 
-  val jacksonVersion  = "2.22.2"
+  val jacksonVersion  = "2.22.3"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -46,7 +46,7 @@ object Dependencies {
 
   val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.18"
+  val slf4jVersion = "2.0.20"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
@@ -108,7 +108,7 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.14.3",
+    "joda-time" % "joda-time"    % "2.14.4",
     "org.joda"  % "joda-convert" % "3.0.1"
   )
 
@@ -177,7 +177,7 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
-  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.1"
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.2"
 
   val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.5.0"
 
