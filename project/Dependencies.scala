@@ -77,7 +77,7 @@ object Dependencies {
 
   val playJson = "com.typesafe.play" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.19"
+  val slf4jVersion = "2.0.20"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
@@ -183,7 +183,7 @@ object Dependencies {
         .map("com.typesafe.akka" %% _ % akkaVersion)
         .map(_.forScala3TestsUse2_13())
         .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq(
-        "at.yawk.lz4" % "lz4-java" % "1.11.2" // CVE‐2025‐12183 + CVE-2025-66566
+        "at.yawk.lz4" % "lz4-java" % "1.11.3" // CVE‐2025‐12183 + CVE-2025-66566
       ) ++
       Seq("akka-testkit", "akka-actor-testkit-typed")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test)
@@ -204,7 +204,7 @@ object Dependencies {
   val nettyVersion = "4.1.138.Final"
 
   val netty = Seq(
-    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.19",
+    "com.typesafe.netty" % "netty-reactive-streams-http" % "2.0.20",
     "io.netty"           % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"           % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
     // Provide various Linux native transport dependencies. Netty automatically loads the correct native library
@@ -337,7 +337,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "2.2.17"
+  val playWsStandaloneVersion = "2.2.18"
   val playWsDeps              = Seq(
     ("com.typesafe.play" %% "play-ws-standalone"      % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
     ("com.typesafe.play" %% "play-ws-standalone-xml"  % playWsStandaloneVersion).forScala3TestsExcludeAkkaOrganization(),
