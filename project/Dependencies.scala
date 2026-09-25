@@ -61,7 +61,7 @@ object Dependencies {
 
   val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.19"
+  val slf4jVersion = "2.0.20"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
@@ -166,7 +166,7 @@ object Dependencies {
       Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j", "pekko-serialization-jackson")
         .map("org.apache.pekko" %% _ % pekkoVersion)
         .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq(
-        "at.yawk.lz4" % "lz4-java" % "1.11.2" // CVE‐2025‐12183 + CVE-2025-66566
+        "at.yawk.lz4" % "lz4-java" % "1.11.3" // CVE‐2025‐12183 + CVE-2025-66566
       ) ++
       Seq("pekko-testkit", "pekko-actor-testkit-typed")
         .map("org.apache.pekko" %% _ % pekkoVersion % Test) ++
@@ -184,7 +184,7 @@ object Dependencies {
   val nettyVersion = "4.1.138.Final"
 
   val netty = Seq(
-    "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.9",
+    "org.playframework.netty" % "netty-reactive-streams-http" % "3.0.10",
     "io.netty"                % "netty-codec-http"            % nettyVersion, // increases transitive Netty dependency version ...
     "io.netty"                % "netty-handler"               % nettyVersion, // ... pulled in by netty-reactive-streams-http
     // Provide various Linux native transport dependencies. Netty automatically loads the correct native library
@@ -311,7 +311,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi
 
-  val playWsStandaloneVersion = "3.0.13"
+  val playWsStandaloneVersion = "3.0.14"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
