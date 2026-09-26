@@ -8,9 +8,9 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayJava)
   .settings(
     ScriptedTools.stableUniversalStagingDirectory,
-    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
+    scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
-    libraryDependencies ++= Seq(guice, javaJdbc, evolutions, "com.h2database" % "h2" % "2.5.250"),
+    libraryDependencies ++= Seq(guice, javaJdbc, evolutions, "com.h2database" % "h2" % "2.5.252"),
     InputKey[Unit]("applyEvolutions") := {
       val args        = Def.spaceDelimited("<path>").parsed
       val path :: Nil = args
