@@ -31,7 +31,7 @@ object Dependencies {
 
   val playJsonVersion = "2.10.8"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.3"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.4"
 
   val bytebuddyVersion = "1.17.8"
   val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
@@ -87,7 +87,7 @@ object Dependencies {
 
   val javaxInject = "javax.inject" % "javax.inject" % "1"
 
-  val h2database = "com.h2database" % "h2" % "2.5.250"
+  val h2database = "com.h2database" % "h2" % "2.5.252"
 
   val derbyVersion  = "10.15.2.0"
   val derbyDatabase = Seq(
@@ -183,7 +183,7 @@ object Dependencies {
         .map("com.typesafe.akka" %% _ % akkaVersion)
         .map(_.forScala3TestsUse2_13())
         .map(_.excludeAll(ExclusionRule("org.lz4"))) ++ Seq(
-        "at.yawk.lz4" % "lz4-java" % "1.11.3" // CVE‐2025‐12183 + CVE-2025-66566
+        "at.yawk.lz4" % "lz4-java" % "1.11.4" // CVE‐2025‐12183 + CVE-2025-66566
       ) ++
       Seq("akka-testkit", "akka-actor-testkit-typed")
         .map("com.typesafe.akka" %% _ % akkaVersion % Test)
