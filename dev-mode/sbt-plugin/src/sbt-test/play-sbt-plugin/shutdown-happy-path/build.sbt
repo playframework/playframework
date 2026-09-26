@@ -44,6 +44,13 @@ lazy val root = (project in file("."))
       val path :: status :: assertions = args
       ScriptedTools.verifyResourceContains(path, status.toInt, assertions)
     },
+    InputKey[Unit]("verifyLineCount") := {
+      val args     = Def.spaceDelimited("<path> <count>").parsed
+      val path     = args(0)
+      val expected = args(1).toInt
+      val lines    = IO.readLines(baseDirectory.value / path)
+      assert(lines.size == expected, s"Expected $expected lines in $path, found ${lines.size}")
+    },
     InputKey[Unit]("makeRequestAndRecordResponseBody") := {
       val args = Def.spaceDelimited("<path> <dest> ...").parsed
 
