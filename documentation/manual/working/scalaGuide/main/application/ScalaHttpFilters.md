@@ -55,6 +55,8 @@ Since filters are applied after routing is done, it is possible to access routin
 
 @[routing-info-access](code/FiltersRouting.scala)
 
+For routes generated from a `routes` file, the bound action parameters are available in declaration order through `Router.Attrs.RouteParams`. The values retain the types declared by the route. This attribute is added only after parameter binding succeeds.
+
 > Routing attributes are a feature of the Play router.  If you use a custom router, or return a custom action through a custom request handler, these parameters may not be available.
 
 ## More powerful filters

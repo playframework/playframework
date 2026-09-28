@@ -60,6 +60,16 @@ public interface Router {
     /** Key for the {@link HandlerDef} used to handle the request. */
     public static final TypedKey<HandlerDef> HANDLER_DEF =
         new TypedKey<>(play.api.routing.Router.Attrs$.MODULE$.HandlerDef());
+
+    /**
+     * Key for the route parameters passed to the action method, in declaration order.
+     *
+     * <p>This attribute is present after parameter binding succeeds for a generated route.
+     * Parameter values retain the types declared in the routes file. Use {@link
+     * play.libs.Scala#asJava} to view the value as a Java map.
+     */
+    public static final TypedKey<scala.collection.immutable.SeqMap<String, Object>> ROUTE_PARAMS =
+        new TypedKey<>(play.api.routing.Router.Attrs$.MODULE$.RouteParams());
   }
 
   class RouteDocumentation {

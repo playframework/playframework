@@ -130,6 +130,17 @@ package object templates {
     if (route.call.parameters.map(_.filterNot(_.isJavaRequest).size).getOrElse(0) < 22) tupleNames(route)
     else listNames(route)
 
+  /** Stores the bound route parameters in declaration order. */
+  def routeParamsToMap(route: Route): String =
+    route.call.parameters
+      .filterNot(_.isEmpty)
+      .map { params =>
+        params.filterNot(_.isJavaRequest).map(x => s""" "${x.name}" -> ${safeKeyword(x.name)} """.trim).mkString(", ")
+      }
+      .filterNot(_.isEmpty)
+      .map("scala.collection.immutable.SeqMap(" + _ + ")")
+      .getOrElse("scala.collection.immutable.SeqMap()")
+
   val scalaReservedWords = List(
     "as",
     "abstract",
