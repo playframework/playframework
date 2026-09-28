@@ -64,7 +64,11 @@ trait HttpErrorHandler {
 class HtmlOrJsonHttpErrorHandler @Inject() (
     htmlHandler: DefaultHttpErrorHandler,
     jsonHandler: JsonHttpErrorHandler
-) extends PreferredMediaTypeHttpErrorHandler("text/html" -> htmlHandler, "application/json" -> jsonHandler)
+) extends PreferredMediaTypeHttpErrorHandler(
+      "text/html"                -> htmlHandler,
+      "application/json"         -> jsonHandler,
+      "application/problem+json" -> jsonHandler
+    )
 
 /**
  * An [[HttpErrorHandler]] that delegates to one of several [[HttpErrorHandler]]s based on media type preferences.
@@ -72,7 +76,8 @@ class HtmlOrJsonHttpErrorHandler @Inject() (
  * For example, to create an error handler that handles JSON and HTML, with JSON preferred by the app as default:
  * {{{
  *   override lazy val httpErrorHandler = PreferredMediaTypeHttpErrorHandler(
- *     "application/json" -> new JsonHttpErrorHandler()
+ *     "application/json" -> new JsonHttpErrorHandler(),
+ *     "application/problem+json" -> new JsonHttpErrorHandler(),
  *     "text/html" -> new HtmlHttpErrorHandler(),
  *   )
  * }}}
@@ -413,7 +418,9 @@ object HttpErrorHandlerExceptions {
 }
 
 /**
- * An alternative default HTTP error handler which will render errors as JSON messages instead of HTML pages.
+ * An alternative default HTTP error handler which renders errors as
+ * [[https://www.rfc-editor.org/rfc/rfc9457.html Problem Details]] JSON instead of HTML pages.
+ * Responses use the `application/problem+json` media type.
  *
  * In Dev mode, exceptions thrown by the server code will be rendered in JSON messages.
  * In Prod mode, they will not be rendered.
@@ -423,15 +430,13 @@ object HttpErrorHandlerExceptions {
  */
 class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[SourceMapper] = None)
     extends HttpErrorHandler {
-  private val logger = Logger(getClass)
+  private val logger                 = Logger(getClass)
+  private val problemJsonContentType = "application/problem+json"
 
   @Inject
   def this(environment: Environment, optionalSourceMapper: OptionalSourceMapper) = {
     this(environment, optionalSourceMapper.sourceMapper)
   }
-
-  @inline
-  private final def error(content: JsObject): JsObject = Json.obj("error" -> content)
 
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
@@ -442,7 +447,11 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
    */
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     if (play.api.http.Status.isClientError(statusCode)) {
-      Future.successful(Results.Status(statusCode)(error(Json.obj("requestId" -> request.id, "message" -> message))))
+      Future.successful(
+        Results
+          .Status(statusCode)(Json.obj("requestId" -> request.id, "title" -> message, "status" -> statusCode))
+          .as(problemJsonContentType)
+      )
     } else {
       throw new IllegalArgumentException(
         s"onClientError invoked with non client error status code $statusCode: $message"
@@ -470,12 +479,12 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
         InternalServerError(
           if (isProd) prodServerError(request, usefulException)
           else devServerError(request, usefulException)
-        )
+        ).as(problemJsonContentType)
       )
     } catch {
       case NonFatal(e) =>
         logger.error("Error while handling error", e)
-        Future.successful(InternalServerError(fatalErrorJson(request, e)))
+        Future.successful(InternalServerError(fatalErrorJson(request, e)).as(problemJsonContentType))
     }
 
   /**
@@ -495,16 +504,13 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
   protected def fatalErrorJson(request: RequestHeader, exception: Throwable): JsValue = Json.obj()
 
   protected def devServerError(request: RequestHeader, exception: UsefulException): JsValue = {
-    error(
-      Json.obj(
-        "id"        -> exception.id,
-        "requestId" -> request.id,
-        "exception" -> Json.obj(
-          "title"       -> exception.title,
-          "description" -> exception.description,
-          "stacktrace"  -> formatDevServerErrorException(exception.cause)
-        )
-      )
+    Json.obj(
+      "id"         -> exception.id,
+      "requestId"  -> request.id,
+      "status"     -> INTERNAL_SERVER_ERROR,
+      "title"      -> exception.title,
+      "detail"     -> exception.description,
+      "stacktrace" -> formatDevServerErrorException(exception.cause)
     )
   }
 
@@ -517,7 +523,12 @@ class JsonHttpErrorHandler(environment: Environment, sourceMapper: Option[Source
     JsArray(ExceptionUtils.getStackFrames(exception).map(s => JsString(s.trim)))
 
   protected def prodServerError(request: RequestHeader, exception: UsefulException): JsValue =
-    error(Json.obj("id" -> exception.id))
+    Json.obj(
+      "id"        -> exception.id,
+      "requestId" -> request.id,
+      "status"    -> INTERNAL_SERVER_ERROR,
+      "title"     -> "Internal server error"
+    )
 
   /**
    * Responsible for logging server errors.
