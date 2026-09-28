@@ -12,9 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import play.api.routing.JavaScriptReverseRoute;
-import play.api.routing.JavaScriptReverseRouter;
-import play.libs.Scala;
-import scala.Option;
+import play.routing.JavaScriptReverseRouter;
 
 public class JavaScriptRouterGenerator {
 
@@ -35,7 +33,8 @@ public class JavaScriptRouterGenerator {
     routes.addAll(uuidControllerRoutes());
     routes.addAll(userControllerRoutes());
     var jsFile =
-        JavaScriptReverseRouter.apply("jsRoutes", Option.empty(), "localhost", Scala.toSeq(routes))
+        JavaScriptReverseRouter.create(
+                "jsRoutes", "localhost", routes.toArray(new JavaScriptReverseRoute[0]))
             .body();
 
     // Add module exports for node

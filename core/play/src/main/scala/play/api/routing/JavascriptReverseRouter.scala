@@ -35,13 +35,35 @@ object JavaScriptReverseRouter {
    * @param routes the routes to include in this JavaScript router
    * @return the JavaScript code
    */
+  def apply(name: String)(routes: JavaScriptReverseRoute*)(implicit request: RequestHeader): JavaScript =
+    generate(name, None, request.host, routes)
+
+  /**
+   * Generates a JavaScript router using an explicit host.
+   *
+   * @param name the JavaScript object name
+   * @param host the host to use for absolute URLs
+   * @param routes the routes to include in this JavaScript router
+   * @return the JavaScript code
+   */
+  def apply(name: String, host: String, routes: JavaScriptReverseRoute*): JavaScript =
+    generate(name, None, host, routes)
+
+  @deprecated("Use apply(name)(routes*) instead.", "3.1.0")
   def apply(name: String = "Router", ajaxMethod: Option[String] = Some("jQuery.ajax"))(
       routes: JavaScriptReverseRoute*
-  )(implicit request: RequestHeader): JavaScript = {
-    apply(name, ajaxMethod, request.host, routes*)
-  }
+  )(implicit request: RequestHeader): JavaScript = generate(name, ajaxMethod, request.host, routes)
 
+  @deprecated("Use apply(name, host, routes*) instead.", "3.1.0")
   def apply(name: String, ajaxMethod: Option[String], host: String, routes: JavaScriptReverseRoute*): JavaScript =
+    generate(name, ajaxMethod, host, routes)
+
+  private def generate(
+      name: String,
+      ajaxMethod: Option[String],
+      host: String,
+      routes: Seq[JavaScriptReverseRoute]
+  ): JavaScript =
     JavaScript {
       import play.twirl.api.utils.StringEscapeUtils.{ escapeEcmaScript => esc }
       val ajaxField = ajaxMethod.fold("")(m => s"ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return $m(c)},")
