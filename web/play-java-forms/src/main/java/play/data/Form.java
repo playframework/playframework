@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.MessageInterpolator;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import jakarta.validation.groups.Default;
@@ -30,6 +31,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -87,6 +89,26 @@ public class Form<T> {
    * https://github.com/hibernate/hibernate-validator/blob/6.0.5.Final/engine/src/main/java/org/hibernate/validator/internal/engine/path/NodeImpl.java#L51-L56
    */
   private static final Pattern REPLACE_COLLECTION_ELEMENT = Pattern.compile("\\.?<[^<]*>");
+
+  private static final class LocaleSpecificMessageInterpolator implements MessageInterpolator {
+    private final MessageInterpolator delegate;
+    private final Locale locale;
+
+    private LocaleSpecificMessageInterpolator(MessageInterpolator delegate, Locale locale) {
+      this.delegate = delegate;
+      this.locale = locale;
+    }
+
+    @Override
+    public String interpolate(String messageTemplate, Context context) {
+      return delegate.interpolate(messageTemplate, context, locale);
+    }
+
+    @Override
+    public String interpolate(String messageTemplate, Context context, Locale locale) {
+      return delegate.interpolate(messageTemplate, context, locale);
+    }
+  }
 
   /** Statically compiled Pattern for replacing "typeMismatch" in Form errors. */
   private static final Pattern REPLACE_TYPEMISMATCH =
@@ -1111,11 +1133,19 @@ public class Form<T> {
           dataBinder.bind(new MutablePropertyValues(objectData));
           final Messages messages = lang == null ? null : new MessagesImpl(lang, messagesApi);
           final ValidationPayload payload = new ValidationPayload(lang, messages, attrs, config);
+          final Locale requestLocale = lang == null ? null : lang.toLocale();
+          final Locale validationLocale =
+              requestLocale == null
+                  ? langs.preferred(langs.availables()).toLocale()
+                  : langs.preferred(Collections.singleton(new Lang(requestLocale))).toLocale();
           final Validator validator =
               validatorFactory
                   .unwrap(HibernateValidatorFactory.class)
                   .usingContext()
                   .constraintValidatorPayload(payload)
+                  .messageInterpolator(
+                      new LocaleSpecificMessageInterpolator(
+                          validatorFactory.getMessageInterpolator(), validationLocale))
                   .getValidator();
           if (groups != null) {
             return validator.validate(dataBinder.getTarget(), groups);
