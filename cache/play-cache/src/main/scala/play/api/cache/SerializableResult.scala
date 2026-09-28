@@ -15,18 +15,21 @@ import play.api.mvc._
 /**
  * Wraps a Result to make it Serializable.
  */
-private[play] final class SerializableResult(constructorResult: Result) extends Externalizable {
+private[play] final class SerializableResult private (constructorResult: Result, allowNonStrict: Boolean)
+    extends Externalizable {
   assert(
-    Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
+    allowNonStrict || Option(constructorResult).forall(_.body.isInstanceOf[HttpEntity.Strict]),
     "Only strict entities can be cached, streamed entities cannot be cached"
   )
+
+  def this(constructorResult: Result) = this(constructorResult, allowNonStrict = false)
 
   /**
    * Create an empty object. Must call `readExternal` after calling
    * this method. This constructor is invoked by the Java
    * deserialization code.
    */
-  def this() = this(null)
+  def this() = this(null, allowNonStrict = false)
 
   /**
    * Hold the Result. Will either be supplied by the constructor or
@@ -111,4 +114,11 @@ private[play] final class SerializableResult(constructorResult: Result) extends 
 
 private[play] object SerializableResult {
   val encodingVersion = 2.toByte
+
+  /**
+   * Wrap a result that will be returned through the cache API but not retained. Unlike a cached result, its entity may
+   * be streamed because it will never be serialized.
+   */
+  private[cache] def uncached(result: Result): SerializableResult =
+    new SerializableResult(result, allowNonStrict = true)
 }
