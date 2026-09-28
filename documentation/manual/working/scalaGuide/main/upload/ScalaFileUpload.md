@@ -20,6 +20,8 @@ Now define the `upload` action using a `multipartFormData` body parser:
 
 The [`ref`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#ref:A) attribute gives you a reference to a [`TemporaryFile`](api/scala/play/api/libs/Files$$TemporaryFile.html). This is the default way the `multipartFormData` parser handles file uploads.
 
+The filename in a multipart request is supplied by the client and must not be used as a path. [`sanitizedFilename`](api/scala/play/api/mvc/MultipartFormData$$FilePart.html#sanitizedFilename:String) removes directory components using both common separator characters. Its result remains untrusted: keep the destination directory under application control and validate allowed names, collisions, and overwrite behavior for your use case.
+
 > **Note:** As always, you can also use the `anyContent` body parser and retrieve it as `request.body.asMultipartFormData`.
 
 At last, add a `POST` router

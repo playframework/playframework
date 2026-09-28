@@ -41,6 +41,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.libs.Files.TemporaryFileCreator
 import play.api.mvc.MultipartFormData._
 import play.core.parsers.Multipart
+import play.core.parsers.MultipartFileName
 import play.core.Execution
 import play.utils.PlayIO
 
@@ -193,6 +194,18 @@ object MultipartFormData {
       dispositionType: String = "form-data",
       refToBytes: A => Option[ByteString] = (a: A) => None
   ) extends Part[A] {
+
+    /**
+     * Returns the normalized final path component of the untrusted [[filename]] supplied by the client.
+     * Both `/` and `\\` are treated as separators.
+     *
+     * The result is still client-controlled. Applications must choose a trusted destination directory and
+     * apply their own rules for allowed characters, reserved names, collisions, and existing files.
+     *
+     * @throws IllegalArgumentException if the filename has no usable final component or is not a valid path
+     */
+    def sanitizedFilename: String = MultipartFileName.sanitize(filename)
+
     def transformRefToBytes(): ByteString =
       refToBytes(ref)
         .orElse(ref match {

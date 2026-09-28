@@ -44,7 +44,7 @@ public class MultipartFormatter {
                       return new MultipartFormData.FilePart<
                           org.apache.pekko.stream.scaladsl.Source<ByteString, ?>>(
                           fp.getKey(),
-                          fp.getFilename(),
+                          fp.filename,
                           ct,
                           fp.ref.asScala(),
                           fp.getFileSize(),

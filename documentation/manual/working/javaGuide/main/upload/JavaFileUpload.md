@@ -18,6 +18,8 @@ Now define the `upload` action:
 
 The [`getRef()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getRef\(\)) method gives you a reference to a [`TemporaryFile`](api/java/play/libs/Files.TemporaryFile.html). This is the default way Play handles file uploads.
 
+The filename in a multipart request is supplied by the client and must not be used as a path. [`getSanitizedFilename()`](api/java/play/mvc/Http.MultipartFormData.FilePart.html#getSanitizedFilename\(\)) removes directory components using both common separator characters. Its result remains untrusted: keep the destination directory under application control and validate allowed names, collisions, and overwrite behavior for your use case.
+
 And finally, add a `POST` route:
 
 @[application-upload-routes](code/javaguide.upload.fileupload.routes)
