@@ -691,6 +691,9 @@ object BuildSettings {
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
+      // Formatters.parse/print now need a Locale passed because we removed the LocaleContextHolder ThreadLocal
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.print"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

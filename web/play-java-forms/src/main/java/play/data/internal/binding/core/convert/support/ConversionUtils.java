@@ -24,6 +24,8 @@ import play.data.internal.binding.core.convert.ConversionFailedException;
 import play.data.internal.binding.core.convert.TypeDescriptor;
 import play.data.internal.binding.core.convert.converter.GenericConverter;
 
+import java.util.Locale;
+
 /**
  * Internal utilities for the conversion package.
  *
@@ -33,10 +35,10 @@ import play.data.internal.binding.core.convert.converter.GenericConverter;
 abstract class ConversionUtils {
 
 	public static Object invokeConverter(GenericConverter converter, Object source,
-			TypeDescriptor sourceType, TypeDescriptor targetType) {
+			TypeDescriptor sourceType, TypeDescriptor targetType, Locale locale) {
 
 		try {
-			return converter.convert(source, sourceType, targetType);
+			return converter.convert(source, sourceType, targetType, locale);
 		}
 		catch (ConversionFailedException ex) {
 			throw ex;

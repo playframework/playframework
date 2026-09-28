@@ -15,9 +15,7 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 import java.util.regex.Pattern;
 import play.api.i18n.Lang;
-import play.data.internal.binding.context.i18n.LocaleContextHolder;
 import play.data.validation.Constraints.ValidationPayload;
-import play.data.validation.Constraints.Validator;
 import play.data.validation.Constraints.ValidatorWithPayload;
 import play.i18n.MessagesApi;
 
@@ -108,7 +106,7 @@ public class TestConstraints {
   }
 
   /** Validator for <code>@AnotherI18NConstraint</code> fields. */
-  public static class AnotherI18NConstraintValidator extends Validator<String>
+  public static class AnotherI18NConstraintValidator extends ValidatorWithPayload<String>
       implements ConstraintValidator<AnotherI18NConstraint, String> {
 
     String msgKey;
@@ -125,13 +123,13 @@ public class TestConstraints {
     }
 
     @Override
-    public boolean isValid(String object) {
+    public boolean isValid(String object, ValidationPayload payload) {
       if (object == null || object.length() == 0) {
         return true;
       }
 
       return Pattern.compile(
-              this.messagesApi.get(new Lang(LocaleContextHolder.getLocale()), this.msgKey))
+              this.messagesApi.get(new Lang(payload.getLang().toLocale()), this.msgKey))
           .matcher(object)
           .matches();
     }

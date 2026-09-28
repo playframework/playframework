@@ -21,6 +21,7 @@
 package play.data.internal.binding.validation;
 
 import java.io.Serializable;
+import java.util.Locale;
 
 import play.data.internal.binding.beans.PropertyAccessException;
 import play.data.internal.binding.context.support.DefaultMessageSourceResolvable;
@@ -45,11 +46,11 @@ import play.data.internal.binding.util.StringUtils;
 public class DefaultBindingErrorProcessor implements BindingErrorProcessor {
 
 	@Override
-	public void processPropertyAccessException(PropertyAccessException ex, BindingResult bindingResult) {
+	public void processPropertyAccessException(PropertyAccessException ex, BindingResult bindingResult, Locale locale) {
 		// Create field error with the code of the exception, for example, "typeMismatch".
 		String field = ex.getPropertyName();
 		Assert.state(field != null, "No field in exception");
-		String[] codes = bindingResult.resolveMessageCodes(ex.getErrorCode(), field);
+		String[] codes = bindingResult.resolveMessageCodes(ex.getErrorCode(), field, locale);
 		Object[] arguments = getArgumentsForBindError(bindingResult.getObjectName(), field);
 		Object rejectedValue = ex.getValue();
 		if (ObjectUtils.isArray(rejectedValue)) {
