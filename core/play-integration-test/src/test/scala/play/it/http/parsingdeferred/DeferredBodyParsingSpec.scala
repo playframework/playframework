@@ -85,9 +85,12 @@ object DeferredBodyParsingSpec {
     s"Body parsed: $parsedBody, request attribute set: ${request.attrs.contains(Attrs.REQUEST_FLOW.asScala())}, internal request attribute set: ${request.attrs
         .contains(DeferredBodyParsing)}"
 
-  def buildActionCompositionMessage(request: Request[?]) =
-    s"Action composition, body was parsed already: ${request.body != null}, internal request attribute set: ${request.attrs
+  def buildRequestStateMessage(stage: String, request: Request[?]) =
+    s"$stage, body was parsed already: ${request.body != null}, internal request attribute set: ${request.attrs
         .contains(DeferredBodyParsing)}"
+
+  def buildActionCompositionMessage(request: Request[?]) =
+    buildRequestStateMessage("Action composition", request)
 }
 
 trait DeferredBodyParsingSpec
@@ -123,9 +126,11 @@ trait DeferredBodyParsingSpec
   def makeGenericRequest[T](
       handler: Application => Handler,
       deferBodyParsing: Option[Boolean] = None,
-      routesModifiers: Seq[String] = Seq.empty
+      routesModifiers: Seq[String] = Seq.empty,
+      configuration: Map[String, AnyRef] = Map.empty
   )(block: WSResponse => T): T = {
     lazy val app: Application = GuiceApplicationBuilder()
+      .configure(configuration)
       .routes {
         case _ =>
           new Stage {
@@ -200,12 +205,17 @@ trait DeferredBodyParsingSpec
 
   // ### Java API
 
-  private def jActionController() = {
+  private def jActionController(includeActionCreatorFlow: Boolean = false) = {
     new MockController {
       @SimpleActionAnnotation
       @JBodyParser.Of(classOf[SimpleJavaBodyParser])
-      override def action(request: JRequest): JResult =
-        Results.ok(request.attrs().get[String](Attrs.REQUEST_FLOW) + " | " + request.body().asText())
+      override def action(request: JRequest): JResult = {
+        val actionCreatorFlow =
+          if (includeActionCreatorFlow) " | " + request.attrs().get[String](Attrs.ACTION_CREATOR_FLOW) else ""
+        Results.ok(
+          request.attrs().get[String](Attrs.REQUEST_FLOW) + actionCreatorFlow + " | " + request.body().asText()
+        )
+      }
     }
   }
 
@@ -213,6 +223,18 @@ trait DeferredBodyParsingSpec
       block: WSResponse => T
   ): T =
     makeGenericRequest(JAction(_, jActionController()), deferBodyParsing, routesModifiers)(block)
+
+  def makeJavaRequestWithActionCreator[T](executeActionCreatorActionFirst: Boolean)(block: WSResponse => T): T =
+    makeGenericRequest(
+      JAction(_, jActionController(includeActionCreatorFlow = true)),
+      deferBodyParsing = Some(true),
+      configuration = Map(
+        "play.http.actionCreator"                                     -> classOf[DeferredBodyParsingActionCreator].getName,
+        "play.http.actionComposition.executeActionCreatorActionFirst" -> Boolean.box(
+          executeActionCreatorActionFirst
+        )
+      )
+    )(block)
 
   // Finally tests
 
@@ -285,6 +307,30 @@ trait DeferredBodyParsingSpec
       ) { response =>
         response.body must beEqualTo(notDeferredBodyContent)
       }
+    }
+  }
+
+  "Java API action creator" should {
+    "run after deferred body parsing when configured last" in makeJavaRequestWithActionCreator(
+      executeActionCreatorActionFirst = false
+    ) { response =>
+      response.body must beEqualTo(
+        "Action composition, body was parsed already: false, internal request attribute set: true | " +
+          "Action creator creation, body was parsed already: true, internal request attribute set: false | " +
+          "Action creator invocation, body was parsed already: true, internal request attribute set: false | " +
+          "Body parsed: abc, request attribute set: true, internal request attribute set: false"
+      )
+    }
+
+    "run once before deferred body parsing when configured first" in makeJavaRequestWithActionCreator(
+      executeActionCreatorActionFirst = true
+    ) { response =>
+      response.body must beEqualTo(
+        "Action composition, body was parsed already: false, internal request attribute set: true | " +
+          "Action creator creation, body was parsed already: false, internal request attribute set: true | " +
+          "Action creator invocation, body was parsed already: false, internal request attribute set: true | " +
+          "Body parsed: abc, request attribute set: true, internal request attribute set: false"
+      )
     }
   }
 }
