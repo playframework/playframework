@@ -7,7 +7,7 @@ object ScalaVersions {
   val scala213Version   = "2.13.18"
   val scala33LTSVersion = "3.3.8"
   val scala39LTSVersion = "3.9.0"
-  val scala3NextVersion = "3.10.0-RC2"
+  val scala3NextVersion = "3.10.0-RC3"
 
   val publishedScalaVersions = Seq(scala213Version, scala33LTSVersion)
   val testedScalaVersions    =
