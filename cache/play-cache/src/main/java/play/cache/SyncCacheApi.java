@@ -6,6 +6,7 @@ package play.cache;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.ToIntFunction;
 
 /** A synchronous API to access a Cache. */
 public interface SyncCacheApi {
@@ -37,10 +38,38 @@ public interface SyncCacheApi {
    * @param <T> the type of the value
    * @param key Item key.
    * @param block block returning value to set if key does not exist
-   * @param expiration expiration period in seconds.
+   * @param expiration expiration period in seconds. A negative value returns the computed value
+   *     without retaining it; zero means no expiration.
    * @return the value
    */
   <T> T getOrElseUpdate(String key, Callable<T> block, int expiration);
+
+  /**
+   * Retrieve a value from the cache, or set it from a default Callable function.
+   *
+   * @param <T> the type of the value
+   * @param key Item key.
+   * @param block block returning value to set if key does not exist
+   * @param expiration function invoked with the newly computed value to determine its expiration
+   *     period in seconds. It is not invoked for a cache hit. A negative result does not retain the
+   *     computed value; zero means no expiration.
+   * @return the value
+   */
+  default <T> T getOrElseUpdate(String key, Callable<T> block, ToIntFunction<T> expiration) {
+    Optional<T> cached = get(key);
+    if (cached.isPresent()) {
+      return cached.get();
+    }
+    try {
+      T value = block.call();
+      set(key, value, expiration.applyAsInt(value));
+      return value;
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.
@@ -59,7 +88,8 @@ public interface SyncCacheApi {
    *
    * @param key Item key.
    * @param value The value to set.
-   * @param expiration expiration in seconds
+   * @param expiration expiration in seconds. A negative value removes any existing value for the
+   *     key and does not retain the new value; zero means no expiration.
    */
   void set(String key, Object value, int expiration);
 
