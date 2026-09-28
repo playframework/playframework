@@ -25,5 +25,5 @@ object ScalaVersions {
 
 object SbtVersions {
   val sbt1 = "1.12.15"
-  val sbt2 = "2.1.0-bin-20260921-2124f13-NIGHTLY"
+  val sbt2 = "2.1.0-bin-20260928-0a70458-NIGHTLY"
 }
