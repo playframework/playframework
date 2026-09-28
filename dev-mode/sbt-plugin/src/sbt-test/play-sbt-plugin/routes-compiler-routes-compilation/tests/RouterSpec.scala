@@ -14,6 +14,15 @@ import play.api.test._
 @RunWith(classOf[JUnitRunner])
 object RouterSpec extends PlaySpecification {
 
+  "routes containing reserved method names" in new WithApplication() {
+    override def running() = {
+      controllers.routes.Application.`type`.url must equalTo("/reserved/type")
+      controllers.routes.Application.`match`.url must equalTo("/reserved/match")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/reserved/type")).get) must equalTo("type")
+      contentAsString(route(implicitApp, FakeRequest(GET, "/reserved/match")).get) must equalTo("match")
+    }
+  }
+
   "reverse routes containing boolean parameters" in {
     "the query string" in {
       controllers.routes.Application.takeBool(true).url must equalTo("/take-bool?b%3D=true")
