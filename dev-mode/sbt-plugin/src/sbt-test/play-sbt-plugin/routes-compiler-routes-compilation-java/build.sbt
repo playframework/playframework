@@ -9,7 +9,8 @@ libraryDependencies ++= Seq(
   "org.java-websocket" % "Java-WebSocket" % "1.5.7"  % Test,
 )
 
-scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
+scalaVersion := ScriptedTools.scalaVersionFromJavaProperties()
+crossPaths   := false
 
 // can't use test directory since scripted calls its script "test"
 Test / sourceDirectory := baseDirectory.value / "tests"
