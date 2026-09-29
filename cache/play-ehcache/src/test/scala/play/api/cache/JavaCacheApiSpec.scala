@@ -21,6 +21,8 @@ import play.cache.{ SyncCacheApi => JavaSyncCacheApi }
 class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
   private def after2sec[T: AsResult](result: => T): T = eventually(2, 2.seconds)(result)
   implicit val timeout: Timeout                       = 1.second
+  private val noExpiration                            = 0
+  private val alreadyExpired                          = -1
   private val oneSecondExpiration                     = 1
   private val tenSecondsExpiration                    = 10
 
@@ -42,6 +44,17 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
         after2sec {
           cacheApi.get[String]("foo").asScala must beEqualTo(Optional.empty()).await
         }
+      }
+    }
+    "distinguish no expiration from an already expired value" in new WithApplication {
+      override def running() = {
+        val cacheApi = app.injector.instanceOf[JavaAsyncCacheApi]
+        await(cacheApi.set("no-expiration", "bar", noExpiration).asScala)
+        await(cacheApi.set("already-expired", "old").asScala)
+        await(cacheApi.set("already-expired", "new", alreadyExpired).asScala)
+
+        cacheApi.get[String]("no-expiration").asScala must beEqualTo(Optional.of("bar")).await
+        cacheApi.get[String]("already-expired").asScala must beEqualTo(Optional.empty()).await
       }
     }
     "set cache values with an expiration time" in new WithApplication {
@@ -87,6 +100,30 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
           }
         }
       }
+      "distinguish no expiration from an already expired value" in new WithApplication {
+        override def running() = {
+          val cacheApi          = app.injector.instanceOf[JavaAsyncCacheApi]
+          val noExpirationValue = cacheApi
+            .getOrElseUpdate[String](
+              "no-expiration",
+              () => CompletableFuture.completedFuture[String]("bar"),
+              noExpiration
+            )
+            .asScala
+          val alreadyExpiredValue = cacheApi
+            .getOrElseUpdate[String](
+              "already-expired",
+              () => CompletableFuture.completedFuture[String]("bar"),
+              alreadyExpired
+            )
+            .asScala
+
+          noExpirationValue must beEqualTo("bar").await
+          alreadyExpiredValue must beEqualTo("bar").await
+          cacheApi.get[String]("no-expiration").asScala must beEqualTo(Optional.of("bar")).await
+          cacheApi.get[String]("already-expired").asScala must beEqualTo(Optional.empty()).await
+        }
+      }
     }
     "remove values from cache" in new WithApplication {
       override def running() = {
@@ -129,6 +166,17 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
         }
       }
     }
+    "distinguish no expiration from an already expired value" in new WithApplication {
+      override def running() = {
+        val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
+        cacheApi.set("no-expiration", "bar", noExpiration)
+        cacheApi.set("already-expired", "old")
+        cacheApi.set("already-expired", "new", alreadyExpired)
+
+        cacheApi.get[String]("no-expiration") must beEqualTo(Optional.of("bar"))
+        cacheApi.get[String]("already-expired") must beEqualTo(Optional.empty())
+      }
+    }
     "set cache values with an expiration time" in new WithApplication {
       override def running() = {
         val cacheApi = app.injector.instanceOf[JavaSyncCacheApi]
@@ -166,6 +214,19 @@ class JavaCacheApiSpec(implicit ee: ExecutionEnv) extends PlaySpecification {
           after2sec {
             cacheApi.get[String]("foo") must beEqualTo(Optional.empty())
           }
+        }
+      }
+      "distinguish no expiration from an already expired value" in new WithApplication {
+        override def running() = {
+          val cacheApi            = app.injector.instanceOf[JavaSyncCacheApi]
+          val noExpirationValue   = cacheApi.getOrElseUpdate[String]("no-expiration", () => "bar", noExpiration)
+          val alreadyExpiredValue =
+            cacheApi.getOrElseUpdate[String]("already-expired", () => "bar", alreadyExpired)
+
+          noExpirationValue must beEqualTo("bar")
+          alreadyExpiredValue must beEqualTo("bar")
+          cacheApi.get[String]("no-expiration") must beEqualTo(Optional.of("bar"))
+          cacheApi.get[String]("already-expired") must beEqualTo(Optional.empty())
         }
       }
     }

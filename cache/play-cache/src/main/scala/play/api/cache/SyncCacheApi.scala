@@ -22,7 +22,8 @@ trait SyncCacheApi {
    *
    * @param key Item key.
    * @param value Item value.
-   * @param expiration Expiration time.
+   * @param expiration Expiration time. A non-positive duration removes any existing value for the key and does not
+   *                   retain the new value.
    */
   def set(key: String, value: Any, expiration: Duration = Duration.Inf): Unit
 
@@ -35,7 +36,7 @@ trait SyncCacheApi {
    * Retrieve a value from the cache, or set it from a default function.
    *
    * @param key Item key.
-   * @param expiration expiration period in seconds.
+   * @param expiration Expiration period. A non-positive duration returns the computed value without retaining it.
    * @param orElse The default function to invoke if the value was not found in cache.
    */
   def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => A): A

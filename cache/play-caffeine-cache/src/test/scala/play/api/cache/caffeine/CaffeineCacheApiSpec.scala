@@ -104,6 +104,37 @@ class CaffeineCacheApiSpec extends PlaySpecification {
       }
     }
 
+    "not retain values with a non-positive expiration" in new WithApplication() {
+      override def running() = {
+        val asyncCacheApi = app.injector.instanceOf[AsyncCacheApi]
+        val syncCacheApi  = app.injector.instanceOf[SyncCacheApi]
+
+        Seq(Duration.Zero, -1.second, Duration.MinusInf).zipWithIndex.foreach {
+          case (expiration, index) =>
+            val syncSetKey = s"sync-set-$index"
+            syncCacheApi.set(syncSetKey, "old")
+            syncCacheApi.set(syncSetKey, "new", expiration)
+            syncCacheApi.get[String](syncSetKey) must beNone
+
+            val asyncSetKey = s"async-set-$index"
+            Await.result(asyncCacheApi.set(asyncSetKey, "old"), 2.seconds)
+            Await.result(asyncCacheApi.set(asyncSetKey, "new", expiration), 2.seconds)
+            Await.result(asyncCacheApi.get[String](asyncSetKey), 2.seconds) must beNone
+
+            val syncUpdateKey = s"sync-update-$index"
+            syncCacheApi.getOrElseUpdate(syncUpdateKey, expiration)("value") must_== "value"
+            syncCacheApi.get[String](syncUpdateKey) must beNone
+
+            val asyncUpdateKey = s"async-update-$index"
+            Await.result(
+              asyncCacheApi.getOrElseUpdate[String](asyncUpdateKey, expiration)(Future.successful("value")),
+              2.seconds
+            ) must_== "value"
+            Await.result(asyncCacheApi.get[String](asyncUpdateKey), 2.seconds) must beNone
+        }
+      }
+    }
+
     "get values from cache without deadlocking" in new WithApplication(
       _.overrides(
         bind[ExecutionContext].toInstance(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1)))
