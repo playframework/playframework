@@ -8,7 +8,7 @@ resolvers += Resolver.sonatypeCentralSnapshots
 // documentation/manual/working/commonGuide/production/Deploying.md
 val sbtNativePackager  = "1.12.0"
 val mima               = "1.2.1"
-val sbtJavaFormatter   = "0.12.0"
+val sbtJavaFormatter   = "0.14.0"
 val sbtJmh             = "0.4.8"
 val webjarsLocatorCore = "0.59"
 val sbtHeader          = "5.11.0"
