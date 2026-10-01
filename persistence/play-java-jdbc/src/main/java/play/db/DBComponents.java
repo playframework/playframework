@@ -12,8 +12,8 @@ import play.inject.ApplicationLifecycle;
 import scala.Option;
 
 /**
- * Java DB components. You can mix in {@link HikariCPComponents} to have a default implementation
- * for accessing a connection pool.
+ * Java DB components. You can mix in {@link HikariCPComponents} to have a default implementation for accessing a
+ * connection pool.
  *
  * <p>For example:
  *

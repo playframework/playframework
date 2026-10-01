@@ -27,8 +27,7 @@ public class Application extends Controller {
   }
 
   public CompletionStage<Result> getConfig() {
-    return FutureConverters.asJava(
-            ask(configuredActor, new ConfiguredActorProtocol.GetConfig(), 1000))
+    return FutureConverters.asJava(ask(configuredActor, new ConfiguredActorProtocol.GetConfig(), 1000))
         .thenApply(response -> ok((String) response));
   }
 }

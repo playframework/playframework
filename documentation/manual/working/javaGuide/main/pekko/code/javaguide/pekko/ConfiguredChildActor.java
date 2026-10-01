@@ -23,9 +23,7 @@ public class ConfiguredChildActor extends AbstractActor {
 
   @Override
   public Receive createReceive() {
-    return receiveBuilder()
-        .match(ConfiguredChildActorProtocol.GetConfig.class, this::getConfig)
-        .build();
+    return receiveBuilder().match(ConfiguredChildActorProtocol.GetConfig.class, this::getConfig).build();
   }
 
   private void getConfig(ConfiguredChildActorProtocol.GetConfig get) {

@@ -62,12 +62,9 @@ public final class XML {
     try {
 
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      factory.setFeature(
-          Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
-      factory.setFeature(
-          Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
-      factory.setFeature(
-          Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
+      factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_GENERAL_ENTITIES_FEATURE, false);
+      factory.setFeature(Constants.SAX_FEATURE_PREFIX + Constants.EXTERNAL_PARAMETER_ENTITIES_FEATURE, false);
+      factory.setFeature(Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE, true);
       factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
       factory.setNamespaceAware(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
@@ -100,8 +97,8 @@ public final class XML {
   }
 
   /**
-   * Includes the SAX prefixes from 'com.sun.org.apache.xerces.internal.impl.Constants' since they
-   * will likely be internal in JDK9
+   * Includes the SAX prefixes from 'com.sun.org.apache.xerces.internal.impl.Constants' since they will likely be
+   * internal in JDK9
    */
   public static final class Constants {
     public static final String SAX_FEATURE_PREFIX = "http://xml.org/sax/features/";

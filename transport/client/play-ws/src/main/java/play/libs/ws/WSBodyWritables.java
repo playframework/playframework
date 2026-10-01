@@ -12,8 +12,7 @@ import play.mvc.MultipartFormatter;
 /** JSON, XML and Multipart Form Data Writables used for Play-WS bodies. */
 public interface WSBodyWritables extends DefaultBodyWritables, XMLBodyWritables, JsonBodyWritables {
 
-  default SourceBodyWritable multipartBody(
-      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
+  default SourceBodyWritable multipartBody(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body) {
     String boundary = MultipartFormatter.randomBoundary();
     Source<ByteString, ?> source = MultipartFormatter.transform(body, boundary);
     String contentType = "multipart/form-data; boundary=" + boundary;

@@ -158,8 +158,7 @@ public class Formatters {
      * @throws java.text.ParseException when the text could not be parsed
      * @return a new value
      */
-    public abstract T parse(A annotation, String text, Locale locale)
-        throws java.text.ParseException;
+    public abstract T parse(A annotation, String text, Locale locale) throws java.text.ParseException;
 
     /**
      * Unbind this field (ie. transform a concrete value to plain string)
@@ -175,8 +174,8 @@ public class Formatters {
   /**
    * Super-type for converters that parse strings into values and print values as strings.
    *
-   * <p>This is useful for converters that support multiple target types and therefore do not fit
-   * the one-type {@link SimpleFormatter} API.
+   * <p>This is useful for converters that support multiple target types and therefore do not fit the one-type {@link
+   * SimpleFormatter} API.
    */
   public interface StringFormatConverter {
 
@@ -212,22 +211,17 @@ public class Formatters {
     conversion.addConverter(
         new GenericConverter() {
 
-          public Object convert(
-              Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+          public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
             if (sourceType.getObjectType().equals(String.class)) {
               // From String to Optional
-              Object element =
-                  conversion.convert(source, sourceType, targetType.elementTypeDescriptor(source));
+              Object element = conversion.convert(source, sourceType, targetType.elementTypeDescriptor(source));
               return Optional.ofNullable(element);
             } else if (targetType.getObjectType().equals(String.class)) {
               // From Optional to String
               if (source == null) return "";
 
               Optional<?> opt = (Optional) source;
-              return opt.map(
-                      o ->
-                          conversion.convert(
-                              source, sourceType.getElementTypeDescriptor(), targetType))
+              return opt.map(o -> conversion.convert(source, sourceType.getElementTypeDescriptor(), targetType))
                   .orElse("");
             }
             return null;
@@ -287,8 +281,8 @@ public class Formatters {
   /**
    * Unregisters all formatters for the given class.
    *
-   * <p>This removes both directions used by Play formatters: parsing from {@link String} to the
-   * given class and printing from the given class to {@link String}.
+   * <p>This removes both directions used by Play formatters: parsing from {@link String} to the given class and
+   * printing from the given class to {@link String}.
    *
    * @param clazz class handled by the formatters to unregister
    * @return the modified Formatters object.
@@ -347,8 +341,7 @@ public class Formatters {
       final Class<T> clazz, final AnnotationFormatter<A, T> formatter) {
     final Class<? extends Annotation> annotationType =
         (Class<? extends Annotation>)
-            GenericTypeResolver.resolveTypeArguments(
-                formatter.getClass(), AnnotationFormatter.class)[0];
+            GenericTypeResolver.resolveTypeArguments(formatter.getClass(), AnnotationFormatter.class)[0];
 
     conversion.addConverter(
         new ConditionalGenericConverter() {
@@ -362,8 +355,7 @@ public class Formatters {
             return (sourceType.getAnnotation(annotationType) != null);
           }
 
-          public Object convert(
-              Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+          public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
             final A a = (A) sourceType.getAnnotation(annotationType);
             Locale locale = LocaleContextHolder.getLocale();
             try {
@@ -397,8 +389,7 @@ public class Formatters {
             return (targetType.getAnnotation(annotationType) != null);
           }
 
-          public Object convert(
-              Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+          public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
             final A a = (A) targetType.getAnnotation(annotationType);
             Locale locale = LocaleContextHolder.getLocale();
             try {

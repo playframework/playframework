@@ -46,8 +46,8 @@ public final class Files {
     }
 
     /**
-     * Copy the file to the specified destination and, if the destination exists, decide if replace
-     * it based on the {@code replace} parameter.
+     * Copy the file to the specified destination and, if the destination exists, decide if replace it based on the
+     * {@code replace} parameter.
      *
      * @param destination the file destination.
      * @param replace if it should replace an existing file.
@@ -68,8 +68,8 @@ public final class Files {
     }
 
     /**
-     * Copy the file to the specified path destination and, if the destination exists, decide if
-     * replace it based on the {@code replace} parameter.
+     * Copy the file to the specified path destination and, if the destination exists, decide if replace it based on the
+     * {@code replace} parameter.
      *
      * @param destination the path destination.
      * @param replace if it should replace an existing file.
@@ -89,9 +89,9 @@ public final class Files {
     }
 
     /**
-     * Move the file to the specified destination {@link java.io.File}. In some cases, the source
-     * and destination file may point to the same {@code inode}. See the documentation for {@link
-     * java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
+     * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
+     * may point to the same {@code inode}. See the documentation for {@link java.nio.file.Files#move(Path, Path,
+     * CopyOption...)} to see more details.
      *
      * @param destination the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
@@ -136,9 +136,9 @@ public final class Files {
     }
 
     /**
-     * Move the file to the specified destination {@link java.io.File}. In some cases, the source
-     * and destination file may point to the same {@code inode}. See the documentation for {@link
-     * java.nio.file.Files#move(Path, Path, CopyOption...)} to see more details.
+     * Move the file to the specified destination {@link java.io.File}. In some cases, the source and destination file
+     * may point to the same {@code inode}. See the documentation for {@link java.nio.file.Files#move(Path, Path,
+     * CopyOption...)} to see more details.
      *
      * @param destination the path to the destination file
      * @param replace true if an existing file should be replaced, false otherwise.
@@ -169,9 +169,8 @@ public final class Files {
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
      *
-     * <p>This always tries to replace existent files. Since it is platform dependent if atomic
-     * moves replaces existent files or not, considering that it will always replaces, makes the API
-     * more predictable.
+     * <p>This always tries to replace existent files. Since it is platform dependent if atomic moves replaces existent
+     * files or not, considering that it will always replaces, makes the API more predictable.
      *
      * @param to the path to the destination file
      * @deprecated Deprecated as of 2.8.0. Renamed to {@link #atomicMoveWithFallback(File)}.
@@ -182,9 +181,8 @@ public final class Files {
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
      *
-     * <p>This always tries to replace existent files. Since it is platform dependent if atomic
-     * moves replaces existent files or not, considering that it will always replaces, makes the API
-     * more predictable.
+     * <p>This always tries to replace existent files. Since it is platform dependent if atomic moves replaces existent
+     * files or not, considering that it will always replaces, makes the API more predictable.
      *
      * @param to the path to the destination file
      * @deprecated Deprecated as of 2.8.0. Renamed to {@link #atomicMoveWithFallback(Path)}.
@@ -197,9 +195,8 @@ public final class Files {
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
      *
-     * <p>This always tries to replace existent files. Since it is platform dependent if atomic
-     * moves replaces existent files or not, considering that it will always replaces, makes the API
-     * more predictable.
+     * <p>This always tries to replace existent files. Since it is platform dependent if atomic moves replaces existent
+     * files or not, considering that it will always replaces, makes the API more predictable.
      *
      * @param to the path to the destination file
      */
@@ -208,9 +205,8 @@ public final class Files {
     /**
      * Attempts to move source to target atomically and falls back to a non-atomic move if it fails.
      *
-     * <p>This always tries to replace existent files. Since it is platform dependent if atomic
-     * moves replaces existent files or not, considering that it will always replaces, makes the API
-     * more predictable.
+     * <p>This always tries to replace existent files. Since it is platform dependent if atomic moves replaces existent
+     * files or not, considering that it will always replaces, makes the API more predictable.
      *
      * @param to the path to the destination file
      */
@@ -224,8 +220,7 @@ public final class Files {
     private final play.api.libs.Files.TemporaryFileCreator temporaryFileCreator;
 
     @Inject
-    public DelegateTemporaryFileCreator(
-        play.api.libs.Files.TemporaryFileCreator temporaryFileCreator) {
+    public DelegateTemporaryFileCreator(play.api.libs.Files.TemporaryFileCreator temporaryFileCreator) {
       this.temporaryFileCreator = temporaryFileCreator;
     }
 
@@ -260,13 +255,11 @@ public final class Files {
 
     public DelegateTemporaryFile(play.api.libs.Files.TemporaryFile temporaryFile) {
       this.temporaryFile = temporaryFile;
-      this.temporaryFileCreator =
-          new DelegateTemporaryFileCreator(temporaryFile.temporaryFileCreator());
+      this.temporaryFileCreator = new DelegateTemporaryFileCreator(temporaryFile.temporaryFileCreator());
     }
 
     private DelegateTemporaryFile(
-        play.api.libs.Files.TemporaryFile temporaryFile,
-        TemporaryFileCreator temporaryFileCreator) {
+        play.api.libs.Files.TemporaryFile temporaryFile, TemporaryFileCreator temporaryFileCreator) {
       this.temporaryFile = temporaryFile;
       this.temporaryFileCreator = temporaryFileCreator;
     }
@@ -310,8 +303,8 @@ public final class Files {
   }
 
   /**
-   * A temporary file creator that uses the Scala play.api.libs.Files.SingletonTemporaryFileCreator
-   * class behind the scenes.
+   * A temporary file creator that uses the Scala play.api.libs.Files.SingletonTemporaryFileCreator class behind the
+   * scenes.
    */
   public static class SingletonTemporaryFileCreator implements TemporaryFileCreator {
     private play.api.libs.Files.TemporaryFileCreator instance =

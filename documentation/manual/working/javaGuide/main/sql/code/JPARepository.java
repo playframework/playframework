@@ -57,8 +57,7 @@ class JPARepositoryMethods {
         () -> {
           jpaApi.withTransaction(
               entityManager -> {
-                Query query =
-                    entityManager.createNativeQuery("update people set active = 1 where age > 18");
+                Query query = entityManager.createNativeQuery("update people set active = 1 where age > 18");
                 query.executeUpdate();
               });
         },

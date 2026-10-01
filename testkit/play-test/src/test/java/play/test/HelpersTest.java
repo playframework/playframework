@@ -164,16 +164,14 @@ public class HelpersTest {
   @Test
   public void shouldReturnProperHasBodyValueForEmptyRawBuffer() {
     // Does set a Content-Length header
-    Http.Request request =
-        Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.emptyByteString()).build();
+    Http.Request request = Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.emptyByteString()).build();
     assertThat(request.hasBody()).isFalse();
   }
 
   @Test
   public void shouldReturnProperHasBodyValueForNonEmptyRawBuffer() {
     // Does set a Content-Length header
-    Http.Request request =
-        Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.fromString("a")).build();
+    Http.Request request = Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.fromString("a")).build();
     assertThat(request.hasBody()).isTrue();
   }
 }

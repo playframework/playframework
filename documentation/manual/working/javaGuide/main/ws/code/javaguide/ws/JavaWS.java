@@ -57,15 +57,13 @@ import play.mvc.Results;
 public class JavaWS {
   private static final String feedUrl = "http://localhost:3333/feed";
 
-  public static class Controller0 extends MockJavaAction
-      implements WSBodyReadables, WSBodyWritables {
+  public static class Controller0 extends MockJavaAction implements WSBodyReadables, WSBodyWritables {
 
     private final WSClient ws;
     private final Materializer materializer;
 
     @Inject
-    Controller0(
-        JavaHandlerComponents javaHandlerComponents, WSClient ws, Materializer materializer) {
+    Controller0(JavaHandlerComponents javaHandlerComponents, WSClient ws, Materializer materializer) {
       super(javaHandlerComponents);
       this.ws = ws;
       this.materializer = materializer;
@@ -106,9 +104,7 @@ public class JavaWS {
       // #ws-header
 
       // #ws-cookie
-      ws.url(url)
-          .addCookies(new WSCookieBuilder().setName("headerKey").setValue("headerValue").build())
-          .get();
+      ws.url(url).addCookies(new WSCookieBuilder().setName("headerKey").setValue("headerValue").build()).get();
       // #ws-cookie
 
       String jsonString = "{\"key1\":\"value1\"}";
@@ -123,9 +119,7 @@ public class JavaWS {
       // #ws-timeout
 
       // #ws-post-form-data
-      ws.url(url)
-          .setContentType("application/x-www-form-urlencoded")
-          .post("key1=value1&key2=value2");
+      ws.url(url).setContentType("application/x-www-form-urlencoded").post("key1=value1&key2=value2");
       // #ws-post-form-data
 
       // #ws-query
@@ -161,8 +155,7 @@ public class JavaWS {
       ws.url(url).post(Source.from(Arrays.asList(fp, dp)));
       // #ws-post-multipart2
 
-      String value =
-          IntStream.range(0, 100).boxed().map(i -> "abcdefghij").reduce("", (a, b) -> a + b);
+      String value = IntStream.range(0, 100).boxed().map(i -> "abcdefghij").reduce("", (a, b) -> a + b);
       ByteString seedValue = ByteString.fromString(value);
       Stream<ByteString> largeSource = IntStream.range(0, 10).boxed().map(i -> seedValue);
       Source<ByteString, ?> largeImage = Source.from(largeSource.collect(Collectors.toList()));
@@ -193,8 +186,7 @@ public class JavaWS {
 
       // #ws-response-xml
       // implements WSBodyReadables or use WSBodyReadables.instance.xml()
-      CompletionStage<Document> documentPromise =
-          ws.url(url).get().thenApply(r -> r.getBody(xml()));
+      CompletionStage<Document> documentPromise = ws.url(url).get().thenApply(r -> r.getBody(xml()));
       // #ws-response-xml
     }
 
@@ -218,8 +210,7 @@ public class JavaWS {
       // #stream-count-bytes
     }
 
-    public void streamFile()
-        throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
+    public void streamFile() throws IOException, FileNotFoundException, InterruptedException, ExecutionException {
       String url = "http://example.com";
       // #stream-to-file
       File file = java.nio.file.Files.createTempFile("stream-to-file-", ".txt").toFile();
@@ -282,9 +273,7 @@ public class JavaWS {
                   if (contentLength.isPresent()) {
                     return ok().sendEntity(
                             new HttpEntity.Streamed(
-                                body,
-                                Optional.of(Long.parseLong(contentLength.get())),
-                                Optional.of(contentType)));
+                                body, Optional.of(Long.parseLong(contentLength.get())), Optional.of(contentType)));
                   } else {
                     return ok().chunked(body).as(contentType);
                   }
@@ -298,8 +287,7 @@ public class JavaWS {
     public void streamPut() {
       String url = "http://example.com";
       // #stream-put
-      CompletionStage<WSResponse> futureResponse =
-          ws.url(url).setMethod("PUT").setBody(body("some body")).stream();
+      CompletionStage<WSResponse> futureResponse = ws.url(url).setMethod("PUT").setBody(body("some body")).stream();
       // #stream-put
     }
 
@@ -379,8 +367,7 @@ public class JavaWS {
     // #ws-action
   }
 
-  public static class Controller2 extends MockJavaAction
-      implements WSBodyWritables, WSBodyReadables {
+  public static class Controller2 extends MockJavaAction implements WSBodyWritables, WSBodyReadables {
 
     private final WSClient ws;
 
@@ -395,14 +382,12 @@ public class JavaWS {
       return ws.url(feedUrl)
           .get()
           .thenCompose(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
-          .thenApply(
-              response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
+          .thenApply(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
     }
     // #composed-call
   }
 
-  public static class Controller3 extends MockJavaAction
-      implements WSBodyWritables, WSBodyReadables {
+  public static class Controller3 extends MockJavaAction implements WSBodyWritables, WSBodyReadables {
 
     private final WSClient ws;
     private Logger logger;

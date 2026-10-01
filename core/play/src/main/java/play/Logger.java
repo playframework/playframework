@@ -21,8 +21,8 @@ import play.api.DefaultMarkerContext;
  * <pre>
  * Logger.of("my.logger").info("Hello!")</pre>
  *
- * Each of the logging methods is overloaded to be able to take an array of arguments. These are
- * formatted into the message String, replacing occurrences of '{}'. For example:
+ * Each of the logging methods is overloaded to be able to take an array of arguments. These are formatted into the
+ * message String, replacing occurrences of '{}'. For example:
  *
  * <pre>
  * Logger.info("A {} request was received at {}", request.method(), request.uri());
@@ -36,15 +36,15 @@ import play.api.DefaultMarkerContext;
  *
  * This saves on the cost of String construction when logging is turned off.
  *
- * <p>This API is intended as a simple logging API to meet 99% percent of the most common logging
- * needs with minimal code overhead. For more complex needs, the underlying() methods may be used to
- * get the underlying SLF4J logger, or SLF4J may be used directly.
+ * <p>This API is intended as a simple logging API to meet 99% percent of the most common logging needs with minimal
+ * code overhead. For more complex needs, the underlying() methods may be used to get the underlying SLF4J logger, or
+ * SLF4J may be used directly.
  */
 public class Logger {
 
   /**
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated private static final ALogger logger = of("application");
 
@@ -72,8 +72,8 @@ public class Logger {
    * Get the underlying application SLF4J logger.
    *
    * @return the underlying logger
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static org.slf4j.Logger underlying() {
@@ -84,8 +84,8 @@ public class Logger {
    * Returns <code>true</code> if the logger instance enabled for the TRACE level?
    *
    * @return <code>true</code> if the logger instance enabled for the TRACE level?
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static boolean isTraceEnabled() {
@@ -96,8 +96,8 @@ public class Logger {
    * Returns <code>true</code> if the logger instance enabled for the DEBUG level?
    *
    * @return <code>true</code> if the logger instance enabled for the DEBUG level?
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static boolean isDebugEnabled() {
@@ -108,8 +108,8 @@ public class Logger {
    * Returns <code>true</code> if the logger instance enabled for the INFO level?
    *
    * @return <code>true</code> if the logger instance enabled for the INFO level?
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static boolean isInfoEnabled() {
@@ -120,8 +120,8 @@ public class Logger {
    * Returns <code>true</code> if the logger instance enabled for the WARN level?
    *
    * @return <code>true</code> if the logger instance enabled for the WARN level?
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static boolean isWarnEnabled() {
@@ -132,8 +132,8 @@ public class Logger {
    * Returns <code>true</code> if the logger instance enabled for the ERROR level?
    *
    * @return <code>true</code> if the logger instance enabled for the ERROR level?
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static boolean isErrorEnabled() {
@@ -144,8 +144,8 @@ public class Logger {
    * Log a message with the TRACE level.
    *
    * @param message message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void trace(String message) {
@@ -156,8 +156,8 @@ public class Logger {
    * Log a message with the TRACE level.
    *
    * @param msgSupplier <code>Supplier</code> that contains message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void trace(Supplier<String> msgSupplier) {
@@ -169,8 +169,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args The arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void trace(String message, Object... args) {
@@ -182,8 +182,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args Suppliers that contain arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void trace(String message, Supplier<?>... args) {
@@ -195,8 +195,8 @@ public class Logger {
    *
    * @param message message to log
    * @param error associated exception
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void trace(String message, Throwable error) {
@@ -207,8 +207,8 @@ public class Logger {
    * Log a message with the DEBUG level.
    *
    * @param message message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void debug(String message) {
@@ -219,8 +219,8 @@ public class Logger {
    * Log a message with the DEBUG level.
    *
    * @param msgSupplier <code>Supplier</code> that contains message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void debug(Supplier<String> msgSupplier) {
@@ -232,8 +232,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args The arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void debug(String message, Object... args) {
@@ -245,8 +245,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args Suppliers that contain arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void debug(String message, Supplier<?>... args) {
@@ -258,8 +258,8 @@ public class Logger {
    *
    * @param message message to log
    * @param error associated exception
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void debug(String message, Throwable error) {
@@ -270,8 +270,8 @@ public class Logger {
    * Log a message with the INFO level.
    *
    * @param message message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void info(String message) {
@@ -282,8 +282,8 @@ public class Logger {
    * Log a message with the INFO level.
    *
    * @param msgSupplier <code>Supplier</code> that contains message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void info(Supplier<String> msgSupplier) {
@@ -295,8 +295,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args The arguments to apply to the message string
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void info(String message, Object... args) {
@@ -308,8 +308,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args Suppliers that contain arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void info(String message, Supplier<?>... args) {
@@ -321,8 +321,8 @@ public class Logger {
    *
    * @param message message to log
    * @param error associated exception
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void info(String message, Throwable error) {
@@ -333,8 +333,8 @@ public class Logger {
    * Log a message with the WARN level.
    *
    * @param message message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void warn(String message) {
@@ -345,8 +345,8 @@ public class Logger {
    * Log a message with the WARN level.
    *
    * @param msgSupplier <code>Supplier</code> that contains message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void warn(Supplier<String> msgSupplier) {
@@ -358,8 +358,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args The arguments to apply to the message string
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void warn(String message, Object... args) {
@@ -371,8 +371,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args Suppliers that contain arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void warn(String message, Supplier<?>... args) {
@@ -384,8 +384,8 @@ public class Logger {
    *
    * @param message message to log
    * @param error associated exception
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void warn(String message, Throwable error) {
@@ -396,8 +396,8 @@ public class Logger {
    * Log a message with the ERROR level.
    *
    * @param message message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void error(String message) {
@@ -408,8 +408,8 @@ public class Logger {
    * Log a message with the ERROR level.
    *
    * @param msgSupplier <code>Supplier</code> that contains message to log
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void error(Supplier<String> msgSupplier) {
@@ -421,8 +421,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args The arguments to apply to the message string
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void error(String message, Object... args) {
@@ -434,8 +434,8 @@ public class Logger {
    *
    * @param message message to log
    * @param args Suppliers that contain arguments to apply to the message String
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void error(String message, Supplier<?> args) {
@@ -447,8 +447,8 @@ public class Logger {
    *
    * @param message message to log
    * @param error associated exception
-   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link
-   *     #of(String)} / {@link #of(Class)} and use the same-named method. Or use SLF4J directly.
+   * @deprecated Deprecated as of 2.7.0. Create an instance of {@link ALogger} via {@link #of(String)} / {@link
+   *     #of(Class)} and use the same-named method. Or use SLF4J directly.
    */
   @Deprecated
   public static void error(String message, Throwable error) {
@@ -485,8 +485,7 @@ public class Logger {
     }
 
     /**
-     * Similar to {@link #isTraceEnabled()} method except that the marker data is also taken into
-     * account.
+     * Similar to {@link #isTraceEnabled()} method except that the marker data is also taken into account.
      *
      * @param marker The marker data to take into consideration
      * @return True if this Logger is enabled for the TRACE level, false otherwise.
@@ -505,8 +504,7 @@ public class Logger {
     }
 
     /**
-     * Similar to {@link #isDebugEnabled()} method except that the marker data is also taken into
-     * account.
+     * Similar to {@link #isDebugEnabled()} method except that the marker data is also taken into account.
      *
      * @param marker The marker data to take into consideration
      * @return True if this Logger is enabled for the DEBUG level, false otherwise.
@@ -525,8 +523,7 @@ public class Logger {
     }
 
     /**
-     * Similar to {@link #isInfoEnabled()} method except that the marker data is also taken into
-     * consideration.
+     * Similar to {@link #isInfoEnabled()} method except that the marker data is also taken into consideration.
      *
      * @param marker The marker data to take into consideration
      * @return true if this logger is warn enabled, false otherwise
@@ -545,8 +542,7 @@ public class Logger {
     }
 
     /**
-     * Similar to {@link #isWarnEnabled()} method except that the marker data is also taken into
-     * consideration.
+     * Similar to {@link #isWarnEnabled()} method except that the marker data is also taken into consideration.
      *
      * @param marker The marker data to take into consideration
      * @return True if this Logger is enabled for the WARN level, false otherwise.
@@ -565,8 +561,7 @@ public class Logger {
     }
 
     /**
-     * Similar to {@link #isErrorEnabled()} method except that the marker data is also taken into
-     * consideration.
+     * Similar to {@link #isErrorEnabled()} method except that the marker data is also taken into consideration.
      *
      * @param marker The marker data to take into consideration
      * @return True if this Logger is enabled for the ERROR level, false otherwise.
@@ -644,8 +639,8 @@ public class Logger {
     }
 
     /**
-     * This method is similar to {@link #trace(String, Object...)} method except that the marker
-     * data is also taken into consideration.
+     * This method is similar to {@link #trace(String, Object...)} method except that the marker data is also taken into
+     * consideration.
      *
      * @param marker the marker data specific to this log statement
      * @param message message to log

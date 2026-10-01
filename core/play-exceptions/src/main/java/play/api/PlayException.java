@@ -95,8 +95,7 @@ public class PlayException extends UsefulException {
         for (int i = firstLine; i <= lastLine; i++) {
           focusOn.add(lines[i]);
         }
-        return new InterestingLines(
-            firstLine + 1, focusOn.toArray(new String[focusOn.size()]), line() - firstLine - 1);
+        return new InterestingLines(firstLine + 1, focusOn.toArray(new String[focusOn.size()]), line() - firstLine - 1);
       } catch (Throwable e) {
         e.printStackTrace();
         return null;

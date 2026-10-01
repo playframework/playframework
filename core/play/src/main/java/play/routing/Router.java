@@ -35,9 +35,7 @@ public interface Router {
 
           @Override
           public Handler apply(play.api.mvc.RequestHeader request) {
-            return Router.this
-                .route(request.asJava())
-                .orElseThrow(() -> new scala.MatchError(request));
+            return Router.this.route(request.asJava()).orElseThrow(() -> new scala.MatchError(request));
           }
 
           @Override
@@ -67,8 +65,7 @@ public interface Router {
     private final String pathPattern;
     private final String controllerMethodInvocation;
 
-    public RouteDocumentation(
-        String httpMethod, String pathPattern, String controllerMethodInvocation) {
+    public RouteDocumentation(String httpMethod, String pathPattern, String controllerMethodInvocation) {
       this.httpMethod = httpMethod;
       this.pathPattern = pathPattern;
       this.controllerMethodInvocation = controllerMethodInvocation;

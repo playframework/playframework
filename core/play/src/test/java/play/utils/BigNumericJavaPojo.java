@@ -19,8 +19,7 @@ public class BigNumericJavaPojo {
 
   @JsonCreator
   public BigNumericJavaPojo(
-      @JsonProperty("intValue") BigInteger intValue,
-      @JsonProperty("floatValue") BigDecimal floatValue) {
+      @JsonProperty("intValue") BigInteger intValue, @JsonProperty("floatValue") BigDecimal floatValue) {
     this.intValue = intValue;
     this.floatValue = floatValue;
   }

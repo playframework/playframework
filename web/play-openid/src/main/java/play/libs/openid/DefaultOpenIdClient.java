@@ -20,8 +20,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
   private final ExecutionContext executionContext;
 
   @Inject
-  public DefaultOpenIdClient(
-      play.api.libs.openid.OpenIdClient client, ExecutionContext executionContext) {
+  public DefaultOpenIdClient(play.api.libs.openid.OpenIdClient client, ExecutionContext executionContext) {
     this.client = client;
     this.executionContext = executionContext;
   }
@@ -32,27 +31,19 @@ public class DefaultOpenIdClient implements OpenIdClient {
   }
 
   @Override
-  public CompletionStage<String> redirectURL(
-      String openID, String callbackURL, Map<String, String> axRequired) {
+  public CompletionStage<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired) {
     return redirectURL(openID, callbackURL, axRequired, null, null);
   }
 
   @Override
   public CompletionStage<String> redirectURL(
-      String openID,
-      String callbackURL,
-      Map<String, String> axRequired,
-      Map<String, String> axOptional) {
+      String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional) {
     return redirectURL(openID, callbackURL, axRequired, axOptional, null);
   }
 
   @Override
   public CompletionStage<String> redirectURL(
-      String openID,
-      String callbackURL,
-      Map<String, String> axRequired,
-      Map<String, String> axOptional,
-      String realm) {
+      String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional, String realm) {
     if (axRequired == null) axRequired = new HashMap<>();
     if (axOptional == null) axOptional = new HashMap<>();
     return FutureConverters.asJava(
@@ -73,8 +64,7 @@ public class DefaultOpenIdClient implements OpenIdClient {
                 new AbstractFunction1<play.api.libs.openid.UserInfo, UserInfo>() {
                   @Override
                   public UserInfo apply(play.api.libs.openid.UserInfo scalaUserInfo) {
-                    return new UserInfo(
-                        scalaUserInfo.id(), Scala.asJava(scalaUserInfo.attributes()));
+                    return new UserInfo(scalaUserInfo.id(), Scala.asJava(scalaUserInfo.attributes()));
                   }
                 },
                 executionContext);

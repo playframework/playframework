@@ -17,9 +17,9 @@ import play.twirl.api.utils.StringEscapeUtils;
  * Provides an easy way to use a Comet formatted output with <a
  * href="https://pekko.apache.org/docs/pekko/2.0/stream/index.html?language=java">Pekko Streams</a>.
  *
- * <p>There are two methods that can be used to convert strings and JSON, {@code Comet.string} and
- * {@code Comet.json}. These methods build on top of the base method, {@code Comet.flow}, which
- * takes a Flow of {@code org.apache.pekko.util.ByteString} and organizes it into Comet format.
+ * <p>There are two methods that can be used to convert strings and JSON, {@code Comet.string} and {@code Comet.json}.
+ * These methods build on top of the base method, {@code Comet.flow}, which takes a Flow of {@code
+ * org.apache.pekko.util.ByteString} and organizes it into Comet format.
  *
  * <pre>{@literal
  *   public Result liveClock() {
@@ -43,8 +43,7 @@ public abstract class Comet {
   }
 
   /**
-   * Produces a Flow of escaped ByteString from a series of String elements. Calls out to Comet.flow
-   * internally.
+   * Produces a Flow of escaped ByteString from a series of String elements. Calls out to Comet.flow internally.
    *
    * @param callbackName the javascript callback method.
    * @return a flow of ByteString elements.
@@ -54,8 +53,7 @@ public abstract class Comet {
   }
 
   /**
-   * Produces a Flow of escaped ByteString from a series of String elements. Calls out to Comet.flow
-   * internally.
+   * Produces a Flow of escaped ByteString from a series of String elements. Calls out to Comet.flow internally.
    *
    * @param callbackName the javascript callback method.
    * @param nonce The CSP nonce to use for the script tag. If {@code null} no nonce will be sent.
@@ -71,8 +69,7 @@ public abstract class Comet {
   }
 
   /**
-   * Produces a flow of ByteString using `Json.stringify` from a Flow of JsonNode. Calls out to
-   * Comet.flow internally.
+   * Produces a flow of ByteString using `Json.stringify` from a Flow of JsonNode. Calls out to Comet.flow internally.
    *
    * @param callbackName the javascript callback method.
    * @return a flow of ByteString elements.
@@ -82,8 +79,7 @@ public abstract class Comet {
   }
 
   /**
-   * Produces a flow of ByteString using `Json.stringify` from a Flow of JsonNode. Calls out to
-   * Comet.flow internally.
+   * Produces a flow of ByteString using `Json.stringify` from a Flow of JsonNode. Calls out to Comet.flow internally.
    *
    * @param callbackName the javascript callback method.
    * @param nonce The CSP nonce to use for the script tag. If {@code null} no nonce will be sent.
@@ -125,8 +121,7 @@ public abstract class Comet {
         .prepend(Source.single(initialChunk));
   }
 
-  private static ByteString formatted(
-      ByteString callbackName, ByteString javascriptMessage, String nonce) {
+  private static ByteString formatted(ByteString callbackName, ByteString javascriptMessage, String nonce) {
     ByteStringBuilder b = new ByteStringBuilder();
     b.append(ByteString.fromString("<script"));
     if (nonce != null && !nonce.isEmpty()) {

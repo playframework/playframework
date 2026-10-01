@@ -24,7 +24,6 @@ public @interface SimpleActionAnnotation {}
 class SimpleActionAnnotationAction extends Action<SimpleActionAnnotation> {
   @Override
   public CompletionStage<Result> call(Http.Request req) {
-    return delegate.call(
-        req.addAttr(Attrs.REQUEST_FLOW, buildActionCompositionMessage(req.asScala())));
+    return delegate.call(req.addAttr(Attrs.REQUEST_FLOW, buildActionCompositionMessage(req.asScala())));
   }
 }

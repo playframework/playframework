@@ -58,8 +58,7 @@ public class CompileTimeDependencyInjection {
 
       LoggerConfigurator.apply(context.environment().classLoader())
           .ifPresent(
-              loggerConfigurator ->
-                  loggerConfigurator.configure(context.environment(), context.initialConfig()));
+              loggerConfigurator -> loggerConfigurator.configure(context.environment(), context.initialConfig()));
 
       return new MyComponents(context).application();
     }
@@ -95,8 +94,7 @@ public class CompileTimeDependencyInjection {
   }
 
   // #with-routing-dsl
-  public class MyComponentsWithRouter extends RoutingDslComponentsFromContext
-      implements HttpFiltersComponents {
+  public class MyComponentsWithRouter extends RoutingDslComponentsFromContext implements HttpFiltersComponents {
 
     public MyComponentsWithRouter(ApplicationLoader.Context context) {
       super(context);
@@ -122,13 +120,10 @@ public class CompileTimeDependencyInjection {
     @Override
     public Router router() {
       HomeController homeController = new HomeController();
-      Assets assets =
-          new Assets(scalaHttpErrorHandler(), assetsMetadata(), environment().asScala());
+      Assets assets = new Assets(scalaHttpErrorHandler(), assetsMetadata(), environment().asScala());
       // ###replace: return new router.Routes(scalaHttpErrorHandler(), homeController,
       // assets).asJava();
-      return new javaguide.dependencyinjection.Routes(
-              scalaHttpErrorHandler(), homeController, assets)
-          .asJava();
+      return new javaguide.dependencyinjection.Routes(scalaHttpErrorHandler(), homeController, assets).asJava();
     }
   }
   // #with-generated-router

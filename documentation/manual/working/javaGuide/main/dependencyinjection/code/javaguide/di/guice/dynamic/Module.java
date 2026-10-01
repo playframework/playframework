@@ -37,10 +37,7 @@ public class Module extends AbstractModule {
               try {
                 String name = entry.getKey();
                 Class<? extends Hello> bindingClass =
-                    environment
-                        .classLoader()
-                        .loadClass(entry.getValue().toString())
-                        .asSubclass(Hello.class);
+                    environment.classLoader().loadClass(entry.getValue().toString()).asSubclass(Hello.class);
                 bind(Hello.class).annotatedWith(Names.named(name)).to(bindingClass);
               } catch (ClassNotFoundException ex) {
                 throw new RuntimeException(ex);

@@ -10,9 +10,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map.Entry;
 
-/**
- * A ClassLoader for serving assets. Serves assets from the given directories, at the given prefix.
- */
+/** A ClassLoader for serving assets. Serves assets from the given directories, at the given prefix. */
 public class AssetsClassLoader extends ClassLoader {
 
   /** An assets directories, mapped by the prefix they should be served from. */

@@ -19,19 +19,18 @@ public class Pekko {
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
    *
-   * <p>This will instantiate the actor using Play's injector, allowing it to be dependency injected
-   * itself. The returned provider will provide the ActorRef for the actor, allowing it to be
-   * injected into other components.
+   * <p>This will instantiate the actor using Play's injector, allowing it to be dependency injected itself. The
+   * returned provider will provide the ActorRef for the actor, allowing it to be injected into other components.
    *
-   * <p>Typically, you will want to use this in combination with a named qualifier, so that multiple
-   * ActorRefs can be bound, and the scope should be set to singleton or eager singleton.
+   * <p>Typically, you will want to use this in combination with a named qualifier, so that multiple ActorRefs can be
+   * bound, and the scope should be set to singleton or eager singleton.
    *
    * @param <T> the type of the actor
    * @param actorClass The class that implements the actor.
    * @param name The name of the actor.
-   * @param props A function to provide props for the actor. The props passed in will just describe
-   *     how to create the actor, this function can be used to provide additional configuration such
-   *     as router and dispatcher configuration.
+   * @param props A function to provide props for the actor. The props passed in will just describe how to create the
+   *     actor, this function can be used to provide additional configuration such as router and dispatcher
+   *     configuration.
    * @return A provider for the actor.
    */
   public static <T extends Actor> Provider<ActorRef> providerOf(
@@ -49,12 +48,11 @@ public class Pekko {
   /**
    * Create a provider for an actor implemented by the given class, with the given name.
    *
-   * <p>This will instantiate the actor using Play's injector, allowing it to be dependency injected
-   * itself. The returned provider will provide the ActorRef for the actor, allowing it to be
-   * injected into other components.
+   * <p>This will instantiate the actor using Play's injector, allowing it to be dependency injected itself. The
+   * returned provider will provide the ActorRef for the actor, allowing it to be injected into other components.
    *
-   * <p>Typically, you will want to use this in combination with a named qualifier, so that multiple
-   * ActorRefs can be bound, and the scope should be set to singleton or eager singleton.
+   * <p>Typically, you will want to use this in combination with a named qualifier, so that multiple ActorRefs can be
+   * bound, and the scope should be set to singleton or eager singleton.
    *
    * @param <T> the type of the actor
    * @param actorClass The class that implements the actor.

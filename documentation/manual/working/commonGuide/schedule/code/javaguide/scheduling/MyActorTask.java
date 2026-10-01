@@ -21,9 +21,7 @@ public class MyActorTask {
 
   @Inject
   public MyActorTask(
-      @Named("some-actor") ActorRef someActor,
-      ActorSystem actorSystem,
-      ExecutionContext executionContext) {
+      @Named("some-actor") ActorRef someActor, ActorSystem actorSystem, ExecutionContext executionContext) {
     this.someActor = someActor;
     this.actorSystem = actorSystem;
     this.executionContext = executionContext;

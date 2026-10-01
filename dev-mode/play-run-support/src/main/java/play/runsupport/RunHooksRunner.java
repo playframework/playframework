@@ -15,8 +15,7 @@ public final class RunHooksRunner {
   }
 
   /** Runs all the hooks in the sequence of hooks. Reports last failure if any have failure. */
-  public static void run(
-      List<? extends RunHook> hooks, Consumer<RunHook> f, boolean suppressFailure) {
+  public static void run(List<? extends RunHook> hooks, Consumer<RunHook> f, boolean suppressFailure) {
     try {
       LinkedHashMap<RunHook, Throwable> failures = new LinkedHashMap<>();
       hooks.forEach(

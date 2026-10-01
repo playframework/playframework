@@ -14,8 +14,7 @@ import play.mvc.EssentialFilter;
 import play.routing.Router;
 
 // #java-csp-components
-public class MyComponents extends BuiltInComponentsFromContext
-    implements HttpFiltersComponents, CSPComponents {
+public class MyComponents extends BuiltInComponentsFromContext implements HttpFiltersComponents, CSPComponents {
 
   public MyComponents(ApplicationLoader.Context context) {
     super(context);

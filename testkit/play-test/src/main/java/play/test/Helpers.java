@@ -41,9 +41,8 @@ import scala.jdk.javaapi.FutureConverters;
 public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames {
 
   /**
-   * Default Timeout (milliseconds) for fake requests issued by these Helpers. This value is
-   * determined from System property <b>test.timeout</b>. The default value is <b>30000</b> (30
-   * seconds).
+   * Default Timeout (milliseconds) for fake requests issued by these Helpers. This value is determined from System
+   * property <b>test.timeout</b>. The default value is <b>30000</b> (30 seconds).
    */
   public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
 
@@ -60,34 +59,26 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   // --
   @SuppressWarnings(value = "unchecked")
   private static Result invokeHandler(
-      play.api.Application app,
-      play.api.mvc.Handler handler,
-      Request requestBuilder,
-      long timeout) {
+      play.api.Application app, play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
     if (handler instanceof play.api.mvc.Action) {
       play.api.mvc.Action action = (play.api.mvc.Action) handler;
       return wrapScalaResult(action.apply(requestBuilder.asScala()), timeout);
     } else if (handler instanceof JavaHandler) {
       final play.api.inject.Injector injector = app.injector();
-      final JavaHandlerComponents handlerComponents =
-          injector.instanceOf(JavaHandlerComponents.class);
-      return invokeHandler(
-          app, ((JavaHandler) handler).withComponents(handlerComponents), requestBuilder, timeout);
+      final JavaHandlerComponents handlerComponents = injector.instanceOf(JavaHandlerComponents.class);
+      return invokeHandler(app, ((JavaHandler) handler).withComponents(handlerComponents), requestBuilder, timeout);
     } else {
       throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
     }
   }
 
-  private static Result wrapScalaResult(
-      scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
+  private static Result wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
     if (result == null) {
       return null;
     } else {
       try {
         final play.api.mvc.Result scalaResult =
-            FutureConverters.asJava(result)
-                .toCompletableFuture()
-                .get(timeout, TimeUnit.MILLISECONDS);
+            FutureConverters.asJava(result).toCompletableFuture().get(timeout, TimeUnit.MILLISECONDS);
         return scalaResult.asJava();
       } catch (ExecutionException e) {
         if (e.getCause() instanceof RuntimeException) {
@@ -134,12 +125,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Creates a new JavaContextComponents using play.api.Configuration.reference and
-   * play.api.Environment.simple as defaults
+   * Creates a new JavaContextComponents using play.api.Configuration.reference and play.api.Environment.simple as
+   * defaults
    *
    * @return the newly created JavaContextComponents
-   * @deprecated Deprecated as of 2.8.0. Inject MessagesApi, Langs, FileMimeTypes or
-   *     HttpConfiguration instead
+   * @deprecated Deprecated as of 2.8.0. Inject MessagesApi, Langs, FileMimeTypes or HttpConfiguration instead
    */
   @Deprecated
   public static JavaContextComponents contextComponents() {
@@ -200,8 +190,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    *
    * @return a messagesApi instance containing given keys and values.
    */
-  public static MessagesApi stubMessagesApi(
-      Map<String, Map<String, String>> messages, play.i18n.Langs langs) {
+  public static MessagesApi stubMessagesApi(Map<String, Map<String, String>> messages, play.i18n.Langs langs) {
     return new play.i18n.MessagesApi(new play.api.i18n.DefaultMessagesApi(messages, langs));
   }
 
@@ -220,9 +209,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   /**
    * Extracts the content as a {@link org.apache.pekko.util.ByteString}.
    *
-   * <p>This method is only capable of extracting the content of results with strict entities. To
-   * extract the content of results with streamed entities, use {@link
-   * Helpers#contentAsBytes(Result, Materializer)}.
+   * <p>This method is only capable of extracting the content of results with strict entities. To extract the content of
+   * results with streamed entities, use {@link Helpers#contentAsBytes(Result, Materializer)}.
    *
    * @param result The result to extract the content from.
    * @return The content of the result as a ByteString.
@@ -295,9 +283,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   /**
    * Extracts the content as a String.
    *
-   * <p>This method is only capable of extracting the content of results with strict entities. To
-   * extract the content of results with streamed entities, use {@link
-   * Helpers#contentAsString(Result, Materializer)}.
+   * <p>This method is only capable of extracting the content of results with strict entities. To extract the content of
+   * results with streamed entities, use {@link Helpers#contentAsString(Result, Materializer)}.
    *
    * @param result The result to extract the content from.
    * @return The content of the result as a String.
@@ -315,8 +302,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * @return The content of the result as a String.
    */
   public static String contentAsString(Result result, Materializer mat) {
-    return contentAsBytes(result, mat, DEFAULT_TIMEOUT)
-        .decodeString(result.charset().orElse("utf-8"));
+    return contentAsBytes(result, mat, DEFAULT_TIMEOUT).decodeString(result.charset().orElse("utf-8"));
   }
 
   /**
@@ -352,14 +338,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * @param timeout The amount of time, in milliseconds, to wait for the body to be produced.
    * @return the result
    */
-  public static Result routeAndCall(
-      Application app, Router router, RequestBuilder requestBuilder, long timeout) {
+  public static Result routeAndCall(Application app, Router router, RequestBuilder requestBuilder, long timeout) {
     try {
       Request request = requestBuilder.build();
-      return router
-          .route(request)
-          .map(handler -> invokeHandler(app.asScala(), handler, request, timeout))
-          .orElse(null);
+      return router.route(request).map(handler -> invokeHandler(app.asScala(), handler, request, timeout)).orElse(null);
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable t) {
@@ -414,8 +396,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   @SuppressWarnings("unchecked")
   public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
     final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt =
-        play.api.test.Helpers.jRoute(
-            app.asScala(), requestBuilder.build().asScala(), requestBuilder.body());
+        play.api.test.Helpers.jRoute(app.asScala(), requestBuilder.build().asScala(), requestBuilder.body());
     return wrapScalaResult(Scala.orNull(opt), timeout);
   }
 
@@ -454,8 +435,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Creates a new Test server listening on port defined by configuration setting "testserver.port"
-   * (defaults to a random port).
+   * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to a
+   * random port).
    *
    * @return the test server.
    */
@@ -464,8 +445,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   }
 
   /**
-   * Creates a new Test server listening on port defined by configuration setting "testserver.port"
-   * (defaults to a random port) and using the given Application.
+   * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to a
+   * random port) and using the given Application.
    *
    * @param app the application.
    * @return the test server.
@@ -559,8 +540,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * @param webDriver the web driver instance.
    * @param block the block of code to execute.
    */
-  public static void running(
-      TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
+  public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
     Helpers$.MODULE$.maybeRunSynchronized(
         server.application(),
         asScala(
@@ -587,11 +567,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   /**
    * Creates a Test Browser.
    *
-   * <p>Be aware: If set, the port the test browser is using is defined by the system property
-   * "testserver.port". Starting with Play 2.9, if this property is not set, the port by default is
-   * 0, which means the operating system will assign a random port. Thus, you should only use this
-   * method here if you did explicitly set the "testserver.port" property, otherwise you should use
-   * the testBrowser(port) method (which takes a port param).
+   * <p>Be aware: If set, the port the test browser is using is defined by the system property "testserver.port".
+   * Starting with Play 2.9, if this property is not set, the port by default is 0, which means the operating system
+   * will assign a random port. Thus, you should only use this method here if you did explicitly set the
+   * "testserver.port" property, otherwise you should use the testBrowser(port) method (which takes a port param).
    *
    * @return the test browser.
    */
@@ -612,11 +591,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   /**
    * Creates a Test Browser.
    *
-   * <p>Be aware: If set, the port the test browser is using is defined by the system property
-   * "testserver.port". Starting with Play 2.9, if this property is not set, the port by default is
-   * 0, which means the operating system will assign a random port. Thus, you should only use this
-   * method here if you did explicitly set the "testserver.port" property, otherwise you should use
-   * the testBrowser(webDriver, port) method (which takes a port param).
+   * <p>Be aware: If set, the port the test browser is using is defined by the system property "testserver.port".
+   * Starting with Play 2.9, if this property is not set, the port by default is 0, which means the operating system
+   * will assign a random port. Thus, you should only use this method here if you did explicitly set the
+   * "testserver.port" property, otherwise you should use the testBrowser(webDriver, port) method (which takes a port
+   * param).
    *
    * @param webDriver the class of webdriver.
    * @return the test browser.
@@ -656,11 +635,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   /**
    * Creates a Test Browser.
    *
-   * <p>Be aware: If set, the port the test browser is using is defined by the system property
-   * "testserver.port". Starting with Play 2.9, if this property is not set, the port by default is
-   * 0, which means the operating system will assign a random port. Thus, you should only use this
-   * method here if you did explicitly set the "testserver.port" property, otherwise you should use
-   * the testBrowser(of, port) method (which takes a port param).
+   * <p>Be aware: If set, the port the test browser is using is defined by the system property "testserver.port".
+   * Starting with Play 2.9, if this property is not set, the port by default is 0, which means the operating system
+   * will assign a random port. Thus, you should only use this method here if you did explicitly set the
+   * "testserver.port" property, otherwise you should use the testBrowser(of, port) method (which takes a port param).
    *
    * @param of the web driver to run the browser with.
    * @return the test browser.

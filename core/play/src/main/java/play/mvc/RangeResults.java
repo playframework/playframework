@@ -47,9 +47,9 @@ public class RangeResults {
   public interface SourceFunction extends java.util.function.LongFunction<SourceAndOffset> {}
 
   /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the stream as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param stream the content stream
@@ -60,9 +60,9 @@ public class RangeResults {
   }
 
   /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the stream as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param stream the content stream
@@ -70,14 +70,13 @@ public class RangeResults {
    * @return range result if "Range" header is present and regular result if not
    */
   public static Result ofStream(Http.Request request, InputStream stream, long contentLength) {
-    return JavaRangeResult.ofStream(
-        contentLength, stream, rangeHeader(request), null, Optional.empty());
+    return JavaRangeResult.ofStream(contentLength, stream, rangeHeader(request), null, Optional.empty());
   }
 
   /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the stream as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param stream the content stream
@@ -85,16 +84,14 @@ public class RangeResults {
    * @param filename filename used at the Content-Disposition header
    * @return range result if "Range" header is present and regular result if not
    */
-  public static Result ofStream(
-      Http.Request request, InputStream stream, long contentLength, String filename) {
-    return JavaRangeResult.ofStream(
-        contentLength, stream, rangeHeader(request), filename, Optional.empty());
+  public static Result ofStream(Http.Request request, InputStream stream, long contentLength, String filename) {
+    return JavaRangeResult.ofStream(contentLength, stream, rangeHeader(request), filename, Optional.empty());
   }
 
   /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the stream as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param stream the content stream
@@ -104,19 +101,15 @@ public class RangeResults {
    * @return range result if "Range" header is present and regular result if not
    */
   public static Result ofStream(
-      Http.Request request,
-      InputStream stream,
-      long contentLength,
-      String filename,
-      String contentType) {
+      Http.Request request, InputStream stream, long contentLength, String filename, String contentType) {
     return JavaRangeResult.ofStream(
         contentLength, stream, rangeHeader(request), filename, Optional.ofNullable(contentType));
   }
 
   /**
-   * Returns the path as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the path as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param path the content path
@@ -127,9 +120,9 @@ public class RangeResults {
   }
 
   /**
-   * Returns the path as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the path as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param path the content path
@@ -137,14 +130,13 @@ public class RangeResults {
    * @return range result if "Range" header is present and regular result if not
    */
   public static Result ofPath(Http.Request request, Path path, FileMimeTypes fileMimeTypes) {
-    return JavaRangeResult.ofPath(
-        path, rangeHeader(request), fileMimeTypes.forFileName(path.toFile().getName()));
+    return JavaRangeResult.ofPath(path, rangeHeader(request), fileMimeTypes.forFileName(path.toFile().getName()));
   }
 
   /**
-   * Returns the path as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the path as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param path the content path
@@ -156,9 +148,9 @@ public class RangeResults {
   }
 
   /**
-   * Returns the path as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the path as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param path the content path
@@ -166,16 +158,14 @@ public class RangeResults {
    * @param fileMimeTypes Used for file type mapping.
    * @return range result if "Range" header is present and regular result if not
    */
-  public static Result ofPath(
-      Http.Request request, Path path, String fileName, FileMimeTypes fileMimeTypes) {
-    return JavaRangeResult.ofPath(
-        path, rangeHeader(request), fileName, fileMimeTypes.forFileName(fileName));
+  public static Result ofPath(Http.Request request, Path path, String fileName, FileMimeTypes fileMimeTypes) {
+    return JavaRangeResult.ofPath(path, rangeHeader(request), fileName, fileMimeTypes.forFileName(fileName));
   }
 
   /**
-   * Returns the file as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the file as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param file the content file
@@ -186,9 +176,9 @@ public class RangeResults {
   }
 
   /**
-   * Returns the file as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the file as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param file the content file
@@ -196,14 +186,13 @@ public class RangeResults {
    * @return range result if "Range" header is present and regular result if not
    */
   public static Result ofFile(Http.Request request, File file, FileMimeTypes fileMimeTypes) {
-    return JavaRangeResult.ofFile(
-        file, rangeHeader(request), fileMimeTypes.forFileName(file.getName()));
+    return JavaRangeResult.ofFile(file, rangeHeader(request), fileMimeTypes.forFileName(file.getName()));
   }
 
   /**
-   * Returns the file as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the file as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param file the content file
@@ -215,9 +204,9 @@ public class RangeResults {
   }
 
   /**
-   * Returns the file as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the file as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param file the content file
@@ -225,16 +214,14 @@ public class RangeResults {
    * @param fileMimeTypes Used for file type mapping.
    * @return range result if "Range" header is present and regular result if not
    */
-  public static Result ofFile(
-      Http.Request request, File file, String fileName, FileMimeTypes fileMimeTypes) {
-    return JavaRangeResult.ofFile(
-        file, rangeHeader(request), fileName, fileMimeTypes.forFileName(fileName));
+  public static Result ofFile(Http.Request request, File file, String fileName, FileMimeTypes fileMimeTypes) {
+    return JavaRangeResult.ofFile(file, rangeHeader(request), fileName, fileMimeTypes.forFileName(fileName));
   }
 
   /**
-   * Returns the stream as a result considering "Range" header. If the header is present and it is
-   * satisfiable, then a Result containing just the requested part will be returned. If the header
-   * is not present or is unsatisfiable, then a regular Result will be returned.
+   * Returns the stream as a result considering "Range" header. If the header is present and it is satisfiable, then a
+   * Result containing just the requested part will be returned. If the header is not present or is unsatisfiable, then
+   * a regular Result will be returned.
    *
    * @param request the request from which to retrieve the range header.
    * @param entityLength the entityLength
@@ -244,26 +231,14 @@ public class RangeResults {
    * @return range result if "Range" header is present and regular result if not
    */
   public static Result ofSource(
-      Http.Request request,
-      Long entityLength,
-      Source<ByteString, ?> source,
-      String fileName,
-      String contentType) {
+      Http.Request request, Long entityLength, Source<ByteString, ?> source, String fileName, String contentType) {
     return JavaRangeResult.ofSource(
-        entityLength,
-        source,
-        rangeHeader(request),
-        Optional.ofNullable(fileName),
-        Optional.ofNullable(contentType));
+        entityLength, source, rangeHeader(request), Optional.ofNullable(fileName), Optional.ofNullable(contentType));
   }
 
   @ApiMayChange
   public static Result ofSource(
-      Http.Request request,
-      Long entityLength,
-      SourceFunction getSource,
-      String fileName,
-      String contentType) {
+      Http.Request request, Long entityLength, SourceFunction getSource, String fileName, String contentType) {
     return JavaRangeResult.ofSource(
         Optional.of(entityLength),
         getSource,

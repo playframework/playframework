@@ -10,8 +10,7 @@ import play.filters.components.NoHttpFiltersComponents;
 import play.routing.Router;
 
 // #remove-all-filters-compile-time-di
-public class MyAppComponents extends BuiltInComponentsFromContext
-    implements NoHttpFiltersComponents {
+public class MyAppComponents extends BuiltInComponentsFromContext implements NoHttpFiltersComponents {
 
   public MyAppComponents(ApplicationLoader.Context context) {
     super(context);

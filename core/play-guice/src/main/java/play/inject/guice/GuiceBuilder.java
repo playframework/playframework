@@ -22,8 +22,7 @@ import play.libs.Scala;
  * @param <Self> the concrete type that is extending this class
  * @param <Delegate> a scala GuiceBuilder type.
  */
-public abstract class GuiceBuilder<
-    Self, Delegate extends play.api.inject.guice.GuiceBuilder<Delegate>> {
+public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.GuiceBuilder<Delegate>> {
 
   protected Delegate delegate;
 

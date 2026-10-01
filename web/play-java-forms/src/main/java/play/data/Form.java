@@ -79,18 +79,16 @@ import play.mvc.Http.HttpVerbs;
 public class Form<T> {
 
   /**
-   * Statically compiled Pattern for replacing pairs of "<" and ">" with an optional content and
-   * optionally prefixed with a dot. Needed to get the field from a violation. This takes care of
-   * occurrences like "field.<list element>", "field<K>[somekey]", "field[somekey].<map value>",
-   * "field<K>[somekey].<map key>", etc. We always want to end up with just "field" or "field[0]" in
-   * case of lists or "field[somekey]" in case of maps. Also see
+   * Statically compiled Pattern for replacing pairs of "<" and ">" with an optional content and optionally prefixed
+   * with a dot. Needed to get the field from a violation. This takes care of occurrences like "field.<list element>",
+   * "field<K>[somekey]", "field[somekey].<map value>", "field<K>[somekey].<map key>", etc. We always want to end up
+   * with just "field" or "field[0]" in case of lists or "field[somekey]" in case of maps. Also see
    * https://github.com/hibernate/hibernate-validator/blob/6.0.5.Final/engine/src/main/java/org/hibernate/validator/internal/engine/path/NodeImpl.java#L51-L56
    */
   private static final Pattern REPLACE_COLLECTION_ELEMENT = Pattern.compile("\\.?<[^<]*>");
 
   /** Statically compiled Pattern for replacing "typeMismatch" in Form errors. */
-  private static final Pattern REPLACE_TYPEMISMATCH =
-      Pattern.compile("typeMismatch", Pattern.LITERAL);
+  private static final Pattern REPLACE_TYPEMISMATCH = Pattern.compile("typeMismatch", Pattern.LITERAL);
 
   private static final String INVALID_MSG_KEY = "error.invalid";
 
@@ -111,8 +109,7 @@ public class Form<T> {
     private final class PlayBindingErrorProcessor extends DefaultBindingErrorProcessor {
 
       @Override
-      public void processPropertyAccessException(
-          PropertyAccessException ex, BindingResult bindingResult) {
+      public void processPropertyAccessException(PropertyAccessException ex, BindingResult bindingResult) {
         /*
          * Spring intentionally passes null as the property name when converting map keys, so
          * property-specific editors apply only to map values. If map-key conversion fails, that
@@ -129,12 +126,10 @@ public class Form<T> {
         }
 
         String[] codes = bindingResult.resolveMessageCodes(ex.getErrorCode(), currentPropertyName);
-        Object[] arguments =
-            getArgumentsForBindError(bindingResult.getObjectName(), currentPropertyName);
+        Object[] arguments = getArgumentsForBindError(bindingResult.getObjectName(), currentPropertyName);
         Object rejectedValue = ex.getValue();
         if (ObjectUtils.isArray(rejectedValue)) {
-          rejectedValue =
-              StringUtils.arrayToCommaDelimitedString(ObjectUtils.toObjectArray(rejectedValue));
+          rejectedValue = StringUtils.arrayToCommaDelimitedString(ObjectUtils.toObjectArray(rejectedValue));
         }
         FieldError error =
             new PlayBindingFieldError(
@@ -248,8 +243,7 @@ public class Form<T> {
     try {
       return backedType.getDeclaredConstructor().newInstance();
     } catch (Exception e) {
-      throw new RuntimeException(
-          "Cannot instantiate " + backedType + ". It must have a default constructor", e);
+      throw new RuntimeException("Cannot instantiate " + backedType + ". It must have a default constructor", e);
     }
   }
 
@@ -258,8 +252,7 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param clazz wrapped class
    * @param messagesApi messagesApi component.
@@ -285,8 +278,7 @@ public class Form<T> {
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    this(
-        rootName, clazz, (Class<?>) null, messagesApi, langs, formatters, validatorFactory, config);
+    this(rootName, clazz, (Class<?>) null, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   public Form(
@@ -440,15 +432,13 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param rootName the root name.
    * @param clazz wrapped class
    * @param data the current form data (used to display the form)
    * @param errors the collection of errors associated with this form
-   * @param value optional concrete value of type <code>T</code> if the form submission was
-   *     successful
+   * @param value optional concrete value of type <code>T</code> if the form submission was successful
    * @param groups the array of classes with the groups.
    * @param messagesApi needed to look up various messages
    * @param formatters used for parsing and printing form fields
@@ -483,16 +473,14 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param rootName the root name.
    * @param clazz wrapped class
    * @param data the current form data (used to display the form)
    * @param files the current form file data
    * @param errors the collection of errors associated with this form
-   * @param value optional concrete value of type <code>T</code> if the form submission was
-   *     successful
+   * @param value optional concrete value of type <code>T</code> if the form submission was successful
    * @param groups the array of classes with the groups.
    * @param messagesApi needed to look up various messages
    * @param formatters used for parsing and printing form fields
@@ -529,22 +517,20 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param rootName the root name.
    * @param clazz wrapped class
    * @param data the current form data (used to display the form)
    * @param errors the collection of errors associated with this form
-   * @param value optional concrete value of type <code>T</code> if the form submission was
-   *     successful
+   * @param value optional concrete value of type <code>T</code> if the form submission was successful
    * @param groups the array of classes with the groups.
    * @param messagesApi needed to look up various messages
    * @param formatters used for parsing and printing form fields
    * @param validatorFactory the validatorFactory component.
    * @param config the config component.
-   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
-   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and
+   *     for translations in {@link #errorsAsJson()}
    */
   public Form(
       String rootName,
@@ -576,23 +562,21 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param rootName the root name.
    * @param clazz wrapped class
    * @param data the current form data (used to display the form)
    * @param files the current form file data
    * @param errors the collection of errors associated with this form
-   * @param value optional concrete value of type <code>T</code> if the form submission was
-   *     successful
+   * @param value optional concrete value of type <code>T</code> if the form submission was successful
    * @param groups the array of classes with the groups.
    * @param messagesApi needed to look up various messages
    * @param formatters used for parsing and printing form fields
    * @param validatorFactory the validatorFactory component.
    * @param config the config component.
-   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
-   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and
+   *     for translations in {@link #errorsAsJson()}
    */
   public Form(
       String rootName,
@@ -627,22 +611,20 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param rootName the root name.
    * @param clazz wrapped class
    * @param data the current form data (used to display the form)
    * @param errors the collection of errors associated with this form
-   * @param value optional concrete value of type <code>T</code> if the form submission was
-   *     successful
+   * @param value optional concrete value of type <code>T</code> if the form submission was successful
    * @param groups the array of classes with the groups.
    * @param messagesApi needed to look up various messages
    * @param formatters used for parsing and printing form fields
    * @param validatorFactory the validatorFactory component.
    * @param config the config component.
-   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
-   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and
+   *     for translations in {@link #errorsAsJson()}
    * @param directFieldAccess access fields of form directly during binding instead of using getters
    */
   public Form(
@@ -678,23 +660,21 @@ public class Form<T> {
   }
 
   /**
-   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
-   * constructor.
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this constructor.
    *
    * @param rootName the root name.
    * @param clazz wrapped class
    * @param data the current form data (used to display the form)
    * @param files the current form file data
    * @param errors the collection of errors associated with this form
-   * @param value optional concrete value of type <code>T</code> if the form submission was
-   *     successful
+   * @param value optional concrete value of type <code>T</code> if the form submission was successful
    * @param groups the array of classes with the groups.
    * @param messagesApi needed to look up various messages
    * @param formatters used for parsing and printing form fields
    * @param validatorFactory the validatorFactory component.
    * @param config the config component.
-   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
-   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and
+   *     for translations in {@link #errorsAsJson()}
    * @param directFieldAccess access fields of form directly during binding instead of using getters
    * @param autoGrowCollectionLimit the limit for array and collection auto-growing
    */
@@ -804,16 +784,12 @@ public class Form<T> {
                       return a;
                     }));
     final Map<String, Http.MultipartFormData.FilePart<?>> data = new HashMap<>();
-    resolvedDuplicateKeys.forEach(
-        (key, values) -> fillDataWith(key, data, values.size(), values::get));
+    resolvedDuplicateKeys.forEach((key, values) -> fillDataWith(key, data, values.size(), values::get));
     return data;
   }
 
   protected <T> void fillDataWith(
-      final String key,
-      final Map<String, T> data,
-      final int valuesCount,
-      final Function<Integer, T> getValueByIndex) {
+      final String key, final Map<String, T> data, final int valuesCount, final Function<Integer, T> getValueByIndex) {
     if (key.endsWith("[]") || key.contains("[].")) {
       String leftPart = key; // e.g. foo[].bar[].boo[] or foo[].bar[].boo
       String rightPart = "";
@@ -822,8 +798,7 @@ public class Form<T> {
       }
       for (int splitPosition; (splitPosition = leftPart.lastIndexOf("[].")) != -1; ) {
         if (key.endsWith("[]") || !rightPart.isEmpty()) { // is index already in use?
-          leftPart =
-              leftPart.substring(0, splitPosition) + "[0]" + leftPart.substring(splitPosition + 2);
+          leftPart = leftPart.substring(0, splitPosition) + "[0]" + leftPart.substring(splitPosition + 2);
         } else {
           rightPart = leftPart.substring(splitPosition + 2);
           leftPart = leftPart.substring(0, splitPosition);
@@ -858,10 +833,9 @@ public class Form<T> {
   /**
    * Binds request data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param requestData the map of data to bind from
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
@@ -875,10 +849,9 @@ public class Form<T> {
   /**
    * Binds request data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param requestData the map of data to bind from
    * @param requestFileData the map of file data to bind from
@@ -899,17 +872,15 @@ public class Form<T> {
   /**
    * Binds Json data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
-   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, long,
-   *     String...)} instead to specify the maximum chars that should be consumed by the flattened
-   *     form representation of the JSON.
+   * @deprecated Deprecated as of 2.8.3. Use {@link #bind(Lang, TypedMap, JsonNode, long, String...)} instead to specify
+   *     the maximum chars that should be consumed by the flattened form representation of the JSON.
    */
   @Deprecated
   public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, String... allowedFields) {
@@ -923,54 +894,41 @@ public class Form<T> {
   /**
    * Binds Json data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
-   * @param maxChars the maximum number of chars allowed to be used in the intermediate map
-   *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
-   *     parameter.
+   * @param maxChars the maximum number of chars allowed to be used in the intermediate map representation of the JSON.
+   *     `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
    */
-  public Form<T> bind(
-      Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
+  public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
     return bind(
         lang,
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
-                maxChars,
-                maxJsonDepth())),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars, maxJsonDepth())),
         allowedFields);
   }
 
   /**
    * Binds Json data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
-   * @param maxChars the maximum number of chars allowed to be used in the intermediate map
-   *     representation of the JSON. `parse.DefaultMaxTextLength` is recommended to passed for this
-   *     parameter.
+   * @param maxChars the maximum number of chars allowed to be used in the intermediate map representation of the JSON.
+   *     `parse.DefaultMaxTextLength` is recommended to passed for this parameter.
    * @param maxDepth the maximum depth allowed for JSON objects and arrays.
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
    */
-  public Form<T> bind(
-      Lang lang,
-      TypedMap attrs,
-      JsonNode data,
-      long maxChars,
-      int maxDepth,
-      String... allowedFields) {
+  public Form<T> bind(Lang lang, TypedMap attrs, JsonNode data, long maxChars, int maxDepth, String... allowedFields) {
     return bind(
         lang,
         attrs,
@@ -988,14 +946,12 @@ public class Form<T> {
     internalAnnotationAttributes.add("payload");
   }
 
-  protected Object[] getArgumentsForConstraint(
-      String objectName, String field, ConstraintViolation<Object> violation) {
+  protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintViolation<Object> violation) {
     Annotation annotation = violation.getConstraintDescriptor().getAnnotation();
     if (annotation instanceof Constraints.ValidateWith) {
       Constraints.ValidateWith validateWithAnnotation = (Constraints.ValidateWith) annotation;
       if (violation.getMessage().equals(Constraints.ValidateWithValidator.defaultMessage)) {
-        Constraints.ValidateWithValidator validateWithValidator =
-            new Constraints.ValidateWithValidator();
+        Constraints.ValidateWithValidator validateWithValidator = new Constraints.ValidateWithValidator();
         validateWithValidator.initialize(validateWithAnnotation);
         Tuple<String, Object[]> errorMessageKey = validateWithValidator.getErrorMessageKey();
         if (errorMessageKey != null && errorMessageKey._2 != null) {
@@ -1026,8 +982,8 @@ public class Form<T> {
   }
 
   /**
-   * When dealing with @ValidateWith or @ValidatePayloadWith annotations, and message parameter is
-   * not used in the annotation, extract the message from validator's getErrorMessageKey() method
+   * When dealing with @ValidateWith or @ValidatePayloadWith annotations, and message parameter is not used in the
+   * annotation, extract the message from validator's getErrorMessageKey() method
    *
    * @param violation the constraint violation.
    * @return the message associated with the constraint violation.
@@ -1038,8 +994,7 @@ public class Form<T> {
     if (annotation instanceof Constraints.ValidateWith) {
       Constraints.ValidateWith validateWithAnnotation = (Constraints.ValidateWith) annotation;
       if (violation.getMessage().equals(Constraints.ValidateWithValidator.defaultMessage)) {
-        Constraints.ValidateWithValidator validateWithValidator =
-            new Constraints.ValidateWithValidator();
+        Constraints.ValidateWithValidator validateWithValidator = new Constraints.ValidateWithValidator();
         validateWithValidator.initialize(validateWithAnnotation);
         Tuple<String, Object[]> errorMessageKey = validateWithValidator.getErrorMessageKey();
         if (errorMessageKey != null && errorMessageKey._1 != null) {
@@ -1048,8 +1003,7 @@ public class Form<T> {
       }
     }
     if (annotation instanceof Constraints.ValidatePayloadWith) {
-      Constraints.ValidatePayloadWith validatePayloadWithAnnotation =
-          (Constraints.ValidatePayloadWith) annotation;
+      Constraints.ValidatePayloadWith validatePayloadWithAnnotation = (Constraints.ValidatePayloadWith) annotation;
       if (violation.getMessage().equals(Constraints.ValidatePayloadWithValidator.defaultMessage)) {
         Constraints.ValidatePayloadWithValidator validatePayloadWithValidator =
             new Constraints.ValidatePayloadWithValidator();
@@ -1079,8 +1033,7 @@ public class Form<T> {
     dataBinder.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
     if (this.directFieldAccess) {
       // FYI: initBeanPropertyAccess() is the default, let's switch to direct field access instead
-      dataBinder
-          .initDirectFieldAccess(); // this should happen last, when everything else was set on the
+      dataBinder.initDirectFieldAccess(); // this should happen last, when everything else was set on the
       // dataBinder already
     }
     return dataBinder;
@@ -1126,10 +1079,8 @@ public class Form<T> {
   }
 
   @SuppressWarnings("unchecked")
-  private void addConstraintViolationToBindingResult(
-      ConstraintViolation<Object> violation, BindingResult result) {
-    String field =
-        REPLACE_COLLECTION_ELEMENT.matcher(violation.getPropertyPath().toString()).replaceAll("");
+  private void addConstraintViolationToBindingResult(ConstraintViolation<Object> violation, BindingResult result) {
+    String field = REPLACE_COLLECTION_ELEMENT.matcher(violation.getPropertyPath().toString()).replaceAll("");
     FieldError fieldError = result.getFieldError(field);
     if (fieldError == null || !fieldError.isBindingFailure()) {
       try {
@@ -1167,10 +1118,7 @@ public class Form<T> {
   }
 
   private static void rejectValidationError(
-      ConstraintViolation<Object> violation,
-      BindingResult result,
-      final ValidationError error,
-      final String field) {
+      ConstraintViolation<Object> violation, BindingResult result, final ValidationError error, final String field) {
     final String keyPrefix = (field == null || field.isEmpty() ? "" : field + ".");
     result.rejectValue(
         error.key() != null && !error.key().isEmpty() ? keyPrefix + error.key() : error.key(),
@@ -1190,13 +1138,9 @@ public class Form<T> {
 
               if (error.isBindingFailure()) {
                 ImmutableList.Builder<String> builder = ImmutableList.builder();
-                final Messages msgs =
-                    lang != null ? new MessagesImpl(lang, this.messagesApi) : null;
+                final Messages msgs = lang != null ? new MessagesImpl(lang, this.messagesApi) : null;
                 for (String code : error.getCodes()) {
-                  code =
-                      REPLACE_TYPEMISMATCH
-                          .matcher(code)
-                          .replaceAll(Matcher.quoteReplacement(INVALID_MSG_KEY));
+                  code = REPLACE_TYPEMISMATCH.matcher(code).replaceAll(Matcher.quoteReplacement(INVALID_MSG_KEY));
                   if (msgs == null || msgs.isDefinedAt(code)) {
                     builder.add(code);
                   }
@@ -1207,8 +1151,7 @@ public class Form<T> {
                     messages.isEmpty() ? Arrays.asList(INVALID_MSG_KEY) : messages.reverse(),
                     convertErrorArguments(error.getArguments()));
               } else {
-                return new ValidationError(
-                    key, error.getDefaultMessage(), convertErrorArguments(error.getArguments()));
+                return new ValidationError(key, error.getDefaultMessage(), convertErrorArguments(error.getArguments()));
               }
             })
         .collect(Collectors.toList());
@@ -1216,38 +1159,32 @@ public class Form<T> {
 
   private List<ValidationError> globalErrorsAsValidationErrors(BindingResult result) {
     return result.getGlobalErrors().stream()
-        .map(
-            error ->
-                new ValidationError(
-                    "", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
+        .map(error -> new ValidationError("", error.getDefaultMessage(), convertErrorArguments(error.getArguments())))
         .collect(Collectors.toList());
   }
 
   /**
    * Binds data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
    * @return a copy of this form filled with the new data
    */
   @SuppressWarnings("unchecked")
-  public Form<T> bind(
-      Lang lang, TypedMap attrs, Map<String, String> data, String... allowedFields) {
+  public Form<T> bind(Lang lang, TypedMap attrs, Map<String, String> data, String... allowedFields) {
     return bind(lang, attrs, data, Collections.emptyMap(), allowedFields);
   }
 
   /**
    * Binds data to this form - that is, handles form submission.
    *
-   * @param lang used for validators and formatters during binding and is part of {@link
-   *     ValidationPayload}. Later also used for formatting when retrieving a field (via {@link
-   *     #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
-   *     For these methods the lang can be change via {@link #withLang(Lang)}.
+   * @param lang used for validators and formatters during binding and is part of {@link ValidationPayload}. Later also
+   *     used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and for
+   *     translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link #withLang(Lang)}.
    * @param attrs will be passed to validators via {@link ValidationPayload}
    * @param data data to submit
    * @param allowedFields the fields that should be bound to the form, all fields if not specified.
@@ -1264,8 +1201,7 @@ public class Form<T> {
     final DataBinder dataBinder = dataBinder(allowedFields);
     final Map<String, Object> objectDataFinal = getObjectData(data, files);
 
-    final Set<ConstraintViolation<Object>> validationErrors =
-        runValidation(lang, attrs, dataBinder, objectDataFinal);
+    final Set<ConstraintViolation<Object>> validationErrors = runValidation(lang, attrs, dataBinder, objectDataFinal);
     final BindingResult result = dataBinder.getBindingResult();
 
     validationErrors.forEach(violation -> addConstraintViolationToBindingResult(violation, result));
@@ -1331,8 +1267,7 @@ public class Form<T> {
   }
 
   /**
-   * @return the actual form data as unmodifiable map. Does not contain file data, use {@link
-   *     #files()} to access files.
+   * @return the actual form data as unmodifiable map. Does not contain file data, use {@link #files()} to access files.
    */
   public Map<String, String> rawData() {
     return Collections.unmodifiableMap(rawData);
@@ -1470,9 +1405,7 @@ public class Form<T> {
               Collections.reverse(reversedMessages);
               messages.add(
                   messagesApi.get(
-                      lang,
-                      reversedMessages,
-                      translate(error.arguments(), new MessagesImpl(lang, this.messagesApi))));
+                      lang, reversedMessages, translate(error.arguments(), new MessagesImpl(lang, this.messagesApi))));
             } else {
               messages.add(error.message());
             }
@@ -1483,12 +1416,11 @@ public class Form<T> {
   }
 
   /**
-   * Gets the concrete value only if the submission was a success. If the form is invalid because of
-   * validation errors this method will throw an exception. If you want to retrieve the value even
-   * when the form is invalid use {@link #value()} instead.
+   * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors
+   * this method will throw an exception. If you want to retrieve the value even when the form is invalid use {@link
+   * #value()} instead.
    *
-   * @throws IllegalStateException if there are errors binding the form, including the errors as
-   *     JSON in the message
+   * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
    * @return the concrete value.
    */
   public T get() {
@@ -1496,14 +1428,12 @@ public class Form<T> {
   }
 
   /**
-   * Gets the concrete value only if the submission was a success. If the form is invalid because of
-   * validation errors this method will throw an exception. If you want to retrieve the value even
-   * when the form is invalid use {@link #value()} instead.
+   * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors
+   * this method will throw an exception. If you want to retrieve the value even when the form is invalid use {@link
+   * #value()} instead.
    *
-   * @param lang if an IllegalStateException gets thrown it's used to translate the form errors
-   *     within that exception
-   * @throws IllegalStateException if there are errors binding the form, including the errors as
-   *     JSON in the message
+   * @param lang if an IllegalStateException gets thrown it's used to translate the form errors within that exception
+   * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
    * @return the concrete value.
    */
   public T get(Lang lang) {
@@ -1548,8 +1478,7 @@ public class Form<T> {
    * @return a copy of this form with the given error added.
    */
   public Form<T> withError(final String key, final String error, final List<Object> args) {
-    return withError(
-        new ValidationError(key, error, args != null ? new ArrayList<>(args) : new ArrayList<>()));
+    return withError(new ValidationError(key, error, args != null ? new ArrayList<>(args) : new ArrayList<>()));
   }
 
   /**
@@ -1668,9 +1597,7 @@ public class Form<T> {
                         lang,
                         () ->
                             play.data.format.FormattersInternals$.MODULE$.print(
-                                formatters,
-                                propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal),
-                                oValue));
+                                formatters, propertyAccessor.getPropertyTypeDescriptor(objectKeyFinal), oValue));
               } else {
                 fieldValue = oValue.toString();
               }
@@ -1721,8 +1648,7 @@ public class Form<T> {
       leafKey = leafKey.substring(p + 1);
     }
     if (classType != null && this.validatorFactory != null) {
-      BeanDescriptor beanDescriptor =
-          this.validatorFactory.getValidator().getConstraintsForClass(classType);
+      BeanDescriptor beanDescriptor = this.validatorFactory.getValidator().getConstraintsForClass(classType);
       if (beanDescriptor != null) {
         PropertyDescriptor property = beanDescriptor.getConstraintsForProperty(leafKey);
         if (property != null) {
@@ -1738,16 +1664,14 @@ public class Form<T> {
             }
             // getDeclaredAnnotations also looks for private fields; also it provides the
             // annotations in a guaranteed order
-            orderedAnnotations =
-                AnnotationUtils.unwrapContainerAnnotations(field.getDeclaredAnnotations());
+            orderedAnnotations = AnnotationUtils.unwrapContainerAnnotations(field.getDeclaredAnnotations());
             break;
           }
           constraints =
               Constraints.displayableConstraint(
                   property
                       .findConstraints()
-                      .unorderedAndMatchingGroups(
-                          groups != null ? groups : new Class[] {Default.class})
+                      .unorderedAndMatchingGroups(groups != null ? groups : new Class[] {Default.class})
                       .getConstraintDescriptors(),
                   orderedAnnotations);
         }
@@ -1758,18 +1682,17 @@ public class Form<T> {
   }
 
   /**
-   * @return the lang used for formatting when retrieving a field (via {@link #field(String)} or
-   *     {@link #apply(String)}) and for translations in {@link #errorsAsJson()}. For these methods
-   *     the lang can be change via {@link #withLang(Lang)}.
+   * @return the lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)})
+   *     and for translations in {@link #errorsAsJson()}. For these methods the lang can be change via {@link
+   *     #withLang(Lang)}.
    */
   public Optional<Lang> lang() {
     return Optional.ofNullable(this.lang);
   }
 
   /**
-   * A copy of this form with the given lang set which is used for formatting when retrieving a
-   * field (via {@link #field(String)} or {@link #apply(String)}) and for translations in {@link
-   * #errorsAsJson()}.
+   * A copy of this form with the given lang set which is used for formatting when retrieving a field (via {@link
+   * #field(String)} or {@link #apply(String)}) and for translations in {@link #errorsAsJson()}.
    */
   public Form<T> withLang(Lang lang) {
     return new Form<>(
@@ -1793,8 +1716,8 @@ public class Form<T> {
   /**
    * Sets if during binding fields of the form should be accessed directly or via getters.
    *
-   * @param directFieldAccess {@code true} enables direct field access during form binding, {@code
-   *     false} disables it and uses getters instead. If {@code null} falls back to config default.
+   * @param directFieldAccess {@code true} enables direct field access during form binding, {@code false} disables it
+   *     and uses getters instead. If {@code null} falls back to config default.
    */
   public Form<T> withDirectFieldAccess(boolean directFieldAccess) {
     return new Form<>(
@@ -1851,15 +1774,7 @@ public class Form<T> {
   }
 
   public String toString() {
-    return "Form(of="
-        + backedType
-        + ", data="
-        + rawData
-        + ", value="
-        + value
-        + ", errors="
-        + errors
-        + ")";
+    return "Form(of=" + backedType + ", data=" + rawData + ", value=" + value + ", errors=" + errors + ")";
   }
 
   /**
@@ -2026,8 +1941,7 @@ public class Form<T> {
                           return sortedResult;
                         } else {
                           List<Integer> result = new ArrayList<>();
-                          ConfigurablePropertyAccessor propertyAccessor =
-                              form.propertyAccessor(value);
+                          ConfigurablePropertyAccessor propertyAccessor = form.propertyAccessor(value);
                           propertyAccessor.setAutoGrowNestedPaths(true);
 
                           if (propertyAccessor.isReadableProperty(objectKey)) {

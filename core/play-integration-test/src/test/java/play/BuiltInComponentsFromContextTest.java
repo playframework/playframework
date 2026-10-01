@@ -36,10 +36,7 @@ public class BuiltInComponentsFromContextTest {
 
     @Override
     public Router router() {
-      return new RoutingDsl(defaultBodyParser())
-          .GET("/")
-          .routingTo(req -> Results.ok("index"))
-          .build();
+      return new RoutingDsl(defaultBodyParser()).GET("/").routingTo(req -> Results.ok("index")).build();
     }
   }
 
@@ -156,14 +153,12 @@ public class BuiltInComponentsFromContextTest {
 
   @Test
   public void actorSystemMustBeASingleton() {
-    assertThat(this.componentsFromContext.actorSystem())
-        .isSameAs(this.componentsFromContext.actorSystem());
+    assertThat(this.componentsFromContext.actorSystem()).isSameAs(this.componentsFromContext.actorSystem());
   }
 
   @Test
   public void applicationMustBeASingleton() {
-    assertThat(this.componentsFromContext.application())
-        .isSameAs(this.componentsFromContext.application());
+    assertThat(this.componentsFromContext.application()).isSameAs(this.componentsFromContext.application());
   }
 
   @Test
@@ -173,8 +168,7 @@ public class BuiltInComponentsFromContextTest {
 
   @Test
   public void fileMimeTypesMustBeASingleton() {
-    assertThat(this.componentsFromContext.fileMimeTypes())
-        .isSameAs(this.componentsFromContext.fileMimeTypes());
+    assertThat(this.componentsFromContext.fileMimeTypes()).isSameAs(this.componentsFromContext.fileMimeTypes());
   }
 
   @Test
@@ -185,20 +179,17 @@ public class BuiltInComponentsFromContextTest {
 
   @Test
   public void cookieSignerMustBeASingleton() {
-    assertThat(this.componentsFromContext.cookieSigner())
-        .isSameAs(this.componentsFromContext.cookieSigner());
+    assertThat(this.componentsFromContext.cookieSigner()).isSameAs(this.componentsFromContext.cookieSigner());
   }
 
   @Test
   public void csrfTokenSignerMustBeASingleton() {
-    assertThat(this.componentsFromContext.csrfTokenSigner())
-        .isSameAs(this.componentsFromContext.csrfTokenSigner());
+    assertThat(this.componentsFromContext.csrfTokenSigner()).isSameAs(this.componentsFromContext.csrfTokenSigner());
   }
 
   @Test
   public void temporaryFileCreatorMustBeASingleton() {
-    assertThat(this.componentsFromContext.tempFileCreator())
-        .isSameAs(this.componentsFromContext.tempFileCreator());
+    assertThat(this.componentsFromContext.tempFileCreator()).isSameAs(this.componentsFromContext.tempFileCreator());
   }
 
   @Test

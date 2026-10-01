@@ -65,8 +65,7 @@ public class JavaCsrf extends WithApplication {
                 fakeRequest("GET", "/").session("csrfToken", token.value()),
                 mat));
 
-    Matcher matcher =
-        Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").matcher(body);
+    Matcher matcher = Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"").matcher(body);
     assertThat(matcher.find()).isTrue();
     assertThat(matcher.group(1)).isEqualTo(tokenSigner().extractSignedToken(token.value()));
 
@@ -109,10 +108,7 @@ public class JavaCsrf extends WithApplication {
             tokenSigner()
                 .extractSignedToken(
                     contentAsString(
-                        call(
-                            new Controller2(instanceOf(JavaHandlerComponents.class)),
-                            fakeRequest("GET", "/"),
-                            mat))))
+                        call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest("GET", "/"), mat))))
         .isNotNull();
   }
 

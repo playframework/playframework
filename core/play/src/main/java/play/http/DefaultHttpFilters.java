@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import play.mvc.EssentialFilter;
 
-/**
- * Helper class which has a varargs constructor taking the filters. Reduces boilerplate for defining
- * HttpFilters.
- */
+/** Helper class which has a varargs constructor taking the filters. Reduces boilerplate for defining HttpFilters. */
 public class DefaultHttpFilters implements HttpFilters {
 
   private final List<EssentialFilter> filters;
@@ -22,8 +19,7 @@ public class DefaultHttpFilters implements HttpFilters {
   }
 
   public DefaultHttpFilters(List<? extends play.api.mvc.EssentialFilter> filters) {
-    this.filters =
-        filters.stream().map(play.api.mvc.EssentialFilter::asJava).collect(Collectors.toList());
+    this.filters = filters.stream().map(play.api.mvc.EssentialFilter::asJava).collect(Collectors.toList());
   }
 
   @Override

@@ -23,10 +23,7 @@ public class TestServer extends play.api.test.TestServer {
    * @param application The Application to load in this server.
    */
   public TestServer(int port, Application application) {
-    super(
-        createServerConfig(Optional.of(port), Optional.empty()),
-        application.asScala(),
-        play.libs.Scala.None());
+    super(createServerConfig(Optional.of(port), Optional.empty()), application.asScala(), play.libs.Scala.None());
   }
 
   /**
@@ -37,15 +34,11 @@ public class TestServer extends play.api.test.TestServer {
    * @param sslPort HTTPS port to bind on
    */
   public TestServer(int port, Application application, int sslPort) {
-    super(
-        createServerConfig(Optional.of(port), Optional.of(sslPort)),
-        application.asScala(),
-        play.libs.Scala.None());
+    super(createServerConfig(Optional.of(port), Optional.of(sslPort)), application.asScala(), play.libs.Scala.None());
   }
 
   @SuppressWarnings("unchecked")
-  private static ServerConfig createServerConfig(
-      Optional<Integer> port, Optional<Integer> sslPort) {
+  private static ServerConfig createServerConfig(Optional<Integer> port, Optional<Integer> sslPort) {
     return ServerConfig.apply(
         TestServer.class.getClassLoader(),
         new File("."),

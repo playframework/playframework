@@ -28,8 +28,8 @@ public interface CSRFTokenSigner {
   /**
    * Sign a token. This produces a new token, that has this token signed with a nonce.
    *
-   * <p>This primarily exists to defeat the BREACH vulnerability, as it allows the token to
-   * effectively be random per request, without actually changing the value.
+   * <p>This primarily exists to defeat the BREACH vulnerability, as it allows the token to effectively be random per
+   * request, without actually changing the value.
    *
    * @param token The token to sign
    * @return The signed token

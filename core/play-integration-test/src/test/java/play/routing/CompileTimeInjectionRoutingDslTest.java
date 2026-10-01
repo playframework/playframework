@@ -16,8 +16,7 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
 
   @BeforeClass
   public static void startApp() {
-    play.ApplicationLoader.Context context =
-        play.ApplicationLoader.create(play.Environment.simple());
+    play.ApplicationLoader.Context context = play.ApplicationLoader.create(play.Environment.simple());
     components = new TestComponents(context);
     application = components.application();
   }
@@ -32,8 +31,7 @@ public class CompileTimeInjectionRoutingDslTest extends AbstractRoutingDslTest {
     return application;
   }
 
-  private static class TestComponents extends RoutingDslComponentsFromContext
-      implements NoHttpFiltersComponents {
+  private static class TestComponents extends RoutingDslComponentsFromContext implements NoHttpFiltersComponents {
 
     TestComponents(ApplicationLoader.Context context) {
       super(context);

@@ -55,15 +55,11 @@ public class DefaultFormBindingTest extends WithApplication {
         .bind(Lang.defaultLang(), TypedMap.empty(), data);
   }
 
-  private static Form<FormData> bindRequestData(
-      FormFactory formFactory, Map<String, String[]> data) {
-    return formFactory
-        .form(FormData.class)
-        .bindFromRequestData(Lang.defaultLang(), TypedMap.empty(), data);
+  private static Form<FormData> bindRequestData(FormFactory formFactory, Map<String, String[]> data) {
+    return formFactory.form(FormData.class).bindFromRequestData(Lang.defaultLang(), TypedMap.empty(), data);
   }
 
-  private static Form<FormData> bindRequestDataDirect(
-      FormFactory formFactory, Map<String, String[]> data) {
+  private static Form<FormData> bindRequestDataDirect(FormFactory formFactory, Map<String, String[]> data) {
     return formFactory
         .form(FormData.class)
         .withDirectFieldAccess(true)
@@ -97,8 +93,7 @@ public class DefaultFormBindingTest extends WithApplication {
     return bindObjectValues(target, values, true);
   }
 
-  private static DataBinder bindObjectValues(
-      Object target, Map<String, Object> values, boolean directFieldAccess) {
+  private static DataBinder bindObjectValues(Object target, Map<String, Object> values, boolean directFieldAccess) {
     DataBinder binder = new DataBinder(target);
     if (directFieldAccess) {
       binder.initDirectFieldAccess();
@@ -169,8 +164,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getLocale().getCountry()).isEqualTo("AT");
     assertThat(bean.getLocale().getVariant()).isEqualTo("POSIX");
     assertThat(bean.getLocaleLanguageOnly()).isEqualTo(Locale.FRENCH);
-    assertThat(bean.getLocaleWithMultiPartVariant())
-        .isEqualTo(new Locale("en", "US", "POSIX_EXTRA"));
+    assertThat(bean.getLocaleWithMultiPartVariant()).isEqualTo(new Locale("en", "US", "POSIX_EXTRA"));
     assertThat(bean.getPattern().pattern()).isEqualTo("a+");
     assertThat(bean.getTimeZone()).isEqualTo(TimeZone.getTimeZone("Europe/Vienna"));
     assertThat(bean.getTimeZoneGmtOffset()).isEqualTo(TimeZone.getTimeZone("GMT+02:00"));
@@ -179,12 +173,9 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getUriCustomScheme()).isEqualTo(URI.create("widget:/catalog/items/42"));
     assertThat(bean.getUriRelative()).isEqualTo(URI.create("docs/releases/notes.txt"));
     assertThat(bean.getUriClasspath()).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
-    assertThat(bean.getUriWithFragment())
-        .isEqualTo(URI.create("https://example.net/docs#chapter-7"));
-    assertThat(bean.getUriWithEncodedFragment())
-        .isEqualTo(URI.create("https://example.net/docs%20path#chapter%207"));
-    assertThat(bean.getUriWithNonAscii().toASCIIString())
-        .isEqualTo("https://example.com/caf%C3%A9%20and%20%C2%A3");
+    assertThat(bean.getUriWithFragment()).isEqualTo(URI.create("https://example.net/docs#chapter-7"));
+    assertThat(bean.getUriWithEncodedFragment()).isEqualTo(URI.create("https://example.net/docs%20path#chapter%207"));
+    assertThat(bean.getUriWithNonAscii().toASCIIString()).isEqualTo("https://example.com/caf%C3%A9%20and%20%C2%A3");
     assertThat(bean.getUriAlreadyEncoded().toASCIIString())
         .isEqualTo("https://example.com/a%2520path%2520and%2520%25C2%25A3");
     assertThat(bean.getUrl().toExternalForm()).isEqualTo("https://example.com/index.html");
@@ -254,10 +245,8 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.uriRelative).isEqualTo(URI.create("docs/releases/notes.txt"));
     assertThat(bean.uriClasspath).isEqualTo(URI.create("classpath:play/forms/sample.txt"));
     assertThat(bean.uriWithFragment).isEqualTo(URI.create("https://example.net/docs#chapter-7"));
-    assertThat(bean.uriWithEncodedFragment)
-        .isEqualTo(URI.create("https://example.net/docs%20path#chapter%207"));
-    assertThat(bean.uriWithNonAscii.toASCIIString())
-        .isEqualTo("https://example.com/caf%C3%A9%20and%20%C2%A3");
+    assertThat(bean.uriWithEncodedFragment).isEqualTo(URI.create("https://example.net/docs%20path#chapter%207"));
+    assertThat(bean.uriWithNonAscii.toASCIIString()).isEqualTo("https://example.com/caf%C3%A9%20and%20%C2%A3");
     assertThat(bean.uriAlreadyEncoded.toASCIIString())
         .isEqualTo("https://example.com/a%2520path%2520and%2520%25C2%25A3");
     assertThat(bean.url.toExternalForm()).isEqualTo("https://example.com/index.html");
@@ -337,10 +326,8 @@ public class DefaultFormBindingTest extends WithApplication {
     assertDefaultDirectBooleanValue(formFactory, " 0 ", false);
   }
 
-  private static void assertDefaultBooleanValue(
-      FormFactory formFactory, String value, boolean expected) {
-    Form<FormData> form =
-        bind(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
+  private static void assertDefaultBooleanValue(FormFactory formFactory, String value, boolean expected) {
+    Form<FormData> form = bind(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
 
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
@@ -348,10 +335,8 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getBooleanValue()).isEqualTo(expected);
   }
 
-  private static void assertDefaultDirectBooleanValue(
-      FormFactory formFactory, String value, boolean expected) {
-    Form<FormData> form =
-        bindDirect(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
+  private static void assertDefaultDirectBooleanValue(FormFactory formFactory, String value, boolean expected) {
+    Form<FormData> form = bindDirect(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
 
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
@@ -378,8 +363,7 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   private static void assertInvalidBooleanValue(FormFactory formFactory, String value) {
-    Form<FormData> form =
-        bind(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
+    Form<FormData> form = bind(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "primitiveBoolean");
@@ -387,8 +371,7 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   private static void assertInvalidDirectBooleanValue(FormFactory formFactory, String value) {
-    Form<FormData> form =
-        bindDirect(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
+    Form<FormData> form = bindDirect(formFactory, Map.of("primitiveBoolean", value, "booleanValue", value));
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "primitiveBoolean");
@@ -1454,8 +1437,7 @@ public class DefaultFormBindingTest extends WithApplication {
   @Test
   public void shouldRejectClassCollectionBinding() {
     FormFactory formFactory = instanceOf(FormFactory.class);
-    Form<FormData> form =
-        bind(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
+    Form<FormData> form = bind(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
 
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors()).hasSize(1);
@@ -1465,8 +1447,7 @@ public class DefaultFormBindingTest extends WithApplication {
   @Test
   public void shouldRejectClassCollectionBindingWithDirectFieldAccess() {
     FormFactory formFactory = instanceOf(FormFactory.class);
-    Form<FormData> form =
-        bindDirect(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
+    Form<FormData> form = bindDirect(formFactory, Map.of("classList", "java.lang.String,java.lang.Integer"));
 
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors()).hasSize(1);
@@ -1702,8 +1683,7 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
-  public void
-      shouldRejectWhitespaceOnlyDefaultScalarValuesWithoutEmptyHandlingWithDirectFieldAccess() {
+  public void shouldRejectWhitespaceOnlyDefaultScalarValuesWithoutEmptyHandlingWithDirectFieldAccess() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("currency", "   ");
@@ -1824,14 +1804,10 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("localeArray[]", new String[] {"de_AT", "en_US"});
     data.put("patternArray[]", new String[] {"a+", "b+"});
     data.put("timeZoneArray[]", new String[] {"Europe/Vienna", "UTC"});
-    data.put(
-        "uriArray[]", new String[] {"https://example.com/some path", "urn:isbn:9780140328721"});
+    data.put("uriArray[]", new String[] {"https://example.com/some path", "urn:isbn:9780140328721"});
     data.put("urlArray[]", new String[] {"https://example.com/one", "https://example.com/two"});
     data.put(
-        "uuidArray[]",
-        new String[] {
-          "5a68095f-3f88-4c82-9b2f-345ef6017d92", "954279b9-1bc0-4be5-8ca9-f30d27316564"
-        });
+        "uuidArray[]", new String[] {"5a68095f-3f88-4c82-9b2f-345ef6017d92", "954279b9-1bc0-4be5-8ca9-f30d27316564"});
     data.put("zoneIdArray[]", new String[] {"Europe/Vienna", "UTC"});
 
     Form<FormData> form = bindRequestData(formFactory, data);
@@ -1867,14 +1843,10 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("localeArray[]", new String[] {"de_AT", "en_US"});
     data.put("patternArray[]", new String[] {"a+", "b+"});
     data.put("timeZoneArray[]", new String[] {"Europe/Vienna", "UTC"});
-    data.put(
-        "uriArray[]", new String[] {"https://example.com/some path", "urn:isbn:9780140328721"});
+    data.put("uriArray[]", new String[] {"https://example.com/some path", "urn:isbn:9780140328721"});
     data.put("urlArray[]", new String[] {"https://example.com/one", "https://example.com/two"});
     data.put(
-        "uuidArray[]",
-        new String[] {
-          "5a68095f-3f88-4c82-9b2f-345ef6017d92", "954279b9-1bc0-4be5-8ca9-f30d27316564"
-        });
+        "uuidArray[]", new String[] {"5a68095f-3f88-4c82-9b2f-345ef6017d92", "954279b9-1bc0-4be5-8ca9-f30d27316564"});
     data.put("zoneIdArray[]", new String[] {"Europe/Vienna", "UTC"});
 
     Form<FormData> form = bindRequestDataDirect(formFactory, data);
@@ -2460,8 +2432,7 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
-  public void
-      shouldRejectEmptyArrayValuesWithoutEmptyHandlingFromRequestDataWithDirectFieldAccess() {
+  public void shouldRejectEmptyArrayValuesWithoutEmptyHandlingFromRequestDataWithDirectFieldAccess() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String[]> data = new HashMap<>();
     data.put("primitiveByteArrayElements[]", new String[] {""});
@@ -2517,8 +2488,7 @@ public class DefaultFormBindingTest extends WithApplication {
   }
 
   @Test
-  public void
-      shouldRejectEmptyArrayValuesWithoutEmptyHandlingFromIndexedDataWithDirectFieldAccess() {
+  public void shouldRejectEmptyArrayValuesWithoutEmptyHandlingFromIndexedDataWithDirectFieldAccess() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("primitiveByteArrayElements[0]", "");
@@ -2708,8 +2678,7 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.errors()).isEmpty();
     assertThat(new String(form.get().getByteArray())).isEqualTo("bytes-one");
-    assertThat(form.get().getCharArray())
-        .containsExactly('c', 'h', 'a', 'r', 's', '-', 'o', 'n', 'e');
+    assertThat(form.get().getCharArray()).containsExactly('c', 'h', 'a', 'r', 's', '-', 'o', 'n', 'e');
   }
 
   @Test
@@ -2768,8 +2737,7 @@ public class DefaultFormBindingTest extends WithApplication {
   public void shouldRejectSingleRequestValueForMapTypes() {
     FormFactory formFactory = instanceOf(FormFactory.class);
 
-    Form<FormData> form =
-        bindRequestData(formFactory, Map.of("stringIntegerMap", new String[] {"not-a-map"}));
+    Form<FormData> form = bindRequestData(formFactory, Map.of("stringIntegerMap", new String[] {"not-a-map"}));
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "stringIntegerMap");
@@ -2779,8 +2747,7 @@ public class DefaultFormBindingTest extends WithApplication {
   public void shouldRejectSingleRequestValueForMapTypesWithDirectFieldAccess() {
     FormFactory formFactory = instanceOf(FormFactory.class);
 
-    Form<FormData> form =
-        bindRequestDataDirect(formFactory, Map.of("stringIntegerMap", new String[] {"not-a-map"}));
+    Form<FormData> form = bindRequestDataDirect(formFactory, Map.of("stringIntegerMap", new String[] {"not-a-map"}));
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "stringIntegerMap");
@@ -2874,10 +2841,8 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getPrimitiveFloatArray()).containsExactly(27.25f, 28.25f);
     assertThat(bean.getDoubleArray()).containsExactly(29.25d, 30.25d);
     assertThat(bean.getPrimitiveDoubleArray()).containsExactly(31.25d, 32.25d);
-    assertThat(bean.getBigDecimalArray())
-        .containsExactly(new BigDecimal("33.33"), new BigDecimal("34.34"));
-    assertThat(bean.getBigIntegerArray())
-        .containsExactly(new BigInteger("351"), new BigInteger("352"));
+    assertThat(bean.getBigDecimalArray()).containsExactly(new BigDecimal("33.33"), new BigDecimal("34.34"));
+    assertThat(bean.getBigIntegerArray()).containsExactly(new BigInteger("351"), new BigInteger("352"));
     assertThat(bean.getUuidArray())
         .containsExactly(
             UUID.fromString("5a68095f-3f88-4c82-9b2f-345ef6017d92"),
@@ -2898,10 +2863,8 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getPrimitiveFloatArray()).containsExactly(59.25f, 60.25f);
     assertThat(bean.getDoubleArray()).containsExactly(61.25d, 62.25d);
     assertThat(bean.getPrimitiveDoubleArray()).containsExactly(63.25d, 64.25d);
-    assertThat(bean.getBigDecimalArray())
-        .containsExactly(new BigDecimal("65.65"), new BigDecimal("66.66"));
-    assertThat(bean.getBigIntegerArray())
-        .containsExactly(new BigInteger("671"), new BigInteger("672"));
+    assertThat(bean.getBigDecimalArray()).containsExactly(new BigDecimal("65.65"), new BigDecimal("66.66"));
+    assertThat(bean.getBigIntegerArray()).containsExactly(new BigInteger("671"), new BigInteger("672"));
     assertThat(bean.getUuidArray())
         .containsExactly(
             UUID.fromString("b8c1244a-066a-4099-bfa1-95fc31475849"),
@@ -2912,17 +2875,14 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getStringArray()).containsExactly("red", "green");
     assertThat(bean.getCharacterArray()).containsExactly('a', 'b');
     assertThat(bean.getBooleanArray()).containsExactly(true, false);
-    assertThat(bean.getCharsetArray())
-        .containsExactly(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
-    assertThat(bean.getCurrencyArray())
-        .containsExactly(Currency.getInstance("EUR"), Currency.getInstance("USD"));
+    assertThat(bean.getCharsetArray()).containsExactly(StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1);
+    assertThat(bean.getCurrencyArray()).containsExactly(Currency.getInstance("EUR"), Currency.getInstance("USD"));
     assertThat(bean.getLocaleArray()).containsExactly(new Locale("de", "AT"), Locale.US);
     assertThat(bean.getPatternArray()).extracting(Pattern::pattern).containsExactly("a+", "b+");
     assertThat(bean.getTimeZoneArray())
         .containsExactly(TimeZone.getTimeZone("Europe/Vienna"), TimeZone.getTimeZone("UTC"));
     assertThat(bean.getUriArray())
-        .containsExactly(
-            URI.create("https://example.com/some%20path"), URI.create("urn:isbn:9780140328721"));
+        .containsExactly(URI.create("https://example.com/some%20path"), URI.create("urn:isbn:9780140328721"));
     assertThat(bean.getUrlArray())
         .extracting(URL::toExternalForm)
         .containsExactly("https://example.com/one", "https://example.com/two");
@@ -2952,14 +2912,10 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.getStringSet()).containsExactly("green");
     assertThat(bean.getSortedStringSet()).containsExactly("blue");
     assertThat(bean.getRawCollection()).containsExactly("raw-teal");
-    assertThat(bean.getUuidCollection())
-        .containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
-    assertThat(bean.getUuidList())
-        .containsExactly(UUID.fromString("18b396f2-066f-4c26-9629-2c5d963040ef"));
-    assertThat(bean.getUuidSet())
-        .containsExactly(UUID.fromString("a92afee8-60d0-4e74-82ab-9ea43c849160"));
-    assertThat(bean.getSortedUuidSet())
-        .containsExactly(UUID.fromString("94c1c8f5-8c71-4912-b513-195c71cfb453"));
+    assertThat(bean.getUuidCollection()).containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
+    assertThat(bean.getUuidList()).containsExactly(UUID.fromString("18b396f2-066f-4c26-9629-2c5d963040ef"));
+    assertThat(bean.getUuidSet()).containsExactly(UUID.fromString("a92afee8-60d0-4e74-82ab-9ea43c849160"));
+    assertThat(bean.getSortedUuidSet()).containsExactly(UUID.fromString("94c1c8f5-8c71-4912-b513-195c71cfb453"));
   }
 
   @Test
@@ -2985,14 +2941,10 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(bean.stringSet).containsExactly("green");
     assertThat(bean.sortedStringSet).containsExactly("blue");
     assertThat(bean.rawCollection).containsExactly("raw-cyan");
-    assertThat(bean.uuidCollection)
-        .containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
-    assertThat(bean.uuidList)
-        .containsExactly(UUID.fromString("18b396f2-066f-4c26-9629-2c5d963040ef"));
-    assertThat(bean.uuidSet)
-        .containsExactly(UUID.fromString("a92afee8-60d0-4e74-82ab-9ea43c849160"));
-    assertThat(bean.sortedUuidSet)
-        .containsExactly(UUID.fromString("94c1c8f5-8c71-4912-b513-195c71cfb453"));
+    assertThat(bean.uuidCollection).containsExactly(UUID.fromString("73eef03b-86e0-456f-b0eb-78a5541aaee2"));
+    assertThat(bean.uuidList).containsExactly(UUID.fromString("18b396f2-066f-4c26-9629-2c5d963040ef"));
+    assertThat(bean.uuidSet).containsExactly(UUID.fromString("a92afee8-60d0-4e74-82ab-9ea43c849160"));
+    assertThat(bean.sortedUuidSet).containsExactly(UUID.fromString("94c1c8f5-8c71-4912-b513-195c71cfb453"));
   }
 
   @Test
@@ -3100,15 +3052,10 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerList[]", new String[] {"81", "82"});
     data.put("stringArrayList[]", new String[] {"red", "green"});
     data.put(
-        "uuidList[]",
-        new String[] {
-          "2a32ce60-2a1d-4e10-a22e-58474baaa478", "dc5021dc-6a04-4cae-8caa-44a3590bc086"
-        });
+        "uuidList[]", new String[] {"2a32ce60-2a1d-4e10-a22e-58474baaa478", "dc5021dc-6a04-4cae-8caa-44a3590bc086"});
     data.put(
         "uuidArrayList[]",
-        new String[] {
-          "9f341f5f-180e-4b6c-8db7-0af6f6153509", "7c836183-e277-4804-af9c-4240c756ea2b"
-        });
+        new String[] {"9f341f5f-180e-4b6c-8db7-0af6f6153509", "7c836183-e277-4804-af9c-4240c756ea2b"});
 
     Form<FormData> form = bindRequestData(formFactory, data);
 
@@ -3124,15 +3071,10 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerList[]", new String[] {"81", "82"});
     data.put("stringArrayList[]", new String[] {"red", "green"});
     data.put(
-        "uuidList[]",
-        new String[] {
-          "2a32ce60-2a1d-4e10-a22e-58474baaa478", "dc5021dc-6a04-4cae-8caa-44a3590bc086"
-        });
+        "uuidList[]", new String[] {"2a32ce60-2a1d-4e10-a22e-58474baaa478", "dc5021dc-6a04-4cae-8caa-44a3590bc086"});
     data.put(
         "uuidArrayList[]",
-        new String[] {
-          "9f341f5f-180e-4b6c-8db7-0af6f6153509", "7c836183-e277-4804-af9c-4240c756ea2b"
-        });
+        new String[] {"9f341f5f-180e-4b6c-8db7-0af6f6153509", "7c836183-e277-4804-af9c-4240c756ea2b"});
 
     Form<FormData> form = bindRequestDataDirect(formFactory, data);
 
@@ -3153,8 +3095,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getIntegerList()).containsExactly(null, 85);
-    assertThat(bean.getUuidList())
-        .containsExactly(null, UUID.fromString("f1c1acef-8c9b-4669-9a94-7d8ac687d650"));
+    assertThat(bean.getUuidList()).containsExactly(null, UUID.fromString("f1c1acef-8c9b-4669-9a94-7d8ac687d650"));
   }
 
   @Test
@@ -3169,8 +3110,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.integerList).containsExactly(null, 85);
-    assertThat(bean.uuidList)
-        .containsExactly(null, UUID.fromString("f1c1acef-8c9b-4669-9a94-7d8ac687d650"));
+    assertThat(bean.uuidList).containsExactly(null, UUID.fromString("f1c1acef-8c9b-4669-9a94-7d8ac687d650"));
   }
 
   @Test
@@ -3185,8 +3125,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getIntegerList()).containsExactly(null, 86);
-    assertThat(bean.getUuidList())
-        .containsExactly(null, UUID.fromString("e2ef0d70-7a5f-4086-88b7-fae75d1aa46d"));
+    assertThat(bean.getUuidList()).containsExactly(null, UUID.fromString("e2ef0d70-7a5f-4086-88b7-fae75d1aa46d"));
   }
 
   @Test
@@ -3201,8 +3140,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.integerList).containsExactly(null, 86);
-    assertThat(bean.uuidList)
-        .containsExactly(null, UUID.fromString("e2ef0d70-7a5f-4086-88b7-fae75d1aa46d"));
+    assertThat(bean.uuidList).containsExactly(null, UUID.fromString("e2ef0d70-7a5f-4086-88b7-fae75d1aa46d"));
   }
 
   @Test
@@ -3217,8 +3155,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getIntegerList()).containsExactly(null, 87);
-    assertThat(bean.getUuidList())
-        .containsExactly(null, UUID.fromString("3b04d2a2-36b9-449a-9c0a-7dd1a0ea7d78"));
+    assertThat(bean.getUuidList()).containsExactly(null, UUID.fromString("3b04d2a2-36b9-449a-9c0a-7dd1a0ea7d78"));
   }
 
   @Test
@@ -3233,8 +3170,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.integerList).containsExactly(null, 87);
-    assertThat(bean.uuidList)
-        .containsExactly(null, UUID.fromString("3b04d2a2-36b9-449a-9c0a-7dd1a0ea7d78"));
+    assertThat(bean.uuidList).containsExactly(null, UUID.fromString("3b04d2a2-36b9-449a-9c0a-7dd1a0ea7d78"));
   }
 
   @Test
@@ -3251,8 +3187,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getIntegerList()).containsExactly(null, 88);
-    assertThat(bean.getUuidList())
-        .containsExactly(null, UUID.fromString("4438e915-dd1a-4c7e-b459-f9e09ceee826"));
+    assertThat(bean.getUuidList()).containsExactly(null, UUID.fromString("4438e915-dd1a-4c7e-b459-f9e09ceee826"));
   }
 
   @Test
@@ -3269,8 +3204,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.integerList).containsExactly(null, 88);
-    assertThat(bean.uuidList)
-        .containsExactly(null, UUID.fromString("4438e915-dd1a-4c7e-b459-f9e09ceee826"));
+    assertThat(bean.uuidList).containsExactly(null, UUID.fromString("4438e915-dd1a-4c7e-b459-f9e09ceee826"));
   }
 
   @Test
@@ -3287,8 +3221,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getIntegerList()).containsExactly(null, 89);
-    assertThat(bean.getUuidList())
-        .containsExactly(null, UUID.fromString("d8c2e2e6-cd2a-436d-9abb-bb9809e5661f"));
+    assertThat(bean.getUuidList()).containsExactly(null, UUID.fromString("d8c2e2e6-cd2a-436d-9abb-bb9809e5661f"));
   }
 
   @Test
@@ -3305,8 +3238,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.integerList).containsExactly(null, 89);
-    assertThat(bean.uuidList)
-        .containsExactly(null, UUID.fromString("d8c2e2e6-cd2a-436d-9abb-bb9809e5661f"));
+    assertThat(bean.uuidList).containsExactly(null, UUID.fromString("d8c2e2e6-cd2a-436d-9abb-bb9809e5661f"));
   }
 
   @Test
@@ -3323,8 +3255,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getIntegerList()).containsExactly(null, 90);
-    assertThat(bean.getUuidList())
-        .containsExactly(null, UUID.fromString("b7892e0b-20ed-4829-b030-f44c9db8d1f7"));
+    assertThat(bean.getUuidList()).containsExactly(null, UUID.fromString("b7892e0b-20ed-4829-b030-f44c9db8d1f7"));
   }
 
   @Test
@@ -3341,8 +3272,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.integerList).containsExactly(null, 90);
-    assertThat(bean.uuidList)
-        .containsExactly(null, UUID.fromString("b7892e0b-20ed-4829-b030-f44c9db8d1f7"));
+    assertThat(bean.uuidList).containsExactly(null, UUID.fromString("b7892e0b-20ed-4829-b030-f44c9db8d1f7"));
   }
 
   @Test
@@ -3473,12 +3403,9 @@ public class DefaultFormBindingTest extends WithApplication {
 
   private static void assertMapValuesFromIndexedData(FormData bean) {
     assertThat(bean.getStringIntegerMap()).containsEntry("red", 91).containsEntry("green", 92);
-    assertThat(bean.getSortedStringIntegerMap())
-        .containsExactly(Map.entry("green", 94), Map.entry("red", 93));
-    assertThat(bean.getStringIntegerTreeMap())
-        .containsExactly(Map.entry("green", 96), Map.entry("red", 95));
-    assertThat(bean.getStringIntegerLinkedHashMap())
-        .containsExactly(Map.entry("red", 97), Map.entry("green", 98));
+    assertThat(bean.getSortedStringIntegerMap()).containsExactly(Map.entry("green", 94), Map.entry("red", 93));
+    assertThat(bean.getStringIntegerTreeMap()).containsExactly(Map.entry("green", 96), Map.entry("red", 95));
+    assertThat(bean.getStringIntegerLinkedHashMap()).containsExactly(Map.entry("red", 97), Map.entry("green", 98));
     assertThat(bean.getUuidIntegerMap())
         .containsEntry(UUID.fromString("637a3d4e-3f92-4636-aa06-e923168c4c69"), 101)
         .containsEntry(UUID.fromString("669033af-e0d4-4fc9-80f9-8d4bfa73ddc8"), 102);
@@ -3624,9 +3551,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.getStringIntegerMap()).containsEntry("red", 111).containsEntry("green", 112);
-    assertThat(bean.getStringIntegerLinkedHashMap())
-        .containsEntry("red", 113)
-        .containsEntry("green", 114);
+    assertThat(bean.getStringIntegerLinkedHashMap()).containsEntry("red", 113).containsEntry("green", 114);
   }
 
   @Test
@@ -3643,9 +3568,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
     assertThat(bean.stringIntegerMap).containsEntry("red", 111).containsEntry("green", 112);
-    assertThat(bean.stringIntegerLinkedHashMap)
-        .containsEntry("red", 113)
-        .containsEntry("green", 114);
+    assertThat(bean.stringIntegerLinkedHashMap).containsEntry("red", 113).containsEntry("green", 114);
   }
 
   @Test
@@ -3692,9 +3615,7 @@ public class DefaultFormBindingTest extends WithApplication {
     Form<FormData> form = bind(formFactory, data);
 
     assertThat(form.errors()).isEmpty();
-    assertThat(form.get().getStringStringMap())
-        .containsEntry(" red ", " blue ")
-        .containsEntry(" green ", " yellow ");
+    assertThat(form.get().getStringStringMap()).containsEntry(" red ", " blue ").containsEntry(" green ", " yellow ");
   }
 
   @Test
@@ -3707,9 +3628,7 @@ public class DefaultFormBindingTest extends WithApplication {
     Form<FormData> form = bindDirect(formFactory, data);
 
     assertThat(form.errors()).isEmpty();
-    assertThat(form.get().stringStringMap)
-        .containsEntry(" red ", " blue ")
-        .containsEntry(" green ", " yellow ");
+    assertThat(form.get().stringStringMap).containsEntry(" red ", " blue ").containsEntry(" green ", " yellow ");
   }
 
   @Test
@@ -3955,18 +3874,12 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.errors()).isEmpty();
     IndexedFormData bean = form.get();
-    assertThat(bean.getArray()[0].getNested().getArray()[0].getName())
-        .isEqualTo("nested-array-zero");
-    assertThat(bean.getArray()[1].getNested().getArray()[1].getName())
-        .isEqualTo("nested-array-one");
-    assertThat(bean.getList().get(0).getNested().getList().get(0).getName())
-        .isEqualTo("nested-list-zero");
-    assertThat(bean.getList().get(1).getNested().getList().get(1).getName())
-        .isEqualTo("nested-list-one");
-    assertThat(bean.getMap().get("key1").getNested().getMap().get("key1").getName())
-        .isEqualTo("nested-map-one");
-    assertThat(bean.getMap().get("key2").getNested().getMap().get("key2").getName())
-        .isEqualTo("nested-map-two");
+    assertThat(bean.getArray()[0].getNested().getArray()[0].getName()).isEqualTo("nested-array-zero");
+    assertThat(bean.getArray()[1].getNested().getArray()[1].getName()).isEqualTo("nested-array-one");
+    assertThat(bean.getList().get(0).getNested().getList().get(0).getName()).isEqualTo("nested-list-zero");
+    assertThat(bean.getList().get(1).getNested().getList().get(1).getName()).isEqualTo("nested-list-one");
+    assertThat(bean.getMap().get("key1").getNested().getMap().get("key1").getName()).isEqualTo("nested-map-one");
+    assertThat(bean.getMap().get("key2").getNested().getMap().get("key2").getName()).isEqualTo("nested-map-two");
   }
 
   @Test
@@ -4037,9 +3950,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("indexed.array[256].name", "too-far");
 
     Form<IndexedFormData> form =
-        formFactory
-            .form("indexed", IndexedFormData.class)
-            .bind(Lang.defaultLang(), TypedMap.empty(), data);
+        formFactory.form("indexed", IndexedFormData.class).bind(Lang.defaultLang(), TypedMap.empty(), data);
 
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors("indexed.list[256]")).hasSize(1);
@@ -4101,13 +4012,11 @@ public class DefaultFormBindingTest extends WithApplication {
 
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors("list[256]")).hasSize(1);
-    assertThat(form.discardingErrors().get().getMap().get("key1").getName())
-        .isEqualTo("still-bound");
+    assertThat(form.discardingErrors().get().getMap().get("key1").getName()).isEqualTo("still-bound");
   }
 
   @Test
-  public void
-      shouldContinueDirectFieldBindingAfterIndexedBindingBeyondDefaultAutoGrowCollectionLimit() {
+  public void shouldContinueDirectFieldBindingAfterIndexedBindingBeyondDefaultAutoGrowCollectionLimit() {
     FormFactory formFactory = instanceOf(FormFactory.class);
     Map<String, String> data = new HashMap<>();
     data.put("list[256].name", "too-far");
@@ -4122,8 +4031,7 @@ public class DefaultFormBindingTest extends WithApplication {
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors("list[256]")).hasSize(1);
     assertThat(form.discardingErrors().get().map.get("key1").name).isEqualTo("still-bound");
-    assertThat(form.discardingErrors().get().getMap().get("key1").getName())
-        .isEqualTo("still-bound");
+    assertThat(form.discardingErrors().get().getMap().get("key1").getName()).isEqualTo("still-bound");
   }
 
   @Test
@@ -4180,10 +4088,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("stringValue", "still-bound");
 
     Form<FormData> form =
-        formFactory
-            .form(FormData.class)
-            .withDirectFieldAccess(true)
-            .bind(Lang.defaultLang(), TypedMap.empty(), data);
+        formFactory.form(FormData.class).withDirectFieldAccess(true).bind(Lang.defaultLang(), TypedMap.empty(), data);
 
     assertThat(form.hasErrors()).isTrue();
     assertInvalidError(form, "integerValue");
@@ -4198,9 +4103,7 @@ public class DefaultFormBindingTest extends WithApplication {
     data.put("integerValue", "123");
 
     Form<FormData> form =
-        formFactory
-            .form(FormData.class)
-            .bind(Lang.defaultLang(), TypedMap.empty(), data, "stringValue");
+        formFactory.form(FormData.class).bind(Lang.defaultLang(), TypedMap.empty(), data, "stringValue");
 
     assertThat(form.errors()).isEmpty();
     FormData bean = form.get();
@@ -4287,9 +4190,7 @@ public class DefaultFormBindingTest extends WithApplication {
     files.put("upload", upload);
 
     Form<FileBindingFormData> form =
-        formFactory
-            .form(FileBindingFormData.class)
-            .bind(Lang.defaultLang(), TypedMap.empty(), data, files);
+        formFactory.form(FileBindingFormData.class).bind(Lang.defaultLang(), TypedMap.empty(), data, files);
 
     assertThat(form.hasErrors()).isTrue();
     assertThat(form.errors("list[256]")).hasSize(1);
@@ -4313,8 +4214,7 @@ public class DefaultFormBindingTest extends WithApplication {
       return unsupportedCollection;
     }
 
-    public void setUnsupportedCollection(
-        NoDefaultConstructorCollection<String> unsupportedCollection) {
+    public void setUnsupportedCollection(NoDefaultConstructorCollection<String> unsupportedCollection) {
       this.unsupportedCollection = unsupportedCollection;
     }
 
@@ -4338,8 +4238,7 @@ public class DefaultFormBindingTest extends WithApplication {
       return throwingConstructorCollection;
     }
 
-    public void setThrowingConstructorCollection(
-        ThrowingConstructorCollection<String> throwingConstructorCollection) {
+    public void setThrowingConstructorCollection(ThrowingConstructorCollection<String> throwingConstructorCollection) {
       this.throwingConstructorCollection = throwingConstructorCollection;
     }
 
@@ -4379,8 +4278,7 @@ public class DefaultFormBindingTest extends WithApplication {
       return throwingConstructorMap;
     }
 
-    public void setThrowingConstructorMap(
-        ThrowingConstructorMap<String, String> throwingConstructorMap) {
+    public void setThrowingConstructorMap(ThrowingConstructorMap<String, String> throwingConstructorMap) {
       this.throwingConstructorMap = throwingConstructorMap;
     }
 
@@ -5430,8 +5328,7 @@ public class DefaultFormBindingTest extends WithApplication {
       return stringIntegerLinkedHashMap;
     }
 
-    public void setStringIntegerLinkedHashMap(
-        LinkedHashMap<String, Integer> stringIntegerLinkedHashMap) {
+    public void setStringIntegerLinkedHashMap(LinkedHashMap<String, Integer> stringIntegerLinkedHashMap) {
       this.stringIntegerLinkedHashMap = stringIntegerLinkedHashMap;
     }
 

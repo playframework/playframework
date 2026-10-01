@@ -16,12 +16,8 @@ public class TestServerTest {
     final TestServer testServer = Helpers.testServer(testServerPort);
     testServer.start();
     assertTrue("No value for http port", testServer.getRunningHttpPort().isPresent());
-    assertFalse(
-        "https port value is present, but was not set",
-        testServer.getRunningHttpsPort().isPresent());
-    assertTrue(
-        "The os provided http port is not greater than 0",
-        testServer.getRunningHttpPort().getAsInt() > 0);
+    assertFalse("https port value is present, but was not set", testServer.getRunningHttpsPort().isPresent());
+    assertTrue("The os provided http port is not greater than 0", testServer.getRunningHttpPort().getAsInt() > 0);
     testServer.stop();
   }
 
@@ -32,13 +28,9 @@ public class TestServerTest {
     final TestServer testServer = Helpers.testServer(port, httpsPort);
     testServer.start();
     assertTrue("No value for https port", testServer.getRunningHttpsPort().isPresent());
-    assertTrue(
-        "The os provided https port is not greater than 0",
-        testServer.getRunningHttpsPort().getAsInt() > 0);
+    assertTrue("The os provided https port is not greater than 0", testServer.getRunningHttpsPort().getAsInt() > 0);
     assertTrue("No value for http port", testServer.getRunningHttpPort().isPresent());
-    assertTrue(
-        "The os provided http port is not greater than 0",
-        testServer.getRunningHttpPort().getAsInt() > 0);
+    assertTrue("The os provided http port is not greater than 0", testServer.getRunningHttpPort().getAsInt() > 0);
     testServer.stop();
   }
 }

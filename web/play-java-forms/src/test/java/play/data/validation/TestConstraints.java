@@ -71,9 +71,7 @@ public class TestConstraints {
         return true;
       }
 
-      return Pattern.compile(this.messagesApi.get(payload.getLang(), this.msgKey))
-          .matcher(object)
-          .matches();
+      return Pattern.compile(this.messagesApi.get(payload.getLang(), this.msgKey)).matcher(object).matches();
     }
 
     @Override
@@ -130,8 +128,7 @@ public class TestConstraints {
         return true;
       }
 
-      return Pattern.compile(
-              this.messagesApi.get(new Lang(LocaleContextHolder.getLocale()), this.msgKey))
+      return Pattern.compile(this.messagesApi.get(new Lang(LocaleContextHolder.getLocale()), this.msgKey))
           .matcher(object)
           .matches();
     }

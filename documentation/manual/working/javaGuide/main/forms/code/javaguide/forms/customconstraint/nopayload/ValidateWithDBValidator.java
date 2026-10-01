@@ -10,8 +10,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import play.data.validation.Constraints.PlayConstraintValidator;
 import play.db.Database;
 
-public class ValidateWithDBValidator
-    implements PlayConstraintValidator<ValidateWithDB, ValidatableWithDB<?>> {
+public class ValidateWithDBValidator implements PlayConstraintValidator<ValidateWithDB, ValidatableWithDB<?>> {
 
   private final Database db;
 
@@ -25,8 +24,7 @@ public class ValidateWithDBValidator
 
   @Override
   public boolean isValid(
-      final ValidatableWithDB<?> value,
-      final ConstraintValidatorContext constraintValidatorContext) {
+      final ValidatableWithDB<?> value, final ConstraintValidatorContext constraintValidatorContext) {
     return reportValidationStatus(value.validate(this.db), constraintValidatorContext);
   }
 }

@@ -12,8 +12,7 @@ import scala.concurrent.ExecutionContextExecutor;
 /**
  * Provides a custom execution context from an Pekko dispatcher.
  *
- * <p>Subclass this to create your own custom execution context, using the full path to the Pekko
- * dispatcher.
+ * <p>Subclass this to create your own custom execution context, using the full path to the Pekko dispatcher.
  *
  * <pre>{@code
  * class MyCustomExecutionContext extends CustomExecutionContext {
@@ -24,8 +23,8 @@ import scala.concurrent.ExecutionContextExecutor;
  * }
  * }</pre>
  *
- * Then use your custom execution context where you have blocking operations that require processing
- * outside of Play's main rendering thread.
+ * Then use your custom execution context where you have blocking operations that require processing outside of Play's
+ * main rendering thread.
  *
  * @see <a href="https://pekko.apache.org/docs/pekko/2.0/dispatchers.html">Dispatchers</a>
  * @see <a href="https://www.playframework.com/documentation/latest/ThreadPools">Thread Pools</a>
@@ -56,8 +55,8 @@ public abstract class CustomExecutionContext implements ExecutionContextExecutor
   /**
    * Get this executor associated with the current ClassLoader.
    *
-   * <p>Note that the returned executor is only valid for the current ClassLoader. It should be used
-   * in a transient fashion, long lived references to it should not be kept.
+   * <p>Note that the returned executor is only valid for the current ClassLoader. It should be used in a transient
+   * fashion, long lived references to it should not be kept.
    *
    * @return This executor that will execute its tasks with the current ClassLoader.
    */

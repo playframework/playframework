@@ -14,8 +14,8 @@ public interface ActionCreator {
   /**
    * Call to create the root Action for a Java controller method call.
    *
-   * <p>The request and actionMethod values are passed for information. Implementations of this
-   * method should create an instance of Action that invokes the injected action delegate.
+   * <p>The request and actionMethod values are passed for information. Implementations of this method should create an
+   * instance of Action that invokes the injected action delegate.
    *
    * @param request The HTTP Request
    * @param actionMethod The action method containing the user code for this Action.

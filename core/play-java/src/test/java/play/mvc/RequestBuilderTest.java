@@ -109,8 +109,7 @@ public class RequestBuilderTest {
       assertEquals(authority.render(), authority.toString());
     }
 
-    Http.AuthorityPort huge =
-        new Http.AuthorityPort(new BigInteger("123456789012345678901234567890"));
+    Http.AuthorityPort huge = new Http.AuthorityPort(new BigInteger("123456789012345678901234567890"));
     assertEquals(Optional.of(0), new Http.AuthorityPort(BigInteger.ZERO).tcpPort());
     assertEquals(Optional.of(65535), new Http.AuthorityPort(BigInteger.valueOf(65535)).tcpPort());
     assertEquals(Optional.empty(), new Http.AuthorityPort(BigInteger.valueOf(65536)).tcpPort());
@@ -118,17 +117,14 @@ public class RequestBuilderTest {
     assertEquals(huge, huge.asScala().asJava());
     assertEquals("example.com:" + huge.render(), registered.withPort(Optional.of(huge)).render());
 
-    for (String invalid :
-        List.of("[fe80::1%1]", "[fe80::1%eth0]", "[fe80::1%25eth0]", "１２７.０.０.１", "١٢٧.٠.٠.١")) {
-      assertThatThrownBy(() -> Http.RequestAuthority.parse(invalid))
-          .isInstanceOf(IllegalArgumentException.class);
+    for (String invalid : List.of("[fe80::1%1]", "[fe80::1%eth0]", "[fe80::1%25eth0]", "１２７.０.０.１", "١٢٧.٠.٠.١")) {
+      assertThatThrownBy(() -> Http.RequestAuthority.parse(invalid)).isInstanceOf(IllegalArgumentException.class);
     }
 
     Inet6Address unscoped = (Inet6Address) InetAddresses.forString("fe80::1");
     for (int scope : List.of(0, 1)) {
       Inet6Address scoped = Inet6Address.getByAddress(null, unscoped.getAddress(), scope);
-      assertThatThrownBy(() -> new Http.AuthorityHost.IPv6(scoped))
-          .isInstanceOf(IllegalArgumentException.class);
+      assertThatThrownBy(() -> new Http.AuthorityHost.IPv6(scoped)).isInstanceOf(IllegalArgumentException.class);
     }
   }
 
@@ -137,10 +133,7 @@ public class RequestBuilderTest {
     Http.Scheme scheme = new Http.Scheme("Git+SSH");
     Http.RequestAuthority authority = Http.RequestAuthority.parse("PUBLIC.example:08443");
     RequestBuilder builder =
-        new RequestBuilder()
-            .scheme(scheme)
-            .authority(authority)
-            .uri("https://internal.example:9443/original?x=1");
+        new RequestBuilder().scheme(scheme).authority(authority).uri("https://internal.example:9443/original?x=1");
 
     assertEquals("https://internal.example:9443/original?x=1", builder.uri());
     assertEquals(scheme, builder.scheme());
@@ -159,8 +152,7 @@ public class RequestBuilderTest {
   @Test
   public void testRemoteInfoValueTypes() {
     Http.RemoteNode.Ip ip =
-        new Http.RemoteNode.Ip(
-            InetAddresses.forString("192.0.2.43"), Optional.of(new Http.NodePort.Numeric(53124)));
+        new Http.RemoteNode.Ip(InetAddresses.forString("192.0.2.43"), Optional.of(new Http.NodePort.Numeric(53124)));
     Http.RemoteNode.Obfuscated by = new Http.RemoteNode.Obfuscated("_edge", Optional.empty());
     Http.RemoteInfo remote = new Http.RemoteInfo(ip, Optional.of(by));
 
@@ -175,8 +167,7 @@ public class RequestBuilderTest {
 
     Http.RemoteInfo obfuscated =
         new Http.RemoteInfo(
-            new Http.RemoteNode.Obfuscated(
-                "_client", Optional.of(new Http.NodePort.Obfuscated("_port"))),
+            new Http.RemoteNode.Obfuscated("_client", Optional.of(new Http.NodePort.Obfuscated("_port"))),
             Optional.empty());
     assertEquals("_client", obfuscated.identity());
     assertEquals(Optional.empty(), obfuscated.ipAddress());
@@ -184,17 +175,14 @@ public class RequestBuilderTest {
     assertEquals(Optional.empty(), obfuscated.port());
     assertEquals(obfuscated, obfuscated.asScala().asJava());
 
-    Http.RemoteInfo unknown =
-        new Http.RemoteInfo(new Http.RemoteNode.Unknown(Optional.empty()), Optional.empty());
+    Http.RemoteInfo unknown = new Http.RemoteInfo(new Http.RemoteNode.Unknown(Optional.empty()), Optional.empty());
     assertEquals("unknown", unknown.identity());
     assertEquals(Optional.empty(), unknown.ipAddress());
     assertEquals(Optional.empty(), unknown.port());
     assertEquals(unknown, unknown.asScala().asJava());
 
-    assertThatThrownBy(() -> new Http.RemoteInfo(null, Optional.empty()))
-        .isInstanceOf(NullPointerException.class);
-    assertThatThrownBy(() -> new Http.RemoteInfo(ip, null))
-        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.RemoteInfo(null, Optional.empty())).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.RemoteInfo(ip, null)).isInstanceOf(NullPointerException.class);
     assertThatThrownBy(() -> new Http.RemoteNode.Obfuscated("not-obfuscated", Optional.empty()))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -210,10 +198,8 @@ public class RequestBuilderTest {
             new Http.RemoteNode.Ip(InetAddresses.forString("192.0.2.10"), Optional.empty()),
             Optional.of(new Http.RemoteNode.Obfuscated("_internal", Optional.empty())));
     List<Http.RemoteEndpoint> mutableVia = new java.util.ArrayList<>(List.of(proxy));
-    Http.ForwardingInfo forwarding =
-        new Http.ForwardingInfo(Http.ForwardingSource.RFC_7239, mutableVia);
-    Http.RemoteInfo remote =
-        new Http.RemoteInfo(selected.node(), selected.byNode(), Optional.of(forwarding));
+    Http.ForwardingInfo forwarding = new Http.ForwardingInfo(Http.ForwardingSource.RFC_7239, mutableVia);
+    Http.RemoteInfo remote = new Http.RemoteInfo(selected.node(), selected.byNode(), Optional.of(forwarding));
 
     mutableVia.clear();
 
@@ -228,12 +214,9 @@ public class RequestBuilderTest {
                     .forwarding()
                     .orElseThrow()
                     .via()
-                    .add(
-                        new Http.RemoteEndpoint(
-                            new Http.RemoteNode.Unknown(Optional.empty()), Optional.empty())))
+                    .add(new Http.RemoteEndpoint(new Http.RemoteNode.Unknown(Optional.empty()), Optional.empty())))
         .isInstanceOf(UnsupportedOperationException.class);
-    assertThatThrownBy(() -> new Http.ForwardingInfo(null, List.of()))
-        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.ForwardingInfo(null, List.of())).isInstanceOf(NullPointerException.class);
     assertThatThrownBy(() -> new Http.ForwardingInfo(Http.ForwardingSource.X_FORWARDED, null))
         .isInstanceOf(NullPointerException.class);
     assertThatThrownBy(() -> new Http.RemoteInfo(selected.node(), selected.byNode(), null))
@@ -246,23 +229,18 @@ public class RequestBuilderTest {
     assertEquals(65535, new Http.NodePort.Numeric(65535).value());
     assertEquals("_Edge.1_test-port", new Http.NodePort.Obfuscated("_Edge.1_test-port").value());
 
-    assertThatThrownBy(() -> new Http.NodePort.Numeric(-1))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> new Http.NodePort.Numeric(65536))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> new Http.NodePort.Obfuscated(null))
-        .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> new Http.NodePort.Numeric(-1)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> new Http.NodePort.Numeric(65536)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> new Http.NodePort.Obfuscated(null)).isInstanceOf(NullPointerException.class);
     for (String value : List.of("", "_", "port", "_bad value", "_bad!")) {
-      assertThatThrownBy(() -> new Http.NodePort.Obfuscated(value))
-          .isInstanceOf(IllegalArgumentException.class);
+      assertThatThrownBy(() -> new Http.NodePort.Obfuscated(value)).isInstanceOf(IllegalArgumentException.class);
     }
   }
 
   @Test
   public void testRemoteAndTransportAreIndependentBuilderState() {
     Http.RemoteInfo remote =
-        new Http.RemoteInfo(
-            new Http.RemoteNode.Obfuscated("_client", Optional.empty()), Optional.empty());
+        new Http.RemoteInfo(new Http.RemoteNode.Obfuscated("_client", Optional.empty()), Optional.empty());
     Http.TransportConnection transport =
         new Http.TransportConnection(
             new Http.PeerEndpoint(InetAddresses.forString("192.0.2.10"), Optional.of(53124)),
@@ -282,8 +260,7 @@ public class RequestBuilderTest {
     X509Certificate leaf = mock(X509Certificate.class);
     X509Certificate intermediate = mock(X509Certificate.class);
     Http.ClientCertificateInfo certificate =
-        new Http.ClientCertificateInfo(
-            leaf, List.of(intermediate), Http.ClientCertificateSource.RFC_9440);
+        new Http.ClientCertificateInfo(leaf, List.of(intermediate), Http.ClientCertificateSource.RFC_9440);
 
     RequestBuilder builder = new RequestBuilder().clientCertificate(certificate);
     Request request = builder.build();
@@ -325,20 +302,14 @@ public class RequestBuilderTest {
     assertEquals(List.of(client, proxy), request.xForwardedClientCertificates());
     assertEquals(2, request.asScala().xForwardedClientCertificates().size());
     assertEquals(client, request.asScala().xForwardedClientCertificates().apply(0).asJava());
-    assertThrows(
-        UnsupportedOperationException.class,
-        () -> request.xForwardedClientCertificates().add(client));
+    assertThrows(UnsupportedOperationException.class, () -> request.xForwardedClientCertificates().add(client));
   }
 
   @Test
   public void testPathPreservesRawTargetAuthority() {
     RequestBuilder oversizedPort =
-        new RequestBuilder()
-            .uri("https://example.com:123456789012345678901234567890/old?x=1")
-            .path("/changed path");
-    assertEquals(
-        "https://example.com:123456789012345678901234567890/changed%20path?x=1",
-        oversizedPort.uri());
+        new RequestBuilder().uri("https://example.com:123456789012345678901234567890/old?x=1").path("/changed path");
+    assertEquals("https://example.com:123456789012345678901234567890/changed%20path?x=1", oversizedPort.uri());
 
     RawTargetRequestBuilder ipvFuture =
         new RawTargetRequestBuilder()
@@ -352,15 +323,11 @@ public class RequestBuilderTest {
   public void testAuthorityIsTheCanonicalHostState() {
     RequestBuilder builder = new RequestBuilder().host("EXAMPLE.com:00080");
     Http.Headers withoutHost = new Http.Headers(Map.of("X-Test", Collections.singletonList("one")));
-    Http.Headers replacementHost =
-        new Http.Headers(Map.of("host", Collections.singletonList("OTHER.example:00081")));
+    Http.Headers replacementHost = new Http.Headers(Map.of("host", Collections.singletonList("OTHER.example:00081")));
     Http.Headers duplicateHost =
-        new Http.Headers(
-            Map.of(Http.HeaderNames.HOST, List.of("example.com:80", "example.com:80")));
-    Http.Headers emptyHost =
-        new Http.Headers(Map.of(Http.HeaderNames.HOST, Collections.emptyList()));
-    Http.Headers invalidHost =
-        new Http.Headers(Map.of(Http.HeaderNames.HOST, Collections.singletonList("[invalid")));
+        new Http.Headers(Map.of(Http.HeaderNames.HOST, List.of("example.com:80", "example.com:80")));
+    Http.Headers emptyHost = new Http.Headers(Map.of(Http.HeaderNames.HOST, Collections.emptyList()));
+    Http.Headers invalidHost = new Http.Headers(Map.of(Http.HeaderNames.HOST, Collections.singletonList("[invalid")));
 
     assertEquals("example.com:80", builder.host());
     assertEquals(Optional.of(Http.RequestAuthority.parse("example.com:80")), builder.authority());
@@ -386,12 +353,9 @@ public class RequestBuilderTest {
     assertThatThrownBy(() -> builder.headers(emptyHost))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("exactly one Host");
-    assertThatThrownBy(() -> builder.headers(invalidHost))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> builder.header("host", "[invalid"))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(
-            () -> builder.header(Http.HeaderNames.HOST, List.of("one.example", "two.example")))
+    assertThatThrownBy(() -> builder.headers(invalidHost)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> builder.header("host", "[invalid")).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> builder.header(Http.HeaderNames.HOST, List.of("one.example", "two.example")))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("exactly one Host");
     assertEquals("[2001:db8::1]:443", builder.host());
@@ -402,8 +366,7 @@ public class RequestBuilderTest {
     assertEquals(Optional.empty(), builder.headers().get(Http.HeaderNames.HOST));
 
     builder.header("Host", "RESTORED.example:00083");
-    assertEquals(
-        Optional.of(Http.RequestAuthority.parse("restored.example:83")), builder.authority());
+    assertEquals(Optional.of(Http.RequestAuthority.parse("restored.example:83")), builder.authority());
     assertEquals(Optional.of("restored.example:83"), builder.headers().get(Http.HeaderNames.HOST));
 
     builder.authority(Http.RequestAuthority.parse("NEW.example"));
@@ -569,8 +532,7 @@ public class RequestBuilderTest {
   @Test
   public void testClearRequestBuilderTransientLang() {
     Lang lang = new Lang(Locale.GERMAN);
-    RequestBuilder builder =
-        new RequestBuilder().uri("http://www.playframework.com/").transientLang(lang);
+    RequestBuilder builder = new RequestBuilder().uri("http://www.playframework.com/").transientLang(lang);
 
     assertTrue(builder.build().transientLang().isPresent());
     assertEquals(Optional.of(lang), builder.transientLang());
@@ -597,8 +559,7 @@ public class RequestBuilderTest {
     Request request = builder.langCookie(lang, Helpers.stubMessagesApi()).build();
 
     assertEquals(
-        Optional.of(lang.code()),
-        request.cookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
+        Optional.of(lang.code()), request.cookie(Helpers.stubMessagesApi().langCookieName()).map(Http.Cookie::value));
     assertFalse(request.transientLang().isPresent());
     assertFalse(request.attrs().getOptional(Messages.Attrs.CurrentLang).isPresent());
   }
@@ -619,16 +580,14 @@ public class RequestBuilderTest {
 
   @Test
   public void testFlash() {
-    final Request req =
-        new RequestBuilder().flash("a", "1").flash("b", "1").flash("b", "2").build();
+    final Request req = new RequestBuilder().flash("a", "1").flash("b", "1").flash("b", "2").build();
     assertEquals(Optional.of("1"), req.flash().get("a"));
     assertEquals(Optional.of("2"), req.flash().get("b"));
   }
 
   @Test
   public void testSession() {
-    final Request req =
-        new RequestBuilder().session("a", "1").session("b", "1").session("b", "2").build();
+    final Request req = new RequestBuilder().session("a", "1").session("b", "1").session("b", "2").build();
     assertEquals(Optional.of("1"), req.session().get("a"));
     assertEquals(Optional.of("2"), req.session().get("b"));
   }
@@ -638,11 +597,7 @@ public class RequestBuilderTest {
     final Request req1 = new RequestBuilder().uri("http://playframework.com/").build();
     final Request req2 = req1.addAttr(Security.USERNAME, "user2");
     final Request req3 = req1.addAttr(Security.USERNAME, "user3");
-    final Request req4 =
-        new RequestBuilder()
-            .uri("http://playframework.com/")
-            .attr(Security.USERNAME, "user4")
-            .build();
+    final Request req4 = new RequestBuilder().uri("http://playframework.com/").attr(Security.USERNAME, "user4").build();
 
     assertFalse(req1.attrs().containsKey(Security.USERNAME));
 
@@ -658,15 +613,13 @@ public class RequestBuilderTest {
 
   @Test
   public void testGetQuery_doubleEncoding() {
-    final Optional<String> query =
-        new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
+    final Optional<String> query = new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
     assertEquals(Optional.of("x+y"), query);
   }
 
   @Test
   public void testQuery_doubleEncoding() {
-    final Optional<String> query =
-        new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
+    final Optional<String> query = new Http.RequestBuilder().uri("path?query=x%2By").build().queryString("query");
     assertEquals(Optional.of("x+y"), query);
   }
 
@@ -710,16 +663,14 @@ public class RequestBuilderTest {
 
   @Test
   public void testGetUri_badEncoding() {
-    final Request req =
-        new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
+    final Request req = new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
     assertEquals(Optional.of("hello=world"), req.queryString("one"));
     assertEquals(Optional.of("false"), req.queryString("two"));
   }
 
   @Test
   public void testUri_badEncoding() {
-    final Request req =
-        new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
+    final Request req = new Http.RequestBuilder().uri("/test.html?one=hello=world&two=false").build();
     assertEquals(Optional.of("hello=world"), req.queryString("one"));
     assertEquals(Optional.of("false"), req.queryString("two"));
   }
@@ -728,8 +679,7 @@ public class RequestBuilderTest {
   public void multipartForm() throws ExecutionException, InterruptedException {
     Application app = new GuiceApplicationBuilder().build();
     Play.start(app);
-    TemporaryFileCreator temporaryFileCreator =
-        app.injector().instanceOf(TemporaryFileCreator.class);
+    TemporaryFileCreator temporaryFileCreator = app.injector().instanceOf(TemporaryFileCreator.class);
     Http.MultipartFormData.DataPart dp = new Http.MultipartFormData.DataPart("hello", "world");
     final Request request =
         new RequestBuilder()
@@ -759,8 +709,7 @@ public class RequestBuilderTest {
     ByteString fileContents;
     try (InputStream stream =
         Objects.requireNonNull(
-            getClass().getResourceAsStream("/testassets/foo.txt"),
-            "Missing test resource /testassets/foo.txt")) {
+            getClass().getResourceAsStream("/testassets/foo.txt"), "Missing test resource /testassets/foo.txt")) {
       fileContents = ByteString.fromArray(stream.readAllBytes());
     }
     Http.MultipartFormData.Part<Source<ByteString, ?>> filePart =
@@ -771,11 +720,9 @@ public class RequestBuilderTest {
             Source.single(fileContents),
             fileContents.size());
 
-    Http.MultipartFormData.DataPart dataPart =
-        new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "value1");
+    Http.MultipartFormData.DataPart dataPart = new Http.MultipartFormData.DataPart("f\ni\re\"l\nd1", "value1");
 
-    TemporaryFileCreator temporaryFileCreator =
-        app.injector().instanceOf(TemporaryFileCreator.class);
+    TemporaryFileCreator temporaryFileCreator = app.injector().instanceOf(TemporaryFileCreator.class);
     final Request request =
         new RequestBuilder()
             .uri("http://playframework.com/")
@@ -787,8 +734,7 @@ public class RequestBuilderTest {
             .bodyRaw(List.of(dataPart, filePart), temporaryFileCreator, app.materializer())
             .build();
 
-    String body =
-        request.body().asBytes().utf8String(); // Let's get the text representation of the bytes
+    String body = request.body().asBytes().utf8String(); // Let's get the text representation of the bytes
     assertThat(body)
         .contains("Content-Disposition: form-data; name=\"f%0Ai%0De%22l%0Ad1\"")
         .contains(
@@ -809,14 +755,10 @@ public class RequestBuilderTest {
         new Http.MultipartFormData.FilePart<>(
             "f\"i\rl\nef\"ie\nld\r1", "f\rir\"s\ntf\ril\"e\n.txt", "text/plain", "abc", 3));
     fileParts.add(
-        new Http.MultipartFormData.FilePart<>(
-            "file_field_2", "secondfile.txt", "text/plain", "hello world", 11));
+        new Http.MultipartFormData.FilePart<>("file_field_2", "secondfile.txt", "text/plain", "hello world", 11));
 
     final Request request =
-        new RequestBuilder()
-            .uri("http://playframework.com/")
-            .bodyMultipart(dataParts, fileParts)
-            .build();
+        new RequestBuilder().uri("http://playframework.com/").bodyMultipart(dataParts, fileParts).build();
 
     assertNotNull(request.body().asMultipartFormData());
     assertEquals(dataParts, request.body().asMultipartFormData().asFormUrlEncoded());

@@ -48,9 +48,9 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
   /**
    * Configures the logger with the environment and the application configuration.
    *
-   * <p>This is what full applications will run, and the place to put extra properties, either
-   * through optionalProperties or by setting configuration properties and having
-   * "play.logger.includeConfigProperties=true" in the config.
+   * <p>This is what full applications will run, and the place to put extra properties, either through
+   * optionalProperties or by setting configuration properties and having "play.logger.includeConfigProperties=true" in
+   * the config.
    *
    * @param env the application environment
    * @param configuration the application's configuration
@@ -60,12 +60,11 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
   }
 
   /**
-   * Configures the logger with the environment, the application configuration and additional
-   * properties.
+   * Configures the logger with the environment, the application configuration and additional properties.
    *
-   * <p>This is what full applications will run, and the place to put extra properties, either
-   * through optionalProperties or by setting configuration properties and having
-   * "play.logger.includeConfigProperties=true" in the config.
+   * <p>This is what full applications will run, and the place to put extra properties, either through
+   * optionalProperties or by setting configuration properties and having "play.logger.includeConfigProperties=true" in
+   * the config.
    *
    * @param env the application environment
    * @param configuration the application's configuration
@@ -92,8 +91,7 @@ public interface LoggerConfigurator extends play.api.LoggerConfigurator {
   void configure(Map<String, String> properties, Optional<URL> config);
 
   @Override
-  default void configure(
-      scala.collection.immutable.Map<String, String> properties, Option<URL> config) {
+  default void configure(scala.collection.immutable.Map<String, String> properties, Option<URL> config) {
     configure(Scala.asJava(properties), OptionConverters.toJava(config));
   }
 

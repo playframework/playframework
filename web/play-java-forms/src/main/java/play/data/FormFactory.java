@@ -28,11 +28,7 @@ public class FormFactory {
 
   @Inject
   public FormFactory(
-      MessagesApi messagesApi,
-      Langs langs,
-      Formatters formatters,
-      ValidatorFactory validatorFactory,
-      Config config) {
+      MessagesApi messagesApi, Langs langs, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
     this.messagesApi = messagesApi;
     this.langs = langs;
     this.formatters = formatters;
@@ -74,8 +70,7 @@ public class FormFactory {
    * @return a new form that wraps the specified class.
    */
   public <T> Form<T> form(String name, Class<T> clazz, Class<?>... groups) {
-    return new Form<>(
-        name, clazz, groups, messagesApi, langs, formatters, validatorFactory, config);
+    return new Form<>(name, clazz, groups, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -85,7 +80,6 @@ public class FormFactory {
    * @return a new form that wraps the specified class.
    */
   public <T> Form<T> form(Class<T> clazz, Class<?>... groups) {
-    return new Form<>(
-        null, clazz, groups, messagesApi, langs, formatters, validatorFactory, config);
+    return new Form<>(null, clazz, groups, messagesApi, langs, formatters, validatorFactory, config);
   }
 }

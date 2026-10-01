@@ -38,11 +38,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
    * @param config the config component.
    */
   public DynamicForm(
-      MessagesApi messagesApi,
-      Langs langs,
-      Formatters formatters,
-      ValidatorFactory validatorFactory,
-      Config config) {
+      MessagesApi messagesApi, Langs langs, Formatters formatters, ValidatorFactory validatorFactory, Config config) {
     super(DynamicForm.Dynamic.class, messagesApi, langs, formatters, validatorFactory, config);
   }
 
@@ -66,16 +62,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    this(
-        data,
-        Collections.emptyMap(),
-        errors,
-        value,
-        messagesApi,
-        langs,
-        formatters,
-        validatorFactory,
-        config);
+    this(data, Collections.emptyMap(), errors, value, messagesApi, langs, formatters, validatorFactory, config);
   }
 
   /**
@@ -100,8 +87,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       Formatters formatters,
       ValidatorFactory validatorFactory,
       Config config) {
-    this(
-        data, files, errors, value, messagesApi, langs, formatters, validatorFactory, config, null);
+    this(data, files, errors, value, messagesApi, langs, formatters, validatorFactory, config, null);
   }
 
   /**
@@ -114,8 +100,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
    * @param formatters the formatters component.
    * @param validatorFactory the validatorFactory component.
    * @param config the config component.
-   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
-   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and
+   *     for translations in {@link #errorsAsJson()}
    */
   public DynamicForm(
       Map<String, String> data,
@@ -127,17 +113,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
       ValidatorFactory validatorFactory,
       Config config,
       Lang lang) {
-    this(
-        data,
-        Collections.emptyMap(),
-        errors,
-        value,
-        messagesApi,
-        langs,
-        formatters,
-        validatorFactory,
-        config,
-        lang);
+    this(data, Collections.emptyMap(), errors, value, messagesApi, langs, formatters, validatorFactory, config, lang);
   }
 
   /**
@@ -151,8 +127,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
    * @param formatters the formatters component.
    * @param validatorFactory the validatorFactory component.
    * @param config the config component.
-   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
-   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link #apply(String)}) and
+   *     for translations in {@link #errorsAsJson()}
    */
   public DynamicForm(
       Map<String, String> data,
@@ -182,10 +158,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   }
 
   /**
-   * Gets the concrete value only if the submission was a success. If the form is invalid because of
-   * validation errors or you try to access a file field this method will return null. If you want
-   * to retrieve the value even when the form is invalid use {@link #value(String)} instead. If you
-   * want to retrieve a file field use {@link #file(String)} instead.
+   * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors
+   * or you try to access a file field this method will return null. If you want to retrieve the value even when the
+   * form is invalid use {@link #value(String)} instead. If you want to retrieve a file field use {@link #file(String)}
+   * instead.
    *
    * @param key the string key.
    * @return the value, or null if there is no match.
@@ -199,10 +175,10 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   }
 
   /**
-   * Gets the concrete value only if the submission was a success. If the form is invalid because of
-   * validation errors or you try to access a non-file field this method will return null. If you
-   * want to retrieve the value even when the form is invalid use {@link #value(String)} instead. If
-   * you want to retrieve a non-file field use {@link #get(String)} instead.
+   * Gets the concrete value only if the submission was a success. If the form is invalid because of validation errors
+   * or you try to access a non-file field this method will return null. If you want to retrieve the value even when the
+   * form is invalid use {@link #value(String)} instead. If you want to retrieve a non-file field use {@link
+   * #get(String)} instead.
    *
    * @param key the string key.
    * @return the value, or null if there is no match.
@@ -236,8 +212,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   @Override
   public Map<String, Http.MultipartFormData.FilePart<?>> files() {
     return Collections.unmodifiableMap(
-        super.files().entrySet().stream()
-            .collect(Collectors.toMap(e -> asNormalKey(e.getKey()), Map.Entry::getValue)));
+        super.files().entrySet().stream().collect(Collectors.toMap(e -> asNormalKey(e.getKey()), Map.Entry::getValue)));
   }
 
   /**
@@ -294,22 +269,18 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   }
 
   @Override
-  public DynamicForm bind(
-      Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
+  public DynamicForm bind(Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
     return bind(
         lang,
         attrs,
         play.libs.Scala.asJava(
             play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
-                maxChars,
-                maxJsonDepth())),
+                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars, maxJsonDepth())),
         allowedFields);
   }
 
   @Override
-  public DynamicForm bind(
-      Lang lang, TypedMap attrs, Map<String, String> data, String... allowedFields) {
+  public DynamicForm bind(Lang lang, TypedMap attrs, Map<String, String> data, String... allowedFields) {
     return bind(lang, attrs, data, Collections.emptyMap(), allowedFields);
   }
 
@@ -324,10 +295,8 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
         super.bind(
             lang,
             attrs,
-            data.entrySet().stream()
-                .collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), Map.Entry::getValue)),
-            files.entrySet().stream()
-                .collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), Map.Entry::getValue)),
+            data.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), Map.Entry::getValue)),
+            files.entrySet().stream().collect(Collectors.toMap(e -> asDynamicKey(e.getKey()), Map.Entry::getValue)),
             allowedFields);
     return new DynamicForm(
         form.rawData(),
@@ -374,8 +343,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
   @Override
   public DynamicForm withError(final ValidationError error) {
     final Form<Dynamic> form =
-        super.withError(
-            new ValidationError(asDynamicKey(error.key()), error.messages(), error.arguments()));
+        super.withError(new ValidationError(asDynamicKey(error.key()), error.messages(), error.arguments()));
     return new DynamicForm(
         super.rawData(),
         super.files(),

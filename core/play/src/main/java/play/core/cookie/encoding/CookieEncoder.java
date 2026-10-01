@@ -31,14 +31,12 @@ abstract class CookieEncoder {
       int pos;
 
       if ((pos = firstInvalidCookieNameOctet(name)) >= 0) {
-        throw new IllegalArgumentException(
-            "Cookie (" + name + ") contains an invalid char: " + name.charAt(pos));
+        throw new IllegalArgumentException("Cookie (" + name + ") contains an invalid char: " + name.charAt(pos));
       }
 
       CharSequence unwrappedValue = unwrapValue(value);
       if (unwrappedValue == null) {
-        throw new IllegalArgumentException(
-            "Cookie (" + name + ") value wrapping quotes are not balanced: " + value);
+        throw new IllegalArgumentException("Cookie (" + name + ") value wrapping quotes are not balanced: " + value);
       }
 
       if ((pos = firstInvalidCookieValueOctet(unwrappedValue)) >= 0) {

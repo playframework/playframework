@@ -24,8 +24,7 @@ public class LoggingFilter extends Filter {
 
   @Override
   public CompletionStage<Result> apply(
-      Function<Http.RequestHeader, CompletionStage<Result>> nextFilter,
-      Http.RequestHeader requestHeader) {
+      Function<Http.RequestHeader, CompletionStage<Result>> nextFilter, Http.RequestHeader requestHeader) {
     long startTime = System.currentTimeMillis();
     return nextFilter
         .apply(requestHeader)

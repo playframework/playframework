@@ -28,8 +28,7 @@ public class JavaEhCache extends WithApplication {
 
   @Override
   protected Application provideApplication() {
-    return fakeApplication(
-        ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
+    return fakeApplication(ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
   }
 
   private class News {}
@@ -65,8 +64,7 @@ public class JavaEhCache extends WithApplication {
     // #get
     assertThat(block(news).get()).isEqualTo(frontPageNews);
     // #get-or-else
-    CompletionStage<News> maybeCached =
-        cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
+    CompletionStage<News> maybeCached = cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
     // #get-or-else
     assertThat(block(maybeCached)).isEqualTo(frontPageNews);
     {
@@ -105,15 +103,11 @@ public class JavaEhCache extends WithApplication {
   public void http() {
     AsyncCacheApi cache = app.injector().instanceOf(AsyncCacheApi.class);
 
-    assertThat(
-            contentAsString(
-                call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
+    assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
         .isEqualTo("Hello world");
     assertThat(cache.sync().get("homePage").get()).isNotNull();
     cache.set("homePage", Results.ok("something else"));
-    assertThat(
-            contentAsString(
-                call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
+    assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
         .isEqualTo("something else");
   }
 

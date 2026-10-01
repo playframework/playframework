@@ -9,8 +9,7 @@ import jakarta.inject.Inject;
 /**
  * This action is used to add a CSP header to the response through injection.
  *
- * <p>Normally you would use the annotation {@code @CSP} on your action rather than use this
- * directly.
+ * <p>Normally you would use the annotation {@code @CSP} on your action rather than use this directly.
  */
 public class CSPAction extends AbstractCSPAction {
 

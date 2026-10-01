@@ -25,8 +25,7 @@ public class HomeController extends Controller {
   }
 
   public WebSocket socket() {
-    return WebSocket.Text.accept(
-        request -> ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer));
+    return WebSocket.Text.accept(request -> ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer));
   }
 }
 // #content

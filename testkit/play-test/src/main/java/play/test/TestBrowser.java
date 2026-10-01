@@ -11,14 +11,12 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.FluentWait;
 
 /**
- * A test browser (Using Selenium WebDriver) with the FluentLenium API
- * (https://github.com/Fluentlenium/FluentLenium).
+ * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
  */
 public class TestBrowser extends FluentAdapter {
 
   /**
-   * A test browser (Using Selenium WebDriver) with the FluentLenium API
-   * (https://github.com/Fluentlenium/FluentLenium).
+   * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
    *
    * @param webDriver The WebDriver instance to use.
    * @param baseUrl The base url to use for relative requests.
@@ -29,8 +27,7 @@ public class TestBrowser extends FluentAdapter {
   }
 
   /**
-   * A test browser (Using Selenium WebDriver) with the FluentLenium API
-   * (https://github.com/Fluentlenium/FluentLenium).
+   * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
    *
    * @param webDriver The WebDriver instance to use.
    * @param baseUrl The base url to use for relative requests.
@@ -50,12 +47,10 @@ public class TestBrowser extends FluentAdapter {
   }
 
   /**
-   * Repeatedly applies this instance's input value to the given function until one of the following
-   * occurs: the function returns neither null nor false, the function throws an unignored
-   * exception, the timeout expires
+   * Repeatedly applies this instance's input value to the given function until one of the following occurs: the
+   * function returns neither null nor false, the function throws an unignored exception, the timeout expires
    *
-   * <p>Useful in situations where FluentAdapter#await is too specific (for example to check against
-   * page source)
+   * <p>Useful in situations where FluentAdapter#await is too specific (for example to check against page source)
    *
    * @param <T> the return type
    * @param wait generic {@code FluentWait<WebDriver>} instance
@@ -67,8 +62,7 @@ public class TestBrowser extends FluentAdapter {
   }
 
   /**
-   * Repeatedly applies this instance's input value to the given function until one of the following
-   * occurs:
+   * Repeatedly applies this instance's input value to the given function until one of the following occurs:
    *
    * <ul>
    *   <li>the function returns neither null nor false,
@@ -76,8 +70,7 @@ public class TestBrowser extends FluentAdapter {
    *   <li>the default timeout expires
    * </ul>
    *
-   * useful in situations where FluentAdapter#await is too specific (for example to check against
-   * page source or title)
+   * useful in situations where FluentAdapter#await is too specific (for example to check against page source or title)
    *
    * @param f function to execute
    * @param <T> the return type
@@ -89,8 +82,7 @@ public class TestBrowser extends FluentAdapter {
   }
 
   /**
-   * Retrieves the underlying option interface that can be used to set cookies, manage timeouts
-   * among other things.
+   * Retrieves the underlying option interface that can be used to set cookies, manage timeouts among other things.
    *
    * @return the web driver options.
    */

@@ -29,8 +29,7 @@ public class NamedCaffeineCacheSpec {
     Set<String> keys = new HashSet<>(Arrays.asList(key1, key2));
 
     CompletableFuture<Map<String, String>> futureResult =
-        cache.getAll(
-            keys, (missingKeys, executor) -> CompletableFuture.completedFuture(new HashMap<>()));
+        cache.getAll(keys, (missingKeys, executor) -> CompletableFuture.completedFuture(new HashMap<>()));
     Map<String, String> resultMap = futureResult.get(2, TimeUnit.SECONDS);
     Map<String, String> expectedMap = new HashMap<>();
     expectedMap.put(key1, value1);
@@ -51,8 +50,7 @@ public class NamedCaffeineCacheSpec {
     missingValuesMap.put(key2, value2);
 
     CompletableFuture<Map<String, String>> futureResult =
-        cache.getAll(
-            keys, (missingKeys, executor) -> CompletableFuture.completedFuture(missingValuesMap));
+        cache.getAll(keys, (missingKeys, executor) -> CompletableFuture.completedFuture(missingValuesMap));
     Map<String, String> resultMap = futureResult.get(2, TimeUnit.SECONDS);
     Map<String, String> expectedMap = new HashMap<>();
     expectedMap.put(key1, value1);
@@ -74,8 +72,7 @@ public class NamedCaffeineCacheSpec {
     missingValuesMap.put(key1, "value3"); // "value1" should not be replaced with "value3"
 
     CompletableFuture<Map<String, String>> futureResult =
-        cache.getAll(
-            keys, (missingKeys, executor) -> CompletableFuture.completedFuture(missingValuesMap));
+        cache.getAll(keys, (missingKeys, executor) -> CompletableFuture.completedFuture(missingValuesMap));
     Map<String, String> resultMap = futureResult.get(2, TimeUnit.SECONDS);
     Map<String, String> expectedMap = new HashMap<>();
     expectedMap.put(key1, value1);
@@ -85,8 +82,7 @@ public class NamedCaffeineCacheSpec {
   }
 
   @Test()
-  public void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally()
-      throws Exception {
+  public void getAll_shouldReturnFailedFutureIfMappingFunctionIsCompletedExceptionally() throws Exception {
     LoggerFactory.getLogger(NamedCaffeineCache.class);
     RuntimeException testException = new RuntimeException("test exception");
     CompletableFuture<Map<String, String>> future = new CompletableFuture<>();

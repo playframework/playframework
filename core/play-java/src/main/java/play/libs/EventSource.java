@@ -11,24 +11,21 @@ import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.util.ByteString;
 
 /**
- * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an
- * Pekko Source.
+ * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an Pekko Source.
  *
- * <p>Please see the <a
- * href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events
+ * <p>Please see the <a href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events
  * specification</a> for details.
  *
  * <p>Example implementation of EventSource in a Controller:
  *
- * <p>{{{ //import org.apache.pekko.stream.javadsl.Source; //import play.mvc.*; //import
- * play.libs.*; //import java.time.ZonedDateTime; //import java.time.format.*; //import
- * scala.concurrent.duration.Duration; //import static java.util.concurrent.TimeUnit.*; //import
- * static play.libs.EventSource.Event.event; //private final DateTimeFormatter df =
- * DateTimeFormatter.ofPattern("HH mm ss");
+ * <p>{{{ //import org.apache.pekko.stream.javadsl.Source; //import play.mvc.*; //import play.libs.*; //import
+ * java.time.ZonedDateTime; //import java.time.format.*; //import scala.concurrent.duration.Duration; //import static
+ * java.util.concurrent.TimeUnit.*; //import static play.libs.EventSource.Event.event; //private final DateTimeFormatter
+ * df = DateTimeFormatter.ofPattern("HH mm ss");
  *
- * <p>public Result liveClock() { Source&lt;String, ?&gt; tickSource = Source.tick(Duration.Zero(),
- * Duration.create(100, MILLISECONDS), "TICK"); Source&lt;EventSource.Event, ?&gt; eventSource =
- * tickSource.map((tick) -&gt; EventSource.Event.event(df.format(ZonedDateTime.now()))); return
+ * <p>public Result liveClock() { Source&lt;String, ?&gt; tickSource = Source.tick(Duration.Zero(), Duration.create(100,
+ * MILLISECONDS), "TICK"); Source&lt;EventSource.Event, ?&gt; eventSource = tickSource.map((tick) -&gt;
+ * EventSource.Event.event(df.format(ZonedDateTime.now()))); return
  * ok().chunked(eventSource.via(EventSource.flow())).as(Http.MimeTypes.EVENT_STREAM); } }}}
  */
 public class EventSource {

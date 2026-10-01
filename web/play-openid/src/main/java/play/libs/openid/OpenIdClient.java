@@ -12,8 +12,7 @@ import play.mvc.Http;
 public interface OpenIdClient {
 
   /**
-   * Retrieve the URL where the user should be redirected to start the OpenID authentication
-   * process.
+   * Retrieve the URL where the user should be redirected to start the OpenID authentication process.
    *
    * @param openID the open ID
    * @param callbackURL the callback url.
@@ -29,12 +28,10 @@ public interface OpenIdClient {
    * @param axRequired the required ax
    * @return A completion stage of the URL as a string.
    */
-  CompletionStage<String> redirectURL(
-      String openID, String callbackURL, Map<String, String> axRequired);
+  CompletionStage<String> redirectURL(String openID, String callbackURL, Map<String, String> axRequired);
 
   /**
-   * Retrieve the URL where the user should be redirected to start the OpenID authentication
-   * process.
+   * Retrieve the URL where the user should be redirected to start the OpenID authentication process.
    *
    * @param openID the open ID
    * @param callbackURL the callback url.
@@ -43,14 +40,10 @@ public interface OpenIdClient {
    * @return A completion stage of the URL as a string.
    */
   CompletionStage<String> redirectURL(
-      String openID,
-      String callbackURL,
-      Map<String, String> axRequired,
-      Map<String, String> axOptional);
+      String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional);
 
   /**
-   * Retrieve the URL where the user should be redirected to start the OpenID authentication
-   * process.
+   * Retrieve the URL where the user should be redirected to start the OpenID authentication process.
    *
    * @param openID the open ID
    * @param callbackURL the callback url.
@@ -60,15 +53,10 @@ public interface OpenIdClient {
    * @return A completion stage of the URL as a string.
    */
   CompletionStage<String> redirectURL(
-      String openID,
-      String callbackURL,
-      Map<String, String> axRequired,
-      Map<String, String> axOptional,
-      String realm);
+      String openID, String callbackURL, Map<String, String> axRequired, Map<String, String> axOptional, String realm);
 
   /**
-   * Check the identity of the user from the current request, that should be the callback from the
-   * OpenID server
+   * Check the identity of the user from the current request, that should be the callback from the OpenID server
    *
    * @param request the request header
    * @return A completion stage of the user's identity.

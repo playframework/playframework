@@ -71,13 +71,13 @@ public class XPath {
   }
 
   /**
-   * Select all nodes that are selected by this XPath expression. If multiple nodes match, multiple
-   * nodes will be returned. Nodes will be returned in document-order,
+   * Select all nodes that are selected by this XPath expression. If multiple nodes match, multiple nodes will be
+   * returned. Nodes will be returned in document-order,
    *
    * @param path the xpath expression
    * @param node the starting node
-   * @param namespaces Namespaces that need to be available in the xpath, where the key is the
-   *     prefix and the value the namespace URI
+   * @param namespaces Namespaces that need to be available in the xpath, where the key is the prefix and the value the
+   *     namespace URI
    * @return result of evaluating the xpath expression against node
    */
   public static NodeList selectNodes(String path, Object node, Map<String, String> namespaces) {
@@ -98,8 +98,8 @@ public class XPath {
   }
 
   /**
-   * Select all nodes that are selected by this XPath expression. If multiple nodes match, multiple
-   * nodes will be returned. Nodes will be returned in document-order,
+   * Select all nodes that are selected by this XPath expression. If multiple nodes match, multiple nodes will be
+   * returned. Nodes will be returned in document-order,
    *
    * @param path the xpath expression
    * @param node the starting node
@@ -130,8 +130,7 @@ public class XPath {
     return selectNode(path, node, null);
   }
 
-  private static void bindUnboundedNamespaces(
-      PlayNamespaceContext nsContext, Map<String, String> namespaces) {
+  private static void bindUnboundedNamespaces(PlayNamespaceContext nsContext, Map<String, String> namespaces) {
     namespaces.forEach(
         (key, value) -> {
           if (nsContext.getPrefix(value) == null) {

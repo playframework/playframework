@@ -79,8 +79,8 @@ public class Lang extends play.api.i18n.Lang {
   }
 
   /**
-   * Guess the preferred lang in the langs set passed as argument. The first Lang that matches an
-   * available Lang wins, otherwise returns the first Lang available in this application.
+   * Guess the preferred lang in the langs set passed as argument. The first Lang that matches an available Lang wins,
+   * otherwise returns the first Lang available in this application.
    *
    * @param app the current application
    * @param availableLangs the set of langs from which to guess the preferred
@@ -89,8 +89,7 @@ public class Lang extends play.api.i18n.Lang {
   public static Lang preferred(Application app, List<Lang> availableLangs) {
     play.api.i18n.Langs langs = app.injector().instanceOf(play.api.i18n.Langs.class);
     Stream<Lang> stream = availableLangs.stream();
-    List<play.api.i18n.Lang> langSeq =
-        stream.map(l -> new play.api.i18n.Lang(l.toLocale())).collect(toList());
+    List<play.api.i18n.Lang> langSeq = stream.map(l -> new play.api.i18n.Lang(l.toLocale())).collect(toList());
     return new Lang(langs.preferred(Scala.toSeq(langSeq)));
   }
 

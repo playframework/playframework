@@ -10,10 +10,9 @@ import org.junit.Before;
 import play.Application;
 
 /**
- * Provides an application for JUnit tests. Make your test class extend this class and an
- * application will be started before each test is invoked. You can setup the application to use by
- * overriding the provideApplication method. Within a test, the running application is available
- * through the app field.
+ * Provides an application for JUnit tests. Make your test class extend this class and an application will be started
+ * before each test is invoked. You can setup the application to use by overriding the provideApplication method. Within
+ * a test, the running application is available through the app field.
  */
 public class WithApplication {
 

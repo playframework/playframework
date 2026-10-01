@@ -24,14 +24,12 @@ public final class GuiceApplicationBuilder
     super(builder);
   }
 
-  public static GuiceApplicationBuilder fromScalaBuilder(
-      play.api.inject.guice.GuiceApplicationBuilder builder) {
+  public static GuiceApplicationBuilder fromScalaBuilder(play.api.inject.guice.GuiceApplicationBuilder builder) {
     return new GuiceApplicationBuilder(builder);
   }
 
   /**
-   * Set the initial configuration loader. Overrides the default or any previously configured
-   * values.
+   * Set the initial configuration loader. Overrides the default or any previously configured values.
    *
    * @param load the configuration loader
    * @return the configured application builder
@@ -39,8 +37,7 @@ public final class GuiceApplicationBuilder
   public GuiceApplicationBuilder withConfigLoader(Function<Environment, Config> load) {
     return newBuilder(
         delegate.loadConfig(
-            (play.api.Environment env) ->
-                new play.api.Configuration(load.apply(new Environment(env)))));
+            (play.api.Environment env) -> new play.api.Configuration(load.apply(new Environment(env)))));
   }
 
   /**
@@ -59,8 +56,7 @@ public final class GuiceApplicationBuilder
    * @param loader the configuration
    * @return the configured application builder
    */
-  public GuiceApplicationBuilder withModuleLoader(
-      BiFunction<Environment, Config, List<GuiceableModule>> loader) {
+  public GuiceApplicationBuilder withModuleLoader(BiFunction<Environment, Config, List<GuiceableModule>> loader) {
     return newBuilder(
         delegate.load(
             (play.api.Environment env, play.api.Configuration conf) ->
@@ -121,8 +117,7 @@ public final class GuiceApplicationBuilder
    *
    * @return the application builder
    */
-  protected GuiceApplicationBuilder newBuilder(
-      play.api.inject.guice.GuiceApplicationBuilder builder) {
+  protected GuiceApplicationBuilder newBuilder(play.api.inject.guice.GuiceApplicationBuilder builder) {
     return new GuiceApplicationBuilder(builder);
   }
 }

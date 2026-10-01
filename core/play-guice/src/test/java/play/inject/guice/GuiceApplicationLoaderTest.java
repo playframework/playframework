@@ -55,13 +55,11 @@ public class GuiceApplicationLoaderTest {
     Properties properties = new Properties();
     properties.setProperty("play.http.context", "/tests");
 
-    Config config =
-        ConfigFactory.parseProperties(properties).withFallback(ConfigFactory.defaultReference());
+    Config config = ConfigFactory.parseProperties(properties).withFallback(ConfigFactory.defaultReference());
 
     GuiceApplicationBuilder builder = new GuiceApplicationBuilder();
     ApplicationLoader loader = new GuiceApplicationLoader(builder);
-    ApplicationLoader.Context context =
-        ApplicationLoader.create(Environment.simple()).withConfig(config);
+    ApplicationLoader.Context context = ApplicationLoader.create(Environment.simple()).withConfig(config);
     Application app = loader.load(context);
 
     assertThat(app.asScala().httpConfiguration().context()).isEqualTo("/tests");

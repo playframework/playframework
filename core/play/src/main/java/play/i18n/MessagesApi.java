@@ -40,8 +40,7 @@ public class MessagesApi {
   }
 
   /**
-   * Converts the varargs to a scala buffer, takes care of wrapping varargs into a intermediate list
-   * if necessary
+   * Converts the varargs to a scala buffer, takes care of wrapping varargs into a intermediate list if necessary
    *
    * @param args the message arguments
    * @return scala type for message processing
@@ -53,8 +52,8 @@ public class MessagesApi {
   /**
    * Wraps arguments passed into a list if necessary.
    *
-   * <p>Returns the first value as is if it is the only argument and a subtype of `java.util.List`
-   * Otherwise, it calls Arrays.asList on args
+   * <p>Returns the first value as is if it is the only argument and a subtype of `java.util.List` Otherwise, it calls
+   * Arrays.asList on args
    *
    * @param args arguments as a List
    */
@@ -117,8 +116,8 @@ public class MessagesApi {
   /**
    * Get a messages context appropriate for the given candidates.
    *
-   * <p>Will select a language from the candidates, based on the languages available, and fallback
-   * to the default language if none of the candidates are available.
+   * <p>Will select a language from the candidates, based on the languages available, and fallback to the default
+   * language if none of the candidates are available.
    *
    * @param candidates the candidate languages
    * @return the most appropriate Messages instance given the candidate languages
@@ -131,8 +130,8 @@ public class MessagesApi {
   /**
    * Get a messages context appropriate for the given request.
    *
-   * <p>Will select a language from the request, based on the languages available, and fallback to
-   * the default language if none of the candidates are available.
+   * <p>Will select a language from the request, based on the languages available, and fallback to the default language
+   * if none of the candidates are available.
    *
    * @param request the incoming request
    * @return the preferred messages context for the request
@@ -171,9 +170,7 @@ public class MessagesApi {
   /** An optional max age in seconds for the language Cookie. */
   public OptionalInt langCookieMaxAge() {
     Option<?> langCookieMaxAge = messages.langCookieMaxAge();
-    return langCookieMaxAge.isEmpty()
-        ? OptionalInt.empty()
-        : OptionalInt.of((Integer) langCookieMaxAge.get());
+    return langCookieMaxAge.isEmpty() ? OptionalInt.empty() : OptionalInt.of((Integer) langCookieMaxAge.get());
   }
 
   /** Whether the secure attribute of the cookie is true or not. */
@@ -186,10 +183,7 @@ public class MessagesApi {
     return messages.langCookieHttpOnly();
   }
 
-  /**
-   * The value of the [[SameSite]] attribute of the cookie. If None, then no SameSite attribute is
-   * set.
-   */
+  /** The value of the [[SameSite]] attribute of the cookie. If None, then no SameSite attribute is set. */
   public Optional<Http.Cookie.SameSite> langCookieSameSite() {
     return OptionConverters.toJava(messages.langCookieSameSite()).map(Cookie.SameSite::asJava);
   }

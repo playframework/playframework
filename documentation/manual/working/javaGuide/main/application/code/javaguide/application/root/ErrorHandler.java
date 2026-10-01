@@ -14,10 +14,8 @@ import play.mvc.Http.*;
 
 @Singleton
 public class ErrorHandler implements HttpErrorHandler {
-  public CompletionStage<Result> onClientError(
-      RequestHeader request, int statusCode, String message) {
-    return CompletableFuture.completedFuture(
-        Results.status(statusCode, "A client error occurred: " + message));
+  public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
+    return CompletableFuture.completedFuture(Results.status(statusCode, "A client error occurred: " + message));
   }
 
   public CompletionStage<Result> onServerError(RequestHeader request, Throwable exception) {

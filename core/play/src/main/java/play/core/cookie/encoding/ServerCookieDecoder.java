@@ -20,13 +20,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used
- * server side.
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used server side.
  *
  * <p>Only name and value fields are expected, so old fields are not populated (path, domain, etc).
  *
- * <p>Old <a href="https://tools.ietf.org/html/rfc2965">RFC2965</a> cookies are still supported, old
- * fields will simply be ignored.
+ * <p>Old <a href="https://tools.ietf.org/html/rfc2965">RFC2965</a> cookies are still supported, old fields will simply
+ * be ignored.
  *
  * @see ServerCookieEncoder
  */
@@ -40,10 +39,7 @@ public final class ServerCookieDecoder extends CookieDecoder {
 
   private static final String RFC2965_PORT = "$Port";
 
-  /**
-   * Strict encoder that validates that name and value chars are in the valid scope defined in
-   * RFC6265
-   */
+  /** Strict encoder that validates that name and value chars are in the valid scope defined in RFC6265 */
   public static final ServerCookieDecoder STRICT = new ServerCookieDecoder(true);
 
   /** Lax instance that doesn't validate name and value */
@@ -89,8 +85,7 @@ public final class ServerCookieDecoder extends CookieDecoder {
           break loop;
         }
         char c = header.charAt(i);
-        if (c == '\t' || c == '\n' || c == 0x0b || c == '\f' || c == '\r' || c == ' ' || c == ','
-            || c == ';') {
+        if (c == '\t' || c == '\n' || c == 0x0b || c == '\f' || c == '\r' || c == ' ' || c == ',' || c == ';') {
           i++;
           continue;
         }

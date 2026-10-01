@@ -18,8 +18,7 @@ public final class ProviderConstructionTarget<T> extends BindingTarget<T> {
     this(play.api.inject.ProviderConstructionTarget.apply(provider));
   }
 
-  public ProviderConstructionTarget(
-      final play.api.inject.ProviderConstructionTarget<T> underlying) {
+  public ProviderConstructionTarget(final play.api.inject.ProviderConstructionTarget<T> underlying) {
     super();
     this.underlying = underlying;
   }

@@ -36,11 +36,7 @@ public class JavaFileUploadTest extends WithApplication {
     File file = getFile();
     Http.MultipartFormData.Part<Source<ByteString, ?>> part =
         new Http.MultipartFormData.FilePart<>(
-            "picture",
-            "file.pdf",
-            "application/pdf",
-            FileIO.fromPath(file.toPath()),
-            Files.size(file.toPath()));
+            "picture", "file.pdf", "application/pdf", FileIO.fromPath(file.toPath()), Files.size(file.toPath()));
 
     Http.RequestBuilder request =
         Helpers.fakeRequest()

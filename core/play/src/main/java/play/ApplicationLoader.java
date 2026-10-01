@@ -18,27 +18,24 @@ import scala.jdk.javaapi.OptionConverters;
 /**
  * Loads an application. This is responsible for instantiating an application given a context.
  *
- * <p>Application loaders are expected to instantiate all parts of an application, wiring everything
- * together. They may be manually implemented, if compile time wiring is preferred, or core/third
- * party implementations may be used, for example that provide a runtime dependency injection
- * framework.
+ * <p>Application loaders are expected to instantiate all parts of an application, wiring everything together. They may
+ * be manually implemented, if compile time wiring is preferred, or core/third party implementations may be used, for
+ * example that provide a runtime dependency injection framework.
  *
- * <p>During dev mode, an ApplicationLoader will be instantiated once, and called once, each time
- * the application is reloaded. In prod mode, the ApplicationLoader will be instantiated and called
- * once when the application is started.
+ * <p>During dev mode, an ApplicationLoader will be instantiated once, and called once, each time the application is
+ * reloaded. In prod mode, the ApplicationLoader will be instantiated and called once when the application is started.
  *
- * <p>Out of the box Play provides a Java and Scala default implementation based on Guice. The Java
- * implementation is the {@link play.inject.guice.GuiceApplicationLoader} and the Scala
- * implementation is {@link play.api.inject.guice.GuiceApplicationLoader}.
+ * <p>Out of the box Play provides a Java and Scala default implementation based on Guice. The Java implementation is
+ * the {@link play.inject.guice.GuiceApplicationLoader} and the Scala implementation is {@link
+ * play.api.inject.guice.GuiceApplicationLoader}.
  *
- * <p>A custom application loader can be configured using the `play.application.loader`
- * configuration property. Implementations must define a no-arg constructor.
+ * <p>A custom application loader can be configured using the `play.application.loader` configuration property.
+ * Implementations must define a no-arg constructor.
  */
 public interface ApplicationLoader {
 
   static ApplicationLoader apply(Context context) {
-    final play.api.ApplicationLoader loader =
-        play.api.ApplicationLoader$.MODULE$.apply(context.asScala());
+    final play.api.ApplicationLoader loader = play.api.ApplicationLoader$.MODULE$.apply(context.asScala());
     return new ApplicationLoader() {
       @Override
       public Application load(Context context) {
@@ -82,17 +79,15 @@ public interface ApplicationLoader {
      * The context for loading an application.
      *
      * @param environment the application environment
-     * @param initialSettings the initial settings. These settings are merged with the settings from
-     *     the loaded configuration files, and together form the initialConfiguration provided by
-     *     the context. It is intended for use in dev mode, to allow the build system to pass
-     *     additional configuration into the application.
+     * @param initialSettings the initial settings. These settings are merged with the settings from the loaded
+     *     configuration files, and together form the initialConfiguration provided by the context. It is intended for
+     *     use in dev mode, to allow the build system to pass additional configuration into the application.
      */
     public Context(Environment environment, Map<String, Object> initialSettings) {
       this.underlying =
           new play.api.ApplicationLoader.Context(
               environment.asScala(),
-              play.api.Configuration.load(
-                  environment.asScala(), play.libs.Scala.asScala(initialSettings)),
+              play.api.Configuration.load(environment.asScala(), play.libs.Scala.asScala(initialSettings)),
               new DefaultApplicationLifecycle(),
               scala.Option.empty());
     }
@@ -116,9 +111,8 @@ public interface ApplicationLoader {
     }
 
     /**
-     * Get the configuration from the context. This configuration is not necessarily the same
-     * configuration used by the application, as the ApplicationLoader may, through it's own
-     * mechanisms, modify it or completely ignore it.
+     * Get the configuration from the context. This configuration is not necessarily the same configuration used by the
+     * application, as the ApplicationLoader may, through it's own mechanisms, modify it or completely ignore it.
      *
      * @return the initial configuration
      */
@@ -194,10 +188,9 @@ public interface ApplicationLoader {
    * <p>Locates and loads the necessary configuration files for the application.
    *
    * @param environment The application environment.
-   * @param initialSettings The initial settings. These settings are merged with the settings from
-   *     the loaded configuration files, and together form the initialConfiguration provided by the
-   *     context. It is intended for use in dev mode, to allow the build system to pass additional
-   *     configuration into the application.
+   * @param initialSettings The initial settings. These settings are merged with the settings from the loaded
+   *     configuration files, and together form the initialConfiguration provided by the context. It is intended for use
+   *     in dev mode, to allow the build system to pass additional configuration into the application.
    * @return the created context
    */
   static Context create(Environment environment, Map<String, Object> initialSettings) {

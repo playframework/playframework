@@ -37,9 +37,7 @@ public class NamedCaffeineCache<K, V> implements AsyncCache<K, V> {
 
   @Override
   public CompletableFuture<V> get(
-      K key,
-      BiFunction<? super K, ? super Executor, ? extends CompletableFuture<? extends V>>
-          mappingFunction) {
+      K key, BiFunction<? super K, ? super Executor, ? extends CompletableFuture<? extends V>> mappingFunction) {
     return cache.get(key, mappingFunction);
   }
 
