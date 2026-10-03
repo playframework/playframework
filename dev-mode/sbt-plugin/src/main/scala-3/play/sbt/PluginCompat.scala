@@ -23,9 +23,10 @@ import xsbti.VirtualFileRef
 object PluginCompat:
   export sbt.Def.uncached
 
-  type MainClass     = sbt.PackageOption.MainClass
-  type FileRef       = xsbti.HashedVirtualFileRef
-  type PathFinderRef = sbt.io.PathFinder
+  type MainClass      = sbt.PackageOption.MainClass
+  type FixedTimestamp = sbt.PackageOption.FixedTimestamp
+  type FileRef        = xsbti.HashedVirtualFileRef
+  type PathFinderRef  = sbt.io.PathFinder
 
   val Inc   = sbt.Result.Inc
   val Value = sbt.Result.Value
