@@ -13,6 +13,8 @@
 ### Mode.Dev tests
 ### --------------
 
+-$ exists target/proofs/logger-shutdowns.txt
+
 ## Start dev mode
 > run
 
@@ -27,12 +29,15 @@ $ copy-file changes/HomeController.scala src/main/scala/controllers/HomeControll
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
 > verifyResourceContains / 200
+$ exists target/proofs/logger-shutdowns.txt
+> verifyLineCount target/proofs/logger-shutdowns.txt 1
 $ exists target/proofs/application-actorsystem-name.txt
 $ delete target/proofs/application-actorsystem-name.txt
 -$ exists target/proofs/application-actorsystem-name.txt
 
 ## Stopping Mode.Dev runs Coordinated Shutdown in both Server and Application Actor Systems
 > playStop
+> verifyLineCount target/proofs/logger-shutdowns.txt 2
 $ exists target/proofs/application-actorsystem-name.txt
 
 # TODO: assert the `play-dev-mode` CS was executed
