@@ -79,18 +79,21 @@ class RouterSpec extends Specification {
   "SimpleRouter" should {
     import play.api.mvc.Handler
     import play.api.routing.sird._
-    object Root extends Handler
-    object Foo  extends Handler
+    object Root   extends Handler
+    object Foo    extends Handler
+    object Search extends Handler
 
     val router = Router.from {
-      case GET(p"/")    => Root
-      case GET(p"/foo") => Foo
+      case GET(p"/")         => Root
+      case GET(p"/foo")      => Foo
+      case QUERY(p"/search") => Search
     }
 
     "work" in {
       import play.api.http.HttpVerbs._
       (router.handlerFor(FakeRequest(GET, "/")) must be).some(Root)
       (router.handlerFor(FakeRequest(GET, "/foo")) must be).some(Foo)
+      (router.handlerFor(FakeRequest(QUERY, "/search")) must be).some(Search)
     }
 
     "add prefix" in {
