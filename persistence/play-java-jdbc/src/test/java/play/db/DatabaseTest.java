@@ -94,9 +94,7 @@ public class DatabaseTest {
     Database db = Databases.inMemory("test-connection");
 
     try (Connection connection = db.getConnection()) {
-      connection
-          .createStatement()
-          .execute("create table test (id bigint not null, name varchar(255))");
+      connection.createStatement().execute("create table test (id bigint not null, name varchar(255))");
     }
 
     db.shutdown();
@@ -173,8 +171,7 @@ public class DatabaseTest {
     boolean created =
         db.withTransaction(
             c -> {
-              c.createStatement()
-                  .execute("create table test (id bigint not null, name varchar(255))");
+              c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
               c.createStatement().execute("insert into test (id, name) values (1, 'alice')");
               return true;
             });
@@ -222,8 +219,7 @@ public class DatabaseTest {
     Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS", "logSql", "true");
     Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
     assertThat(db.getDataSource()).isInstanceOf(ConnectionPoolDataSourceProxy.class);
-    assertThat(JNDI.initialContext().lookup("DefaultDS"))
-        .isInstanceOf(ConnectionPoolDataSourceProxy.class);
+    assertThat(JNDI.initialContext().lookup("DefaultDS")).isInstanceOf(ConnectionPoolDataSourceProxy.class);
     db.shutdown();
   }
 
@@ -235,8 +231,7 @@ public class DatabaseTest {
         db.withTransaction(
             TransactionIsolationLevel.Serializable,
             c -> {
-              c.createStatement()
-                  .execute("create table test (id bigint not null, name varchar(255))");
+              c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
               c.createStatement().execute("insert into test (id, name) values (1, 'alice')");
               return true;
             });

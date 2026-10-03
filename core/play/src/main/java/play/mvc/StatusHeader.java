@@ -55,8 +55,8 @@ public class StatusHeader extends Result {
    * <p>The input stream will be sent chunked since there is no specified content length.
    *
    * @param stream The input stream to send.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return The result.
    */
@@ -84,23 +84,19 @@ public class StatusHeader extends Result {
    *
    * @param stream The input stream to send.
    * @param contentType the entity content type.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return The result.
    */
-  public Result sendInputStream(
-      InputStream stream, Optional<String> contentType, Runnable onClose, Executor executor) {
+  public Result sendInputStream(InputStream stream, Optional<String> contentType, Runnable onClose, Executor executor) {
     if (stream == null) {
       throw new NullPointerException("Null stream");
     }
     return new Result(
         status(),
         HttpEntity.chunked(
-            attachOnClose(
-                StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
-                onClose,
-                executor),
+            attachOnClose(StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE), onClose, executor),
             contentType));
   }
 
@@ -120,13 +116,12 @@ public class StatusHeader extends Result {
    *
    * @param stream The input stream to send.
    * @param contentLength The length of the content in the stream.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return The result.
    */
-  public Result sendInputStream(
-      InputStream stream, long contentLength, Runnable onClose, Executor executor) {
+  public Result sendInputStream(InputStream stream, long contentLength, Runnable onClose, Executor executor) {
     return sendInputStream(stream, contentLength, Optional.empty(), onClose, executor);
   }
 
@@ -138,8 +133,7 @@ public class StatusHeader extends Result {
    * @param contentType the entity content type.
    * @return The result.
    */
-  public Result sendInputStream(
-      InputStream stream, long contentLength, Optional<String> contentType) {
+  public Result sendInputStream(InputStream stream, long contentLength, Optional<String> contentType) {
     return sendInputStream(stream, contentLength, contentType, () -> {}, null);
   }
 
@@ -149,27 +143,20 @@ public class StatusHeader extends Result {
    * @param stream The input stream to send.
    * @param contentLength The length of the content in the stream.
    * @param contentType the entity content type.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return The result.
    */
   public Result sendInputStream(
-      InputStream stream,
-      long contentLength,
-      Optional<String> contentType,
-      Runnable onClose,
-      Executor executor) {
+      InputStream stream, long contentLength, Optional<String> contentType, Runnable onClose, Executor executor) {
     if (stream == null) {
       throw new NullPointerException("Null stream");
     }
     return new Result(
         status(),
         new HttpEntity.Streamed(
-            attachOnClose(
-                StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE),
-                onClose,
-                executor),
+            attachOnClose(StreamConverters.fromInputStream(() -> stream, DEFAULT_CHUNK_SIZE), onClose, executor),
             Optional.of(contentLength),
             contentType));
   }
@@ -200,9 +187,9 @@ public class StatusHeader extends Result {
    *
    * @param content The bytes to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return The result.
    */
   public Result sendBytes(byte[] content, boolean inline, Optional<String> fileName) {
@@ -214,15 +201,13 @@ public class StatusHeader extends Result {
    *
    * @param content The bytes to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return The result.
    */
-  public Result sendBytes(
-      byte[] content, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
+  public Result sendBytes(byte[] content, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return new Result(
         status(),
         Results.contentDispositionHeader(inline, fileName),
@@ -257,9 +242,9 @@ public class StatusHeader extends Result {
    *
    * @param content The ByteString to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return The result.
    */
   public Result sendByteString(ByteString content, boolean inline, Optional<String> fileName) {
@@ -271,10 +256,9 @@ public class StatusHeader extends Result {
    *
    * @param content The ByteString to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return The result.
    */
@@ -284,8 +268,7 @@ public class StatusHeader extends Result {
         status(),
         Results.contentDispositionHeader(inline, fileName),
         new HttpEntity.Strict(
-            content,
-            fileName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
+            content, fileName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
   }
 
   /**
@@ -306,8 +289,8 @@ public class StatusHeader extends Result {
    * <p>The resource will be loaded from the same classloader that this class comes from.
    *
    * @param resourceName The path of the resource to load.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
@@ -335,13 +318,12 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+  public Result sendResource(String resourceName, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     return sendResource(resourceName, DEFAULT_INLINE_MODE, fileMimeTypes, onClose, executor);
   }
 
@@ -361,15 +343,13 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, ClassLoader classLoader, Runnable onClose, Executor executor) {
-    return sendResource(
-        resourceName, classLoader, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
+  public Result sendResource(String resourceName, ClassLoader classLoader, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, classLoader, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -377,13 +357,12 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, ClassLoader classLoader, Optional<String> fileName) {
+  public Result sendResource(String resourceName, ClassLoader classLoader, Optional<String> fileName) {
     return sendResource(resourceName, classLoader, fileName, () -> {}, null);
   }
 
@@ -392,27 +371,17 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName,
-      ClassLoader classLoader,
-      Optional<String> fileName,
-      Runnable onClose,
-      Executor executor) {
-    return sendResource(
-        resourceName,
-        classLoader,
-        fileName,
-        StaticFileMimeTypes.fileMimeTypes(),
-        onClose,
-        executor);
+      String resourceName, ClassLoader classLoader, Optional<String> fileName, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, classLoader, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -420,18 +389,14 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName,
-      ClassLoader classLoader,
-      Optional<String> fileName,
-      FileMimeTypes fileMimeTypes) {
+      String resourceName, ClassLoader classLoader, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -440,13 +405,12 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
@@ -457,8 +421,7 @@ public class StatusHeader extends Result {
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
-    return sendResource(
-        resourceName, classLoader, DEFAULT_INLINE_MODE, fileName, fileMimeTypes, onClose, executor);
+    return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileName, fileMimeTypes, onClose, executor);
   }
 
   /**
@@ -469,8 +432,7 @@ public class StatusHeader extends Result {
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, ClassLoader classLoader, FileMimeTypes fileMimeTypes) {
+  public Result sendResource(String resourceName, ClassLoader classLoader, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, classLoader, fileMimeTypes, () -> {}, null);
   }
 
@@ -480,19 +442,14 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName,
-      ClassLoader classLoader,
-      FileMimeTypes fileMimeTypes,
-      Runnable onClose,
-      Executor executor) {
-    return sendResource(
-        resourceName, classLoader, DEFAULT_INLINE_MODE, fileMimeTypes, onClose, executor);
+      String resourceName, ClassLoader classLoader, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, classLoader, DEFAULT_INLINE_MODE, fileMimeTypes, onClose, executor);
   }
 
   /**
@@ -501,9 +458,9 @@ public class StatusHeader extends Result {
    * <p>The resource will be loaded from the same classloader that this class comes from.
    *
    * @param resourceName The path of the resource to load.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(String resourceName, Optional<String> fileName) {
@@ -516,18 +473,16 @@ public class StatusHeader extends Result {
    * <p>The resource will be loaded from the same classloader that this class comes from.
    *
    * @param resourceName The path of the resource to load.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, Optional<String> fileName, Runnable onClose, Executor executor) {
-    return sendResource(
-        resourceName, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
+  public Result sendResource(String resourceName, Optional<String> fileName, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -536,15 +491,13 @@ public class StatusHeader extends Result {
    * <p>The resource will be loaded from the same classloader that this class comes from.
    *
    * @param resourceName The path of the resource to load.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
+  public Result sendResource(String resourceName, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -554,13 +507,12 @@ public class StatusHeader extends Result {
    * <p>The resource will be loaded from the same classloader that this class comes from.
    *
    * @param resourceName The path of the resource to load.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
@@ -570,8 +522,7 @@ public class StatusHeader extends Result {
       FileMimeTypes fileMimeTypes,
       Runnable onClose,
       Executor executor) {
-    return sendResource(
-        resourceName, DEFAULT_INLINE_MODE, fileName, fileMimeTypes, onClose, executor);
+    return sendResource(resourceName, DEFAULT_INLINE_MODE, fileName, fileMimeTypes, onClose, executor);
   }
 
   /**
@@ -594,15 +545,13 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
-  public Result sendResource(
-      String resourceName, boolean inline, Runnable onClose, Executor executor) {
-    return sendResource(
-        resourceName, inline, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
+  public Result sendResource(String resourceName, boolean inline, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, inline, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -627,19 +576,14 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body with in-line content disposition.
    */
   public Result sendResource(
-      String resourceName,
-      boolean inline,
-      FileMimeTypes fileMimeTypes,
-      Runnable onClose,
-      Executor executor) {
-    return sendResource(
-        resourceName, this.getClass().getClassLoader(), inline, fileMimeTypes, onClose, executor);
+      String resourceName, boolean inline, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, this.getClass().getClassLoader(), inline, fileMimeTypes, onClose, executor);
   }
 
   /**
@@ -660,19 +604,14 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body.
    */
   public Result sendResource(
-      String resourceName,
-      ClassLoader classLoader,
-      boolean inline,
-      Runnable onClose,
-      Executor executor) {
-    return sendResource(
-        resourceName, classLoader, inline, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
+      String resourceName, ClassLoader classLoader, boolean inline, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, classLoader, inline, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -696,8 +635,8 @@ public class StatusHeader extends Result {
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body.
    */
@@ -709,13 +648,7 @@ public class StatusHeader extends Result {
       Runnable onClose,
       Executor executor) {
     return sendResource(
-        resourceName,
-        classLoader,
-        inline,
-        Optional.ofNullable(resourceName),
-        fileMimeTypes,
-        onClose,
-        executor);
+        resourceName, classLoader, inline, Optional.ofNullable(resourceName), fileMimeTypes, onClose, executor);
   }
 
   /**
@@ -725,9 +658,9 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body.
    * @deprecated Deprecated as of 2.8.0. Use {@link #sendResource(String,boolean,Optional)}.
    */
@@ -743,9 +676,9 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body.
    */
   public Result sendResource(String resourceName, boolean inline, Optional<String> filename) {
@@ -759,22 +692,17 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body.
    */
   public Result sendResource(
-      String resourceName,
-      boolean inline,
-      Optional<String> filename,
-      Runnable onClose,
-      Executor executor) {
-    return sendResource(
-        resourceName, inline, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
+      String resourceName, boolean inline, Optional<String> filename, Runnable onClose, Executor executor) {
+    return sendResource(resourceName, inline, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -784,18 +712,15 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body.
-   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, boolean, Optional,
-   *     FileMimeTypes)}.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, boolean, Optional, FileMimeTypes)}.
    */
   @Deprecated
-  public Result sendResource(
-      String resourceName, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+  public Result sendResource(String resourceName, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
     return sendResource(resourceName, inline, Optional.ofNullable(filename), fileMimeTypes);
   }
 
@@ -806,10 +731,9 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body.
    */
@@ -825,13 +749,12 @@ public class StatusHeader extends Result {
    *
    * @param resourceName The path of the resource to load.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body.
    */
@@ -843,13 +766,7 @@ public class StatusHeader extends Result {
       Runnable onClose,
       Executor executor) {
     return sendResource(
-        resourceName,
-        this.getClass().getClassLoader(),
-        inline,
-        filename,
-        fileMimeTypes,
-        onClose,
-        executor);
+        resourceName, this.getClass().getClassLoader(), inline, filename, fileMimeTypes, onClose, executor);
   }
 
   /**
@@ -858,16 +775,14 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body.
-   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, ClassLoader, boolean,
-   *     Optional)}.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, ClassLoader, boolean, Optional)}.
    */
   @Deprecated
-  public Result sendResource(
-      String resourceName, ClassLoader classLoader, boolean inline, String filename) {
+  public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline, String filename) {
     return sendResource(resourceName, classLoader, inline, Optional.ofNullable(filename));
   }
 
@@ -877,13 +792,12 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the resource in the body.
    */
-  public Result sendResource(
-      String resourceName, ClassLoader classLoader, boolean inline, Optional<String> filename) {
+  public Result sendResource(String resourceName, ClassLoader classLoader, boolean inline, Optional<String> filename) {
     return sendResource(resourceName, classLoader, inline, filename, () -> {}, null);
   }
 
@@ -893,11 +807,11 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body.
    */
@@ -909,13 +823,7 @@ public class StatusHeader extends Result {
       Runnable onClose,
       Executor executor) {
     return sendResource(
-        resourceName,
-        classLoader,
-        inline,
-        filename,
-        StaticFileMimeTypes.fileMimeTypes(),
-        onClose,
-        executor);
+        resourceName, classLoader, inline, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
   /**
@@ -924,24 +832,18 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body.
-   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, ClassLoader, boolean,
-   *     Optional, FileMimeTypes)}.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendResource(String, ClassLoader, boolean, Optional,
+   *     FileMimeTypes)}.
    */
   @Deprecated
   public Result sendResource(
-      String resourceName,
-      ClassLoader classLoader,
-      boolean inline,
-      String filename,
-      FileMimeTypes fileMimeTypes) {
-    return sendResource(
-        resourceName, classLoader, inline, Optional.ofNullable(filename), fileMimeTypes);
+      String resourceName, ClassLoader classLoader, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
+    return sendResource(resourceName, classLoader, inline, Optional.ofNullable(filename), fileMimeTypes);
   }
 
   /**
@@ -950,10 +852,9 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the resource in the body.
    */
@@ -972,13 +873,12 @@ public class StatusHeader extends Result {
    * @param resourceName The path of the resource to load.
    * @param classLoader The classloader to load it from.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the resource in the body.
    */
@@ -1004,8 +904,7 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @return a '200 OK' result containing the file at the provided path with inline content
-   *     disposition.
+   * @return a '200 OK' result containing the file at the provided path with inline content disposition.
    */
   public Result sendPath(Path path) {
     return sendPath(path, () -> {}, null);
@@ -1015,11 +914,10 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
-   * @return a '200 OK' result containing the file at the provided path with inline content
-   *     disposition.
+   * @return a '200 OK' result containing the file at the provided path with inline content disposition.
    */
   public Result sendPath(Path path, Runnable onClose, Executor executor) {
     return sendPath(path, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
@@ -1030,8 +928,7 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param fileMimeTypes Used for file type mapping.
-   * @return a '200 OK' result containing the file at the provided path with inline content
-   *     disposition.
+   * @return a '200 OK' result containing the file at the provided path with inline content disposition.
    */
   public Result sendPath(Path path, FileMimeTypes fileMimeTypes) {
     return sendPath(path, fileMimeTypes, () -> {}, null);
@@ -1042,14 +939,12 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
-   * @return a '200 OK' result containing the file at the provided path with inline content
-   *     disposition.
+   * @return a '200 OK' result containing the file at the provided path with inline content disposition.
    */
-  public Result sendPath(
-      Path path, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+  public Result sendPath(Path path, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     return sendPath(path, DEFAULT_INLINE_MODE, fileMimeTypes, onClose, executor);
   }
 
@@ -1069,8 +964,8 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
@@ -1096,29 +991,23 @@ public class StatusHeader extends Result {
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
-  public Result sendPath(
-      Path path, boolean inline, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+  public Result sendPath(Path path, boolean inline, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     return sendPath(
-        path,
-        inline,
-        Optional.ofNullable(path).map(p -> p.getFileName().toString()),
-        fileMimeTypes,
-        onClose,
-        executor);
+        path, inline, Optional.ofNullable(path).map(p -> p.getFileName().toString()), fileMimeTypes, onClose, executor);
   }
 
   /**
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the file at the provided path
    * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, Optional)}.
    */
@@ -1131,9 +1020,9 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the file at the provided path
    */
   public Result sendPath(Path path, Optional<String> filename) {
@@ -1144,16 +1033,15 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
-  public Result sendPath(
-      Path path, Optional<String> filename, Runnable onClose, Executor executor) {
+  public Result sendPath(Path path, Optional<String> filename, Runnable onClose, Executor executor) {
     return sendPath(path, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -1161,10 +1049,9 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file at the provided path
    * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, Optional, FileMimeTypes)}.
@@ -1178,10 +1065,9 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file at the provided path
    */
@@ -1193,22 +1079,17 @@ public class StatusHeader extends Result {
    * Sends the given path if it is a valid file. Otherwise throws RuntimeExceptions.
    *
    * @param path The path to send.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
   public Result sendPath(
-      Path path,
-      Optional<String> filename,
-      FileMimeTypes fileMimeTypes,
-      Runnable onClose,
-      Executor executor) {
+      Path path, Optional<String> filename, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     return sendPath(path, DEFAULT_INLINE_MODE, filename, fileMimeTypes, onClose, executor);
   }
 
@@ -1217,9 +1098,9 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the file at the provided path
    * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, boolean, Optional)}.
    */
@@ -1233,9 +1114,9 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the file at the provided path
    */
   public Result sendPath(Path path, boolean inline, Optional<String> filename) {
@@ -1247,16 +1128,15 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
-  public Result sendPath(
-      Path path, boolean inline, Optional<String> filename, Runnable onClose, Executor executor) {
+  public Result sendPath(Path path, boolean inline, Optional<String> filename, Runnable onClose, Executor executor) {
     return sendPath(path, inline, filename, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -1265,14 +1145,12 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file at the provided path
-   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, boolean, Optional,
-   *     FileMimeTypes)}.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendPath(Path, boolean, Optional, FileMimeTypes)}.
    */
   @Deprecated
   public Result sendPath(Path path, boolean inline, String filename, FileMimeTypes fileMimeTypes) {
@@ -1284,15 +1162,13 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file at the provided path
    */
-  public Result sendPath(
-      Path path, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
+  public Result sendPath(Path path, boolean inline, Optional<String> filename, FileMimeTypes fileMimeTypes) {
     return sendPath(path, inline, filename, fileMimeTypes, () -> {}, null);
   }
 
@@ -1301,13 +1177,12 @@ public class StatusHeader extends Result {
    *
    * @param path The path to send.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param filename The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param filename The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file at the provided path
    */
@@ -1323,13 +1198,7 @@ public class StatusHeader extends Result {
     }
     try {
       return doSendResource(
-          FileIO.fromPath(path),
-          Optional.of(Files.size(path)),
-          filename,
-          inline,
-          fileMimeTypes,
-          onClose,
-          executor);
+          FileIO.fromPath(path), Optional.of(Files.size(path)), filename, inline, fileMimeTypes, onClose, executor);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -1349,8 +1218,8 @@ public class StatusHeader extends Result {
    * Sends the given file using the default inline mode.
    *
    * @param file The file to send.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file.
    */
@@ -1374,13 +1243,12 @@ public class StatusHeader extends Result {
    *
    * @param file The file to send.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file.
    */
-  public Result sendFile(
-      File file, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+  public Result sendFile(File file, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     return sendFile(file, DEFAULT_INLINE_MODE, fileMimeTypes, onClose, executor);
   }
 
@@ -1388,8 +1256,7 @@ public class StatusHeader extends Result {
    * Sends the given file.
    *
    * @param file The file to send.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @return a '200 OK' result containing the file
    */
   public Result sendFile(File file, boolean inline) {
@@ -1400,10 +1267,9 @@ public class StatusHeader extends Result {
    * Sends the given file.
    *
    * @param file The file to send.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
@@ -1415,8 +1281,7 @@ public class StatusHeader extends Result {
    * Sends the given file.
    *
    * @param file The file to send.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
    */
@@ -1428,35 +1293,27 @@ public class StatusHeader extends Result {
    * Sends the given file.
    *
    * @param file The file to send.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
-  public Result sendFile(
-      File file, boolean inline, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
+  public Result sendFile(File file, boolean inline, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     if (file == null) {
       throw new NullPointerException("null file");
     }
-    return sendFile(
-        file,
-        inline,
-        Optional.ofNullable(file).map(File::getName),
-        fileMimeTypes,
-        onClose,
-        executor);
+    return sendFile(file, inline, Optional.ofNullable(file).map(File::getName), fileMimeTypes, onClose, executor);
   }
 
   /**
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the file
    * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, Optional)}.
    */
@@ -1469,9 +1326,9 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' result containing the file
    */
   public Result sendFile(File file, Optional<String> fileName) {
@@ -1482,16 +1339,15 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
-  public Result sendFile(
-      File file, Optional<String> fileName, Runnable onClose, Executor executor) {
+  public Result sendFile(File file, Optional<String> fileName, Runnable onClose, Executor executor) {
     return sendFile(file, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -1499,10 +1355,9 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
    * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, Optional, FileMimeTypes)}.
@@ -1516,10 +1371,9 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
    */
@@ -1531,22 +1385,17 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
   public Result sendFile(
-      File file,
-      Optional<String> fileName,
-      FileMimeTypes fileMimeTypes,
-      Runnable onClose,
-      Executor executor) {
+      File file, Optional<String> fileName, FileMimeTypes fileMimeTypes, Runnable onClose, Executor executor) {
     return sendFile(file, DEFAULT_INLINE_MODE, fileName, fileMimeTypes, onClose, executor);
   }
 
@@ -1554,11 +1403,10 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @return a '200 OK' result containing the file
    * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, boolean, Optional)}.
    */
@@ -1571,11 +1419,10 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @return a '200 OK' result containing the file
    */
   public Result sendFile(File file, boolean inline, Optional<String> fileName) {
@@ -1586,18 +1433,16 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
-  public Result sendFile(
-      File file, boolean inline, Optional<String> fileName, Runnable onClose, Executor executor) {
+  public Result sendFile(File file, boolean inline, Optional<String> fileName, Runnable onClose, Executor executor) {
     return sendFile(file, inline, fileName, StaticFileMimeTypes.fileMimeTypes(), onClose, executor);
   }
 
@@ -1605,16 +1450,13 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
-   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, boolean, Optional,
-   *     FileMimeTypes)}.
+   * @deprecated Deprecated as of 2.8.0. Use to {@link #sendFile(File, boolean, Optional, FileMimeTypes)}.
    */
   @Deprecated
   public Result sendFile(File file, boolean inline, String fileName, FileMimeTypes fileMimeTypes) {
@@ -1625,17 +1467,14 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' result containing the file
    */
-  public Result sendFile(
-      File file, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
+  public Result sendFile(File file, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return sendFile(file, inline, fileName, fileMimeTypes, () -> {}, null);
   }
 
@@ -1643,15 +1482,13 @@ public class StatusHeader extends Result {
    * Send the given file.
    *
    * @param file The file to send.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
-   * @param inline True if the file should be sent inline, false if it should be sent as an
-   *     attachment.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
+   * @param inline True if the file should be sent inline, false if it should be sent as an attachment.
    * @param fileMimeTypes Used for file type mapping.
-   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file
-   *     generated for a download).
+   * @param onClose Useful in order to perform cleanup operations (e.g. deleting a temporary file generated for a
+   *     download).
    * @param executor The executor to use for asynchronous execution of {@code onClose}.
    * @return a '200 OK' result containing the file
    */
@@ -1693,8 +1530,7 @@ public class StatusHeader extends Result {
         new HttpEntity.Streamed(
             attachOnClose(data, onClose, executor),
             contentLength,
-            resourceName.map(
-                name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
+            resourceName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
   }
 
   private static Source<ByteString, CompletionStage<IOResult>> attachOnClose(
@@ -1732,9 +1568,9 @@ public class StatusHeader extends Result {
    *
    * @param chunks the chunks to send
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' response with the given chunks.
    */
   public Result chunked(Source<ByteString, ?> chunks, boolean inline, Optional<String> fileName) {
@@ -1746,24 +1582,19 @@ public class StatusHeader extends Result {
    *
    * @param chunks the chunks to send
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' response with the given chunks.
    */
   public Result chunked(
-      Source<ByteString, ?> chunks,
-      boolean inline,
-      Optional<String> fileName,
-      FileMimeTypes fileMimeTypes) {
+      Source<ByteString, ?> chunks, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return new Result(
         status(),
         Results.contentDispositionHeader(inline, fileName),
         HttpEntity.chunked(
-            chunks,
-            fileName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
+            chunks, fileName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
   }
 
   /**
@@ -1785,8 +1616,7 @@ public class StatusHeader extends Result {
    * @param contentType the entity content type.
    * @return a '200 OK' response with the given body.
    */
-  public Result streamed(
-      Source<ByteString, ?> body, Optional<Long> contentLength, Optional<String> contentType) {
+  public Result streamed(Source<ByteString, ?> body, Optional<Long> contentLength, Optional<String> contentType) {
     return new Result(status(), new HttpEntity.Streamed(body, contentLength, contentType));
   }
 
@@ -1796,16 +1626,13 @@ public class StatusHeader extends Result {
    * @param body the source to send
    * @param contentLength the entity content length.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a '200 OK' response with the given body.
    */
   public Result streamed(
-      Source<ByteString, ?> body,
-      Optional<Long> contentLength,
-      boolean inline,
-      Optional<String> fileName) {
+      Source<ByteString, ?> body, Optional<Long> contentLength, boolean inline, Optional<String> fileName) {
     return streamed(body, contentLength, inline, fileName, StaticFileMimeTypes.fileMimeTypes());
   }
 
@@ -1815,9 +1642,9 @@ public class StatusHeader extends Result {
    * @param body the source to send
    * @param contentLength the entity content length.
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a '200 OK' response with the given body.
    */
@@ -1831,9 +1658,7 @@ public class StatusHeader extends Result {
         status(),
         Results.contentDispositionHeader(inline, fileName),
         new HttpEntity.Streamed(
-            body,
-            contentLength,
-            fileName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
+            body, contentLength, fileName.map(name -> fileMimeTypes.forFileName(name).orElse(Http.MimeTypes.BINARY))));
   }
 
   /**
@@ -1878,8 +1703,7 @@ public class StatusHeader extends Result {
    * @param fileName The file name rendered in the {@code Content-Disposition} header.
    * @return a '200 OK' result containing the json encoded with the given charset
    */
-  public Result sendJson(
-      JsonNode json, JsonEncoding encoding, boolean inline, Optional<String> fileName) {
+  public Result sendJson(JsonNode json, JsonEncoding encoding, boolean inline, Optional<String> fileName) {
     if (json == null) {
       throw new NullPointerException("Null content");
     }
@@ -1916,9 +1740,9 @@ public class StatusHeader extends Result {
    *
    * @param entity the entity to send
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name or fallback to {@code application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name or
+   *     fallback to {@code application/octet-stream} if unknown.
    * @return a response with the given body.
    */
   public Result sendEntity(HttpEntity entity, boolean inline, Optional<String> fileName) {
@@ -1930,15 +1754,13 @@ public class StatusHeader extends Result {
    *
    * @param entity the entity to send
    * @param inline Whether it should be served as an inline file, or as an attachment.
-   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response
-   *     will also automatically include the MIME type in the {@code Content-Type} header deducing
-   *     it from this file name if {@code fileMimeTypes} includes it or fallback to {@code
-   *     application/octet-stream} if unknown.
+   * @param fileName The file name rendered in the {@code Content-Disposition} header. The response will also
+   *     automatically include the MIME type in the {@code Content-Type} header deducing it from this file name if
+   *     {@code fileMimeTypes} includes it or fallback to {@code application/octet-stream} if unknown.
    * @param fileMimeTypes Used for file type mapping.
    * @return a response with the given body.
    */
-  public Result sendEntity(
-      HttpEntity entity, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
+  public Result sendEntity(HttpEntity entity, boolean inline, Optional<String> fileName, FileMimeTypes fileMimeTypes) {
     return new Result(
         status(),
         Results.contentDispositionHeader(inline, fileName),

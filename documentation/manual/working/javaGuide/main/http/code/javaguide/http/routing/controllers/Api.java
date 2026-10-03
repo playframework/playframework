@@ -24,9 +24,7 @@ public class Api extends Controller {
   }
 
   public Result listIntItems(List<Integer> items) {
-    return ok(
-        "params "
-            + String.join(",", items.stream().map(p -> p.toString()).collect(Collectors.toList())));
+    return ok("params " + String.join(",", items.stream().map(p -> p.toString()).collect(Collectors.toList())));
   }
 
   public Result newThing() {

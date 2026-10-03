@@ -30,11 +30,7 @@ public class JavaI18N extends WithApplication {
   @Override
   public Application provideApplication() {
     return fakeApplication(
-        ImmutableMap.of(
-            "play.i18n.langs",
-            ImmutableList.of("en", "en-US", "fr"),
-            "messages.path",
-            "javaguide/i18n"));
+        ImmutableMap.of("play.i18n.langs", ImmutableList.of("en", "en-US", "fr"), "messages.path", "javaguide/i18n"));
   }
 
   @Test
@@ -51,8 +47,7 @@ public class JavaI18N extends WithApplication {
   public void checkDefaultHello() {
     Result result =
         MockJavaActionHelper.call(
-            new DefaultLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new DefaultLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
     assertThat(contentAsString(result)).contains("hello");
@@ -79,8 +74,7 @@ public class JavaI18N extends WithApplication {
   public void checkDefaultScalaHello() {
     Result result =
         MockJavaActionHelper.call(
-            new DefaultScalaLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new DefaultScalaLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
     assertThat(contentAsString(result)).contains("hello");
@@ -90,8 +84,7 @@ public class JavaI18N extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    DefaultScalaLangController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    DefaultScalaLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
@@ -106,8 +99,7 @@ public class JavaI18N extends WithApplication {
   public void checkChangeLangHello() {
     Result result =
         MockJavaActionHelper.call(
-            new ChangeLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new ChangeLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
     assertThat(contentAsString(result)).contains("bonjour");
@@ -160,8 +152,7 @@ public class JavaI18N extends WithApplication {
   public void checkSetTransientLangHello() {
     Result result =
         MockJavaActionHelper.call(
-            new SetTransientLangController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new SetTransientLangController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("GET", "/"),
             mat);
     assertThat(contentAsString(result)).contains("howdy");
@@ -171,8 +162,7 @@ public class JavaI18N extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    SetTransientLangController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    SetTransientLangController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
@@ -191,8 +181,7 @@ public class JavaI18N extends WithApplication {
     Result result =
         MockJavaActionHelper.call(
             new AcceptedLanguageController(instanceOf(JavaHandlerComponents.class)),
-            fakeRequest("GET", "/")
-                .header("Accept-Language", "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"),
+            fakeRequest("GET", "/").header("Accept-Language", "fr-CH, fr;q=0.9, en;q=0.8, de;q=0.7, *;q=0.5"),
             mat);
     assertThat(contentAsString(result)).isEqualTo("fr-CH,fr,en,de");
   }
@@ -239,9 +228,7 @@ public class JavaI18N extends WithApplication {
     Messages messages = messagesApi.preferred(candidates);
     // #parameter-escaping
     String errorMessage = messages.at("example.formatting");
-    Boolean areEqual =
-        errorMessage.equals(
-            "When using MessageFormat, '{0}' is replaced with the first parameter.");
+    Boolean areEqual = errorMessage.equals("When using MessageFormat, '{0}' is replaced with the first parameter.");
     // #parameter-escaping
 
     return areEqual;
@@ -251,8 +238,7 @@ public class JavaI18N extends WithApplication {
   private MessagesApi explicitMessagesApi() {
     return new play.i18n.MessagesApi(
         new play.api.i18n.DefaultMessagesApi(
-            Collections.singletonMap(
-                Lang.defaultLang().code(), Collections.singletonMap("foo", "bar")),
+            Collections.singletonMap(Lang.defaultLang().code(), Collections.singletonMap("foo", "bar")),
             new play.api.i18n.DefaultLangs().asJava()));
   }
 

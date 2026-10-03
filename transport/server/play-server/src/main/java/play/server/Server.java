@@ -48,8 +48,7 @@ public class Server {
       return (Integer) server.httpPort().get();
     } else {
       throw new IllegalStateException(
-          "Server has no HTTP port. Try starting it with \"new Server.Builder().http(<port"
-              + " num>)\"?");
+          "Server has no HTTP port. Try starting it with \"new Server.Builder().http(<port" + " num>)\"?");
     }
   }
 
@@ -64,8 +63,7 @@ public class Server {
       return (Integer) server.httpsPort().get();
     } else {
       throw new IllegalStateException(
-          "Server has no HTTPS port. Try starting it with \"new Server.Builder.https(<port"
-              + " num>)\"?");
+          "Server has no HTTPS port. Try starting it with \"new Server.Builder.https(<port" + " num>)\"?");
     }
   }
 
@@ -81,8 +79,8 @@ public class Server {
   /**
    * Create a server for the given router.
    *
-   * <p>The server will be running on a randomly selected ephemeral port, which can be checked using
-   * the httpPort property.
+   * <p>The server will be running on a randomly selected ephemeral port, which can be checked using the httpPort
+   * property.
    *
    * <p>The server will be running in TEST mode.
    *
@@ -96,8 +94,8 @@ public class Server {
   /**
    * Create a server for the given router.
    *
-   * <p>The server will be running on a randomly selected ephemeral port, which can be checked using
-   * the httpPort property.
+   * <p>The server will be running on a randomly selected ephemeral port, which can be checked using the httpPort
+   * property.
    *
    * <p>The server will be running in TEST mode.
    *
@@ -112,8 +110,8 @@ public class Server {
   /**
    * Create a server for the given router.
    *
-   * <p>The server will be running on a randomly selected ephemeral port, which can be checked using
-   * the httpPort property.
+   * <p>The server will be running on a randomly selected ephemeral port, which can be checked using the httpPort
+   * property.
    *
    * <p>The server will be running in TEST mode.
    *
@@ -170,8 +168,8 @@ public class Server {
   }
 
   /**
-   * Configures and builds an embedded server. If not further configured, it will default to serving
-   * TEST mode over HTTP on a random available port.
+   * Configures and builds an embedded server. If not further configured, it will default to serving TEST mode over HTTP
+   * on a random available port.
    */
   public static class Builder {
     private Server.Config _config = new Server.Config(new EnumMap<>(Protocol.class), Mode.TEST);

@@ -43,9 +43,6 @@ public interface HttpFiltersComponents
   @Override
   default List<EssentialFilter> httpFilters() {
     return Arrays.asList(
-        ipFilter().asJava(),
-        csrfFilter().asJava(),
-        securityHeadersFilter().asJava(),
-        allowedHostsFilter().asJava());
+        ipFilter().asJava(), csrfFilter().asJava(), securityHeadersFilter().asJava(), allowedHostsFilter().asJava());
   }
 }

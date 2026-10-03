@@ -51,11 +51,11 @@ abstract class MemberUtils {
   /**
    * XXX Default access superclass workaround.
    *
-   * <p>When a {@code public} class has a default access superclass with {@code public} members,
-   * these members are accessible. Calling them from compiled code works fine. Unfortunately, on
-   * some JVMs, using reflection to invoke these members seems to (wrongly) prevent access even when
-   * the modifier is {@code public}. Calling {@code setAccessible(true)} solves the problem but will
-   * only work from sufficiently privileged code. Better workarounds would be gratefully accepted.
+   * <p>When a {@code public} class has a default access superclass with {@code public} members, these members are
+   * accessible. Calling them from compiled code works fine. Unfortunately, on some JVMs, using reflection to invoke
+   * these members seems to (wrongly) prevent access even when the modifier is {@code public}. Calling {@code
+   * setAccessible(true)} solves the problem but will only work from sufficiently privileged code. Better workarounds
+   * would be gratefully accepted.
    *
    * @param o the AccessibleObject to set as accessible
    * @return a boolean indicating whether the accessibility of the object was set to true.
@@ -79,9 +79,8 @@ abstract class MemberUtils {
   }
 
   /**
-   * Compares the relative fitness of two Constructors in terms of how well they match a set of
-   * runtime parameter types, such that a list ordered by the results of the comparison would return
-   * the best match first (least).
+   * Compares the relative fitness of two Constructors in terms of how well they match a set of runtime parameter types,
+   * such that a list ordered by the results of the comparison would return the best match first (least).
    *
    * @param left the "left" Constructor
    * @param right the "right" Constructor
@@ -89,15 +88,13 @@ abstract class MemberUtils {
    * @return int consistent with {@code compare} semantics
    * @since 3.5
    */
-  static int compareConstructorFit(
-      final Constructor<?> left, final Constructor<?> right, final Class<?>[] actual) {
+  static int compareConstructorFit(final Constructor<?> left, final Constructor<?> right, final Class<?>[] actual) {
     return compareParameterTypes(Executable.of(left), Executable.of(right), actual);
   }
 
   /**
-   * Compares the relative fitness of two Methods in terms of how well they match a set of runtime
-   * parameter types, such that a list ordered by the results of the comparison would return the
-   * best match first (least).
+   * Compares the relative fitness of two Methods in terms of how well they match a set of runtime parameter types, such
+   * that a list ordered by the results of the comparison would return the best match first (least).
    *
    * @param left the "left" Method
    * @param right the "right" Method
@@ -110,17 +107,15 @@ abstract class MemberUtils {
   }
 
   /**
-   * Compares the relative fitness of two Executables in terms of how well they match a set of
-   * runtime parameter types, such that a list ordered by the results of the comparison would return
-   * the best match first (least).
+   * Compares the relative fitness of two Executables in terms of how well they match a set of runtime parameter types,
+   * such that a list ordered by the results of the comparison would return the best match first (least).
    *
    * @param left the "left" Executable
    * @param right the "right" Executable
    * @param actual the runtime parameter types to match against {@code left}/{@code right}
    * @return int consistent with {@code compare} semantics
    */
-  private static int compareParameterTypes(
-      final Executable left, final Executable right, final Class<?>[] actual) {
+  private static int compareParameterTypes(final Executable left, final Executable right, final Class<?>[] actual) {
     final float leftCost = getTotalTransformationCost(actual, left);
     final float rightCost = getTotalTransformationCost(actual, right);
     return leftCost < rightCost ? -1 : rightCost < leftCost ? 1 : 0;
@@ -133,8 +128,7 @@ abstract class MemberUtils {
    * @param destClass the (primitive) destination class
    * @return The cost of promoting the primitive
    */
-  private static float getPrimitivePromotionCost(
-      final Class<?> srcClass, final Class<?> destClass) {
+  private static float getPrimitivePromotionCost(final Class<?> srcClass, final Class<?> destClass) {
     float cost = 0.0f;
     Class<?> cls = srcClass;
     if (!cls.isPrimitive()) {
@@ -160,8 +154,7 @@ abstract class MemberUtils {
    * @param executable The executable to calculate transformation costs for
    * @return The total transformation cost
    */
-  private static float getTotalTransformationCost(
-      final Class<?>[] srcArgs, final Executable executable) {
+  private static float getTotalTransformationCost(final Class<?>[] srcArgs, final Executable executable) {
     final Class<?>[] destArgs = executable.getParameterTypes();
     final boolean isVarArgs = executable.isVarArgs();
 
@@ -178,8 +171,7 @@ abstract class MemberUtils {
       // When isVarArgs is true, srcArgs and dstArgs may differ in length.
       // There are two special cases to consider:
       final boolean noVarArgsPassed = srcArgs.length < destArgs.length;
-      final boolean explicitArrayForVarags =
-          srcArgs.length == destArgs.length && srcArgs[srcArgs.length - 1].isArray();
+      final boolean explicitArrayForVarags = srcArgs.length == destArgs.length && srcArgs[srcArgs.length - 1].isArray();
 
       final float varArgsCost = 0.001f;
       final Class<?> destClass = destArgs[destArgs.length - 1].getComponentType();
@@ -202,8 +194,8 @@ abstract class MemberUtils {
   }
 
   /**
-   * Gets the number of steps required needed to turn the source class into the destination class.
-   * This represents the number of steps in the object hierarchy graph.
+   * Gets the number of steps required needed to turn the source class into the destination class. This represents the
+   * number of steps in the object hierarchy graph.
    *
    * @param srcClass The source class
    * @param destClass The destination class
@@ -241,13 +233,11 @@ abstract class MemberUtils {
     return isMatchingExecutable(Executable.of(method), parameterTypes);
   }
 
-  static boolean isMatchingConstructor(
-      final Constructor<?> method, final Class<?>[] parameterTypes) {
+  static boolean isMatchingConstructor(final Constructor<?> method, final Class<?>[] parameterTypes) {
     return isMatchingExecutable(Executable.of(method), parameterTypes);
   }
 
-  private static boolean isMatchingExecutable(
-      final Executable method, final Class<?>[] parameterTypes) {
+  private static boolean isMatchingExecutable(final Executable method, final Class<?>[] parameterTypes) {
     final Class<?>[] methodParameterTypes = method.getParameterTypes();
     if (method.isVarArgs()) {
       int i;
@@ -256,8 +246,7 @@ abstract class MemberUtils {
           return false;
         }
       }
-      final Class<?> varArgParameterType =
-          methodParameterTypes[methodParameterTypes.length - 1].getComponentType();
+      final Class<?> varArgParameterType = methodParameterTypes[methodParameterTypes.length - 1].getComponentType();
       for (; i < parameterTypes.length; i++) {
         if (!ClassUtils.isAssignable(parameterTypes[i], varArgParameterType, true)) {
           return false;
@@ -269,8 +258,8 @@ abstract class MemberUtils {
   }
 
   /**
-   * A class providing a subset of the API of java.lang.reflect.Executable in Java 1.8, providing a
-   * common representation for function signatures for Constructors and Methods.
+   * A class providing a subset of the API of java.lang.reflect.Executable in Java 1.8, providing a common
+   * representation for function signatures for Constructors and Methods.
    */
   private static final class Executable {
     private final Class<?>[] parameterTypes;

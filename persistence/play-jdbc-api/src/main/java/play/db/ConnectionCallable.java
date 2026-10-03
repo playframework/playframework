@@ -8,9 +8,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Similar to java.util.concurrent.Callable with a Connection as argument. Provides a functional
- * interface for use with Java 8+. If no result needs to be returned, ConnectionRunnable can be used
- * instead.
+ * Similar to java.util.concurrent.Callable with a Connection as argument. Provides a functional interface for use with
+ * Java 8+. If no result needs to be returned, ConnectionRunnable can be used instead.
  *
  * <p>Vanilla Java: <code>
  * new ConnectionCallable&lt;A&gt;() {

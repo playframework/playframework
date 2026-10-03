@@ -25,8 +25,7 @@ public final class AttributesTest {
   @Parameters
   public static Collection<Http.RequestHeader> targets() {
     return Arrays.asList(
-        new Http.RequestBuilder().build(),
-        new RequestHeaderImpl(new Http.RequestBuilder().build().asScala()));
+        new Http.RequestBuilder().build(), new RequestHeaderImpl(new Http.RequestBuilder().build().asScala()));
   }
 
   private Http.RequestHeader requestHeader;
@@ -93,9 +92,7 @@ public final class AttributesTest {
     final TypedKey<String> direction = TypedKey.create("direction");
 
     Http.RequestHeader newRequestHeader =
-        requestHeader
-            .addAttr(color, "red")
-            .addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(direction, "left"));
+        requestHeader.addAttr(color, "red").addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(direction, "left"));
 
     assertTrue(newRequestHeader.attrs().containsKey(number));
     assertTrue(newRequestHeader.attrs().containsKey(direction));
@@ -111,9 +108,7 @@ public final class AttributesTest {
     final TypedKey<String> color = TypedKey.create("color");
 
     Http.RequestHeader newRequestHeader =
-        requestHeader
-            .addAttr(color, "red")
-            .addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(color, "white"));
+        requestHeader.addAttr(color, "red").addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(color, "white"));
 
     assertTrue(newRequestHeader.attrs().containsKey(number));
     assertTrue(newRequestHeader.attrs().containsKey(color));

@@ -43,13 +43,11 @@ public class JavaPekko {
     running(
         app,
         () -> {
-          javaguide.pekko.ask.Application controller =
-              app.injector().instanceOf(javaguide.pekko.ask.Application.class);
+          javaguide.pekko.ask.Application controller = app.injector().instanceOf(javaguide.pekko.ask.Application.class);
 
           try {
             String message =
-                contentAsString(
-                    controller.sayHello("world").toCompletableFuture().get(1, TimeUnit.SECONDS));
+                contentAsString(controller.sayHello("world").toCompletableFuture().get(1, TimeUnit.SECONDS));
             assertThat(message).isEqualTo("Hello, world");
           } catch (Exception e) {
             throw new RuntimeException(e);
@@ -71,9 +69,7 @@ public class JavaPekko {
               app.injector().instanceOf(javaguide.pekko.inject.Application.class);
 
           try {
-            String message =
-                contentAsString(
-                    controller.getConfig().toCompletableFuture().get(1, TimeUnit.SECONDS));
+            String message = contentAsString(controller.getConfig().toCompletableFuture().get(1, TimeUnit.SECONDS));
             assertThat(message).isEqualTo("foo");
           } catch (Exception e) {
             throw new RuntimeException(e);
@@ -92,17 +88,12 @@ public class JavaPekko {
         app,
         () -> {
           ActorRef parent =
-              app.injector()
-                  .instanceOf(
-                      play.inject.Bindings.bind(ActorRef.class).qualifiedWith("parent-actor"));
+              app.injector().instanceOf(play.inject.Bindings.bind(ActorRef.class).qualifiedWith("parent-actor"));
 
           try {
             String message =
                 (String)
-                    ask(
-                            parent,
-                            new ParentActorProtocol.GetChild("my.config"),
-                            java.time.Duration.ofMillis(1000))
+                    ask(parent, new ParentActorProtocol.GetChild("my.config"), java.time.Duration.ofMillis(1000))
                         .thenApply(msg -> (ActorRef) msg)
                         .thenCompose(
                             child ->

@@ -14,8 +14,7 @@ import play.filters.hosts.AllowedHostsFilter;
  *
  * @see AllowedHostsFilter
  */
-public interface AllowedHostsComponents
-    extends ConfigurationComponents, HttpErrorHandlerComponents {
+public interface AllowedHostsComponents extends ConfigurationComponents, HttpErrorHandlerComponents {
 
   default AllowedHostsConfig allowedHostsConfig() {
     return AllowedHostsConfig.fromConfiguration(configuration());

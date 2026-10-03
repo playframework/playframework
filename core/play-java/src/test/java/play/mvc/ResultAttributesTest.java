@@ -77,8 +77,7 @@ public final class ResultAttributesTest {
     final TypedKey<Long> number = TypedKey.create("number");
     final TypedKey<String> color = TypedKey.create("color");
 
-    final Result newResult =
-        result.addAttrs(new TypedEntry<>(color, "red"), new TypedEntry<>(number, 3L));
+    final Result newResult = result.addAttrs(new TypedEntry<>(color, "red"), new TypedEntry<>(number, 3L));
 
     assertTrue(newResult.attrs().containsKey(color));
     assertTrue(newResult.attrs().containsKey(number));
@@ -93,9 +92,7 @@ public final class ResultAttributesTest {
     final TypedKey<String> direction = TypedKey.create("direction");
 
     Result newResult =
-        result
-            .addAttr(color, "red")
-            .addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(direction, "left"));
+        result.addAttr(color, "red").addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(direction, "left"));
 
     assertTrue(newResult.attrs().containsKey(number));
     assertTrue(newResult.attrs().containsKey(direction));
@@ -111,9 +108,7 @@ public final class ResultAttributesTest {
     final TypedKey<String> color = TypedKey.create("color");
 
     Result newResult =
-        result
-            .addAttr(color, "red")
-            .addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(color, "white"));
+        result.addAttr(color, "red").addAttrs(new TypedEntry<>(number, 5L), new TypedEntry<>(color, "white"));
 
     assertTrue(newResult.attrs().containsKey(number));
     assertTrue(newResult.attrs().containsKey(color));

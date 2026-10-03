@@ -16,8 +16,7 @@ public class MappedConstraintValidatorFactory implements ConstraintValidatorFact
 
   // This is a Map<Class, Supplier> so that we can have both
   // singletons and non-singletons validators.
-  private final Map<Class<? extends ConstraintValidator>, Supplier<ConstraintValidator>>
-      validators = new HashMap<>();
+  private final Map<Class<? extends ConstraintValidator>, Supplier<ConstraintValidator>> validators = new HashMap<>();
 
   /**
    * Adds validator as a singleton.
@@ -27,8 +26,8 @@ public class MappedConstraintValidatorFactory implements ConstraintValidatorFact
    * @param <T> the type of constraint validator implementation
    * @return {@link MappedConstraintValidatorFactory} with the given constraint validator added.
    */
-  public <T extends ConstraintValidator<?, ?>>
-      MappedConstraintValidatorFactory addConstraintValidator(Class<T> key, T constraintValidator) {
+  public <T extends ConstraintValidator<?, ?>> MappedConstraintValidatorFactory addConstraintValidator(
+      Class<T> key, T constraintValidator) {
     validators.put(key, () -> constraintValidator);
     return this;
   }
@@ -41,9 +40,8 @@ public class MappedConstraintValidatorFactory implements ConstraintValidatorFact
    * @param <T> the type of constraint validator implementation
    * @return {@link MappedConstraintValidatorFactory} with the given constraint validator added.
    */
-  public <T extends ConstraintValidator<?, ?>>
-      MappedConstraintValidatorFactory addConstraintValidator(
-          Class<T> key, Supplier<T> constraintValidator) {
+  public <T extends ConstraintValidator<?, ?>> MappedConstraintValidatorFactory addConstraintValidator(
+      Class<T> key, Supplier<T> constraintValidator) {
     validators.put(key, constraintValidator::get);
     return this;
   }

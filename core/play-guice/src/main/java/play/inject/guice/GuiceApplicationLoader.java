@@ -39,16 +39,12 @@ public class GuiceApplicationLoader implements ApplicationLoader {
    * @return the builder
    */
   public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
-    return initialBuilder
-        .in(context.environment())
-        .loadConfig(context.initialConfig())
-        .overrides(overrides(context));
+    return initialBuilder.in(context.environment()).loadConfig(context.initialConfig()).overrides(overrides(context));
   }
 
   /**
-   * Identify some bindings that should be used as overrides when loading an application using this
-   * context. The default implementation of this method provides bindings that most applications
-   * should include.
+   * Identify some bindings that should be used as overrides when loading an application using this context. The default
+   * implementation of this method provides bindings that most applications should include.
    *
    * @param context the context that should be searched for overrides
    * @return the bindings that should be used to override

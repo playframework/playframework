@@ -66,9 +66,7 @@ public class JavaComet extends WithApplication {
     String content =
         contentAsString(
             MockJavaActionHelper.call(
-                new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)),
-                fakeRequest(),
-                mat),
+                new Controller1(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
             mat);
     assertThat(content).contains("<script>parent.cometMessage('kiki');</script>");
     assertThat(content).contains("<script>parent.cometMessage('foo');</script>");
@@ -80,9 +78,7 @@ public class JavaComet extends WithApplication {
     String content =
         contentAsString(
             MockJavaActionHelper.call(
-                new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)),
-                fakeRequest(),
-                mat),
+                new Controller2(app.injector().instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
             mat);
     assertThat(content).contains("<script>parent.cometMessage({\"foo\":\"bar\"});</script>");
   }

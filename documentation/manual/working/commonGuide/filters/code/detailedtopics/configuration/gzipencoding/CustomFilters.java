@@ -26,8 +26,7 @@ public class CustomFilters implements HttpFilters {
     GzipFilter gzipFilter =
         new GzipFilter(
             gzipFilterConfig.withShouldGzip(
-                (Http.RequestHeader req, Result res) ->
-                    res.body().contentType().orElse("").startsWith("text/html")),
+                (Http.RequestHeader req, Result res) -> res.body().contentType().orElse("").startsWith("text/html")),
             materializer);
     // #gzip-filter
     filters = Collections.singletonList(gzipFilter.asJava());

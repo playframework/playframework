@@ -22,22 +22,17 @@ public class ErrorHandler extends DefaultHttpErrorHandler {
 
   @Inject
   public ErrorHandler(
-      Config config,
-      Environment environment,
-      OptionalSourceMapper sourceMapper,
-      Provider<Router> routes) {
+      Config config, Environment environment, OptionalSourceMapper sourceMapper, Provider<Router> routes) {
     super(config, environment, sourceMapper, routes);
   }
 
-  protected CompletionStage<Result> onProdServerError(
-      RequestHeader request, UsefulException exception) {
+  protected CompletionStage<Result> onProdServerError(RequestHeader request, UsefulException exception) {
     return CompletableFuture.completedFuture(
         Results.internalServerError("A server error occurred: " + exception.getMessage()));
   }
 
   protected CompletionStage<Result> onForbidden(RequestHeader request, String message) {
-    return CompletableFuture.completedFuture(
-        Results.forbidden("You're not allowed to access this resource."));
+    return CompletableFuture.completedFuture(Results.forbidden("You're not allowed to access this resource."));
   }
 }
 // #default

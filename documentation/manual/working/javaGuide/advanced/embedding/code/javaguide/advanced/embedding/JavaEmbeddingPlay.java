@@ -45,8 +45,7 @@ public class JavaEmbeddingPlay {
                 ws.url("http://localhost:" + server.httpPort() + "/hello/world").get();
             // #http-port
             try {
-              assertThat(response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody())
-                  .isEqualTo("Hello world");
+              assertThat(response.toCompletableFuture().get(10, TimeUnit.SECONDS).getBody()).isEqualTo("Hello world");
             } catch (Exception e) {
               throw new RuntimeException(e);
             }

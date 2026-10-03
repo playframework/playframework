@@ -10,10 +10,7 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Implementations to work with URL paths. This is a utility class with usages by {@link
- * play.mvc.Call}.
- */
+/** Implementations to work with URL paths. This is a utility class with usages by {@link play.mvc.Call}. */
 public final class Paths {
   private Paths() {}
 
@@ -55,22 +52,19 @@ public final class Paths {
     String trailingSep = "";
     if (relativePath.length > 0) trailingSep = SEPARATOR;
 
-    return Arrays.stream(relativePath).collect(Collectors.joining(SEPARATOR))
-        + trailingSep
-        + targetFile;
+    return Arrays.stream(relativePath).collect(Collectors.joining(SEPARATOR)) + trailingSep + targetFile;
   }
 
   /**
-   * Create a canonical path that does not contain parent directories, current directories, or
-   * superfluous directory separators.
+   * Create a canonical path that does not contain parent directories, current directories, or superfluous directory
+   * separators.
    */
   public static String canonical(String url) {
     String[] urlPath = toSegments(url);
     Stack<String> canonical = new Stack<>();
     for (String comp : urlPath) {
       if (comp.isEmpty() || comp.equals(CURRENT_DIR)) continue;
-      if (!comp.equals(PARENT_DIR) || (!canonical.empty() && canonical.peek().equals(PARENT_DIR)))
-        canonical.push(comp);
+      if (!comp.equals(PARENT_DIR) || (!canonical.empty() && canonical.peek().equals(PARENT_DIR))) canonical.push(comp);
       else canonical.pop();
     }
 

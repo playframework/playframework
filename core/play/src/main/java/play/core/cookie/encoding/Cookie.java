@@ -40,8 +40,7 @@ public interface Cookie extends Comparable<Cookie> {
   void setValue(String value);
 
   /**
-   * Returns true if the raw value of this {@link Cookie}, was wrapped with double quotes in
-   * original Set-Cookie header.
+   * Returns true if the raw value of this {@link Cookie}, was wrapped with double quotes in original Set-Cookie header.
    *
    * @return If the value of this {@link Cookie} is to be wrapped
    */
@@ -97,18 +96,16 @@ public interface Cookie extends Comparable<Cookie> {
   void setSameSite(String sameSite);
 
   /**
-   * Returns the maximum age of this {@link Cookie} in seconds or {@link Integer#MIN_VALUE} if
-   * unspecified
+   * Returns the maximum age of this {@link Cookie} in seconds or {@link Integer#MIN_VALUE} if unspecified
    *
    * @return The maximum age of this {@link Cookie}
    */
   int maxAge();
 
   /**
-   * Sets the maximum age of this {@link Cookie} in seconds. If an age of {@code 0} is specified,
-   * this {@link Cookie} will be automatically removed by browser because it will expire
-   * immediately. If {@link Integer#MIN_VALUE} is specified, this {@link Cookie} will be removed
-   * when the browser is closed.
+   * Sets the maximum age of this {@link Cookie} in seconds. If an age of {@code 0} is specified, this {@link Cookie}
+   * will be automatically removed by browser because it will expire immediately. If {@link Integer#MIN_VALUE} is
+   * specified, this {@link Cookie} will be removed when the browser is closed.
    *
    * @param maxAge The maximum age of this {@link Cookie} in seconds
    */
@@ -129,9 +126,8 @@ public interface Cookie extends Comparable<Cookie> {
   void setSecure(boolean secure);
 
   /**
-   * Checks to see if this {@link Cookie} can only be accessed via HTTP. If this returns true, the
-   * {@link Cookie} cannot be accessed through client side script - But only if the browser supports
-   * it. For more information, please look <a
+   * Checks to see if this {@link Cookie} can only be accessed via HTTP. If this returns true, the {@link Cookie} cannot
+   * be accessed through client side script - But only if the browser supports it. For more information, please look <a
    * href="https://owasp.org/www-community/HttpOnly">here</a>
    *
    * @return True if this {@link Cookie} is HTTP-only or false if it isn't
@@ -139,9 +135,9 @@ public interface Cookie extends Comparable<Cookie> {
   boolean isHttpOnly();
 
   /**
-   * Determines if this {@link Cookie} is HTTP only. If set to true, this {@link Cookie} cannot be
-   * accessed by a client side script. However, this works only if the browser supports it. For for
-   * information, please look <a href="https://owasp.org/www-community/HttpOnly">here</a>.
+   * Determines if this {@link Cookie} is HTTP only. If set to true, this {@link Cookie} cannot be accessed by a client
+   * side script. However, this works only if the browser supports it. For for information, please look <a
+   * href="https://owasp.org/www-community/HttpOnly">here</a>.
    *
    * @param httpOnly True if the {@link Cookie} is HTTP only, otherwise false.
    */

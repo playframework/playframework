@@ -59,8 +59,7 @@ public class DelegatingClassLoader extends ClassLoader {
     return combineResources(resources1, resources2);
   }
 
-  private Enumeration<URL> combineResources(
-      Enumeration<URL> resources1, Enumeration<URL> resources2) {
+  private Enumeration<URL> combineResources(Enumeration<URL> resources1, Enumeration<URL> resources2) {
     Set<URL> set = new HashSet<>();
     while (resources1.hasMoreElements()) {
       set.add(resources1.nextElement());

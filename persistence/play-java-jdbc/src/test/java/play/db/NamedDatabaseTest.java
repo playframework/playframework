@@ -32,12 +32,9 @@ public class NamedDatabaseTest {
             "db.other.driver", "org.h2.Driver",
             "db.other.url", "jdbc:h2:mem:other");
     Injector injector = createInjector(config);
-    assertThat(injector.getInstance(DefaultComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:default");
-    assertThat(injector.getInstance(NamedDefaultComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:default");
-    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:other");
+    assertThat(injector.getInstance(DefaultComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:default");
+    assertThat(injector.getInstance(NamedDefaultComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:default");
+    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:other");
   }
 
   @Test
@@ -47,8 +44,7 @@ public class NamedDatabaseTest {
             "db.other.driver", "org.h2.Driver",
             "db.other.url", "jdbc:h2:mem:other");
     Injector injector = createInjector(config);
-    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:other");
+    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:other");
     exception.expect(com.google.inject.ConfigurationException.class);
     injector.getInstance(DefaultComponent.class);
   }
@@ -60,8 +56,7 @@ public class NamedDatabaseTest {
             "db.other.driver", "org.h2.Driver",
             "db.other.url", "jdbc:h2:mem:other");
     Injector injector = createInjector(config);
-    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:other");
+    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:other");
     exception.expect(com.google.inject.ConfigurationException.class);
     injector.getInstance(NamedDefaultComponent.class);
   }
@@ -74,10 +69,8 @@ public class NamedDatabaseTest {
             "db.other.driver", "org.h2.Driver",
             "db.other.url", "jdbc:h2:mem:other");
     Injector injector = createInjector(config);
-    assertThat(injector.getInstance(DefaultComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:other");
-    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:other");
+    assertThat(injector.getInstance(DefaultComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:other");
+    assertThat(injector.getInstance(NamedOtherComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:other");
     exception.expect(com.google.inject.ConfigurationException.class);
     injector.getInstance(NamedDefaultComponent.class);
   }
@@ -90,15 +83,12 @@ public class NamedDatabaseTest {
             "databases.default.driver", "org.h2.Driver",
             "databases.default.url", "jdbc:h2:mem:default");
     Injector injector = createInjector(config);
-    assertThat(injector.getInstance(DefaultComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:default");
-    assertThat(injector.getInstance(NamedDefaultComponent.class).db.getUrl())
-        .isEqualTo("jdbc:h2:mem:default");
+    assertThat(injector.getInstance(DefaultComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:default");
+    assertThat(injector.getInstance(NamedDefaultComponent.class).db.getUrl()).isEqualTo("jdbc:h2:mem:default");
   }
 
   private Injector createInjector(Map<String, Object> config) {
-    GuiceApplicationBuilder builder =
-        new GuiceApplicationLoader().builder(new Context(Environment.simple(), config));
+    GuiceApplicationBuilder builder = new GuiceApplicationLoader().builder(new Context(Environment.simple(), config));
     return Guice.createInjector(builder.applicationModule());
   }
 

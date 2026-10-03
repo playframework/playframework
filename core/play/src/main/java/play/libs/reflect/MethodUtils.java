@@ -23,19 +23,18 @@ import java.lang.reflect.Modifier;
 public class MethodUtils {
 
   /**
-   * {@link MethodUtils} instances should NOT be constructed in standard programming. Instead, the
-   * class should be used as {@code MethodUtils.getAccessibleMethod(method)}.
+   * {@link MethodUtils} instances should NOT be constructed in standard programming. Instead, the class should be used
+   * as {@code MethodUtils.getAccessibleMethod(method)}.
    *
-   * <p>This constructor is {@code public} to permit tools that require a JavaBean instance to
-   * operate.
+   * <p>This constructor is {@code public} to permit tools that require a JavaBean instance to operate.
    */
   public MethodUtils() {
     super();
   }
 
   /**
-   * Returns an accessible method (that is, one that can be invoked via reflection) that implements
-   * the specified Method. If no such method can be found, return {@code null}.
+   * Returns an accessible method (that is, one that can be invoked via reflection) that implements the specified
+   * Method. If no such method can be found, return {@code null}.
    *
    * @param method The method that we wish to call
    * @return The accessible method
@@ -63,8 +62,8 @@ public class MethodUtils {
   }
 
   /**
-   * Returns an accessible method (that is, one that can be invoked via reflection) by scanning
-   * through the superclasses. If no such method can be found, return {@code null}.
+   * Returns an accessible method (that is, one that can be invoked via reflection) by scanning through the
+   * superclasses. If no such method can be found, return {@code null}.
    *
    * @param cls Class to be checked
    * @param methodName Method name of the method we wish to call
@@ -88,13 +87,12 @@ public class MethodUtils {
   }
 
   /**
-   * Returns an accessible method (that is, one that can be invoked via reflection) that implements
-   * the specified method, by scanning through all implemented interfaces and subinterfaces. If no
-   * such method can be found, return {@code null}.
+   * Returns an accessible method (that is, one that can be invoked via reflection) that implements the specified
+   * method, by scanning through all implemented interfaces and subinterfaces. If no such method can be found, return
+   * {@code null}.
    *
-   * <p>There isn't any good reason why this method must be {@code private}. It is because there
-   * doesn't seem any reason why other classes should call this rather than the higher level
-   * methods.
+   * <p>There isn't any good reason why this method must be {@code private}. It is because there doesn't seem any reason
+   * why other classes should call this rather than the higher level methods.
    *
    * @param cls Parent class for the interfaces to be checked
    * @param methodName Method name of the method we wish to call
@@ -123,8 +121,7 @@ public class MethodUtils {
            */
         }
         // Recursively check our parent interfaces
-        final Method method =
-            getAccessibleMethodFromInterfaceNest(anInterface, methodName, parameterTypes);
+        final Method method = getAccessibleMethodFromInterfaceNest(anInterface, methodName, parameterTypes);
         if (method != null) {
           return method;
         }
@@ -134,12 +131,12 @@ public class MethodUtils {
   }
 
   /**
-   * Finds an accessible method that matches the given name and has compatible parameters.
-   * Compatible parameters mean that every method parameter is assignable from the given parameters.
-   * In other words, it finds a method with the given name that will take the parameters given.
+   * Finds an accessible method that matches the given name and has compatible parameters. Compatible parameters mean
+   * that every method parameter is assignable from the given parameters. In other words, it finds a method with the
+   * given name that will take the parameters given.
    *
-   * <p>This method can match primitive parameter by passing in wrapper classes. For example, a
-   * {@code Boolean} will match a primitive {@code boolean} parameter.
+   * <p>This method can match primitive parameter by passing in wrapper classes. For example, a {@code Boolean} will
+   * match a primitive {@code boolean} parameter.
    *
    * @param cls find method in this class
    * @param methodName find method with this name
@@ -159,13 +156,11 @@ public class MethodUtils {
     final Method[] methods = cls.getMethods();
     for (final Method method : methods) {
       // compare name and parameters
-      if (method.getName().equals(methodName)
-          && MemberUtils.isMatchingMethod(method, parameterTypes)) {
+      if (method.getName().equals(methodName) && MemberUtils.isMatchingMethod(method, parameterTypes)) {
         // get accessible version of method
         final Method accessibleMethod = getAccessibleMethod(method);
         if (accessibleMethod != null
-            && (bestMatch == null
-                || MemberUtils.compareMethodFit(accessibleMethod, bestMatch, parameterTypes) < 0)) {
+            && (bestMatch == null || MemberUtils.compareMethodFit(accessibleMethod, bestMatch, parameterTypes) < 0)) {
           bestMatch = accessibleMethod;
         }
       }
@@ -184,8 +179,7 @@ public class MethodUtils {
       final String methodParameterComponentTypeName =
           ClassUtils.primitiveToWrapper(methodParameterComponentType).getName();
       final String parameterTypeName = parameterTypes[parameterTypes.length - 1].getName();
-      final String parameterTypeSuperClassName =
-          parameterTypes[parameterTypes.length - 1].getSuperclass().getName();
+      final String parameterTypeSuperClassName = parameterTypes[parameterTypes.length - 1].getSuperclass().getName();
 
       if (!methodParameterComponentTypeName.equals(parameterTypeName)
           && !methodParameterComponentTypeName.equals(parameterTypeSuperClassName)) {

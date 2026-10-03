@@ -23,14 +23,13 @@ import play.mvc.Result;
 import play.mvc.Results;
 
 /**
- * An alternative default HTTP error handler which will render errors as JSON messages instead of
- * HTML pages.
+ * An alternative default HTTP error handler which will render errors as JSON messages instead of HTML pages.
  *
- * <p>In Dev mode, exceptions thrown by the server code will be rendered in JSON messages. In Prod
- * mode, they will not be rendered.
+ * <p>In Dev mode, exceptions thrown by the server code will be rendered in JSON messages. In Prod mode, they will not
+ * be rendered.
  *
- * <p>You could override how exceptions are rendered in Dev mode by extending this class and
- * overriding the [[formatDevServerErrorException]] method.
+ * <p>You could override how exceptions are rendered in Dev mode by extending this class and overriding the
+ * [[formatDevServerErrorException]] method.
  */
 public class JsonHttpErrorHandler implements HttpErrorHandler {
 
@@ -46,8 +45,7 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
   }
 
   @Override
-  public CompletionStage<Result> onClientError(
-      RequestHeader request, int statusCode, String message) {
+  public CompletionStage<Result> onClientError(RequestHeader request, int statusCode, String message) {
     if (!play.api.http.Status$.MODULE$.isClientError(statusCode)) {
       throw new IllegalArgumentException(
           "onClientError invoked with non client error status code " + statusCode + ": " + message);
@@ -77,24 +75,22 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
       }
     } catch (Exception e) {
       logger.error("Error while handling error", e);
-      return CompletableFuture.completedFuture(
-          Results.internalServerError(fatalErrorJson(request, e)));
+      return CompletableFuture.completedFuture(Results.internalServerError(fatalErrorJson(request, e)));
     }
   }
 
   /**
    * Invoked when handling a server error with this error handler failed.
    *
-   * <p>As a last resort this method allows you to return a (simple) error message that will be send
-   * along with a "500 Internal Server Error" response. It's highly recommended to just return a
-   * simple JsonNode, without doing any fancy processing inside the method (like accessing
-   * files,...) that could throw exceptions. This is your last chance to send a meaningful error
-   * message when everything else failed.
+   * <p>As a last resort this method allows you to return a (simple) error message that will be send along with a "500
+   * Internal Server Error" response. It's highly recommended to just return a simple JsonNode, without doing any fancy
+   * processing inside the method (like accessing files,...) that could throw exceptions. This is your last chance to
+   * send a meaningful error message when everything else failed.
    *
    * @param request The request that triggered the server error.
    * @param exception The server error.
-   * @return An error JSON which will be send as last resort in case handling a server error with
-   *     this error handler failed.
+   * @return An error JSON which will be send as last resort in case handling a server error with this error handler
+   *     failed.
    */
   protected JsonNode fatalErrorJson(RequestHeader request, Throwable exception) {
     return Json.newObject();
@@ -103,9 +99,8 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
   /**
    * Convert the given exception to an exception that Play can report more information about.
    *
-   * <p>This will generate an id for the exception, and in dev mode, will load the source code for
-   * the code that threw the exception, making it possible to report on the location that the
-   * exception was thrown from.
+   * <p>This will generate an id for the exception, and in dev mode, will load the source code for the code that threw
+   * the exception, making it possible to report on the location that the exception was thrown from.
    */
   protected final UsefulException throwableToUsefulException(final Throwable throwable) {
     return HttpErrorHandlerExceptions.throwableToUsefulException(
@@ -115,12 +110,10 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
   /**
    * Responsible for logging server errors.
    *
-   * <p>The base implementation uses a SLF4J logger. If a special annotation is desired for internal
-   * server errors, you may want to use SLF4J directly with the Marker API to distinguish server
-   * errors from application errors.
+   * <p>The base implementation uses a SLF4J logger. If a special annotation is desired for internal server errors, you
+   * may want to use SLF4J directly with the Marker API to distinguish server errors from application errors.
    *
-   * <p>This can also be overridden to add additional logging information, eg. the id of the
-   * authenticated user.
+   * <p>This can also be overridden to add additional logging information, eg. the id of the authenticated user.
    *
    * @param request The request that triggered the server error.
    * @param usefulException The server error.
@@ -172,8 +165,8 @@ public class JsonHttpErrorHandler implements HttpErrorHandler {
   /**
    * Invoked in prod mode when a server error occurs.
    *
-   * <p>Override this rather than {@link #onServerError(RequestHeader, Throwable)} if you don't want
-   * to change Play's debug output when logging errors in dev mode.
+   * <p>Override this rather than {@link #onServerError(RequestHeader, Throwable)} if you don't want to change Play's
+   * debug output when logging errors in dev mode.
    *
    * @param request The request that triggered the error.
    * @param exception The exception.

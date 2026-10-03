@@ -36,12 +36,10 @@ public class DefaultJPAApi implements JPAApi {
     private final JPAApi jpaApi;
 
     /**
-     * @deprecated Deprecated as of 2.8.0. Use {@link #JPAApiProvider(JPAConfig,
-     *     ApplicationLifecycle, DBApi)} instead.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #JPAApiProvider(JPAConfig, ApplicationLifecycle, DBApi)} instead.
      */
     @Deprecated
-    public JPAApiProvider(
-        JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
+    public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle, DBApi dbApi, Config config) {
       this(jpaConfig, lifecycle, dbApi);
     }
 
@@ -69,9 +67,7 @@ public class DefaultJPAApi implements JPAApi {
         .persistenceUnits()
         .forEach(
             persistenceUnit ->
-                emfs.put(
-                    persistenceUnit.name,
-                    Persistence.createEntityManagerFactory(persistenceUnit.unitName)));
+                emfs.put(persistenceUnit.name, Persistence.createEntityManagerFactory(persistenceUnit.unitName)));
     return this;
   }
 

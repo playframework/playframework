@@ -166,16 +166,14 @@ public class GuiceInjectorBuilderTest {
 
   public static class EnvironmentModule extends play.api.inject.Module {
     @Override
-    public Seq<play.api.inject.Binding<?>> bindings(
-        play.api.Environment env, play.api.Configuration conf) {
+    public Seq<play.api.inject.Binding<?>> bindings(play.api.Environment env, play.api.Configuration conf) {
       return seq(bind(Environment.class).toInstance(new Environment(env)));
     }
   }
 
   public static class ConfigurationModule extends play.api.inject.Module {
     @Override
-    public Seq<play.api.inject.Binding<?>> bindings(
-        play.api.Environment env, play.api.Configuration conf) {
+    public Seq<play.api.inject.Binding<?>> bindings(play.api.Environment env, play.api.Configuration conf) {
       return seq(bind(Config.class).toInstance(conf.underlying()));
     }
   }
@@ -183,8 +181,7 @@ public class GuiceInjectorBuilderTest {
   public static class JavaEnvironmentModule extends Module {
     @Override
     public List<Binding<?>> bindings(Environment env, Config conf) {
-      return Collections.singletonList(
-          bindClass(Environment.class).toInstance(new Environment(env.asScala())));
+      return Collections.singletonList(bindClass(Environment.class).toInstance(new Environment(env.asScala())));
     }
   }
 

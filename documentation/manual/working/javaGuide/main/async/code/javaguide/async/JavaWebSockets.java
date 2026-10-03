@@ -76,8 +76,7 @@ public class JavaWebSockets {
                       .map(
                           user ->
                               F.Either.<Result, Flow<String, String, ?>>Right(
-                                  ActorFlow.actorRef(
-                                      MyWebSocketActor::props, actorSystem, materializer)))
+                                  ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer)))
                       .orElseGet(() -> F.Either.Left(forbidden()))));
     }
 
@@ -89,10 +88,7 @@ public class JavaWebSockets {
           request ->
               CompletableFuture.supplyAsync(() -> "Do some async action ...")
                   .thenApply(
-                      __ ->
-                          F.Either.Right(
-                              ActorFlow.actorRef(
-                                  MyWebSocketActor::props, actorSystem, materializer))));
+                      __ -> F.Either.Right(ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer))));
     }
     // #accept-asynchronously
   }
@@ -103,8 +99,7 @@ public class JavaWebSockets {
 
     // #actor-json
     public WebSocket socket() {
-      return WebSocket.Json.accept(
-          request -> ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer));
+      return WebSocket.Json.accept(request -> ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer));
     }
     // #actor-json
   }
@@ -120,8 +115,7 @@ public class JavaWebSockets {
     // #actor-json-class
     public WebSocket socket() {
       return WebSocket.json(InEvent.class)
-          .accept(
-              request -> ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer));
+          .accept(request -> ActorFlow.actorRef(MyWebSocketActor::props, actorSystem, materializer));
     }
     // #actor-json-class
   }
@@ -185,16 +179,14 @@ public class JavaWebSockets {
     // #subprotocol
     private final List<Map.Entry<String, Flow<String, String, ?>>> supportedProtocols =
         List.of(
-            Map.entry(
-                "graphql-transport-ws", Flow.fromSinkAndSource(Sink.ignore(), Source.maybe())),
+            Map.entry("graphql-transport-ws", Flow.fromSinkAndSource(Sink.ignore(), Source.maybe())),
             Map.entry("graphql-ws", Flow.fromSinkAndSource(Sink.ignore(), Source.maybe())));
 
     public WebSocket socket() {
       return WebSocket.Text.acceptOrResultWithOptions(
           request -> {
             String header = request.header("Sec-WebSocket-Protocol").orElse("");
-            java.util.List<String> offered =
-                Arrays.stream(header.split(",")).map(String::trim).toList();
+            java.util.List<String> offered = Arrays.stream(header.split(",")).map(String::trim).toList();
 
             return supportedProtocols.stream()
                 .filter(entry -> offered.contains(entry.getKey()))
@@ -202,8 +194,7 @@ public class JavaWebSockets {
                 .<CompletableFuture<F.Either<Result, WebSocket.Accepted<String, String>>>>map(
                     entry ->
                         CompletableFuture.completedFuture(
-                            F.Either.Right(
-                                new WebSocket.Accepted<>(entry.getValue(), entry.getKey()))))
+                            F.Either.Right(new WebSocket.Accepted<>(entry.getValue(), entry.getKey()))))
                 .orElseGet(
                     () ->
                         CompletableFuture.completedFuture(
@@ -218,14 +209,10 @@ public class JavaWebSockets {
     public WebSocket socket() {
       return WebSocket.Text.acceptWithOptions(
           request -> {
-            Flow<String, String, ?> flow =
-                Flow.fromSinkAndSource(Sink.ignore(), Source.<String>maybe());
+            Flow<String, String, ?> flow = Flow.fromSinkAndSource(Sink.ignore(), Source.<String>maybe());
             return new WebSocket.Accepted<>(flow)
                 .withHeader("X-WebSocket-Trace", request.id().toString())
-                .withCookies(
-                    play.mvc.Http.Cookie.builder("ws-session", "connected")
-                        .withHttpOnly(true)
-                        .build())
+                .withCookies(play.mvc.Http.Cookie.builder("ws-session", "connected").withHttpOnly(true).build())
                 .addingToSession(request, "websocket", "connected");
           });
     }

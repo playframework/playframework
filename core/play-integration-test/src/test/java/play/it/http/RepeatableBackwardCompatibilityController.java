@@ -11,12 +11,11 @@ import play.mvc.Result;
 import play.mvc.Results;
 
 /**
- * Checks backward compatibility: Here only SomeActionAnnotation should run but the inner actions
- * should NOT. We always check first if an outer annotation has @With defined before trying to
- * unwrap it to see if it may is a container annotation. If SomeActionAnnotation below would not
- * define @With it would be seen as container annotation and the the wrapped annotations would run -
- * but also just because the inner annotations have @Repeatable defined; if they wouldn't be
- * defined @Repeatable then they wouldn't run as well.
+ * Checks backward compatibility: Here only SomeActionAnnotation should run but the inner actions should NOT. We always
+ * check first if an outer annotation has @With defined before trying to unwrap it to see if it may is a container
+ * annotation. If SomeActionAnnotation below would not define @With it would be seen as container annotation and the the
+ * wrapped annotations would run - but also just because the inner annotations have @Repeatable defined; if they
+ * wouldn't be defined @Repeatable then they wouldn't run as well.
  */
 public class RepeatableBackwardCompatibilityController extends MockController {
 

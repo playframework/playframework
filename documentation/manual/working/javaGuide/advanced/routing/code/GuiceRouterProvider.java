@@ -22,11 +22,7 @@ public class GuiceRouterProvider implements Provider<play.api.routing.Router> {
 
   @Override
   public play.api.routing.Router get() {
-    return routingDsl
-        .GET("/hello/:to")
-        .routingTo((request, to) -> ok("Hello " + to))
-        .build()
-        .asScala();
+    return routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build().asScala();
   }
 }
 // #load-guice2

@@ -9,10 +9,10 @@ import org.junit.Before;
 import play.Application;
 
 /**
- * Provides a server to JUnit tests. Make your test class extend this class and an HTTP server will
- * be started before each test is invoked. You can setup the application and port to use by
- * overriding the provideApplication and providePort methods. Within a test, the running application
- * and the TCP port are available through the app and port fields, respectively.
+ * Provides a server to JUnit tests. Make your test class extend this class and an HTTP server will be started before
+ * each test is invoked. You can setup the application and port to use by overriding the provideApplication and
+ * providePort methods. Within a test, the running application and the TCP port are available through the app and port
+ * fields, respectively.
  */
 public class WithServer {
 

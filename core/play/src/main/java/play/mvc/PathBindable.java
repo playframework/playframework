@@ -7,8 +7,8 @@ package play.mvc;
 /**
  * Binder for path parameters.
  *
- * <p>Any type <code>T</code> that implements this class can be bound to/from a path parameter. The
- * only requirement is that the class provides a noarg constructor.
+ * <p>Any type <code>T</code> that implements this class can be bound to/from a path parameter. The only requirement is
+ * that the class provides a noarg constructor.
  *
  * <p>For example, the following type could be used to bind an Ebean user:
  *

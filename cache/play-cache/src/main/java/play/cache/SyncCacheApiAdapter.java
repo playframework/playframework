@@ -28,8 +28,7 @@ public class SyncCacheApiAdapter implements SyncCacheApi {
 
   @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
-    return scalaApi.getOrElseUpdate(
-        key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
+    return scalaApi.getOrElseUpdate(key, intToDuration(expiration), Scala.asScala(block), Scala.classTag());
   }
 
   @Override

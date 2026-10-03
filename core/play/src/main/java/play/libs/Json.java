@@ -165,8 +165,8 @@ public class Json {
   /**
    * Inject the object mapper to use.
    *
-   * <p>This is intended to be used when Play starts up. By default, Play will inject its own object
-   * mapper here, but this mapper can be overridden either by a custom module.
+   * <p>This is intended to be used when Play starts up. By default, Play will inject its own object mapper here, but
+   * this mapper can be overridden either by a custom module.
    *
    * @param mapper the object mapper.
    */

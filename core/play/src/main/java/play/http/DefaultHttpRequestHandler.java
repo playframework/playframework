@@ -20,8 +20,7 @@ public class DefaultHttpRequestHandler implements HttpRequestHandler {
 
   @Override
   public HandlerForRequest handlerForRequest(RequestHeader request) {
-    Tuple2<play.api.mvc.RequestHeader, Handler> result =
-        underlying.handlerForRequest(request.asScala());
+    Tuple2<play.api.mvc.RequestHeader, Handler> result = underlying.handlerForRequest(request.asScala());
     return new HandlerForRequest(result._1().asJava(), result._2());
   }
 }

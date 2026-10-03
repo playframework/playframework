@@ -26,16 +26,15 @@ import scala.runtime.AbstractFunction1;
 /**
  * Accumulates inputs asynchronously into an output value.
  *
- * <p>An accumulator is a view over an Pekko streams Sink that materialises to a future, that is
- * focused on the value of that future, rather than the Stream. This means methods such as {@code
- * map}, {@code recover} and so on are provided for the eventually redeemed future value.
+ * <p>An accumulator is a view over an Pekko streams Sink that materialises to a future, that is focused on the value of
+ * that future, rather than the Stream. This means methods such as {@code map}, {@code recover} and so on are provided
+ * for the eventually redeemed future value.
  *
- * <p>In order to be in line with the Java ecosystem, the future implementation that this uses for
- * the materialised value of the Sink is java.util.concurrent.CompletionStage, and running this
- * accumulator will yield a CompletionStage. The constructor allows an accumulator to be created
- * from such a sink. Many methods in the Pekko streams API however materialise a
- * scala.concurrent.Future, hence the {@code fromSink} method is provided to create an accumulator
- * from a typical Pekko streams {@code Sink}.
+ * <p>In order to be in line with the Java ecosystem, the future implementation that this uses for the materialised
+ * value of the Sink is java.util.concurrent.CompletionStage, and running this accumulator will yield a CompletionStage.
+ * The constructor allows an accumulator to be created from such a sink. Many methods in the Pekko streams API however
+ * materialise a scala.concurrent.Future, hence the {@code fromSink} method is provided to create an accumulator from a
+ * typical Pekko streams {@code Sink}.
  */
 public abstract class Accumulator<E, A> {
 
@@ -69,8 +68,7 @@ public abstract class Accumulator<E, A> {
    * @param executor The executor to run the function in.
    * @return A new accumulator that has recovered from errors.
    */
-  public abstract Accumulator<E, A> recover(
-      Function<? super Throwable, ? extends A> f, Executor executor);
+  public abstract Accumulator<E, A> recover(Function<? super Throwable, ? extends A> f, Executor executor);
 
   /**
    * Recover from any errors encountered by the accumulator.
@@ -146,12 +144,10 @@ public abstract class Accumulator<E, A> {
   /**
    * Create an accumulator that forwards the stream fed into it to the source it produces.
    *
-   * <p>This is useful for when you want to send the consumed stream to another API that takes a
-   * Source as input.
+   * <p>This is useful for when you want to send the consumed stream to another API that takes a Source as input.
    *
-   * <p>Extreme care must be taken when using this accumulator - the source *must always* be
-   * materialized and consumed. If it isn't, this could lead to resource leaks and deadlocks
-   * upstream.
+   * <p>Extreme care must be taken when using this accumulator - the source *must always* be materialized and consumed.
+   * If it isn't, this could lead to resource leaks and deadlocks upstream.
    *
    * @return An accumulator that forwards the stream to the produced source.
    * @param <E> the "in" type of the parameter.
@@ -161,8 +157,7 @@ public abstract class Accumulator<E, A> {
     // https://github.com/akka/akka-core/issues/18406
     return new SinkAccumulator<>(
         Sink.<E>asPublisher(AsPublisher.WITHOUT_FANOUT)
-            .mapMaterializedValue(
-                publisher -> CompletableFuture.completedFuture(Source.fromPublisher(publisher))));
+            .mapMaterializedValue(publisher -> CompletableFuture.completedFuture(Source.fromPublisher(publisher))));
   }
 
   /**
@@ -194,10 +189,9 @@ public abstract class Accumulator<E, A> {
    *
    * @param <E> the "in" type of the parameter.
    * @param <A> the materialized result of the accumulator.
-   * @param strictHandler the handler to handle the stream if it can be expressed as a single
+   * @param strictHandler the handler to handle the stream if it can be expressed as a single element.
+   * @param toSink The sink representation of this accumulator, in case the stream can't be expressed as a single
    *     element.
-   * @param toSink The sink representation of this accumulator, in case the stream can't be
-   *     expressed as a single element.
    * @return The accumulator.
    */
   public static <E, A> Accumulator<E, A> strict(
@@ -214,13 +208,11 @@ public abstract class Accumulator<E, A> {
    * @param materializer the stream materializer
    * @return The accumulator using the given completion stage
    */
-  public static <E, A> Accumulator<E, A> flatten(
-      CompletionStage<Accumulator<E, A>> stage, Materializer materializer) {
+  public static <E, A> Accumulator<E, A> flatten(CompletionStage<Accumulator<E, A>> stage, Materializer materializer) {
     final CompletableFuture<A> result = new CompletableFuture<>();
     final FlattenSubscriber<A, E> subscriber = new FlattenSubscriber<>(stage, result, materializer);
 
-    final Sink<E, CompletionStage<A>> sink =
-        Sink.fromSubscriber(subscriber).mapMaterializedValue(x -> result);
+    final Sink<E, CompletionStage<A>> sink = Sink.fromSubscriber(subscriber).mapMaterializedValue(x -> result);
 
     return new SinkAccumulator<>(sink);
   }
@@ -243,9 +235,7 @@ public abstract class Accumulator<E, A> {
     private volatile Subscriber<? super E> underlying = new NoOpSubscriber<>();
 
     public FlattenSubscriber(
-        CompletionStage<Accumulator<E, A>> stage,
-        CompletableFuture<A> result,
-        Materializer materializer) {
+        CompletionStage<Accumulator<E, A>> stage, CompletableFuture<A> result, Materializer materializer) {
 
       this.stage = stage;
       this.result = result;
@@ -321,22 +311,17 @@ public abstract class Accumulator<E, A> {
       return new SinkAccumulator<>(sink.mapMaterializedValue(cs -> cs.thenApplyAsync(f, executor)));
     }
 
-    public <B> Accumulator<E, B> mapFuture(
-        Function<? super A, ? extends CompletionStage<B>> f, Executor executor) {
-      return new SinkAccumulator<>(
-          sink.mapMaterializedValue(cs -> cs.thenComposeAsync(f, executor)));
+    public <B> Accumulator<E, B> mapFuture(Function<? super A, ? extends CompletionStage<B>> f, Executor executor) {
+      return new SinkAccumulator<>(sink.mapMaterializedValue(cs -> cs.thenComposeAsync(f, executor)));
     }
 
-    public Accumulator<E, A> recover(
-        Function<? super Throwable, ? extends A> f, Executor executor) {
-      return new SinkAccumulator<>(
-          sink.mapMaterializedValue(cs -> completionStageRecover(cs, f, executor)));
+    public Accumulator<E, A> recover(Function<? super Throwable, ? extends A> f, Executor executor) {
+      return new SinkAccumulator<>(sink.mapMaterializedValue(cs -> completionStageRecover(cs, f, executor)));
     }
 
     public Accumulator<E, A> recoverWith(
         Function<? super Throwable, ? extends CompletionStage<A>> f, Executor executor) {
-      return new SinkAccumulator<>(
-          sink.mapMaterializedValue(cs -> completionStageRecoverWith(cs, f, executor)));
+      return new SinkAccumulator<>(sink.mapMaterializedValue(cs -> completionStageRecoverWith(cs, f, executor)));
     }
 
     public <D> Accumulator<D, A> through(Flow<D, E, ?> flow) {
@@ -360,8 +345,7 @@ public abstract class Accumulator<E, A> {
     }
 
     public play.api.libs.streams.Accumulator<E, A> asScala() {
-      return Accumulator$.MODULE$.apply(
-          sink.mapMaterializedValue(FutureConverters::asScala).asScala());
+      return Accumulator$.MODULE$.apply(sink.mapMaterializedValue(FutureConverters::asScala).asScala());
     }
   }
 
@@ -371,28 +355,24 @@ public abstract class Accumulator<E, A> {
     private final Sink<E, CompletionStage<A>> toSink;
 
     public StrictAccumulator(
-        Function<Optional<E>, CompletionStage<A>> strictHandler,
-        Sink<E, CompletionStage<A>> toSink) {
+        Function<Optional<E>, CompletionStage<A>> strictHandler, Sink<E, CompletionStage<A>> toSink) {
       this.strictHandler = strictHandler;
       this.toSink = toSink;
     }
 
     private <B> Accumulator<E, B> mapMat(Function<CompletionStage<A>, CompletionStage<B>> f) {
-      return new StrictAccumulator<>(
-          strictHandler.andThen(f), toSink.mapMaterializedValue(f::apply));
+      return new StrictAccumulator<>(strictHandler.andThen(f), toSink.mapMaterializedValue(f::apply));
     }
 
     public <B> Accumulator<E, B> map(Function<? super A, ? extends B> f, Executor executor) {
       return mapMat(cs -> cs.thenApplyAsync(f, executor));
     }
 
-    public <B> Accumulator<E, B> mapFuture(
-        Function<? super A, ? extends CompletionStage<B>> f, Executor executor) {
+    public <B> Accumulator<E, B> mapFuture(Function<? super A, ? extends CompletionStage<B>> f, Executor executor) {
       return mapMat(cs -> cs.thenComposeAsync(f, executor));
     }
 
-    public Accumulator<E, A> recover(
-        Function<? super Throwable, ? extends A> f, Executor executor) {
+    public Accumulator<E, A> recover(Function<? super Throwable, ? extends A> f, Executor executor) {
       return mapMat(cs -> completionStageRecover(cs, f, executor));
     }
 
@@ -434,9 +414,7 @@ public abstract class Accumulator<E, A> {
   }
 
   private static <A> CompletionStage<A> completionStageRecoverWith(
-      CompletionStage<A> cs,
-      Function<? super Throwable, ? extends CompletionStage<A>> f,
-      Executor executor) {
+      CompletionStage<A> cs, Function<? super Throwable, ? extends CompletionStage<A>> f, Executor executor) {
     return cs.handleAsync(
             (a, error) -> {
               if (a != null) {

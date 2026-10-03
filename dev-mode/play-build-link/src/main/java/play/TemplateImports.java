@@ -15,12 +15,7 @@ public class TemplateImports {
   public static final List<String> defaultScalaTemplateImports;
 
   private static final List<String> defaultTemplateImports =
-      List.of(
-          "models._",
-          "controllers._",
-          "play.api.i18n._",
-          "views.%format%._",
-          "play.api.templates.PlayMagic._");
+      List.of("models._", "controllers._", "play.api.i18n._", "views.%format%._", "play.api.templates.PlayMagic._");
 
   static {
     List<String> minimalJavaImports = new ArrayList<>(defaultTemplateImports);

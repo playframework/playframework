@@ -76,8 +76,7 @@ public class Security {
     }
 
     /**
-     * Generates an alternative result if the user is not authenticated; the default a simple '401
-     * Not Authorized' page.
+     * Generates an alternative result if the user is not authenticated; the default a simple '401 Not Authorized' page.
      *
      * @param req the current request
      * @return a <code>401 Not Authorized</code> result

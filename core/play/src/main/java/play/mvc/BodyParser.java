@@ -58,8 +58,7 @@ public interface BodyParser<A> {
   /**
    * Return an accumulator to parse the body of the given HTTP request.
    *
-   * <p>The accumulator should either produce a result if an error was encountered, or the parsed
-   * body.
+   * <p>The accumulator should either produce a result if an error was encountered, or the parsed body.
    *
    * @param request The request to create the body parser for.
    * @return The accumulator to parse the body.
@@ -82,10 +81,7 @@ public interface BodyParser<A> {
   /** If the request has a body, guess the body content by checking the Content-Type header. */
   class Default extends AnyContent {
     @Inject
-    public Default(
-        HttpErrorHandler errorHandler,
-        HttpConfiguration httpConfiguration,
-        PlayBodyParsers parsers) {
+    public Default(HttpErrorHandler errorHandler, HttpConfiguration httpConfiguration, PlayBodyParsers parsers) {
       super(errorHandler, httpConfiguration, parsers);
     }
 
@@ -106,10 +102,7 @@ public interface BodyParser<A> {
     private final PlayBodyParsers parsers;
 
     @Inject
-    public AnyContent(
-        HttpErrorHandler errorHandler,
-        HttpConfiguration httpConfiguration,
-        PlayBodyParsers parsers) {
+    public AnyContent(HttpErrorHandler errorHandler, HttpConfiguration httpConfiguration, PlayBodyParsers parsers) {
       this.errorHandler = errorHandler;
       this.httpConfiguration = httpConfiguration;
       this.parsers = parsers;
@@ -117,8 +110,7 @@ public interface BodyParser<A> {
 
     @Override
     public Accumulator<ByteString, F.Either<Result, Object>> apply(Http.RequestHeader request) {
-      String contentType =
-          request.contentType().map(ct -> ct.toLowerCase(Locale.ENGLISH)).orElse(null);
+      String contentType = request.contentType().map(ct -> ct.toLowerCase(Locale.ENGLISH)).orElse(null);
       final BodyParser<?> parser;
       if (contentType != null) {
         if (contentType.equals("text/plain")) {
@@ -128,10 +120,7 @@ public interface BodyParser<A> {
                   either ->
                       either
                           .right
-                          .map(
-                              b ->
-                                  F.Either.<Result, Object>Right(
-                                      b == null || b.isEmpty() ? Optional.empty() : b))
+                          .map(b -> F.Either.<Result, Object>Right(b == null || b.isEmpty() ? Optional.empty() : b))
                           .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
                   JavaParsers.trampoline());
         } else if (contentType.equals("text/xml")
@@ -159,9 +148,7 @@ public interface BodyParser<A> {
                           .map(
                               b ->
                                   F.Either.<Result, Object>Right(
-                                      b == null || (b.isEmpty() && b.isMissingNode())
-                                          ? Optional.empty()
-                                          : b))
+                                      b == null || (b.isEmpty() && b.isMissingNode()) ? Optional.empty() : b))
                           .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
                   JavaParsers.trampoline());
         } else if (contentType.equals("application/x-www-form-urlencoded")) {
@@ -171,10 +158,7 @@ public interface BodyParser<A> {
                   either ->
                       either
                           .right
-                          .map(
-                              b ->
-                                  F.Either.<Result, Object>Right(
-                                      b == null || b.isEmpty() ? Optional.empty() : b))
+                          .map(b -> F.Either.<Result, Object>Right(b == null || b.isEmpty() ? Optional.empty() : b))
                           .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
                   JavaParsers.trampoline());
         } else if (contentType.equals("multipart/form-data")) {
@@ -184,10 +168,7 @@ public interface BodyParser<A> {
                   either ->
                       either
                           .right
-                          .map(
-                              b ->
-                                  F.Either.<Result, Object>Right(
-                                      b == null || b.isEmpty() ? Optional.empty() : b))
+                          .map(b -> F.Either.<Result, Object>Right(b == null || b.isEmpty() ? Optional.empty() : b))
                           .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
                   JavaParsers.trampoline());
         }
@@ -198,10 +179,7 @@ public interface BodyParser<A> {
               either ->
                   either
                       .right
-                      .map(
-                          b ->
-                              F.Either.<Result, Object>Right(
-                                  b == null || b.size() == 0 ? Optional.empty() : b))
+                      .map(b -> F.Either.<Result, Object>Right(b == null || b.size() == 0 ? Optional.empty() : b))
                       .orElseGet(() -> either.left.map(r -> F.Either.Left(r)).get()),
               JavaParsers.trampoline());
     }
@@ -262,10 +240,7 @@ public interface BodyParser<A> {
     }
 
     @Inject
-    public Xml(
-        HttpConfiguration httpConfiguration,
-        HttpErrorHandler errorHandler,
-        PlayBodyParsers parsers) {
+    public Xml(HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler, PlayBodyParsers parsers) {
       super(httpConfiguration, errorHandler);
       this.errorHandler = errorHandler;
       this.parsers = parsers;
@@ -322,11 +297,7 @@ public interface BodyParser<A> {
     @Override
     public Accumulator<ByteString, F.Either<Result, String>> apply(Http.RequestHeader request) {
       return BodyParsers.validateContentType(
-          errorHandler,
-          request,
-          "Expected text/plain",
-          ct -> ct.equalsIgnoreCase("text/plain"),
-          super::apply);
+          errorHandler, request, "Expected text/plain", ct -> ct.equalsIgnoreCase("text/plain"), super::apply);
     }
 
     @Override
@@ -381,8 +352,7 @@ public interface BodyParser<A> {
               // Make sure we are at the beginning of the buffer - previous decoding attempts may
               // have managed to advance through a part of the buffer before failing.
               byteBuffer.rewind();
-              CharsetDecoder decoder =
-                  encodingToTry.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
+              CharsetDecoder decoder = encodingToTry.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
               return F.Either.Right(decoder.decode(byteBuffer).toString());
             } catch (CharacterCodingException e) {
               String msg =
@@ -470,26 +440,21 @@ public interface BodyParser<A> {
     private final File to;
     private final Materializer materializer;
 
-    public ToFile(
-        File to, long maxLength, HttpErrorHandler errorHandler, Materializer materializer) {
+    public ToFile(File to, long maxLength, HttpErrorHandler errorHandler, Materializer materializer) {
       super(maxLength, errorHandler);
       this.to = to;
       this.materializer = materializer;
     }
 
     public ToFile(
-        File to,
-        HttpConfiguration httpConfiguration,
-        HttpErrorHandler errorHandler,
-        Materializer materializer) {
+        File to, HttpConfiguration httpConfiguration, HttpErrorHandler errorHandler, Materializer materializer) {
       this(to, httpConfiguration.parser().maxDiskBuffer(), errorHandler, materializer);
     }
 
     @Override
     protected Accumulator<ByteString, F.Either<Result, File>> apply1(Http.RequestHeader request) {
       return Accumulator.fromSink(
-              StreamConverters.fromOutputStream(
-                  () -> java.nio.file.Files.newOutputStream(this.to.toPath())))
+              StreamConverters.fromOutputStream(() -> java.nio.file.Files.newOutputStream(this.to.toPath())))
           .map(ioResult -> F.Either.Right(this.to), materializer.executionContext());
     }
   }
@@ -515,11 +480,7 @@ public interface BodyParser<A> {
         play.libs.Files.TemporaryFileCreator temporaryFileCreator,
         HttpErrorHandler errorHandler,
         Materializer materializer) {
-      this(
-          httpConfiguration.parser().maxDiskBuffer(),
-          temporaryFileCreator,
-          errorHandler,
-          materializer);
+      this(httpConfiguration.parser().maxDiskBuffer(), temporaryFileCreator, errorHandler, materializer);
     }
 
     @Override
@@ -529,19 +490,15 @@ public interface BodyParser<A> {
         // We check early here already to not even create a temporary file
         return Accumulator.done(requestEntityTooLarge(request));
       } else {
-        play.libs.Files.TemporaryFile tempFile =
-            temporaryFileCreator.create("requestBody", "asTemporaryFile");
+        play.libs.Files.TemporaryFile tempFile = temporaryFileCreator.create("requestBody", "asTemporaryFile");
         return Accumulator.fromSink(
-                StreamConverters.fromOutputStream(
-                    () -> java.nio.file.Files.newOutputStream(tempFile.path())))
+                StreamConverters.fromOutputStream(() -> java.nio.file.Files.newOutputStream(tempFile.path())))
             .map(ioResult -> F.Either.Right(tempFile), materializer.executionContext());
       }
     }
   }
 
-  /**
-   * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
-   */
+  /** Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded. */
   class FormUrlEncoded extends BufferingBodyParser<Map<String, String[]>> {
     private final HttpErrorHandler errorHandler;
 
@@ -557,8 +514,7 @@ public interface BodyParser<A> {
     }
 
     @Override
-    public Accumulator<ByteString, F.Either<Result, Map<String, String[]>>> apply(
-        Http.RequestHeader request) {
+    public Accumulator<ByteString, F.Either<Result, Map<String, String[]>>> apply(Http.RequestHeader request) {
       return BodyParsers.validateContentType(
           errorHandler,
           request,
@@ -568,8 +524,7 @@ public interface BodyParser<A> {
     }
 
     @Override
-    protected Map<String, String[]> parse(Http.RequestHeader request, ByteString bytes)
-        throws Exception {
+    protected Map<String, String[]> parse(Http.RequestHeader request, ByteString bytes) throws Exception {
       String charset = request.charset().orElse("UTF-8");
       String urlEncodedString = bytes.decodeString("UTF-8");
       return FormUrlEncodedParser.parseAsJavaArrayValues(urlEncodedString, charset);
@@ -579,8 +534,7 @@ public interface BodyParser<A> {
   /** Parse the body as multipart form-data without checking the Content-Type. */
   class MultipartFormData
       extends DelegatingBodyParser<
-          Http.MultipartFormData<play.libs.Files.TemporaryFile>,
-          play.api.mvc.MultipartFormData<Files.TemporaryFile>> {
+          Http.MultipartFormData<play.libs.Files.TemporaryFile>, play.api.mvc.MultipartFormData<Files.TemporaryFile>> {
     @Inject
     public MultipartFormData(PlayBodyParsers parsers) {
       super(parsers.multipartFormData(), JavaParsers::toJavaMultipartFormData);
@@ -595,17 +549,14 @@ public interface BodyParser<A> {
     }
 
     public MultipartFormData(PlayBodyParsers parsers, long maxLength, boolean allowEmptyFiles) {
-      super(
-          parsers.multipartFormData(maxLength, allowEmptyFiles),
-          JavaParsers::toJavaMultipartFormData);
+      super(parsers.multipartFormData(maxLength, allowEmptyFiles), JavaParsers::toJavaMultipartFormData);
     }
   }
 
   /** Don't parse the body. */
   class Empty implements BodyParser<Optional<Void>> {
     @Override
-    public Accumulator<ByteString, F.Either<Result, Optional<Void>>> apply(
-        Http.RequestHeader request) {
+    public Accumulator<ByteString, F.Either<Result, Optional<Void>>> apply(Http.RequestHeader request) {
       return Accumulator.done(F.Either.Right(Optional.empty()));
     }
   }
@@ -656,8 +607,7 @@ public interface BodyParser<A> {
      * @param request header for the request to parse
      * @return the accumulator that parses the request
      */
-    protected abstract Accumulator<ByteString, F.Either<Result, A>> apply1(
-        Http.RequestHeader request);
+    protected abstract Accumulator<ByteString, F.Either<Result, A>> apply1(Http.RequestHeader request);
   }
 
   /** A body parser that first buffers */
@@ -665,8 +615,7 @@ public interface BodyParser<A> {
     private final HttpErrorHandler errorHandler;
     private final String errorMessage;
 
-    protected BufferingBodyParser(
-        long maxLength, HttpErrorHandler errorHandler, String errorMessage) {
+    protected BufferingBodyParser(long maxLength, HttpErrorHandler errorHandler, String errorMessage) {
       super(maxLength, errorHandler);
       this.errorHandler = errorHandler;
       this.errorMessage = errorMessage;
@@ -678,13 +627,11 @@ public interface BodyParser<A> {
     }
 
     @Override
-    protected final Accumulator<ByteString, F.Either<Result, A>> apply1(
-        Http.RequestHeader request) {
+    protected final Accumulator<ByteString, F.Either<Result, A>> apply1(Http.RequestHeader request) {
       Accumulator<ByteString, ByteString> byteStringByteStringAccumulator =
           Accumulator.strict(
               maybeStrictBytes ->
-                  CompletableFuture.completedFuture(
-                      maybeStrictBytes.orElse(ByteString.emptyByteString())),
+                  CompletableFuture.completedFuture(maybeStrictBytes.orElse(ByteString.emptyByteString())),
               Sink.fold(ByteString.emptyByteString(), ByteString::concat));
       Accumulator<ByteString, F.Either<Result, A>> byteStringEitherAccumulator =
           byteStringByteStringAccumulator.mapFuture(
@@ -693,8 +640,7 @@ public interface BodyParser<A> {
                   return CompletableFuture.completedFuture(F.Either.Right(parse(request, bytes)));
                 } catch (Exception e) {
                   return errorHandler
-                      .onClientError(
-                          request, Status.BAD_REQUEST, errorMessage + ": " + e.getMessage())
+                      .onClientError(request, Status.BAD_REQUEST, errorMessage + ": " + e.getMessage())
                       .thenApply(F.Either::<Result, A>Left);
                 }
               },
@@ -708,16 +654,15 @@ public interface BodyParser<A> {
      * @param request The request associated with the body.
      * @param bytes The bytes of the body.
      * @return The body.
-     * @throws Exception If the body failed to parse. It is assumed that any exceptions thrown by
-     *     this method are the fault of the client, so a 400 bad request error will be returned if
-     *     this method throws an exception.
+     * @throws Exception If the body failed to parse. It is assumed that any exceptions thrown by this method are the
+     *     fault of the client, so a 400 bad request error will be returned if this method throws an exception.
      */
     protected abstract A parse(Http.RequestHeader request, ByteString bytes) throws Exception;
   }
 
   /**
-   * A body parser that delegates to a Scala body parser, and uses the supplied function to
-   * transform its result to a Java body.
+   * A body parser that delegates to a Scala body parser, and uses the supplied function to transform its result to a
+   * Java body.
    */
   abstract class DelegatingBodyParser<A, B> implements BodyParser<A> {
     private final play.api.mvc.BodyParser<B> delegate;
@@ -739,8 +684,7 @@ public interface BodyParser<A> {
     private final CompletionStage<BodyParser<A>> underlying;
     private final Materializer materializer;
 
-    public CompletableBodyParser(
-        CompletionStage<BodyParser<A>> underlying, Materializer materializer) {
+    public CompletableBodyParser(CompletionStage<BodyParser<A>> underlying, Materializer materializer) {
 
       this.underlying = underlying;
       this.materializer = materializer;
@@ -756,11 +700,10 @@ public interface BodyParser<A> {
   }
 
   /**
-   * A body parser that exposes a file part handler as an abstract method and delegates the
-   * implementation to the underlying Scala multipartParser.
+   * A body parser that exposes a file part handler as an abstract method and delegates the implementation to the
+   * underlying Scala multipartParser.
    */
-  abstract class DelegatingMultipartFormDataBodyParser<A>
-      extends MaxLengthBodyParser<Http.MultipartFormData<A>> {
+  abstract class DelegatingMultipartFormDataBodyParser<A> extends MaxLengthBodyParser<Http.MultipartFormData<A>> {
 
     private final Materializer materializer;
     private final long maxMemoryBufferSize;
@@ -768,9 +711,8 @@ public interface BodyParser<A> {
     private final play.api.http.HttpErrorHandler errorHandler;
 
     /**
-     * @deprecated Deprecated as of 2.8.0. Use {@link
-     *     #DelegatingMultipartFormDataBodyParser(Materializer, long, long, HttpErrorHandler)}
-     *     instead.
+     * @deprecated Deprecated as of 2.8.0. Use {@link #DelegatingMultipartFormDataBodyParser(Materializer, long, long,
+     *     HttpErrorHandler)} instead.
      */
     @Deprecated
     public DelegatingMultipartFormDataBodyParser(
@@ -783,16 +725,12 @@ public interface BodyParser<A> {
     }
 
     /**
-     * @deprecated Deprecated as of 2.9.0. Use {@link
-     *     #DelegatingMultipartFormDataBodyParser(Materializer, long, long, boolean,
-     *     HttpErrorHandler)} instead.
+     * @deprecated Deprecated as of 2.9.0. Use {@link #DelegatingMultipartFormDataBodyParser(Materializer, long, long,
+     *     boolean, HttpErrorHandler)} instead.
      */
     @Deprecated
     public DelegatingMultipartFormDataBodyParser(
-        Materializer materializer,
-        long maxMemoryBufferSize,
-        long maxLength,
-        HttpErrorHandler errorHandler) {
+        Materializer materializer, long maxMemoryBufferSize, long maxLength, HttpErrorHandler errorHandler) {
       this(materializer, maxMemoryBufferSize, maxLength, false, errorHandler);
     }
 
@@ -815,13 +753,11 @@ public interface BodyParser<A> {
      * @return a file part handler function.
      */
     public abstract Function<
-            Multipart.FileInfo,
-            play.libs.streams.Accumulator<ByteString, Http.MultipartFormData.FilePart<A>>>
+            Multipart.FileInfo, play.libs.streams.Accumulator<ByteString, Http.MultipartFormData.FilePart<A>>>
         createFilePartHandler();
 
     /** Calls out to the Scala API to create a multipart parser. */
-    private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser(
-        boolean allowEmptyFiles) {
+    private play.api.mvc.BodyParser<play.api.mvc.MultipartFormData<A>> multipartParser(boolean allowEmptyFiles) {
       ScalaFilePartHandler filePartHandler = new ScalaFilePartHandler();
       return Multipart.multipartParser(
           maxMemoryBufferSize, allowEmptyFiles, filePartHandler, errorHandler, materializer);
@@ -830,12 +766,10 @@ public interface BodyParser<A> {
     private class ScalaFilePartHandler
         extends AbstractFunction1<
             Multipart.FileInfo,
-            play.api.libs.streams.Accumulator<
-                ByteString, play.api.mvc.MultipartFormData.FilePart<A>>> {
+            play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>>> {
       @Override
-      public play.api.libs.streams.Accumulator<
-              ByteString, play.api.mvc.MultipartFormData.FilePart<A>>
-          apply(Multipart.FileInfo fileInfo) {
+      public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.MultipartFormData.FilePart<A>> apply(
+          Multipart.FileInfo fileInfo) {
         return createFilePartHandler()
             .apply(fileInfo)
             .asScala()
@@ -844,22 +778,17 @@ public interface BodyParser<A> {
     }
 
     private class JavaFilePartToScalaFilePart
-        extends AbstractFunction1<
-            Http.MultipartFormData.FilePart<A>, play.api.mvc.MultipartFormData.FilePart<A>> {
+        extends AbstractFunction1<Http.MultipartFormData.FilePart<A>, play.api.mvc.MultipartFormData.FilePart<A>> {
       @Override
-      public play.api.mvc.MultipartFormData.FilePart<A> apply(
-          Http.MultipartFormData.FilePart<A> filePart) {
+      public play.api.mvc.MultipartFormData.FilePart<A> apply(Http.MultipartFormData.FilePart<A> filePart) {
         return filePart.asScala();
       }
     }
 
-    /**
-     * Delegates underlying functionality to another body parser and converts the result to Java
-     * API.
-     */
+    /** Delegates underlying functionality to another body parser and converts the result to Java API. */
     @Override
-    public play.libs.streams.Accumulator<ByteString, F.Either<Result, Http.MultipartFormData<A>>>
-        apply1(Http.RequestHeader request) {
+    public play.libs.streams.Accumulator<ByteString, F.Either<Result, Http.MultipartFormData<A>>> apply1(
+        Http.RequestHeader request) {
       return delegate
           .apply(request.asScala())
           .asJava()
@@ -875,10 +804,7 @@ public interface BodyParser<A> {
               JavaParsers.trampoline());
     }
 
-    /**
-     * Extends Http.MultipartFormData to use File specifically, converting from Scala API to Java
-     * API.
-     */
+    /** Extends Http.MultipartFormData to use File specifically, converting from Scala API to Java API. */
     private class DelegatingMultipartFormData extends Http.MultipartFormData<A> {
       private final play.api.mvc.MultipartFormData<A> scalaFormData;
 
@@ -890,9 +816,7 @@ public interface BodyParser<A> {
       public Map<String, String[]> asFormUrlEncoded() {
         // TODO have this transformations in Scala is easier.
         return CollectionConverters.asJava(scalaFormData.asFormUrlEncoded()).entrySet().stream()
-            .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> Scala.asArray(String.class, entry.getValue())));
       }
 
       @Override

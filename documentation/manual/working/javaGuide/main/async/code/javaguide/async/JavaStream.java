@@ -28,9 +28,7 @@ public class JavaStream extends WithApplication {
 
   @Test
   public void byDefault() {
-    assertThat(
-            contentAsString(
-                call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
+    assertThat(contentAsString(call(new Controller1(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
         .isEqualTo("Hello World");
   }
 
@@ -51,10 +49,7 @@ public class JavaStream extends WithApplication {
   public void byDefaultWithHttpEntity() {
     assertThat(
             contentAsString(
-                call(
-                    new ControllerWithHttpEntity(instanceOf(JavaHandlerComponents.class)),
-                    fakeRequest(),
-                    mat)))
+                call(new ControllerWithHttpEntity(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
         .isEqualTo("Hello World");
   }
 
@@ -135,8 +130,7 @@ public class JavaStream extends WithApplication {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    Result result =
-        call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
+    Result result = call(new Controller2(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat);
     assertThat(contentAsString(result, mat)).isEqualTo("hi");
     assertThat(result.body().contentLength()).hasValue(2L);
     file.delete();
@@ -184,9 +178,7 @@ public class JavaStream extends WithApplication {
   @Test
   public void inputStream() {
     String content =
-        contentAsString(
-            call(new Controller3(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
-            mat);
+        contentAsString(call(new Controller3(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
     // Wait until results refactoring is merged, then this will work
     // assertThat(content, containsString("hello"));
   }
@@ -212,9 +204,7 @@ public class JavaStream extends WithApplication {
   @Test
   public void chunked() {
     String content =
-        contentAsString(
-            call(new Controller4(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat),
-            mat);
+        contentAsString(call(new Controller4(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat), mat);
     assertThat(content).isEqualTo("kikifoobar");
   }
 

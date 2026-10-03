@@ -56,12 +56,7 @@ public class Result {
    * @param attrs the typed attributes set on the response.
    */
   public Result(
-      ResponseHeader header,
-      HttpEntity body,
-      Session session,
-      Flash flash,
-      List<Cookie> cookies,
-      TypedMap attrs) {
+      ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies, TypedMap attrs) {
     this.header = header;
     this.body = body;
     this.session = session;
@@ -79,8 +74,7 @@ public class Result {
    * @param flash the flash object on the response.
    * @param cookies the cookies set on the response.
    */
-  public Result(
-      ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies) {
+  public Result(ResponseHeader header, HttpEntity body, Session session, Flash flash, List<Cookie> cookies) {
     this(header, body, session, flash, cookies, TypedMap.empty());
   }
 
@@ -338,8 +332,8 @@ public class Result {
 
   /**
    * @param request Current request
-   * @return The session carried by this result. Reads the given request's session if this result
-   *     does not has a session.
+   * @return The session carried by this result. Reads the given request's session if this result does not has a
+   *     session.
    */
   public Session session(Http.Request request) {
     if (session != null) {
@@ -525,8 +519,7 @@ public class Result {
    * @param secure Whether the cookie to discard is secure
    * @param partitioned Whether the cookie to discard is partitioned
    */
-  public Result discardingCookie(
-      String name, String path, String domain, boolean secure, boolean partitioned) {
+  public Result discardingCookie(String name, String path, String domain, boolean secure, boolean partitioned) {
     return discardingCookie(name, path, domain, secure, null, partitioned);
   }
 
@@ -539,8 +532,7 @@ public class Result {
    * @param secure Whether the cookie to discard is secure
    * @param sameSite The SameSite attribute of the cookie to discard, may be null
    */
-  public Result discardingCookie(
-      String name, String path, String domain, boolean secure, Cookie.SameSite sameSite) {
+  public Result discardingCookie(String name, String path, String domain, boolean secure, Cookie.SameSite sameSite) {
     return discardingCookie(name, path, domain, secure, sameSite, false);
   }
 
@@ -555,12 +547,7 @@ public class Result {
    * @param partitioned Whether the cookie to discard is partitioned
    */
   public Result discardingCookie(
-      String name,
-      String path,
-      String domain,
-      boolean secure,
-      Cookie.SameSite sameSite,
-      boolean partitioned) {
+      String name, String path, String domain, boolean secure, Cookie.SameSite sameSite, boolean partitioned) {
     return withCookies(
         new DiscardingCookie(
                 name,
@@ -587,15 +574,14 @@ public class Result {
   /**
    * Return a copy of this result with the given headers.
    *
-   * <p>The headers are processed in pairs, so nameValues(0) is the first header's name, and
-   * nameValues(1) is the first header's value, nameValues(2) is second header's name, and so on.
+   * <p>The headers are processed in pairs, so nameValues(0) is the first header's name, and nameValues(1) is the first
+   * header's value, nameValues(2) is second header's name, and so on.
    *
    * @param nameValues the array of names and values.
    * @return the transformed copy
    */
   public Result withHeaders(String... nameValues) {
-    return new Result(
-        JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies, attrs);
+    return new Result(JavaResultExtractor.withHeader(header, nameValues), body, session, flash, cookies, attrs);
   }
 
   /**
@@ -778,9 +764,7 @@ public class Result {
     return new play.api.mvc.Result(
         header.asScala(),
         body.asScala(),
-        session == null
-            ? Scala.None()
-            : Scala.Option(play.api.mvc.Session.fromJavaSession(session)),
+        session == null ? Scala.None() : Scala.Option(play.api.mvc.Session.fromJavaSession(session)),
         flash == null ? Scala.None() : Scala.Option(play.api.mvc.Flash.fromJavaFlash(flash)),
         JavaHelpers$.MODULE$.cookiesToScalaCookies(cookies),
         attrs.asScala());

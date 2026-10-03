@@ -36,8 +36,7 @@ public class JavaRoutingDsl extends WithApplication {
   @Test
   public void simple() {
     // #simple
-    Router router =
-        routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
+    Router router = routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
     // #simple
 
     assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
@@ -46,22 +45,17 @@ public class JavaRoutingDsl extends WithApplication {
   @Test
   public void fullPath() {
     // #full-path
-    Router router =
-        routingDsl.GET("/assets/*file").routingTo((request, file) -> ok("Serving " + file)).build();
+    Router router = routingDsl.GET("/assets/*file").routingTo((request, file) -> ok("Serving " + file)).build();
     // #full-path
 
-    assertThat(makeRequest(router, "GET", "/assets/javascripts/main.js"))
-        .isEqualTo("Serving javascripts/main.js");
+    assertThat(makeRequest(router, "GET", "/assets/javascripts/main.js")).isEqualTo("Serving javascripts/main.js");
   }
 
   @Test
   public void regexp() {
     // #regexp
     Router router =
-        routingDsl
-            .GET("/api/items/$id<[0-9]+>")
-            .routingTo((request, id) -> ok("Getting item " + id))
-            .build();
+        routingDsl.GET("/api/items/$id<[0-9]+>").routingTo((request, id) -> ok("Getting item " + id)).build();
     // #regexp
 
     assertThat(makeRequest(router, "GET", "/api/items/23")).isEqualTo("Getting item 23");
@@ -87,8 +81,7 @@ public class JavaRoutingDsl extends WithApplication {
         routingDsl
             .GET("/api/items/:id")
             .routingAsync(
-                (Http.Request request, Integer id) ->
-                    CompletableFuture.completedFuture(ok("Getting item " + id)))
+                (Http.Request request, Integer id) -> CompletableFuture.completedFuture(ok("Getting item " + id)))
             .build();
     // #async
 
@@ -119,14 +112,12 @@ public class JavaRoutingDsl extends WithApplication {
 
   @Test
   public void createNewRoutingDsl() {
-    play.mvc.BodyParser.Default bodyParser =
-        app.injector().instanceOf(play.mvc.BodyParser.Default.class);
+    play.mvc.BodyParser.Default bodyParser = app.injector().instanceOf(play.mvc.BodyParser.Default.class);
 
     // #new-routing-dsl
     RoutingDsl routingDsl = new RoutingDsl(bodyParser);
     // #new-routing-dsl
-    Router router =
-        routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
+    Router router = routingDsl.GET("/hello/:to").routingTo((request, to) -> ok("Hello " + to)).build();
 
     assertThat(makeRequest(router, "GET", "/hello/world")).isEqualTo("Hello world");
   }

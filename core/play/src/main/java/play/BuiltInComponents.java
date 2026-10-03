@@ -58,8 +58,7 @@ public interface BuiltInComponents
   }
 
   /**
-   * Commands that intercept requests before the rest of the application handles them. Used by
-   * Evolutions.
+   * Commands that intercept requests before the rest of the application handles them. Used by Evolutions.
    *
    * @return the application web commands.
    */

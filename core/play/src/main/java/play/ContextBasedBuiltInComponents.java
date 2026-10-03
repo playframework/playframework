@@ -45,8 +45,8 @@ import scala.collection.immutable.Map$;
 import scala.jdk.javaapi.OptionConverters;
 
 /**
- * This helper class provides all the built-in component dependencies by trading them for a single
- * dependency - the {@linkplain #context() application loader context}.
+ * This helper class provides all the built-in component dependencies by trading them for a single dependency - the
+ * {@linkplain #context() application loader context}.
  */
 public abstract class ContextBasedBuiltInComponents implements BuiltInComponents {
 
@@ -54,25 +54,18 @@ public abstract class ContextBasedBuiltInComponents implements BuiltInComponents
   private final Supplier<Application> _application = lazy(this::createApplication);
   private final Supplier<Langs> _langs = lazy(this::createLangs);
   private final Supplier<FileMimeTypes> _fileMimeTypes = lazy(this::createFileMimeTypes);
-  private final Supplier<HttpRequestHandler> _httpRequestHandler =
-      lazy(this::createHttpRequestHandler);
+  private final Supplier<HttpRequestHandler> _httpRequestHandler = lazy(this::createHttpRequestHandler);
   private final Supplier<ActorSystem> _actorSystem = lazy(this::createActorSystem);
-  private final Supplier<CoordinatedShutdown> _coordinatedShutdown =
-      lazy(this::createCoordinatedShutdown);
+  private final Supplier<CoordinatedShutdown> _coordinatedShutdown = lazy(this::createCoordinatedShutdown);
   private final Supplier<CookieSigner> _cookieSigner = lazy(this::createCookieSigner);
   private final Supplier<CSRFTokenSigner> _csrfTokenSigner = lazy(this::createCsrfTokenSigner);
-  private final Supplier<Files.TemporaryFileCreator> _tempFileCreator =
-      lazy(this::createTempFileCreator);
+  private final Supplier<Files.TemporaryFileCreator> _tempFileCreator = lazy(this::createTempFileCreator);
 
   private final Supplier<HttpErrorHandler> _httpErrorHandler = lazy(this::createHttpErrorHandler);
-  private final Supplier<MappedJavaHandlerComponents> _javaHandlerComponents =
-      lazy(this::createJavaHandlerComponents);
+  private final Supplier<MappedJavaHandlerComponents> _javaHandlerComponents = lazy(this::createJavaHandlerComponents);
   private final Supplier<WebCommands> _webCommands = lazy(this::createWebCommands);
 
-  /**
-   * Returns the application loader context. The implementation should return a stable, effectively
-   * singleton value.
-   */
+  /** Returns the application loader context. The implementation should return a stable, effectively singleton value. */
   public abstract ApplicationLoader.Context context();
 
   @Override
@@ -121,8 +114,7 @@ public abstract class ContextBasedBuiltInComponents implements BuiltInComponents
 
   private Application createApplication() {
     RequestFactory requestFactory = new DefaultRequestFactory(httpConfiguration());
-    SimpleInjector injector =
-        new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty());
+    SimpleInjector injector = new SimpleInjector(NewInstanceInjector$.MODULE$, Map$.MODULE$.empty());
     return new play.api.DefaultApplication(
             environment().asScala(),
             applicationLifecycle().asScala(),
@@ -202,8 +194,7 @@ public abstract class ContextBasedBuiltInComponents implements BuiltInComponents
   private HttpRequestHandler createHttpRequestHandler() {
     DefaultHttpFilters filters = new DefaultHttpFilters(httpFilters());
 
-    play.api.http.HttpErrorHandler scalaErrorHandler =
-        new JavaHttpErrorHandlerAdapter(httpErrorHandler());
+    play.api.http.HttpErrorHandler scalaErrorHandler = new JavaHttpErrorHandlerAdapter(httpErrorHandler());
 
     return new JavaCompatibleHttpRequestHandler(
             webCommands(),
@@ -265,8 +256,7 @@ public abstract class ContextBasedBuiltInComponents implements BuiltInComponents
     Configuration conf = configuration();
     play.api.libs.Files.DefaultTemporaryFileReaper temporaryFileReaper =
         new play.api.libs.Files.DefaultTemporaryFileReaper(
-            actorSystem(),
-            play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(conf));
+            actorSystem(), play.api.libs.Files.TemporaryFileReaperConfiguration$.MODULE$.fromConfiguration(conf));
 
     return new play.api.libs.Files.DefaultTemporaryFileCreator(
             applicationLifecycle().asScala(), temporaryFileReaper, conf)

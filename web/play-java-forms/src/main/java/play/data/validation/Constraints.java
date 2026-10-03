@@ -78,8 +78,7 @@ public class Constraints {
     private final TypedMap attrs;
     private final Config config;
 
-    public ValidationPayload(
-        final Lang lang, final Messages messages, final TypedMap attrs, final Config config) {
+    public ValidationPayload(final Lang lang, final Messages messages, final TypedMap attrs, final Config config) {
       this.lang = lang;
       this.messages = messages;
       this.attrs = attrs;
@@ -94,24 +93,21 @@ public class Constraints {
     }
 
     /**
-     * @return if validation happens during a Http Request the messages for the lang of that
-     *     request, otherwise null
+     * @return if validation happens during a Http Request the messages for the lang of that request, otherwise null
      */
     public Messages getMessages() {
       return this.messages;
     }
 
     /**
-     * @return if validation happens during a Http Request the request attributes of that request,
-     *     otherwise null
+     * @return if validation happens during a Http Request the request attributes of that request, otherwise null
      */
     public TypedMap getAttrs() {
       return this.attrs;
     }
 
     /**
-     * @return the current application configuration, will always be set, even when accessed outside
-     *     a Http Request
+     * @return the current application configuration, will always be set, even when accessed outside a Http Request
      */
     public Config getConfig() {
       return this.config;
@@ -119,16 +115,14 @@ public class Constraints {
   }
 
   /**
-   * Converts a set of constraints to human-readable values. Does not guarantee the order of the
-   * returned constraints.
+   * Converts a set of constraints to human-readable values. Does not guarantee the order of the returned constraints.
    *
    * <p>This method calls {@code displayableConstraint} under the hood.
    *
    * @param constraints the set of constraint descriptors.
    * @return a list of pairs of tuples assembled from displayableConstraint.
    */
-  public static List<Tuple<String, List<Object>>> displayableConstraint(
-      Set<ConstraintDescriptor<?>> constraints) {
+  public static List<Tuple<String, List<Object>>> displayableConstraint(Set<ConstraintDescriptor<?>> constraints) {
     return constraints.parallelStream()
         .filter(c -> c.getAnnotation().annotationType().isAnnotationPresent(Display.class))
         .map(Constraints::displayableConstraint)
@@ -136,10 +130,9 @@ public class Constraints {
   }
 
   /**
-   * Converts a set of constraints to human-readable values in guaranteed order. Only constraints
-   * that have an annotation that intersect with the {@code orderedAnnotations} parameter will be
-   * considered. The order of the returned constraints corresponds to the order of the {@code
-   * orderedAnnotations parameter}.
+   * Converts a set of constraints to human-readable values in guaranteed order. Only constraints that have an
+   * annotation that intersect with the {@code orderedAnnotations} parameter will be considered. The order of the
+   * returned constraints corresponds to the order of the {@code orderedAnnotations parameter}.
    *
    * @param constraints the set of constraint descriptors.
    * @param orderedAnnotations the array of annotations
@@ -148,22 +141,15 @@ public class Constraints {
   public static List<Tuple<String, List<Object>>> displayableConstraint(
       Set<ConstraintDescriptor<?>> constraints, Annotation[] orderedAnnotations) {
     final List<Annotation> constraintAnnot =
-        constraints.stream()
-            .map(ConstraintDescriptor::getAnnotation)
-            .collect(Collectors.<Annotation>toList());
+        constraints.stream().map(ConstraintDescriptor::getAnnotation).collect(Collectors.<Annotation>toList());
 
     return Stream.of(orderedAnnotations)
-        .filter(
-            constraintAnnot
-                ::contains) // only use annotations for which we actually have a constraint
+        .filter(constraintAnnot::contains) // only use annotations for which we actually have a constraint
         .filter(a -> a.annotationType().isAnnotationPresent(Display.class))
         .map(
             a ->
                 displayableConstraint(
-                    constraints.parallelStream()
-                        .filter(c -> c.getAnnotation().equals(a))
-                        .findFirst()
-                        .get()))
+                    constraints.parallelStream().filter(c -> c.getAnnotation().equals(a)).findFirst().get()))
         .collect(Collectors.toList());
   }
 
@@ -173,10 +159,8 @@ public class Constraints {
    * @param constraint the constraint descriptor.
    * @return A tuple containing the constraint's display name and the constraint attributes.
    */
-  public static Tuple<String, List<Object>> displayableConstraint(
-      ConstraintDescriptor<?> constraint) {
-    final Display displayAnnotation =
-        constraint.getAnnotation().annotationType().getAnnotation(Display.class);
+  public static Tuple<String, List<Object>> displayableConstraint(ConstraintDescriptor<?> constraint) {
+    final Display displayAnnotation = constraint.getAnnotation().annotationType().getAnnotation(Display.class);
     return Tuple(
         displayAnnotation.name(),
         Collections.unmodifiableList(
@@ -209,8 +193,7 @@ public class Constraints {
   }
 
   /** Validator for {@code @Required} fields. */
-  public static class RequiredValidator extends Validator<Object>
-      implements ConstraintValidator<Required, Object> {
+  public static class RequiredValidator extends Validator<Object> implements ConstraintValidator<Required, Object> {
 
     public static final String message = "error.required";
 
@@ -274,8 +257,7 @@ public class Constraints {
   }
 
   /** Validator for {@code @Min} fields. */
-  public static class MinValidator extends Validator<Number>
-      implements ConstraintValidator<Min, Number> {
+  public static class MinValidator extends Validator<Number> implements ConstraintValidator<Min, Number> {
 
     public static final String message = "error.min";
     private long min;
@@ -341,8 +323,7 @@ public class Constraints {
   }
 
   /** Validator for <code>@Max</code> fields. */
-  public static class MaxValidator extends Validator<Number>
-      implements ConstraintValidator<Max, Number> {
+  public static class MaxValidator extends Validator<Number> implements ConstraintValidator<Max, Number> {
 
     public static final String message = "error.max";
     private long max;
@@ -408,8 +389,7 @@ public class Constraints {
   }
 
   /** Validator for {@code @MinLength} fields. */
-  public static class MinLengthValidator extends Validator<String>
-      implements ConstraintValidator<MinLength, String> {
+  public static class MinLengthValidator extends Validator<String> implements ConstraintValidator<MinLength, String> {
 
     public static final String message = "error.minLength";
     private long min;
@@ -475,8 +455,7 @@ public class Constraints {
   }
 
   /** Validator for {@code @MaxLength} fields. */
-  public static class MaxLengthValidator extends Validator<String>
-      implements ConstraintValidator<MaxLength, String> {
+  public static class MaxLengthValidator extends Validator<String> implements ConstraintValidator<MaxLength, String> {
 
     public static final String message = "error.maxLength";
     private long max;
@@ -540,8 +519,7 @@ public class Constraints {
   }
 
   /** Validator for {@code @Email} fields. */
-  public static class EmailValidator extends Validator<String>
-      implements ConstraintValidator<Email, String> {
+  public static class EmailValidator extends Validator<String> implements ConstraintValidator<Email, String> {
 
     public static final String message = "error.email";
     static final java.util.regex.Pattern regex =
@@ -605,8 +583,7 @@ public class Constraints {
   }
 
   /** Validator for {@code @Pattern} fields. */
-  public static class PatternValidator extends Validator<String>
-      implements ConstraintValidator<Pattern, String> {
+  public static class PatternValidator extends Validator<String> implements ConstraintValidator<Pattern, String> {
 
     public static final String message = "error.pattern";
     java.util.regex.Pattern regex = null;
@@ -843,22 +820,19 @@ public class Constraints {
     T validate(ValidationPayload payload);
   }
 
-  public static class ValidateValidator
-      implements PlayConstraintValidator<Validate, Validatable<?>> {
+  public static class ValidateValidator implements PlayConstraintValidator<Validate, Validatable<?>> {
 
     @Override
     public void initialize(final Validate constraintAnnotation) {}
 
     @Override
-    public boolean isValid(
-        final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
+    public boolean isValid(final Validatable<?> value, final ConstraintValidatorContext constraintValidatorContext) {
       return reportValidationStatus(value.validate(), constraintValidatorContext);
     }
   }
 
   public static class ValidateValidatorWithPayload
-      implements PlayConstraintValidatorWithPayload<
-          ValidateWithPayload, ValidatableWithPayload<?>> {
+      implements PlayConstraintValidatorWithPayload<ValidateWithPayload, ValidatableWithPayload<?>> {
 
     @Override
     public void initialize(final ValidateWithPayload constraintAnnotation) {}
@@ -872,33 +846,26 @@ public class Constraints {
     }
   }
 
-  public interface PlayConstraintValidator<A extends Annotation, T>
-      extends ConstraintValidator<A, T> {
+  public interface PlayConstraintValidator<A extends Annotation, T> extends ConstraintValidator<A, T> {
 
     default boolean validationSuccessful(final Object validationResult) {
-      return validationResult == null
-          || (validationResult instanceof List && ((List<?>) validationResult).isEmpty());
+      return validationResult == null || (validationResult instanceof List && ((List<?>) validationResult).isEmpty());
     }
 
     default boolean reportValidationStatus(
-        final Object validationResult,
-        final ConstraintValidatorContext constraintValidatorContext) {
+        final Object validationResult, final ConstraintValidatorContext constraintValidatorContext) {
       if (validationSuccessful(validationResult)) {
         return true;
       }
-      constraintValidatorContext
-          .unwrap(HibernateConstraintValidatorContext.class)
-          .withDynamicPayload(validationResult);
+      constraintValidatorContext.unwrap(HibernateConstraintValidatorContext.class).withDynamicPayload(validationResult);
       return false;
     }
   }
 
-  public interface PlayConstraintValidatorWithPayload<A extends Annotation, T>
-      extends PlayConstraintValidator<A, T> {
+  public interface PlayConstraintValidatorWithPayload<A extends Annotation, T> extends PlayConstraintValidator<A, T> {
 
     @Override
-    default boolean isValid(
-        final T value, final ConstraintValidatorContext constraintValidatorContext) {
+    default boolean isValid(final T value, final ConstraintValidatorContext constraintValidatorContext) {
       return isValid(
           value,
           constraintValidatorContext
@@ -908,8 +875,6 @@ public class Constraints {
     }
 
     boolean isValid(
-        final T value,
-        final ValidationPayload payload,
-        final ConstraintValidatorContext constraintValidatorContext);
+        final T value, final ValidationPayload payload, final ConstraintValidatorContext constraintValidatorContext);
   }
 }

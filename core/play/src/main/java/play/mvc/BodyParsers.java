@@ -19,14 +19,12 @@ public class BodyParsers {
   /**
    * Validate the content type of the passed in request using the given validator.
    *
-   * <p>If the validator returns true, the passed in accumulator will be returned to parse the body,
-   * otherwise an accumulator with a result created by the error handler will be returned.
+   * <p>If the validator returns true, the passed in accumulator will be returned to parse the body, otherwise an
+   * accumulator with a result created by the error handler will be returned.
    *
-   * @param errorHandler The error handler used to create a bad request result if the content type
-   *     is not valid.
+   * @param errorHandler The error handler used to create a bad request result if the content type is not valid.
    * @param request The request to validate.
-   * @param errorMessage The error message to pass to the error handler if the content type is not
-   *     valid.
+   * @param errorMessage The error message to pass to the error handler if the content type is not valid.
    * @param validate The validation function.
    * @param parser The parser to use if the content type is valid.
    * @param <A> The type to be parsed by the parser
@@ -42,8 +40,7 @@ public class BodyParsers {
       return parser.apply(request);
     } else {
       CompletionStage<Result> result =
-          errorHandler.onClientError(
-              request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage);
+          errorHandler.onClientError(request, Status$.MODULE$.UNSUPPORTED_MEDIA_TYPE(), errorMessage);
       return Accumulator.done(result.thenApply(F.Either::Left));
     }
   }

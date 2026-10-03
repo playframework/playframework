@@ -8,8 +8,8 @@ import java.sql.Connection;
 import play.api.db.TransactionIsolationLevel$;
 
 /**
- * An enumeration defines of isolation level that determines the degree to which one transaction
- * must be isolated from resource or data modifications made by other operations.
+ * An enumeration defines of isolation level that determines the degree to which one transaction must be isolated from
+ * resource or data modifications made by other operations.
  */
 public enum TransactionIsolationLevel {
   ReadUncommitted(Connection.TRANSACTION_READ_UNCOMMITTED),
@@ -41,7 +41,6 @@ public enum TransactionIsolationLevel {
       }
     }
     throw new IllegalArgumentException(
-        "Not a valid value for transaction isolation level. See java.sql.Connection for possible"
-            + " options.");
+        "Not a valid value for transaction isolation level. See java.sql.Connection for possible" + " options.");
   }
 }

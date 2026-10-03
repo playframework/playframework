@@ -44,8 +44,7 @@ public class DefaultApplication implements Application {
    * @param application the application to wrap
    * @param config the new application's configuration
    * @param injector the new application's injector
-   * @deprecated Use {@link #DefaultApplication(play.api.Application, Config, Injector,
-   *     Environment)} instead.
+   * @deprecated Use {@link #DefaultApplication(play.api.Application, Config, Injector, Environment)} instead.
    */
   @Deprecated
   public DefaultApplication(play.api.Application application, Config config, Injector injector) {

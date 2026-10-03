@@ -34,14 +34,11 @@ public final class DBModule extends Module {
     try {
       Set<String> dbs = config.getConfig(dbKey).root().keySet();
       for (String db : dbs) {
-        list.add(
-            bindClass(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
+        list.add(bindClass(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
       }
 
       if (dbs.contains(defaultDb)) {
-        list.add(
-            bindClass(Database.class)
-                .to(bindClass(Database.class).qualifiedWith(named(defaultDb))));
+        list.add(bindClass(Database.class).to(bindClass(Database.class).qualifiedWith(named(defaultDb))));
       }
     } catch (com.typesafe.config.ConfigException.Missing ex) {
       logger.warn("Configuration not found for database: {}", ex.getMessage());

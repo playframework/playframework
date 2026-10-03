@@ -8,8 +8,9 @@ import sbtheader.FileType
 import sbtheader.HeaderPlugin.autoImport.HeaderPattern.commentBetween
 import sbtheader.LineCommentCreator
 
-// Makes sbt-java-formatter keep using google-java-format 1.28.0 to not require Java 21 for formatting (yet)
-ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
+// javafmtMaxLineLength requires google-java-format 1.37.0+ which requires Java 21
+ThisBuild / javafmtFormatterCompatibleJavaVersion := 21
+ThisBuild / javafmtMaxLineLength                  := 120
 
 val DocsApplication = config("docs").hide
 

@@ -13,8 +13,8 @@ public interface CookieSigner {
 
   /**
    * Signs the given String using the application's secret key. <br>
-   * By default this uses the platform default JSSE provider. This can be overridden by defining
-   * <code>application.crypto.provider</code> in <code>application.conf</code>.
+   * By default this uses the platform default JSSE provider. This can be overridden by defining <code>
+   * application.crypto.provider</code> in <code>application.conf</code>.
    *
    * @param message The message to sign.
    * @return A hexadecimal encoded signature.
@@ -23,8 +23,8 @@ public interface CookieSigner {
 
   /**
    * Signs the given String using the given key. <br>
-   * By default this uses the platform default JSSE provider. This can be overridden by defining
-   * <code>application.crypto.provider</code> in <code>application.conf</code>.
+   * By default this uses the platform default JSSE provider. This can be overridden by defining <code>
+   * application.crypto.provider</code> in <code>application.conf</code>.
    *
    * @param message The message to sign.
    * @param key The private key to sign with.

@@ -17,10 +17,7 @@ import play.libs.Scala;
 import scala.concurrent.duration.Duration;
 import scala.jdk.javaapi.OptionConverters;
 
-/**
- * Adapts a Scala AsyncCacheApi to a Java AsyncCacheApi. This is Play's default Java AsyncCacheApi
- * implementation.
- */
+/** Adapts a Scala AsyncCacheApi to a Java AsyncCacheApi. This is Play's default Java AsyncCacheApi implementation. */
 @Singleton
 public class DefaultAsyncCacheApi implements AsyncCacheApi {
 
@@ -42,8 +39,7 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
   }
 
   @Override
-  public <T> CompletionStage<T> getOrElseUpdate(
-      String key, Callable<CompletionStage<T>> block, int expiration) {
+  public <T> CompletionStage<T> getOrElseUpdate(String key, Callable<CompletionStage<T>> block, int expiration) {
     return asJava(
         asyncCacheApi.getOrElseUpdate(
             key, intToDuration(expiration), Scala.asScalaWithFuture(block), Scala.<T>classTag()));
@@ -52,8 +48,7 @@ public class DefaultAsyncCacheApi implements AsyncCacheApi {
   @Override
   public <T> CompletionStage<T> getOrElseUpdate(String key, Callable<CompletionStage<T>> block) {
     return asJava(
-        asyncCacheApi.getOrElseUpdate(
-            key, Duration.Inf(), Scala.asScalaWithFuture(block), Scala.<T>classTag()));
+        asyncCacheApi.getOrElseUpdate(key, Duration.Inf(), Scala.asScalaWithFuture(block), Scala.<T>classTag()));
   }
 
   @Override

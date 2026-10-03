@@ -23,8 +23,7 @@ public class Formats {
   public static @interface Currency {}
 
   /** Annotation formatter, triggered by the <code>@Currency</code> annotation. */
-  public static class AnnotationCurrencyFormatter
-      extends Formatters.AnnotationFormatter<Currency, BigDecimal> {
+  public static class AnnotationCurrencyFormatter extends Formatters.AnnotationFormatter<Currency, BigDecimal> {
 
     /**
      * Binds the field - constructs a concrete value from submitted data.

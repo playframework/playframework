@@ -50,11 +50,9 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
   }
 
   @Override
-  public void configure(
-      Environment env, Config configuration, Map<String, String> optionalProperties) {
+  public void configure(Environment env, Config configuration, Map<String, String> optionalProperties) {
     // LoggerConfigurator.generateProperties enables play.logger.includeConfigProperties=true
-    Map<String, String> properties =
-        LoggerConfigurator.generateProperties(env, configuration, optionalProperties);
+    Map<String, String> properties = LoggerConfigurator.generateProperties(env, configuration, optionalProperties);
     URL resourceUrl = env.resource("log4j2.xml");
     configure(properties, Optional.ofNullable(resourceUrl));
   }
@@ -68,9 +66,7 @@ public class JavaLog4JLoggerConfigurator implements LoggerConfigurator {
       factory = LoggerFactory.getILoggerFactory();
     } catch (URISyntaxException ex) {
       throw new PlayException(
-          "log4j2.xml resource was not found",
-          "Could not parse the location for log4j2.xml resource",
-          ex);
+          "log4j2.xml resource was not found", "Could not parse the location for log4j2.xml resource", ex);
     }
   }
 

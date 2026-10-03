@@ -15,8 +15,7 @@ import play.mvc.Result;
 /**
  * A default implementation of the action creator.
  *
- * <p>To create a custom action creator, extend this class or implement the ActionCreator interface
- * directly.
+ * <p>To create a custom action creator, extend this class or implement the ActionCreator interface directly.
  */
 public class DefaultActionCreator implements ActionCreator {
 

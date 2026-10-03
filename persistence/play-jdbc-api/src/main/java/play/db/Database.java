@@ -21,8 +21,7 @@ public interface Database {
   DataSource getDataSource();
 
   /**
-   * @return the JDBC connection URL this database, i.e. `jdbc:...` Normally retrieved via a
-   *     connection.
+   * @return the JDBC connection URL this database, i.e. `jdbc:...` Normally retrieved via a connection.
    */
   String getUrl();
 
@@ -46,16 +45,16 @@ public interface Database {
   Connection getConnection(boolean autocommit);
 
   /**
-   * Execute a block of code, providing a JDBC connection. The connection and all created statements
-   * are automatically released.
+   * Execute a block of code, providing a JDBC connection. The connection and all created statements are automatically
+   * released.
    *
    * @param block code to execute
    */
   void withConnection(ConnectionRunnable block);
 
   /**
-   * Execute a block of code, providing a JDBC connection. The connection and all created statements
-   * are automatically released.
+   * Execute a block of code, providing a JDBC connection. The connection and all created statements are automatically
+   * released.
    *
    * @param <A> the return value's type
    * @param block code to execute
@@ -64,8 +63,8 @@ public interface Database {
   <A> A withConnection(ConnectionCallable<A> block);
 
   /**
-   * Execute a block of code, providing a JDBC connection. The connection and all created statements
-   * are automatically released.
+   * Execute a block of code, providing a JDBC connection. The connection and all created statements are automatically
+   * released.
    *
    * @param autocommit determines whether to autocommit the connection
    * @param block code to execute
@@ -73,8 +72,8 @@ public interface Database {
   void withConnection(boolean autocommit, ConnectionRunnable block);
 
   /**
-   * Execute a block of code, providing a JDBC connection. The connection and all created statements
-   * are automatically released.
+   * Execute a block of code, providing a JDBC connection. The connection and all created statements are automatically
+   * released.
    *
    * @param <A> the return value's type
    * @param autocommit determines whether to autocommit the connection
@@ -84,18 +83,16 @@ public interface Database {
   <A> A withConnection(boolean autocommit, ConnectionCallable<A> block);
 
   /**
-   * Execute a block of code in the scope of a JDBC transaction. The connection and all created
-   * statements are automatically released. The transaction is automatically committed, unless an
-   * exception occurs.
+   * Execute a block of code in the scope of a JDBC transaction. The connection and all created statements are
+   * automatically released. The transaction is automatically committed, unless an exception occurs.
    *
    * @param block code to execute
    */
   void withTransaction(ConnectionRunnable block);
 
   /**
-   * Execute a block of code in the scope of a JDBC transaction. The connection and all created
-   * statements are automatically released. The transaction is automatically committed, unless an
-   * exception occurs.
+   * Execute a block of code in the scope of a JDBC transaction. The connection and all created statements are
+   * automatically released. The transaction is automatically committed, unless an exception occurs.
    *
    * @param isolationLevel determines transaction isolation level
    * @param block code to execute
@@ -103,9 +100,8 @@ public interface Database {
   void withTransaction(TransactionIsolationLevel isolationLevel, ConnectionRunnable block);
 
   /**
-   * Execute a block of code in the scope of a JDBC transaction. The connection and all created
-   * statements are automatically released. The transaction is automatically committed, unless an
-   * exception occurs.
+   * Execute a block of code in the scope of a JDBC transaction. The connection and all created statements are
+   * automatically released. The transaction is automatically committed, unless an exception occurs.
    *
    * @param <A> the return value's type
    * @param block code to execute
@@ -114,9 +110,8 @@ public interface Database {
   <A> A withTransaction(ConnectionCallable<A> block);
 
   /**
-   * Execute a block of code in the scope of a JDBC transaction. The connection and all created
-   * statements are automatically released. The transaction is automatically committed, unless an
-   * exception occurs.
+   * Execute a block of code in the scope of a JDBC transaction. The connection and all created statements are
+   * automatically released. The transaction is automatically committed, unless an exception occurs.
    *
    * @param isolationLevel determines transaction isolation level
    * @param <A> the return value's type
@@ -180,8 +175,7 @@ public interface Database {
       }
 
       public <A> A withTransaction(
-          play.api.db.TransactionIsolationLevel isolationLevel,
-          final scala.Function1<Connection, A> block) {
+          play.api.db.TransactionIsolationLevel isolationLevel, final scala.Function1<Connection, A> block) {
         return Database.this.withTransaction(isolationLevel.asJava(), block::apply);
       }
     };

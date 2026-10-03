@@ -12,10 +12,7 @@ import play.mvc.Result;
 public class SomeJavaController extends Controller {
 
   public Result index(Http.Request request) {
-    assert (request
-        .attrs()
-        .getOptional(RequestAttrKey.Server().asJava())
-        .equals(Optional.of("netty")));
+    assert (request.attrs().getOptional(RequestAttrKey.Server().asJava()).equals(Optional.of("netty")));
     // ...
     // ###skip: 1
     return ok("");

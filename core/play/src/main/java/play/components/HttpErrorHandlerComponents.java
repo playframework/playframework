@@ -12,8 +12,8 @@ import play.http.HttpErrorHandler;
 public interface HttpErrorHandlerComponents {
 
   /**
-   * @deprecated Deprecated as of 2.8.0. Use the corresponding methods that provide MessagesApi,
-   *     Langs, FileMimeTypes or HttpConfiguration.
+   * @deprecated Deprecated as of 2.8.0. Use the corresponding methods that provide MessagesApi, Langs, FileMimeTypes or
+   *     HttpConfiguration.
    */
   @Deprecated
   JavaContextComponents javaContextComponents();

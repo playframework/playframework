@@ -26,8 +26,7 @@ public class HttpExecutionContext {
   }
 
   /**
-   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecutionContext#current()}}
-   *     instead.
+   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecutionContext#current()}} instead.
    */
   @Deprecated
   public Executor current() {

@@ -93,15 +93,13 @@ public class Http {
     }
 
     /**
-     * Gets the header value. If more than one value is associated with this header, then returns
-     * the first one.
+     * Gets the header value. If more than one value is associated with this header, then returns the first one.
      *
      * @param name the header name
      * @return the first header value or empty if no value available.
      */
     public Optional<String> get(String name) {
-      return Optional.ofNullable(headers.get(name))
-          .flatMap(headerValues -> headerValues.stream().findFirst());
+      return Optional.ofNullable(headers.get(name)).flatMap(headerValues -> headerValues.stream().findFirst());
     }
 
     /**
@@ -118,8 +116,7 @@ public class Http {
      * @return the scala version of this headers.
      */
     public play.api.mvc.Headers asScala() {
-      return new play.api.mvc.Headers(
-          JavaHelpers$.MODULE$.javaMapOfListToScalaSeqOfPairs(this.headers));
+      return new play.api.mvc.Headers(JavaHelpers$.MODULE$.javaMapOfListToScalaSeqOfPairs(this.headers));
     }
 
     /**
@@ -208,8 +205,7 @@ public class Http {
       Objects.requireNonNull(address, "address");
       Objects.requireNonNull(port, "port");
       if (port.isPresent() && (port.get() < 0 || port.get() > 65535)) {
-        throw new IllegalArgumentException(
-            "A direct transport peer port must be between 0 and 65535: " + port.get());
+        throw new IllegalArgumentException("A direct transport peer port must be between 0 and 65535: " + port.get());
       }
     }
 
@@ -247,11 +243,9 @@ public class Http {
      */
     public play.api.mvc.request.ClientCertificateSource asScala() {
       return switch (this) {
-        case DIRECT_TRANSPORT ->
-            play.api.mvc.request.ClientCertificateSource$.MODULE$.directTransport();
+        case DIRECT_TRANSPORT -> play.api.mvc.request.ClientCertificateSource$.MODULE$.directTransport();
         case RFC_9440 -> play.api.mvc.request.ClientCertificateSource$.MODULE$.rfc9440();
-        case X_FORWARDED_CLIENT_CERT ->
-            play.api.mvc.request.ClientCertificateSource$.MODULE$.xForwardedClientCert();
+        case X_FORWARDED_CLIENT_CERT -> play.api.mvc.request.ClientCertificateSource$.MODULE$.xForwardedClientCert();
       };
     }
   }
@@ -313,8 +307,7 @@ public class Http {
         throw new IllegalArgumentException("An XFCC certificate chain requires a leaf certificate");
       }
       if (certificate.isPresent() && chain.contains(certificate.orElseThrow())) {
-        throw new IllegalArgumentException(
-            "An XFCC certificate chain must not repeat the leaf certificate");
+        throw new IllegalArgumentException("An XFCC certificate chain must not repeat the leaf certificate");
       }
     }
 
@@ -390,10 +383,7 @@ public class Http {
 
   /** A typed, normalized URI host. */
   public sealed interface AuthorityHost
-      permits AuthorityHost.RegName,
-          AuthorityHost.IPv4,
-          AuthorityHost.IPv6,
-          AuthorityHost.IPvFuture {
+      permits AuthorityHost.RegName, AuthorityHost.IPv4, AuthorityHost.IPv6, AuthorityHost.IPvFuture {
 
     String render();
 
@@ -558,8 +548,7 @@ public class Http {
     public record Numeric(int value) implements NodePort {
       public Numeric {
         if (value < 0 || value > 65535) {
-          throw new IllegalArgumentException(
-              "A numeric node port must be between 0 and 65535: " + value);
+          throw new IllegalArgumentException("A numeric node port must be between 0 and 65535: " + value);
         }
       }
 
@@ -584,8 +573,7 @@ public class Http {
     }
   }
 
-  public sealed interface RemoteNode
-      permits RemoteNode.Ip, RemoteNode.Obfuscated, RemoteNode.Unknown {
+  public sealed interface RemoteNode permits RemoteNode.Ip, RemoteNode.Obfuscated, RemoteNode.Unknown {
 
     /**
      * @return the optional numeric or obfuscated port attached to this node
@@ -606,8 +594,7 @@ public class Http {
 
       @Override
       public play.api.mvc.request.RemoteNode asScala() {
-        scala.Option<play.api.mvc.request.NodePort> scalaPort =
-            OptionConverters.toScala(port.map(NodePort::asScala));
+        scala.Option<play.api.mvc.request.NodePort> scalaPort = OptionConverters.toScala(port.map(NodePort::asScala));
         return play.api.mvc.request.RemoteNode$.MODULE$.ip(address, scalaPort);
       }
     }
@@ -618,8 +605,7 @@ public class Http {
         Objects.requireNonNull(identifier, "A remote obfuscated identifier must not be null");
         Objects.requireNonNull(port, "A remote node port option must not be null");
         if (!play.api.mvc.request.NodePort$.MODULE$.isObfuscatedIdentifier(identifier)) {
-          throw new IllegalArgumentException(
-              "Invalid obfuscated remote identifier: '" + identifier + "'");
+          throw new IllegalArgumentException("Invalid obfuscated remote identifier: '" + identifier + "'");
         }
       }
 
@@ -638,8 +624,7 @@ public class Http {
 
       @Override
       public play.api.mvc.request.RemoteNode asScala() {
-        return play.api.mvc.request.RemoteNode$.MODULE$.unknown(
-            OptionConverters.toScala(port.map(NodePort::asScala)));
+        return play.api.mvc.request.RemoteNode$.MODULE$.unknown(OptionConverters.toScala(port.map(NodePort::asScala)));
       }
     }
   }
@@ -692,16 +677,13 @@ public class Http {
      * @return the Scala version of this forwarding metadata
      */
     public play.api.mvc.request.ForwardingInfo asScala() {
-      List<play.api.mvc.request.RemoteEndpoint> scalaVia =
-          via.stream().map(RemoteEndpoint::asScala).toList();
-      return play.api.mvc.request.ForwardingInfo$.MODULE$.create(
-          source.asScala(), Scala.toSeq(scalaVia));
+      List<play.api.mvc.request.RemoteEndpoint> scalaVia = via.stream().map(RemoteEndpoint::asScala).toList();
+      return play.api.mvc.request.ForwardingInfo$.MODULE$.create(source.asScala(), Scala.toSeq(scalaVia));
     }
   }
 
   /** Immutable metadata about the selected remote node for a request. */
-  public record RemoteInfo(
-      RemoteNode node, Optional<RemoteNode> byNode, Optional<ForwardingInfo> forwarding) {
+  public record RemoteInfo(RemoteNode node, Optional<RemoteNode> byNode, Optional<ForwardingInfo> forwarding) {
 
     /** Create direct selected remote metadata without accepted forwarding information. */
     public RemoteInfo(RemoteNode node, Optional<RemoteNode> byNode) {
@@ -724,10 +706,9 @@ public class Http {
     /**
      * Return the accepted remote path in client-to-Play order.
      *
-     * <p>For a direct request this contains only {@link #endpoint()}, which represents the direct
-     * transport peer. For a forwarded request it contains the selected endpoint followed by the
-     * trusted intermediate proxy endpoints Play traversed, but excludes the independently observed
-     * direct transport peer.
+     * <p>For a direct request this contains only {@link #endpoint()}, which represents the direct transport peer. For a
+     * forwarded request it contains the selected endpoint followed by the trusted intermediate proxy endpoints Play
+     * traversed, but excludes the independently observed direct transport peer.
      *
      * @return the immutable accepted remote path
      */
@@ -748,12 +729,11 @@ public class Http {
     /**
      * The selected remote identity.
      *
-     * <p>When the identity is an IP address, the node may also include the selected remote port.
-     * RFC 7239 {@code unknown} and obfuscated identifiers are represented explicitly so
-     * applications do not need to parse a string value.
+     * <p>When the identity is an IP address, the node may also include the selected remote port. RFC 7239 {@code
+     * unknown} and obfuscated identifiers are represented explicitly so applications do not need to parse a string
+     * value.
      *
-     * @return the selected remote identity as an IP literal, obfuscated identifier, or {@code
-     *     unknown}
+     * @return the selected remote identity as an IP literal, obfuscated identifier, or {@code unknown}
      */
     public String identity() {
       if (node instanceof RemoteNode.Ip ip) {
@@ -768,8 +748,8 @@ public class Http {
     /**
      * The RFC 7239 {@code by} node for the selected forwarded element, if present.
      *
-     * <p>This identifies the proxy interface that received the request represented by {@link
-     * #node()}. It is not the selected remote identity; use {@link #node()} for that.
+     * <p>This identifies the proxy interface that received the request represented by {@link #node()}. It is not the
+     * selected remote identity; use {@link #node()} for that.
      *
      * @return the receiving proxy node, if present
      */
@@ -781,8 +761,8 @@ public class Http {
     /**
      * The accepted forwarding metadata used to select this remote endpoint.
      *
-     * <p>This is empty for a direct request. It is present even when a forwarded request has no
-     * intermediate forwarded proxy endpoints.
+     * <p>This is empty for a direct request. It is present even when a forwarded request has no intermediate forwarded
+     * proxy endpoints.
      *
      * @return accepted remote forwarding metadata, if the selected endpoint was forwarded
      */
@@ -828,10 +808,7 @@ public class Http {
 
   public interface RequestHeader {
 
-    /**
-     * The request id. The request id is stored as an attribute indexed by {@link
-     * RequestAttrKey#Id()}.
-     */
+    /** The request id. The request id is stored as an attribute indexed by {@link RequestAttrKey#Id()}. */
     default Long id() {
       return (Long) attrs().get(RequestAttrKey.Id().asJava());
     }
@@ -857,9 +834,7 @@ public class Http {
      */
     default List<XForwardedClientCert> xForwardedClientCertificates() {
       return List.copyOf(
-          Scala.asJava(asScala().xForwardedClientCertificates()).stream()
-              .map(value -> value.asJava())
-              .toList());
+          Scala.asJava(asScala().xForwardedClientCertificates()).stream().map(value -> value.asJava()).toList());
     }
 
     /**
@@ -894,9 +869,8 @@ public class Http {
     /**
      * The selected remote metadata for this request.
      *
-     * <p>This may identify an IP address, an RFC 7239 obfuscated identity, or RFC 7239 {@code
-     * unknown}. Direct transport peer and TLS metadata are exposed separately by {@link
-     * #transport()}.
+     * <p>This may identify an IP address, an RFC 7239 obfuscated identity, or RFC 7239 {@code unknown}. Direct
+     * transport peer and TLS metadata are exposed separately by {@link #transport()}.
      *
      * @return the selected remote metadata
      */
@@ -905,8 +879,8 @@ public class Http {
     }
 
     /**
-     * @return true when the normalized effective request scheme is HTTPS, including when selected
-     *     from trusted forwarding metadata
+     * @return true when the normalized effective request scheme is HTTPS, including when selected from trusted
+     *     forwarding metadata
      */
     default boolean secure() {
       return scheme().isSecure();
@@ -987,9 +961,9 @@ public class Http {
     Request withBody(RequestBody body);
 
     /**
-     * Returns the effective request host, optionally including its port. Trusted forwarding
-     * information selected by the server takes precedence over the request-target authority and the
-     * {@code Host} header. This does not modify {@link #uri()} or {@link #path()}.
+     * Returns the effective request host, optionally including its port. Trusted forwarding information selected by the
+     * server takes precedence over the request-target authority and the {@code Host} header. This does not modify
+     * {@link #uri()} or {@link #path()}.
      *
      * @return the effective request host
      */
@@ -1003,16 +977,14 @@ public class Http {
     String path();
 
     /**
-     * The Request Langs extracted from the Accept-Language header and sorted by preference
-     * (preferred first).
+     * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
      *
      * @return the preference-ordered list of languages accepted by the client
      */
     List<Lang> acceptLanguages();
 
     /**
-     * @return The media types set in the request Accept header, sorted by preference (preferred
-     *     first)
+     * @return The media types set in the request Accept header, sorted by preference (preferred first)
      */
     List<play.api.http.MediaRange> acceptedTypes();
 
@@ -1069,9 +1041,9 @@ public class Http {
     Optional<Cookie> getCookie(String name);
 
     /**
-     * Parses the Session cookie and returns the Session data. The request's session cookie is
-     * stored in an attribute indexed by {@link RequestAttrKey#Session()}. The attribute uses a
-     * {@link Cell} to store the session cookie, to allow it to be evaluated on-demand.
+     * Parses the Session cookie and returns the Session data. The request's session cookie is stored in an attribute
+     * indexed by {@link RequestAttrKey#Session()}. The attribute uses a {@link Cell} to store the session cookie, to
+     * allow it to be evaluated on-demand.
      */
     default Session session() {
       return attrs()
@@ -1081,9 +1053,9 @@ public class Http {
     }
 
     /**
-     * Parses the Flash cookie and returns the Flash data. The request's flash cookie is stored in
-     * an attribute indexed by {@link RequestAttrKey#Flash()}}. The attribute uses a {@link Cell} to
-     * store the flash, to allow it to be evaluated on-demand.
+     * Parses the Flash cookie and returns the Flash data. The request's flash cookie is stored in an attribute indexed
+     * by {@link RequestAttrKey#Flash()}}. The attribute uses a {@link Cell} to store the flash, to allow it to be
+     * evaluated on-demand.
      */
     default Flash flash() {
       return attrs()
@@ -1143,9 +1115,9 @@ public class Http {
     Optional<String> charset();
 
     /**
-     * Create a new version of this object with the given transient language set. The transient
-     * language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}}
-     * (It will take precedence over any other language).
+     * Create a new version of this object with the given transient language set. The transient language will be taken
+     * into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other
+     * language).
      *
      * @param lang The language to use.
      * @return The new version of this object with the given transient language set.
@@ -1155,9 +1127,9 @@ public class Http {
     }
 
     /**
-     * Create a new version of this object with the given transient language set. The transient
-     * language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}}
-     * (It will take precedence over any other language).
+     * Create a new version of this object with the given transient language set. The transient language will be taken
+     * into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other
+     * language).
      *
      * @param code The language to use.
      * @return The new version of this object with the given transient language set.
@@ -1169,9 +1141,9 @@ public class Http {
     }
 
     /**
-     * Create a new version of this object with the given transient language set. The transient
-     * language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}}
-     * (It will take precedence over any other language).
+     * Create a new version of this object with the given transient language set. The transient language will be taken
+     * into account when using {@link MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other
+     * language).
      *
      * @param locale The language to use.
      * @return The new version of this object with the given transient language set.
@@ -1190,8 +1162,8 @@ public class Http {
     }
 
     /**
-     * The transient language will be taken into account when using {@link
-     * MessagesApi#preferred(RequestHeader)}} (It will take precedence over any other language).
+     * The transient language will be taken into account when using {@link MessagesApi#preferred(RequestHeader)}} (It
+     * will take precedence over any other language).
      *
      * @return The current transient language of this request.
      */
@@ -1283,8 +1255,8 @@ public class Http {
     protected play.api.mvc.Request<RequestBody> req;
 
     /**
-     * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from 127.0.0.1 over
-     * an insecure connection. The request is created using the default factory.
+     * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from 127.0.0.1 over an insecure
+     * connection. The request is created using the default factory.
      */
     public RequestBuilder() {
       this(new DefaultRequestFactory(HttpConfiguration.createWithDefaults()));
@@ -1298,8 +1270,8 @@ public class Http {
     }
 
     /**
-     * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from 127.0.0.1 over
-     * an insecure connection. The request is created using the given factory.
+     * Returns a simple request builder. The initial request is "GET / HTTP/1.1" from 127.0.0.1 over an insecure
+     * connection. The request is created using the given factory.
      *
      * @param requestFactory the incoming request factory
      */
@@ -1355,15 +1327,12 @@ public class Http {
     protected RequestBuilder body(RequestBody body) {
       if (body == null || body.as(Object.class) == null) {
         // assume null signifies no body; RequestBody is a wrapper for the actual body content
-        headers(
-            headers().removing(HeaderNames.CONTENT_LENGTH).removing(HeaderNames.TRANSFER_ENCODING));
+        headers(headers().removing(HeaderNames.CONTENT_LENGTH).removing(HeaderNames.TRANSFER_ENCODING));
       } else {
         if (!headers().get(HeaderNames.TRANSFER_ENCODING).isPresent()) {
           final MultipartFormData<?> multipartFormData = body.asMultipartFormData();
           if (multipartFormData != null) {
-            header(
-                HeaderNames.CONTENT_LENGTH,
-                Long.toString(calcMultipartFormDataBodyLength(multipartFormData)));
+            header(HeaderNames.CONTENT_LENGTH, Long.toString(calcMultipartFormDataBodyLength(multipartFormData)));
           } else {
             int length = body.asBytes().length();
             header(HeaderNames.CONTENT_LENGTH, Integer.toString(length));
@@ -1398,8 +1367,7 @@ public class Http {
                                   partLength(
                                       boundary,
                                       "form-data",
-                                      dataPart.getKey()
-                                          + (dataPart.getValue().length > 1 ? "[]" : ""),
+                                      dataPart.getKey() + (dataPart.getValue().length > 1 ? "[]" : ""),
                                       null,
                                       null,
                                       value))
@@ -1420,10 +1388,7 @@ public class Http {
                           filePart.getContentType(),
                           ""))
               .sum();
-      long fileSizeSum =
-          multipartFormData.getFiles().stream()
-              .mapToLong(MultipartFormData.FilePart::getFileSize)
-              .sum();
+      long fileSizeSum = multipartFormData.getFiles().stream().mapToLong(MultipartFormData.FilePart::getFileSize).sum();
 
       long length = dataSizeSum + fileHeadersSizeSum + fileSizeSum;
 
@@ -1451,9 +1416,7 @@ public class Http {
               + "; name=\""
               + escapeParamWithHTML5Strategy(name)
               + "\""
-              + (filename != null
-                  ? "; filename=\"" + escapeParamWithHTML5Strategy(filename) + "\""
-                  : "")
+              + (filename != null ? "; filename=\"" + escapeParamWithHTML5Strategy(filename) + "\"" : "")
               + "\r\n"
               + (contentType != null ? "Content-Type: " + contentType + "\r\n" : "")
               + "\r\n"
@@ -1462,36 +1425,34 @@ public class Http {
     }
 
     /**
-     * Set a Binary Data to this request using a singleton temp file creator The {@code
-     * Content-Type} header of the request is set to {@code application/octet-stream}.
+     * Set a Binary Data to this request using a singleton temp file creator The {@code Content-Type} header of the
+     * request is set to {@code application/octet-stream}.
      *
      * @param data the Binary Data
      * @return the modified builder
      */
     public RequestBuilder bodyRaw(ByteString data) {
       final Files.TemporaryFileCreator tempFileCreator = Files.singletonTemporaryFileCreator();
-      play.api.mvc.RawBuffer buffer =
-          new play.api.mvc.RawBuffer(data.size(), tempFileCreator.asScala(), data);
+      play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), tempFileCreator.asScala(), data);
       return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), "application/octet-stream");
     }
 
     /**
-     * Set a Binary Data to this request. The {@code Content-Type} header of the request is set to
-     * {@code application/octet-stream}.
+     * Set a Binary Data to this request. The {@code Content-Type} header of the request is set to {@code
+     * application/octet-stream}.
      *
      * @param data the Binary Data
      * @param tempFileCreator the temporary file creator for binary data.
      * @return the modified builder
      */
     public RequestBuilder bodyRaw(ByteString data, Files.TemporaryFileCreator tempFileCreator) {
-      play.api.mvc.RawBuffer buffer =
-          new play.api.mvc.RawBuffer(data.size(), tempFileCreator.asScala(), data);
+      play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), tempFileCreator.asScala(), data);
       return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), "application/octet-stream");
     }
 
     /**
-     * Set a Binary Data to this request using a singleton temporary file creator. The {@code
-     * Content-Type} header of the request is set to {@code application/octet-stream}.
+     * Set a Binary Data to this request using a singleton temporary file creator. The {@code Content-Type} header of
+     * the request is set to {@code application/octet-stream}.
      *
      * @param data the Binary Data
      * @return the modified builder
@@ -1502,8 +1463,8 @@ public class Http {
     }
 
     /**
-     * Set a Binary Data to this request. The {@code Content-Type} header of the request is set to
-     * {@code application/octet-stream}.
+     * Set a Binary Data to this request. The {@code Content-Type} header of the request is set to {@code
+     * application/octet-stream}.
      *
      * @param data the Binary Data
      * @param tempFileCreator the temporary file creator for binary data.
@@ -1544,8 +1505,7 @@ public class Http {
      * @param temporaryFileCreator the temporary file creator.
      * @param mat a Pekko Streams Materializer
      * @return the modified builder
-     * @deprecated Deprecated as of 2.7.0. Renamed to {@link #bodyRaw(List,
-     *     Files.TemporaryFileCreator, Materializer)}.
+     * @deprecated Deprecated as of 2.7.0. Renamed to {@link #bodyRaw(List, Files.TemporaryFileCreator, Materializer)}.
      */
     @Deprecated
     public RequestBuilder bodyMultipart(
@@ -1576,11 +1536,8 @@ public class Http {
                 .get();
 
         play.api.mvc.RawBuffer buffer =
-            new play.api.mvc.RawBuffer(
-                materializedData.size(), temporaryFileCreator.asScala(), materializedData);
-        return body(
-            new RequestBody(JavaParsers.toJavaRaw(buffer)),
-            MultipartFormatter.boundaryToContentType(boundary));
+            new play.api.mvc.RawBuffer(materializedData.size(), temporaryFileCreator.asScala(), materializedData);
+        return body(new RequestBody(JavaParsers.toJavaRaw(buffer)), MultipartFormatter.boundaryToContentType(boundary));
       } catch (InterruptedException | ExecutionException e) {
         throw new RuntimeException("Failure while materializing Multipart/Form Data", e);
       }
@@ -1593,8 +1550,7 @@ public class Http {
      * @param files the files part
      * @return the modified builder
      */
-    public RequestBuilder bodyMultipart(
-        Map<String, String[]> formData, List<MultipartFormData.FilePart> files) {
+    public RequestBuilder bodyMultipart(Map<String, String[]> formData, List<MultipartFormData.FilePart> files) {
       MultipartFormData multipartFormData =
           new MultipartFormData() {
             @Override
@@ -1618,8 +1574,8 @@ public class Http {
     }
 
     /**
-     * Set a Json Body to this request. The {@code Content-Type} header of the request is set to
-     * {@code application/json}.
+     * Set a Json Body to this request. The {@code Content-Type} header of the request is set to {@code
+     * application/json}.
      *
      * @param node the Json Node
      * @return this builder, updated
@@ -1629,8 +1585,8 @@ public class Http {
     }
 
     /**
-     * Set a Json Body to this request. The {@code Content-Type} header of the request is set to
-     * {@code application/json}.
+     * Set a Json Body to this request. The {@code Content-Type} header of the request is set to {@code
+     * application/json}.
      *
      * @param json the JsValue
      * @return the modified builder
@@ -1640,8 +1596,7 @@ public class Http {
     }
 
     /**
-     * Set a XML to this request. The {@code Content-Type} header of the request is set to {@code
-     * application/xml}.
+     * Set a XML to this request. The {@code Content-Type} header of the request is set to {@code application/xml}.
      *
      * @param xml the XML
      * @return the modified builder
@@ -1663,11 +1618,9 @@ public class Http {
     }
 
     /**
-     * Set a Text to this request. The {@code Content-Type} header of the request is set to {@code
-     * text/plain}.
+     * Set a Text to this request. The {@code Content-Type} header of the request is set to {@code text/plain}.
      *
-     * @param text the text, assumed to be encoded in US_ASCII format, per
-     *     https://tools.ietf.org/html/rfc6657#section-4
+     * @param text the text, assumed to be encoded in US_ASCII format, per https://tools.ietf.org/html/rfc6657#section-4
      * @return this builder, updated
      */
     public RequestBuilder bodyText(String text) {
@@ -1675,11 +1628,10 @@ public class Http {
     }
 
     /**
-     * Set a Text to this request. The {@code Content-Type} header of the request is set to {@code
-     * text/plain; charset=$charset}.
+     * Set a Text to this request. The {@code Content-Type} header of the request is set to {@code text/plain;
+     * charset=$charset}.
      *
-     * @param text the text, which is assumed to be already encoded in the format defined by
-     *     charset.
+     * @param text the text, which is assumed to be already encoded in the format defined by charset.
      * @param charset the character set that the request is encoded in.
      * @return this builder, updated
      */
@@ -1770,8 +1722,7 @@ public class Http {
     }
 
     /**
-     * Sets the request target URI without changing the effective {@link #scheme()} or {@link
-     * #authority()}.
+     * Sets the request target URI without changing the effective {@link #scheme()} or {@link #authority()}.
      *
      * @param uri the request target URI
      * @return the builder instance
@@ -1782,8 +1733,7 @@ public class Http {
     }
 
     /**
-     * Sets the request target URI without changing the effective {@link #scheme()} or {@link
-     * #authority()}.
+     * Sets the request target URI without changing the effective {@link #scheme()} or {@link #authority()}.
      *
      * @param str the uri
      * @return the builder instance
@@ -1920,10 +1870,9 @@ public class Http {
     /**
      * Set the headers to be used by the request builder.
      *
-     * <p>Supplying exactly one {@code Host} value replaces the effective {@link #authority()} and
-     * canonicalizes the resulting {@code Host} header. Duplicate, empty-list, or invalid {@code
-     * Host} values are rejected. If {@code Host} is absent, the existing effective authority is
-     * preserved.
+     * <p>Supplying exactly one {@code Host} value replaces the effective {@link #authority()} and canonicalizes the
+     * resulting {@code Host} header. Duplicate, empty-list, or invalid {@code Host} values are rejected. If {@code
+     * Host} is absent, the existing effective authority is preserved.
      *
      * @param headers the headers to be replaced
      * @return the builder instance
@@ -1951,8 +1900,8 @@ public class Http {
     }
 
     /**
-     * A single case-insensitive {@code Host} value replaces the effective {@link #authority()}.
-     * Multiple or invalid {@code Host} values are rejected.
+     * A single case-insensitive {@code Host} value replaces the effective {@link #authority()}. Multiple or invalid
+     * {@code Host} values are rejected.
      *
      * @param key the key for in the header
      * @param values the values associated with the key
@@ -1961,8 +1910,7 @@ public class Http {
     public RequestBuilder header(String key, List<String> values) {
       if (key.equalsIgnoreCase(HeaderNames.HOST)) {
         Headers currentHeaders = headers();
-        return this.headers(
-            currentHeaders.removing(actualHeaderName(currentHeaders, key)).adding(key, values));
+        return this.headers(currentHeaders.removing(actualHeaderName(currentHeaders, key)).adding(key, values));
       }
       return this.headers(headers().adding(key, values));
     }
@@ -1979,10 +1927,7 @@ public class Http {
     }
 
     private static String actualHeaderName(Headers headers, String name) {
-      return headers.asMap().keySet().stream()
-          .filter(value -> value.equalsIgnoreCase(name))
-          .findFirst()
-          .orElse(name);
+      return headers.asMap().keySet().stream().filter(value -> value.equalsIgnoreCase(name)).findFirst().orElse(name);
     }
 
     /**
@@ -1999,8 +1944,7 @@ public class Http {
      * @return the builder instance
      */
     public RequestBuilder cookie(Cookie cookie) {
-      play.api.mvc.Cookies newCookies =
-          JavaHelpers$.MODULE$.mergeNewCookie(req.cookies(), cookie.asScala());
+      play.api.mvc.Cookies newCookies = JavaHelpers$.MODULE$.mergeNewCookie(req.cookies(), cookie.asScala());
       attr(new TypedKey<>(RequestAttrKey.Cookies()), new AssignedCell<>(newCookies));
       return this;
     }
@@ -2118,9 +2062,7 @@ public class Http {
      */
     public RequestBuilder clientCertificate(Optional<ClientCertificateInfo> clientCertificate) {
       Objects.requireNonNull(clientCertificate, "clientCertificate");
-      req =
-          req.withClientCertificate(
-              OptionConverters.toScala(clientCertificate.map(ClientCertificateInfo::asScala)));
+      req = req.withClientCertificate(OptionConverters.toScala(clientCertificate.map(ClientCertificateInfo::asScala)));
       return this;
     }
 
@@ -2137,17 +2079,14 @@ public class Http {
      */
     public List<XForwardedClientCert> xForwardedClientCertificates() {
       return List.copyOf(
-          Scala.asJava(req.xForwardedClientCertificates()).stream()
-              .map(value -> value.asJava())
-              .toList());
+          Scala.asJava(req.xForwardedClientCertificates()).stream().map(value -> value.asJava()).toList());
     }
 
     /**
      * @param xForwardedClientCertificates sets the ordered accepted XFCC assertions
      * @return the builder instance
      */
-    public RequestBuilder xForwardedClientCertificates(
-        List<XForwardedClientCert> xForwardedClientCertificates) {
+    public RequestBuilder xForwardedClientCertificates(List<XForwardedClientCert> xForwardedClientCertificates) {
       Objects.requireNonNull(xForwardedClientCertificates, "xForwardedClientCertificates");
       List<play.api.mvc.request.XForwardedClientCert> scalaValues =
           xForwardedClientCertificates.stream().map(XForwardedClientCert::asScala).toList();
@@ -2305,11 +2244,7 @@ public class Http {
       }
 
       public FilePart(
-          String key,
-          String filename,
-          String contentType,
-          A ref,
-          Function<A, Optional<ByteString>> refToBytes) {
+          String key, String filename, String contentType, A ref, Function<A, Optional<ByteString>> refToBytes) {
         this(key, filename, contentType, ref, -1, refToBytes);
       }
 
@@ -2327,13 +2262,7 @@ public class Http {
         this(key, filename, contentType, ref, fileSize, "form-data", refToBytes);
       }
 
-      public FilePart(
-          String key,
-          String filename,
-          String contentType,
-          A ref,
-          long fileSize,
-          String dispositionType) {
+      public FilePart(String key, String filename, String contentType, A ref, long fileSize, String dispositionType) {
         this(key, filename, contentType, ref, fileSize, dispositionType, a -> Optional.empty());
       }
 
@@ -2409,21 +2338,17 @@ public class Http {
                     if (ref instanceof play.api.libs.Files.TemporaryFile) {
                       return Optional.of(
                           ByteString.fromArray(
-                              java.nio.file.Files.readAllBytes(
-                                  ((play.api.libs.Files.TemporaryFile) ref).path())));
+                              java.nio.file.Files.readAllBytes(((play.api.libs.Files.TemporaryFile) ref).path())));
                     } else if (ref instanceof play.libs.Files.TemporaryFile) {
                       return Optional.of(
                           ByteString.fromArray(
-                              java.nio.file.Files.readAllBytes(
-                                  ((play.libs.Files.TemporaryFile) ref).path())));
+                              java.nio.file.Files.readAllBytes(((play.libs.Files.TemporaryFile) ref).path())));
                     } else if (ref instanceof java.io.File) {
                       return Optional.of(
-                          ByteString.fromArray(
-                              java.nio.file.Files.readAllBytes(((java.io.File) ref).toPath())));
+                          ByteString.fromArray(java.nio.file.Files.readAllBytes(((java.io.File) ref).toPath())));
                     } else if (ref instanceof java.nio.file.Path) {
                       return Optional.of(
-                          ByteString.fromArray(
-                              java.nio.file.Files.readAllBytes((java.nio.file.Path) ref)));
+                          ByteString.fromArray(java.nio.file.Files.readAllBytes((java.nio.file.Path) ref)));
                     }
                   } catch (IOException e) {
                     throw new RuntimeException("Can not transform the FilePart ref to bytes", e);
@@ -2580,30 +2505,26 @@ public class Http {
     }
 
     /**
-     * Converts a JSON request to a given class. Conversion is performed with
-     * [[Json.fromJson(JsonNode,Class)]].
+     * Converts a JSON request to a given class. Conversion is performed with [[Json.fromJson(JsonNode,Class)]].
      *
-     * <p>Will return Optional.empty() if the request body is not an instance of JsonNode. If the
-     * JsonNode simply has missing fields, a valid reference with null fields is return.
+     * <p>Will return Optional.empty() if the request body is not an instance of JsonNode. If the JsonNode simply has
+     * missing fields, a valid reference with null fields is return.
      *
      * @param <A> The type to convert the JSON value to.
      * @param clazz The class to convert the JSON value to.
-     * @return The converted value if the request has a JSON body or an empty value if the request
-     *     has an empty body or a body of a different type.
+     * @return The converted value if the request has a JSON body or an empty value if the request has an empty body or
+     *     a body of a different type.
      */
     public <A> Optional<A> parseJson(Class<A> clazz) {
-      return (body instanceof JsonNode)
-          ? Optional.of(Json.fromJson(asJson(), clazz))
-          : Optional.empty();
+      return (body instanceof JsonNode) ? Optional.of(Json.fromJson(asJson(), clazz)) : Optional.empty();
     }
 
     /**
      * The request content as a ByteString.
      *
-     * <p>This makes a best effort attempt to convert the parsed body to a ByteString, if it knows
-     * how. This includes String, json, XML and form bodies. It doesn't include multipart/form-data
-     * or raw bodies that don't fit in the configured max memory buffer, nor does it include custom
-     * output types from custom body parsers.
+     * <p>This makes a best effort attempt to convert the parsed body to a ByteString, if it knows how. This includes
+     * String, json, XML and form bodies. It doesn't include multipart/form-data or raw bodies that don't fit in the
+     * configured max memory buffer, nor does it include custom output types from custom body parsers.
      *
      * @return the request content as a ByteString
      */
@@ -2634,8 +2555,7 @@ public class Http {
                   .flatMap(
                       entry -> {
                         String key = encode(entry.getKey());
-                        return Arrays.stream(entry.getValue())
-                            .map(value -> key + "=" + encode(value));
+                        return Arrays.stream(entry.getValue()).map(value -> key + "=" + encode(value));
                       })
                   .collect(Collectors.joining("&")));
         }
@@ -2835,21 +2755,18 @@ public class Http {
     private final boolean partitioned;
 
     /**
-     * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your
-     * application.
+     * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your application.
      *
      * @param name Cookie name, must not be null
      * @param value Cookie value
-     * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that
-     *     expires now)
+     * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
      * @param path Cookie path
      * @param domain Cookie domain
      * @param secure Whether the cookie is secured (for HTTPS requests)
-     * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side
-     *     JavaScript code)
+     * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
      * @param sameSite the SameSite attribute for this cookie (for CSRF protection).
-     * @param partitioned Whether the cookie is partitioned to support CHIPS (Cookies Having
-     *     Independent Partitioned State)
+     * @param partitioned Whether the cookie is partitioned to support CHIPS (Cookies Having Independent Partitioned
+     *     State)
      */
     public Cookie(
         String name,
@@ -2873,21 +2790,18 @@ public class Http {
     }
 
     /**
-     * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your
-     * application.
+     * Construct a new cookie. Prefer {@link Cookie#builder} for creating new cookies in your application.
      *
      * @param name Cookie name, must not be null
      * @param value Cookie value
-     * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that
-     *     expires now)
+     * @param maxAge Cookie duration in seconds (null for a transient cookie, 0 or less for one that expires now)
      * @param path Cookie path
      * @param domain Cookie domain
      * @param secure Whether the cookie is secured (for HTTPS requests)
-     * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side
-     *     JavaScript code)
+     * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
      * @param sameSite the SameSite attribute for this cookie (for CSRF protection).
-     * @deprecated Deprecated as of 4.0.0. Use {@link #Cookie(String, String, Integer, String,
-     *     String, boolean, boolean, SameSite, boolean)} instead.
+     * @deprecated Deprecated as of 4.0.0. Use {@link #Cookie(String, String, Integer, String, String, boolean, boolean,
+     *     SameSite, boolean)} instead.
      */
     @Deprecated
     public Cookie(
@@ -2926,8 +2840,8 @@ public class Http {
     }
 
     /**
-     * @return the cookie expiration date in seconds, null for a transient cookie, a value less than
-     *     zero for a cookie that expires now
+     * @return the cookie expiration date in seconds, null for a transient cookie, a value less than zero for a cookie
+     *     that expires now
      */
     public Integer maxAge() {
       return maxAge;
@@ -2969,8 +2883,7 @@ public class Http {
     }
 
     /**
-     * @return Whether the cookie is partitioned to support CHIPS (Cookies Having Independent
-     *     Partitioned State)
+     * @return Whether the cookie is partitioned to support CHIPS (Cookies Having Independent Partitioned State)
      */
     public boolean partitioned() {
       return partitioned;
@@ -3072,8 +2985,7 @@ public class Http {
      * <p>For example, to set a maxAge of 40 days: <code>
      * builder.withMaxAge(Duration.of(40, ChronoUnit.DAYS))</code>
      *
-     * @param maxAge a duration representing the maximum age of the cookie. Will be truncated to the
-     *     nearest second.
+     * @param maxAge a duration representing the maximum age of the cookie. Will be truncated to the nearest second.
      * @return the cookie builder with the new maxAge
      */
     public CookieBuilder withMaxAge(Duration maxAge) {

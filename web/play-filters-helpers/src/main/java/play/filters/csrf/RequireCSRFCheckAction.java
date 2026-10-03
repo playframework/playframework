@@ -48,12 +48,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
       CSRF.TokenProvider tokenProvider,
       CSRFTokenSigner csrfTokenSigner,
       CSRFErrorHandler errorHandler) {
-    this(
-        config,
-        sessionConfiguration,
-        tokenProvider,
-        csrfTokenSigner,
-        configAnnotation -> errorHandler);
+    this(config, sessionConfiguration, tokenProvider, csrfTokenSigner, configAnnotation -> errorHandler);
   }
 
   public RequireCSRFCheckAction(
@@ -72,8 +67,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
   @Override
   public CompletionStage<Result> call(Http.Request req) {
 
-    CSRFActionHelper csrfActionHelper =
-        new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
+    CSRFActionHelper csrfActionHelper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
     RequestHeader taggedRequest = csrfActionHelper.tagRequestFromHeader(req.asScala());
     // Check for bypass
@@ -115,8 +109,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
             return handleTokenError(req, taggedRequest, "CSRF tokens don't match");
           }
         } else {
-          return handleTokenError(
-              req, taggedRequest, "CSRF token not found in body or query string");
+          return handleTokenError(req, taggedRequest, "CSRF token not found in body or query string");
         }
       } else {
         return handleTokenError(req, taggedRequest, "CSRF token not found in session");
@@ -124,15 +117,12 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     }
   }
 
-  private CompletionStage<Result> handleTokenError(
-      Http.Request req, RequestHeader taggedRequest, String msg) {
+  private CompletionStage<Result> handleTokenError(Http.Request req, RequestHeader taggedRequest, String msg) {
     CSRFErrorHandler handler = configurator.apply(this.configuration);
     return handler
         .handle(
             taggedRequest
-                .addAttr(
-                    HttpErrorHandler.Attrs$.MODULE$.HttpErrorInfo(),
-                    new HttpErrorInfo("csrf-filter"))
+                .addAttr(HttpErrorHandler.Attrs$.MODULE$.HttpErrorInfo(), new HttpErrorInfo("csrf-filter"))
                 .asJava(),
             msg)
         .thenApply(

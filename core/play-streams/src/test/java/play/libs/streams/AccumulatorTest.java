@@ -25,8 +25,7 @@ public class AccumulatorTest {
   private ActorSystem system;
   private Executor ec;
 
-  private Accumulator<Integer, Integer> sum =
-      Accumulator.fromSink(Sink.<Integer, Integer>fold(0, Integer::sum));
+  private Accumulator<Integer, Integer> sum = Accumulator.fromSink(Sink.<Integer, Integer>fold(0, Integer::sum));
   private Source<Integer, ?> source = Source.from(Arrays.asList(1, 2, 3));
 
   private <T> T await(CompletionStage<T> cs) throws Exception {
@@ -60,12 +59,7 @@ public class AccumulatorTest {
 
   @Test
   public void mapFuture() throws Exception {
-    assertEquals(
-        16,
-        (int)
-            await(
-                sum.mapFuture(s -> CompletableFuture.completedFuture(s + 10), ec)
-                    .run(source, mat)));
+    assertEquals(16, (int) await(sum.mapFuture(s -> CompletableFuture.completedFuture(s + 10), ec).run(source, mat)));
   }
 
   @Test
@@ -92,17 +86,12 @@ public class AccumulatorTest {
   @Test
   public void recoverWithStreamException() throws Exception {
     assertEquals(
-        20,
-        (int)
-            await(
-                sum.recoverWith(t -> CompletableFuture.completedFuture(20), ec)
-                    .run(errorSource(), mat)));
+        20, (int) await(sum.recoverWith(t -> CompletableFuture.completedFuture(20), ec).run(errorSource(), mat)));
   }
 
   @Test
   public void through() throws Exception {
-    assertEquals(
-        12, (int) await(sum.through(Flow.<Integer>create().map(i -> i * 2)).run(source, mat)));
+    assertEquals(12, (int) await(sum.through(Flow.<Integer>create().map(i -> i * 2)).run(source, mat)));
   }
 
   @Before

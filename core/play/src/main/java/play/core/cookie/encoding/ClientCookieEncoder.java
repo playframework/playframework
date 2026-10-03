@@ -20,8 +20,8 @@ import static play.core.cookie.encoding.CookieUtil.*;
 import java.util.Iterator;
 
 /**
- * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used
- * client side, so only name=value pairs are sent.
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used client side, so only
+ * name=value pairs are sent.
  *
  * <p>Note that multiple cookies are supposed to be sent at once in a single "Cookie" header.
  *
@@ -29,10 +29,7 @@ import java.util.Iterator;
  */
 public final class ClientCookieEncoder extends CookieEncoder {
 
-  /**
-   * Strict encoder that validates that name and value chars are in the valid scope defined in
-   * RFC6265
-   */
+  /** Strict encoder that validates that name and value chars are in the valid scope defined in RFC6265 */
   public static final ClientCookieEncoder STRICT = new ClientCookieEncoder(true);
 
   /** Lax instance that doesn't validate name and value */

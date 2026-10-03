@@ -28,8 +28,7 @@ public final class Databases {
    * @param config a map of extra database configuration
    * @return a configured database
    */
-  public static Database createFrom(
-      String name, String driver, String url, Map<String, ? extends Object> config) {
+  public static Database createFrom(String name, String driver, String url, Map<String, ? extends Object> config) {
     ImmutableMap.Builder<String, Object> dbConfig = new ImmutableMap.Builder<>();
     dbConfig.put("driver", driver);
     dbConfig.put("url", url);
@@ -57,8 +56,7 @@ public final class Databases {
    * @param config a map of extra database configuration
    * @return a configured database
    */
-  public static Database createFrom(
-      String driver, String url, Map<String, ? extends Object> config) {
+  public static Database createFrom(String driver, String url, Map<String, ? extends Object> config) {
     return createFrom("default", driver, url, config);
   }
 
@@ -93,8 +91,7 @@ public final class Databases {
    * @param config a map of extra database configuration
    * @return a configured in-memory h2 database
    */
-  public static Database inMemory(
-      String name, Map<String, String> urlOptions, Map<String, ? extends Object> config) {
+  public static Database inMemory(String name, Map<String, String> urlOptions, Map<String, ? extends Object> config) {
     StringBuilder urlExtra = new StringBuilder();
     for (Map.Entry<String, String> option : urlOptions.entrySet()) {
       urlExtra.append(';').append(option.getKey()).append('=').append(option.getValue());
@@ -144,8 +141,7 @@ public final class Databases {
   }
 
   /**
-   * Create an in-memory H2 database with name "default" and with extra configuration provided by
-   * the given entries.
+   * Create an in-memory H2 database with name "default" and with extra configuration provided by the given entries.
    *
    * @param k1 an H2 configuration key.
    * @param v1 configuration value corresponding to `k1`
@@ -156,8 +152,7 @@ public final class Databases {
   }
 
   /**
-   * Create an in-memory H2 database with name "default" and with extra configuration provided by
-   * the given entries.
+   * Create an in-memory H2 database with name "default" and with extra configuration provided by the given entries.
    *
    * @param k1 an H2 configuration key
    * @param v1 H2 configuration value corresponding to `k1`
@@ -170,8 +165,7 @@ public final class Databases {
   }
 
   /**
-   * Create an in-memory H2 database with name "default" and with extra configuration provided by
-   * the given entries.
+   * Create an in-memory H2 database with name "default" and with extra configuration provided by the given entries.
    *
    * @param k1 an H2 configuration key
    * @param v1 H2 configuration value corresponding to `k1`
@@ -181,8 +175,7 @@ public final class Databases {
    * @param v3 a configuration value corresponding to `k3`
    * @return a configured in-memory H2 database
    */
-  public static Database inMemoryWith(
-      String k1, Object v1, String k2, Object v2, String k3, Object v3) {
+  public static Database inMemoryWith(String k1, Object v1, String k2, Object v2, String k3, Object v3) {
     return inMemory(ImmutableMap.of(k1, v1, k2, v2, k3, v3));
   }
 }

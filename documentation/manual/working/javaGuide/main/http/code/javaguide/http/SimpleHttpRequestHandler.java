@@ -26,9 +26,7 @@ public class SimpleHttpRequestHandler implements HttpRequestHandler {
 
   public HandlerForRequest handlerForRequest(Http.RequestHeader request) {
     Handler handler =
-        router
-            .route(request)
-            .orElseGet(() -> EssentialAction.of(req -> Accumulator.done(Results.notFound())));
+        router.route(request).orElseGet(() -> EssentialAction.of(req -> Accumulator.done(Results.notFound())));
     if (handler instanceof JavaHandler) {
       handler = ((JavaHandler) handler).withComponents(handlerComponents);
     }

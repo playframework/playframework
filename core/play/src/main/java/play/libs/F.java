@@ -21,8 +21,8 @@ public class F {
   }
 
   /**
-   * Exception thrown when an operation times out. This class provides an unchecked alternative to
-   * Java's TimeoutException.
+   * Exception thrown when an operation times out. This class provides an unchecked alternative to Java's
+   * TimeoutException.
    */
   public static class PromiseTimeoutException extends RuntimeException {
     public PromiseTimeoutException(String message) {

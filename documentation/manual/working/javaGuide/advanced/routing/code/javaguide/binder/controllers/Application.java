@@ -17,11 +17,7 @@ public class Application extends Controller {
   // #javascript-router-resource
   public Result javascriptRoutes(Http.Request request) {
     return ok(JavaScriptReverseRouter.create(
-            "jsRoutes",
-            "jQuery.ajax",
-            request.host(),
-            routes.javascript.Users.list(),
-            routes.javascript.Users.get()))
+            "jsRoutes", "jQuery.ajax", request.host(), routes.javascript.Users.list(), routes.javascript.Users.get()))
         .as(Http.MimeTypes.JAVASCRIPT);
   }
 
@@ -31,11 +27,7 @@ public class Application extends Controller {
     return ok(
         // #javascript-router-resource-custom-method
         JavaScriptReverseRouter.create(
-            "jsRoutes",
-            "myAjaxMethod",
-            request.host(),
-            routes.javascript.Users.list(),
-            routes.javascript.Users.get())
+            "jsRoutes", "myAjaxMethod", request.host(), routes.javascript.Users.list(), routes.javascript.Users.get())
         // #javascript-router-resource-custom-method
         )
         .as(Http.MimeTypes.JAVASCRIPT);

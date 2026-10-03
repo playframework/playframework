@@ -43,8 +43,7 @@ public class JavaBodyParsers extends WithApplication {
                       }
                       // #access-json-body
                     },
-                    fakeRequest("POST", "/")
-                        .bodyJson(Json.toJson(Collections.singletonMap("name", "foo"))),
+                    fakeRequest("POST", "/").bodyJson(Json.toJson(Collections.singletonMap("name", "foo"))),
                     mat)))
         .contains("foo");
   }
@@ -97,8 +96,7 @@ public class JavaBodyParsers extends WithApplication {
 
     // #composing-apply
     public Accumulator<ByteString, F.Either<Result, User>> apply(RequestHeader request) {
-      Accumulator<ByteString, F.Either<Result, JsonNode>> jsonAccumulator =
-          jsonParser.apply(request);
+      Accumulator<ByteString, F.Either<Result, JsonNode>> jsonAccumulator = jsonParser.apply(request);
       return jsonAccumulator.map(
           resultOrJson -> {
             if (resultOrJson.left.isPresent()) {
@@ -109,8 +107,7 @@ public class JavaBodyParsers extends WithApplication {
                 User user = play.libs.Json.fromJson(json, User.class);
                 return F.Either.Right(user);
               } catch (Exception e) {
-                return F.Either.Left(
-                    Results.badRequest("Unable to read User from json: " + e.getMessage()));
+                return F.Either.Left(Results.badRequest("Unable to read User from json: " + e.getMessage()));
               }
             }
           },
@@ -148,10 +145,7 @@ public class JavaBodyParsers extends WithApplication {
     }
     assertThat(
             callWithStringBody(
-                    new MaxLengthAction(instanceOf(JavaHandlerComponents.class)),
-                    fakeRequest(),
-                    body.toString(),
-                    mat)
+                    new MaxLengthAction(instanceOf(JavaHandlerComponents.class)), fakeRequest(), body.toString(), mat)
                 .status())
         .isEqualTo(413);
   }
@@ -220,8 +214,7 @@ public class JavaBodyParsers extends WithApplication {
     }
 
     @Override
-    public Accumulator<ByteString, F.Either<Result, List<List<String>>>> apply(
-        RequestHeader request) {
+    public Accumulator<ByteString, F.Either<Result, List<List<String>>>> apply(RequestHeader request) {
       // A flow that splits the stream into CSV lines
       Sink<ByteString, CompletionStage<List<List<String>>>> sink =
           Flow.<ByteString>create()
@@ -259,8 +252,7 @@ public class JavaBodyParsers extends WithApplication {
                     new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                       @BodyParser.Of(CsvBodyParser.class)
                       public Result uploadCsv(Http.Request request) {
-                        String value =
-                            ((List<List<String>>) request.body().as(List.class)).get(1).get(2);
+                        String value = ((List<List<String>>) request.body().as(List.class)).get(1).get(2);
                         return ok("Got: " + value);
                       }
                     },

@@ -15,8 +15,8 @@ public interface Futures {
   /**
    * Creates a {@link CompletionStage} that returns either the input stage, or a timeout.
    *
-   * <p>Note that timeout is not the same as cancellation. Even in case of timeout, the given
-   * completion stage will still complete, even though that completed value is not returned.
+   * <p>Note that timeout is not the same as cancellation. Even in case of timeout, the given completion stage will
+   * still complete, even though that completed value is not returned.
    *
    * <pre>{@code
    * CompletionStage<Double> callWithTimeout() {
@@ -33,8 +33,7 @@ public interface Futures {
   <A> CompletionStage<A> timeout(CompletionStage<A> stage, long amount, TimeUnit unit);
 
   /**
-   * An alias for {@link #timeout(CompletionStage, long, TimeUnit) timeout} that uses a {@link
-   * java.time.Duration}.
+   * An alias for {@link #timeout(CompletionStage, long, TimeUnit) timeout} that uses a {@link java.time.Duration}.
    *
    * @param stage the input completion stage that may time out.
    * @param duration The duration after which there is a timeout.
@@ -44,8 +43,8 @@ public interface Futures {
   <A> CompletionStage<A> timeout(CompletionStage<A> stage, Duration duration);
 
   /**
-   * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a
-   * given callable. The completion stage will be called after the delay.
+   * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a given callable. The
+   * completion stage will be called after the delay.
    *
    * @param callable the input completion stage that is called after the delay.
    * @param amount The time to wait.
@@ -82,8 +81,8 @@ public interface Futures {
   CompletionStage<Done> delay(long amount, TimeUnit unit);
 
   /**
-   * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a
-   * given supplier. The completion stage will be called after the delay.
+   * Create a {@link CompletionStage} which, after a delay, will be redeemed with the result of a given supplier. The
+   * completion stage will be called after the delay.
    *
    * <p>For example, to render a number indicating the delay, you can use the following method:
    *
@@ -105,8 +104,7 @@ public interface Futures {
   <A> CompletionStage<A> delayed(Callable<CompletionStage<A>> callable, Duration duration);
 
   /**
-   * Combine the given CompletionStages into a single {@link CompletionStage} for the list of
-   * results.
+   * Combine the given CompletionStages into a single {@link CompletionStage} for the list of results.
    *
    * <p>The sequencing operations are performed in the default ExecutionContext.
    *

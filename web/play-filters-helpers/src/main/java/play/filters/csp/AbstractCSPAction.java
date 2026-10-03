@@ -37,10 +37,7 @@ public abstract class AbstractCSPAction extends Action<CSP> {
             (Result result) -> {
               Result r = result;
               if (cspResult.nonceHeader()) {
-                r =
-                    r.withHeader(
-                        Http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER,
-                        cspResult.nonce().get());
+                r = r.withHeader(Http.HeaderNames.X_CONTENT_SECURITY_POLICY_NONCE_HEADER, cspResult.nonce().get());
               }
               return r.withHeader(Http.HeaderNames.CONTENT_SECURITY_POLICY, cspResult.directives());
             });

@@ -22,8 +22,7 @@ public class JavaTestingWithDatabases {
   public static class NotTested {
     {
       // #database
-      Database database =
-          Databases.createFrom("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test");
+      Database database = Databases.createFrom("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test");
       // #database
     }
 
@@ -79,8 +78,7 @@ public class JavaTestingWithDatabases {
   public void inMemoryFullConfig() throws Exception {
     // #in-memory-full-config
     Database database =
-        Databases.inMemory(
-            "mydatabase", ImmutableMap.of("MODE", "MYSQL"), ImmutableMap.of("logStatements", true));
+        Databases.inMemory("mydatabase", ImmutableMap.of("MODE", "MYSQL"), ImmutableMap.of("logStatements", true));
     // #in-memory-full-config
 
     try {
@@ -116,10 +114,7 @@ public class JavaTestingWithDatabases {
       Evolutions.applyEvolutions(
           database,
           Evolutions.forDefault(
-              new Evolution(
-                  1,
-                  "create table test (id bigint not null, name varchar(255));",
-                  "drop table test;")));
+              new Evolution(1, "create table test (id bigint not null, name varchar(255));", "drop table test;")));
       // #apply-evolutions-simple
 
       Connection connection = database.getConnection();
@@ -145,8 +140,7 @@ public class JavaTestingWithDatabases {
     Database database = Databases.inMemory();
     try {
       // #apply-evolutions-custom-path
-      Evolutions.applyEvolutions(
-          database, Evolutions.fromClassLoader(getClass().getClassLoader(), "testdatabase/"));
+      Evolutions.applyEvolutions(database, Evolutions.fromClassLoader(getClass().getClassLoader(), "testdatabase/"));
       // #apply-evolutions-custom-path
     } finally {
       database.shutdown();
@@ -163,13 +157,11 @@ public class JavaTestingWithDatabases {
 
       // Absolute path
       Evolutions.applyEvolutions(
-          database,
-          new EnvironmentEvolutionsReader(Environment.simple().asScala(), "/opt/db_migration"));
+          database, new EnvironmentEvolutionsReader(Environment.simple().asScala(), "/opt/db_migration"));
 
       // Relative path (based on your project's root folder)
       Evolutions.applyEvolutions(
-          database,
-          new EnvironmentEvolutionsReader(Environment.simple().asScala(), "../db_migration"));
+          database, new EnvironmentEvolutionsReader(Environment.simple().asScala(), "../db_migration"));
       // #apply-evolutions-absolute-relative-path
     } finally {
       database.shutdown();

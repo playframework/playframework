@@ -50,9 +50,7 @@ public class JavaFileUpload extends WithApplication {
 
     @Inject
     public MultipartFormDataWithFileBodyParser(
-        Materializer materializer,
-        play.api.http.HttpConfiguration config,
-        HttpErrorHandler errorHandler) {
+        Materializer materializer, play.api.http.HttpConfiguration config, HttpErrorHandler errorHandler) {
       super(
           materializer,
           config.parser().maxMemoryBuffer(), // Small buffer used for parsing the body
@@ -63,8 +61,7 @@ public class JavaFileUpload extends WithApplication {
 
     /** Creates a file part handler that uses a custom accumulator. */
     @Override
-    public Function<Multipart.FileInfo, Accumulator<ByteString, FilePart<File>>>
-        createFilePartHandler() {
+    public Function<Multipart.FileInfo, Accumulator<ByteString, FilePart<File>>> createFilePartHandler() {
       return (Multipart.FileInfo fileInfo) -> {
         final String filename = fileInfo.fileName();
         final String partname = fileInfo.partName();
@@ -79,12 +76,7 @@ public class JavaFileUpload extends WithApplication {
                     completionStage.thenApplyAsync(
                         results ->
                             new Http.MultipartFormData.FilePart<>(
-                                partname,
-                                filename,
-                                contentType,
-                                file,
-                                results.getCount(),
-                                dispositionType))));
+                                partname, filename, contentType, file, results.getCount(), dispositionType))));
       };
     }
 
@@ -108,19 +100,15 @@ public class JavaFileUpload extends WithApplication {
     Files.write(tmpFile, "foo".getBytes());
     Source<ByteString, ?> source = FileIO.fromPath(tmpFile);
     Http.MultipartFormData.FilePart<Source<ByteString, ?>> dp =
-        new Http.MultipartFormData.FilePart<>(
-            "name", "filename", "text/plain", source, Files.size(tmpFile));
+        new Http.MultipartFormData.FilePart<>("name", "filename", "text/plain", source, Files.size(tmpFile));
     assertThat(
             contentAsString(
                 call(
-                    new javaguide.testhelpers.MockJavaAction(
-                        instanceOf(JavaHandlerComponents.class)) {
+                    new javaguide.testhelpers.MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                       @BodyParser.Of(MultipartFormDataWithFileBodyParser.class)
                       public Result uploadCustomMultiPart(Http.Request request) throws Exception {
-                        final Http.MultipartFormData<File> formData =
-                            request.body().asMultipartFormData();
-                        final Http.MultipartFormData.FilePart<File> filePart =
-                            formData.getFile("name");
+                        final Http.MultipartFormData<File> formData = request.body().asMultipartFormData();
+                        final Http.MultipartFormData.FilePart<File> filePart = formData.getFile("name");
                         final File file = filePart.getRef();
                         final long size = filePart.getFileSize();
                         Files.deleteIfExists(file.toPath());

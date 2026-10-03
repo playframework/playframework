@@ -48,8 +48,7 @@ public interface CaffeineCacheComponents extends ConfigurationComponents, PekkoC
 
     play.api.cache.AsyncCacheApi scalaAsyncCacheApi =
         new CaffeineCacheApi(
-            NamedCaffeineCacheProvider$.MODULE$.getNamedCache(
-                name, caffeineCacheManager, configuration()));
+            NamedCaffeineCacheProvider$.MODULE$.getNamedCache(name, caffeineCacheManager, configuration()));
     return new DefaultAsyncCacheApi(scalaAsyncCacheApi);
   }
 

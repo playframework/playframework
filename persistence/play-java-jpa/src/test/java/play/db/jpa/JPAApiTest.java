@@ -59,8 +59,7 @@ public class JPAApiTest {
 
   @Test
   public void shouldWorkWithSingleValueAtConfiguredLocation() {
-    String configString =
-        "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
+    String configString = "play.jpa.config = myconfig.jpa\n" + "myconfig.jpa.default = defaultPersistenceUnit";
     Set<String> unitNames = getConfiguredPersistenceUnitNames(configString);
     assertThat(unitNames).containsOnly("defaultPersistenceUnit");
   }

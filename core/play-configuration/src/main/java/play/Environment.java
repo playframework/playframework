@@ -105,8 +105,8 @@ public class Environment {
   }
 
   /**
-   * Retrieves a file relative to the application root path. This method returns an Optional, using
-   * empty if the file was not found.
+   * Retrieves a file relative to the application root path. This method returns an Optional, using empty if the file
+   * was not found.
    *
    * @param relativePath relative path of the file to fetch
    * @return an existing file
@@ -146,8 +146,8 @@ public class Environment {
   /**
    * A simple environment.
    *
-   * <p>Uses the same classloader that the environment classloader is defined in, the current
-   * working directory as the path and test mode.
+   * <p>Uses the same classloader that the environment classloader is defined in, the current working directory as the
+   * path and test mode.
    *
    * @return the environment
    */

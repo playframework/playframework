@@ -33,9 +33,7 @@ public class JavaServerIntegrationTest {
           assertEquals(server.httpPort(), port);
           try {
             server.httpsPort();
-            fail(
-                "Exception should be thrown on accessing https port of server that is not serving"
-                    + " that protocol");
+            fail("Exception should be thrown on accessing https port of server that is not serving" + " that protocol");
           } catch (IllegalStateException e) {
           }
         });
@@ -53,9 +51,7 @@ public class JavaServerIntegrationTest {
           assertEquals(server.httpsPort(), port);
           try {
             server.httpPort();
-            fail(
-                "Exception should be thrown on accessing http port of server that is not serving"
-                    + " that protocol");
+            fail("Exception should be thrown on accessing http port of server that is not serving" + " that protocol");
           } catch (IllegalStateException e) {
           }
         });
@@ -133,8 +129,7 @@ public class JavaServerIntegrationTest {
   private boolean _isServingSSL(int port) throws IOException {
     // Inspired by @4ndrej's SSLPoke https://gist.github.com/4ndrej/4547029
     try {
-      SSLSocket sslsocket =
-          (SSLSocket) SSLSocketFactory.getDefault().createSocket("127.0.0.1", port);
+      SSLSocket sslsocket = (SSLSocket) SSLSocketFactory.getDefault().createSocket("127.0.0.1", port);
       InputStream in = sslsocket.getInputStream();
       OutputStream out = sslsocket.getOutputStream();
 

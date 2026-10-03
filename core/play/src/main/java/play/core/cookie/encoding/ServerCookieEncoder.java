@@ -20,8 +20,8 @@ import static play.core.cookie.encoding.CookieUtil.*;
 import java.util.*;
 
 /**
- * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used
- * server side, so some fields are sent (Version is typically ignored).
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie encoder to be used server side, so some
+ * fields are sent (Version is typically ignored).
  *
  * <p>As Netty's Cookie merges Expires and MaxAge into one single field, only Max-Age field is sent.
  *
@@ -31,10 +31,7 @@ import java.util.*;
  */
 public final class ServerCookieEncoder extends CookieEncoder {
 
-  /**
-   * Strict encoder that validates that name and value chars are in the valid scope defined in
-   * RFC6265
-   */
+  /** Strict encoder that validates that name and value chars are in the valid scope defined in RFC6265 */
   public static final ServerCookieEncoder STRICT = new ServerCookieEncoder(true);
 
   /** Lax instance that doesn't validate name and value */

@@ -87,11 +87,7 @@ public class JavaJsonActions extends WithApplication {
   @Test
   public void responseAction() {
     assertThat(
-            contentAsString(
-                call(
-                    new JsonResponseAction(instanceOf(JavaHandlerComponents.class)),
-                    fakeRequest(),
-                    mat)))
+            contentAsString(call(new JsonResponseAction(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
         .isEqualTo("{\"exampleField1\":\"foobar\",\"exampleField2\":\"Hello world!\"}");
   }
 
@@ -99,10 +95,7 @@ public class JavaJsonActions extends WithApplication {
   public void responseDaoAction() {
     assertThat(
             contentAsString(
-                call(
-                    new JsonResponseDaoAction(instanceOf(JavaHandlerComponents.class)),
-                    fakeRequest(),
-                    mat)))
+                call(new JsonResponseDaoAction(instanceOf(JavaHandlerComponents.class)), fakeRequest(), mat)))
         .isEqualTo("[{\"firstName\":\"Foo\",\"lastName\":\"Bar\",\"age\":30}]");
   }
 

@@ -148,9 +148,7 @@ class DevServerReloader implements BuildLink, Closeable {
         // Create a new classloader
         currentApplicationClassLoader =
             new DelegatedResourcesClassLoader(
-                "ReloadableClassLoader(v" + classLoaderVersion.incrementAndGet() + ")",
-                urls(cp),
-                baseClassLoader);
+                "ReloadableClassLoader(v" + classLoaderVersion.incrementAndGet() + ")", urls(cp), baseClassLoader);
         return currentApplicationClassLoader;
       }
       return null; // null means nothing changed
@@ -160,15 +158,14 @@ class DevServerReloader implements BuildLink, Closeable {
   }
 
   /**
-   * Contrary to its name, this doesn't necessarily reload the app. It is invoked on every request,
-   * and will only trigger a reload of the app if something has changed.
+   * Contrary to its name, this doesn't necessarily reload the app. It is invoked on every request, and will only
+   * trigger a reload of the app if something has changed.
    *
    * <p>Since this communicates across classloaders, it must return only simple objects.
    *
    * @return Either<br>
    *     - {@link Throwable} - If something went wrong (eg, a compile error). <br>
-   *     - {@link ClassLoader} - If the classloader has changed, and the application should be
-   *     reloaded.<br>
+   *     - {@link ClassLoader} - If the classloader has changed, and the application should be reloaded.<br>
    *     - {@code null} - If nothing changed.
    */
   @Override
@@ -221,9 +218,7 @@ class DevServerReloader implements BuildLink, Closeable {
       var origFile = source.getOriginal();
       var key = Arrays.stream(origFile.getName().split("\\.")).skip(1).collect(joining("."));
       if (generatedSourceHandlers.containsKey(key)) {
-        return new Object[] {
-          origFile, generatedSourceHandlers.get(key).getOriginalLine(source.getFile(), line)
-        };
+        return new Object[] {origFile, generatedSourceHandlers.get(key).getOriginalLine(source.getFile(), line)};
       } else {
         return new Object[] {origFile, line};
       }

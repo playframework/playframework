@@ -50,8 +50,7 @@ public interface AsyncCacheApi {
    * @param expiration expiration period in seconds.
    * @return a CompletionStage containing the value
    */
-  <T> CompletionStage<T> getOrElseUpdate(
-      String key, Callable<CompletionStage<T>> block, int expiration);
+  <T> CompletionStage<T> getOrElseUpdate(String key, Callable<CompletionStage<T>> block, int expiration);
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.
@@ -93,13 +92,10 @@ public interface AsyncCacheApi {
   CompletionStage<Done> remove(String key);
 
   /**
-   * Removes all values from the cache. This may be useful as an admin user operation if it is
-   * supported by your cache.
+   * Removes all values from the cache. This may be useful as an admin user operation if it is supported by your cache.
    *
-   * @throws UnsupportedOperationException if this cache implementation does not support removing
-   *     all values.
-   * @return a CompletionStage containing either a Done when successful or an exception when
-   *     unsuccessful.
+   * @throws UnsupportedOperationException if this cache implementation does not support removing all values.
+   * @return a CompletionStage containing either a Done when successful or an exception when unsuccessful.
    */
   CompletionStage<Done> removeAll();
 }

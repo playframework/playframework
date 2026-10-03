@@ -30,8 +30,7 @@ public final class PekkoTypedDocTest {
     Module module = new javaguide.pekko.typed.oo.multi.AppModule();
     GuiceApplicationBuilder builder = new GuiceApplicationBuilder().bindings(module);
     Injector injector = builder.configure("my.config", "foo").injector();
-    javaguide.pekko.typed.oo.multi.Main main =
-        injector.instanceOf(javaguide.pekko.typed.oo.multi.Main.class);
+    javaguide.pekko.typed.oo.multi.Main main = injector.instanceOf(javaguide.pekko.typed.oo.multi.Main.class);
     assertThat(main.helloActor1).isNotNull();
     assertThat(main.helloActor2).isNotNull();
     assertThat(main.configuredActor1).isNotNull();

@@ -42,8 +42,7 @@ import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
  * @see play.BuiltInComponents
  * @see WSClient
  */
-public interface AhcWSComponents
-    extends WSClientComponents, ConfigurationComponents, PekkoComponents {
+public interface AhcWSComponents extends WSClientComponents, ConfigurationComponents, PekkoComponents {
 
   Environment environment();
 
@@ -59,10 +58,7 @@ public interface AhcWSComponents
 
   default AsyncHttpClient asyncHttpClient() {
     return new AsyncHttpClientProvider(
-            environment().asScala(),
-            configuration(),
-            applicationLifecycle().asScala(),
-            executionContext())
+            environment().asScala(), configuration(), applicationLifecycle().asScala(), executionContext())
         .get();
   }
 }
