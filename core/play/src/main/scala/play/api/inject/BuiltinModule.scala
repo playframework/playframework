@@ -31,7 +31,6 @@ import play.api.routing.Router
 import play.core.j.JavaRouterAdapter
 import play.core.routing.GeneratedRouter
 import play.libs.concurrent.ClassLoaderExecutionContext
-import play.libs.concurrent.HttpExecutionContext
 
 /**
  * The Play BuiltinModule.
@@ -87,7 +86,6 @@ class BuiltinModule
         bind[ExecutionContextExecutor].toProvider[ExecutionContextProvider],
         bind[ExecutionContext].to(bind[ExecutionContextExecutor]),
         bind[Executor].to(bind[ExecutionContextExecutor]),
-        bind[HttpExecutionContext].toSelf,
         bind[ClassLoaderExecutionContext].toSelf,
         bind[play.core.j.JavaContextComponents].to[play.core.j.DefaultJavaContextComponents],
         bind[play.core.j.JavaHandlerComponents].to[play.core.j.DefaultJavaHandlerComponents],
