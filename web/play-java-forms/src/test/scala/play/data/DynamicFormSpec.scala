@@ -263,7 +263,7 @@ class DynamicFormSpec extends CommonFormSpec {
       sField.errors must_== Nil
     }
 
-    "fail with exception when the json paylod is bigger than default maxBufferSize" in {
+    "fail with exception when the json payload is bigger than default maxBufferSize" in {
       val cfg = ConfigFactory
         .parseString("""
                        |play.http.parser.maxMemoryBuffer = 32

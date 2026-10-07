@@ -65,6 +65,8 @@ If you have a request available in the scope, you can bind directly from the req
 
 @[bind-from-request](code/javaguide/forms/JavaForms.java)
 
+When the request body is JSON, Jackson property names declared with `@JsonProperty`, `@JsonSetter`, or a class-level `@JsonNaming` strategy are mapped to the corresponding Java form properties before binding. Normal form formatters still convert and validate the individual values. `errorsAsJson()` maps validation error keys back to their Jackson property names.
+
 ## Defining constraints
 
 You can define additional constraints that will be checked during the binding phase using [`JSR-380` (Bean Validation 3.0)](https://jakarta.ee/specifications/bean-validation/3.0/jakarta-bean-validation-spec-3.0.html) annotations:
