@@ -59,7 +59,7 @@ public abstract class AbstractTestBrowser {
             .browser(browserName(webDriver))
             .baseUrl(baseUrl == null ? "" : baseUrl);
     // Keep reports and downloads in sbt's target folder, unless configured via selenide.*
-    // system properties or selenide.properties
+    // system properties or a selenide.properties file on the classpath
     if (SELENIDE_DEFAULT_REPORTS_FOLDER.equals(config.reportsFolder())) {
       config.reportsFolder("target/selenide/reports");
     }
@@ -91,7 +91,8 @@ public abstract class AbstractTestBrowser {
 
   /**
    * The Selenide configuration of this browser. Changes, like timeouts or the base url, apply to
-   * this browser only.
+   * this browser only. Settings used to start a browser, like {@code headless} or {@code
+   * browserBinary}, have no effect, because the browser is already running.
    *
    * @return the Selenide configuration.
    */

@@ -68,7 +68,7 @@ Just as there exists a `WithApplication` class, there is also a [`WithServer`](a
 
 ## Testing with a browser
 
-If you want to test your application from within a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/java/play/test/TestBrowser.html) backed by [Selenide](https://selenide.org). By default, the browser is [HtmlUnit](https://www.htmlunit.org), which runs in-memory and does not require a browser installation. To test with a real browser, use `FIREFOX`, `CHROME`, `EDGE` or `SAFARI` instead of `HTMLUNIT`, or pass any Selenium `WebDriver` instance, for example one configured to run headless.
+If you want to test your application from within a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/java/play/test/TestBrowser.html) backed by [Selenide](https://selenide.org). By default, the browser is [HtmlUnit](https://www.htmlunit.org), which runs in-memory and does not require a browser installation. To test with a real browser, use `FIREFOX`, `CHROME`, `EDGE` or `SAFARI` instead of `HTMLUNIT`. Firefox, Chrome and Edge run headless if the system property `selenide.headless` is `true`, and use the browser executable set by `selenide.browserBinary`. To configure a browser differently, pass your own Selenium `WebDriver` instance.
 
 @[test-browser](code/javaguide/tests/FunctionalTest.java)
 
@@ -78,7 +78,7 @@ If you want to test your application from within a Web browser, you can use [Sel
 
 @[test-browser-selenide](code/javaguide/tests/FunctionalTest.java)
 
-Use `browser.selenide()` to access the complete [Selenide API](https://selenide.org/documentation.html) of the browser and `browser.getDriver()` to access the underlying Selenium `WebDriver`. Settings like timeouts can be changed per browser through `browser.selenideConfig()`, or for all browsers through `selenide.*` system properties.
+Use `browser.selenide()` to access the complete [Selenide API](https://selenide.org/documentation.html) of the browser and `browser.getDriver()` to access the underlying Selenium `WebDriver`. Settings like timeouts can be changed per browser through `browser.selenideConfig()`, or for all browsers through `selenide.*` system properties or a `selenide.properties` file on the test classpath. Settings used to start a browser, like `selenide.headless` and `selenide.browserBinary`, must be set before the browser is created; changing them through `browser.selenideConfig()` does not affect a running browser.
 
 And, of course there, is the [`WithBrowser`](api/java/play/test/WithBrowser.html) class to automatically open and close a browser for each test:
 

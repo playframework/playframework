@@ -8,7 +8,13 @@ import java.util.concurrent.TimeUnit
 
 import scala.jdk.FunctionConverters._
 
+import com.codeborne.selenide.Config
+import com.codeborne.selenide.SelenideConfig
 import org.openqa.selenium._
+import org.openqa.selenium.chrome.ChromeDriver
+import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.edge.EdgeDriver
+import org.openqa.selenium.edge.EdgeOptions
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
@@ -128,17 +134,46 @@ object TestBrowser {
 object WebDriverFactory {
 
   /**
-   * Creates a Selenium Web Driver and configures it
+   * Creates a Selenium Web Driver and configures it.
+   *
+   * Chrome, Edge and Firefox are started with WebDriver BiDi enabled, so Selenide can collect the browser's console
+   * logs. They also use Selenide's `headless` and `browserBinary` settings, e.g. from the system properties
+   * `selenide.headless=true` and `selenide.browserBinary=/path/to/browser`.
+   *
    * @param clazz Type of driver to create
    * @return The driver instance
    */
   def apply[D <: WebDriver](clazz: Class[D]): WebDriver = {
-    val driver = clazz.getDeclaredConstructor().newInstance()
+    // Reads the selenide.* system properties and a selenide.properties file on the classpath
+    val config            = new SelenideConfig()
+    val driver: WebDriver =
+      if (clazz == classOf[ChromeDriver]) new ChromeDriver(chromeOptions(config))
+      else if (clazz == classOf[EdgeDriver]) new EdgeDriver(edgeOptions(config))
+      else if (clazz == classOf[FirefoxDriver]) new FirefoxDriver(firefoxOptions(config))
+      else clazz.getDeclaredConstructor().newInstance()
     // Driver-specific configuration
     driver match {
       case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
       case _                        =>
     }
     driver
+  }
+
+  private[test] def chromeOptions(config: Config): ChromeOptions = {
+    val options = new ChromeOptions().enableBiDi()
+    Option(config.browserBinary()).foreach(binary => options.setBinary(binary))
+    if (config.headless()) options.addArguments("--headless=new") else options
+  }
+
+  private[test] def edgeOptions(config: Config): EdgeOptions = {
+    val options = new EdgeOptions().enableBiDi()
+    Option(config.browserBinary()).foreach(binary => options.setBinary(binary))
+    if (config.headless()) options.addArguments("--headless=new") else options
+  }
+
+  private[test] def firefoxOptions(config: Config): FirefoxOptions = {
+    val options = new FirefoxOptions().enableBiDi()
+    Option(config.browserBinary()).foreach(binary => options.setBinary(binary))
+    if (config.headless()) options.addArguments("-headless") else options
   }
 }
