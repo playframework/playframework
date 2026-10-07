@@ -72,7 +72,7 @@ If you want to test your application from within a Web browser, you can use [Sel
 
 @[test-browser](code/javaguide/tests/FunctionalTest.java)
 
-`browser.el(selector)` returns the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) and `browser.$(selector)` (or `browser.find(selector)`) returns all matching elements as an [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html). Elements are looked up lazily, and actions and assertions on them wait until the element is ready, so you rarely need explicit waits:
+`browser.el(selector)` returns the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) and `browser.$(selector)` (or `browser.find(selector)`) returns all matching elements as a [`BrowserElements`](api/java/play/test/BrowserElements.html) collection, a Selenide [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html) that can also click, fill and submit all of its elements. Elements are looked up lazily, and actions and assertions on them wait until the element is ready, so you rarely need explicit waits:
 
 @[test-browser-selenide-imports](code/javaguide/tests/FunctionalTest.java)
 

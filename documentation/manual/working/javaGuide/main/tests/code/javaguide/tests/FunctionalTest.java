@@ -100,7 +100,7 @@ public class FunctionalTest extends WithApplication {
         browser -> {
           browser.goTo("/");
           assertEquals("Welcome to Play!", browser.el("#title").text());
-          browser.el("a").click();
+          browser.$("a").click();
           assertEquals("login", browser.url());
         });
   }

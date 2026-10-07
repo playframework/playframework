@@ -6,15 +6,14 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
-import scala.jdk.CollectionConverters._
 import scala.jdk.FunctionConverters._
 
-import com.codeborne.selenide.ElementsCollection
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
 import play.test.AbstractTestBrowser
+import play.test.BrowserElements
 
 /**
  * A test browser (Using Selenium WebDriver) backed by Selenide (https://selenide.org).
@@ -36,19 +35,12 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
    *   )
    * }}}
    */
-  def submit(selector: String, fields: (String, String)*): ElementsCollection = {
+  def submit(selector: String, fields: (String, String)*): BrowserElements = {
     fields.foreach {
       case (fieldName, fieldValue) =>
-        val inputs    = $(s"$selector *[name=${TestBrowser.cssString(fieldName)}]").asFixedIterable().asScala.toSeq
-        val displayed = inputs.filter(_.isDisplayed)
-        if (displayed.isEmpty) {
-          throw new NoSuchElementException(s"No displayed field named '$fieldName' found in '$selector'")
-        }
-        displayed.foreach(_.setValue(fieldValue))
+        $(s"$selector *[name=${TestBrowser.cssString(fieldName)}]").fill().`with`(fieldValue)
     }
-    val forms = $(selector)
-    forms.asFixedIterable().asScala.filter(_.isEnabled).foreach(_.submit())
-    forms
+    $(selector).submit()
   }
 
   /**

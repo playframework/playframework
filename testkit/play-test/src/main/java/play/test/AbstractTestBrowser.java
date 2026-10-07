@@ -4,7 +4,6 @@
 
 package play.test;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideConfig;
 import com.codeborne.selenide.SelenideDriver;
 import com.codeborne.selenide.SelenideElement;
@@ -12,8 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import org.openqa.selenium.By;
@@ -24,8 +23,6 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.WrapsElement;
 
 /**
  * Base class of Play's test browsers ({@link play.test.TestBrowser} and {@code
@@ -140,21 +137,6 @@ public abstract class AbstractTestBrowser {
   }
 
   /**
-   * Opens the given url in a new tab and switches to it. A relative url is resolved against the
-   * base url.
-   *
-   * @param url the url, relative or absolute.
-   */
-  public void goToInNewTab(String url) {
-    Objects.requireNonNull(url, "It is required to specify a URL to navigate to (in a new tab).");
-    Set<String> initialTabs = new HashSet<>(webDriver.getWindowHandles());
-    executeScript("window.open(arguments[0], '_blank');", buildUrl(url));
-    Set<String> tabs = new HashSet<>(webDriver.getWindowHandles());
-    tabs.removeAll(initialTabs);
-    webDriver.switchTo().window(tabs.iterator().next());
-  }
-
-  /**
    * The current url. If it starts with the base url, the url relative to the base url is returned
    * (e.g. {@code "login"} for {@code "http://localhost:19001/login"}).
    *
@@ -206,12 +188,14 @@ public abstract class AbstractTestBrowser {
   /**
    * All elements matching the given CSS selector. Unlike Selenide's {@code $}, this returns a
    * collection, like Play's test browser always did. Use {@link #el(String)} for a single element.
+   * Besides the Selenide collection API, the result supports clicking, filling and submitting all
+   * of its elements, see {@link BrowserElements}.
    *
    * @param cssSelector the CSS selector.
    * @return the elements.
    */
-  public ElementsCollection $(String cssSelector) {
-    return selenide.$$(cssSelector);
+  public BrowserElements $(String cssSelector) {
+    return new BrowserElements(selenide.driver(), cssSelector);
   }
 
   /**
@@ -221,8 +205,8 @@ public abstract class AbstractTestBrowser {
    * @return the elements.
    * @see #$(String)
    */
-  public ElementsCollection $(By locator) {
-    return selenide.$$(locator);
+  public BrowserElements $(By locator) {
+    return new BrowserElements(selenide.driver(), locator);
   }
 
   /**
@@ -231,7 +215,7 @@ public abstract class AbstractTestBrowser {
    * @param cssSelector the CSS selector.
    * @return the elements.
    */
-  public ElementsCollection find(String cssSelector) {
+  public BrowserElements find(String cssSelector) {
     return $(cssSelector);
   }
 
@@ -241,7 +225,7 @@ public abstract class AbstractTestBrowser {
    * @param locator the locator.
    * @return the elements.
    */
-  public ElementsCollection find(By locator) {
+  public BrowserElements find(By locator) {
     return $(locator);
   }
 
@@ -257,59 +241,6 @@ public abstract class AbstractTestBrowser {
    */
   public Object executeScript(String script, Object... args) {
     return ((JavascriptExecutor) webDriver).executeScript(script, args);
-  }
-
-  /**
-   * Executes asynchronous JavaScript in the current page.
-   *
-   * @param script the script.
-   * @param args the script arguments.
-   * @return the result of the script, see {@link JavascriptExecutor#executeAsyncScript(String,
-   *     Object...)}.
-   */
-  public Object executeAsyncScript(String script, Object... args) {
-    return ((JavascriptExecutor) webDriver).executeAsyncScript(script, args);
-  }
-
-  /* ---------------------------- Frames ---------------------------- */
-
-  /** Switches to the default content (out of any frame). */
-  public void switchTo() {
-    webDriver.switchTo().defaultContent();
-  }
-
-  /** Switches to the default content (out of any frame). */
-  public void switchToDefault() {
-    switchTo();
-  }
-
-  /**
-   * Switches into the given iframe. If the element is {@code null} or not an iframe, switches to
-   * the default content.
-   *
-   * @param element the iframe element.
-   */
-  public void switchTo(WebElement element) {
-    if (element == null || !"iframe".equals(element.getTagName())) {
-      switchTo();
-    } else {
-      WebElement target = element;
-      while (target instanceof WrapsElement wrapper
-          && wrapper.getWrappedElement() != null
-          && wrapper.getWrappedElement() != target) {
-        target = wrapper.getWrappedElement();
-      }
-      webDriver.switchTo().frame(target);
-    }
-  }
-
-  /**
-   * Switches into the first element of the given elements, see {@link #switchTo(WebElement)}.
-   *
-   * @param elements the iframe elements.
-   */
-  public void switchTo(ElementsCollection elements) {
-    switchTo(elements.first());
   }
 
   /* ---------------------------- Cookies ---------------------------- */
@@ -356,17 +287,28 @@ public abstract class AbstractTestBrowser {
     if (!(webDriver instanceof TakesScreenshot takesScreenshot)) {
       throw new WebDriverException("Current browser doesn't allow taking screenshot.");
     }
-    File destination = new File(fileName);
-    try {
-      File parent = destination.getAbsoluteFile().getParentFile();
-      if (parent != null) {
-        Files.createDirectories(parent.toPath());
-      }
-      Files.write(destination.toPath(), takesScreenshot.getScreenshotAs(OutputType.BYTES));
-    } catch (IOException e) {
-      throw new UncheckedIOException("Error when taking the screenshot", e);
-    }
-    return destination;
+    return writeFile(fileName, takesScreenshot.getScreenshotAs(OutputType.BYTES));
+  }
+
+  /**
+   * Saves the source of the current page in the working directory, named after the current
+   * timestamp.
+   *
+   * @return the HTML file.
+   */
+  public File takeHtmlDump() {
+    return takeHtmlDump(System.currentTimeMillis() + ".html");
+  }
+
+  /**
+   * Saves the source of the current page to the given file.
+   *
+   * @param fileName the file name, relative to the working directory or absolute.
+   * @return the HTML file.
+   */
+  public File takeHtmlDump(String fileName) {
+    String source = pageSource();
+    return writeFile(fileName, (source == null ? "" : source).getBytes(StandardCharsets.UTF_8));
   }
 
   /* ---------------------------- Lifecycle ---------------------------- */
@@ -377,6 +319,20 @@ public abstract class AbstractTestBrowser {
   }
 
   /* ---------------------------- Helpers ---------------------------- */
+
+  private static File writeFile(String fileName, byte[] content) {
+    File destination = new File(fileName);
+    try {
+      File parent = destination.getAbsoluteFile().getParentFile();
+      if (parent != null) {
+        Files.createDirectories(parent.toPath());
+      }
+      Files.write(destination.toPath(), content);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Error when writing " + destination, e);
+    }
+    return destination;
+  }
 
   // Resolves urls like FluentLenium did: the base url always ends with a "/" and a leading "/" of
   // a relative url is removed, so both "login" and "/login" resolve to "<baseUrl>/login".

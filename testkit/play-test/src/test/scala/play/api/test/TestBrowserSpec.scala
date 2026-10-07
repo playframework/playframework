@@ -31,6 +31,10 @@ class TestBrowserSpec extends Specification {
       |    <input type="text" name="email">
       |    <input type="text" name="items[0]">
       |  </form>
+      |  <input type="checkbox" class="check">
+      |  <input type="checkbox" class="check">
+      |  <input type="text" class="partly-disabled" disabled>
+      |  <input type="text" class="partly-disabled">
       |</body>
       |</html>""".stripMargin
 
@@ -128,6 +132,34 @@ class TestBrowserSpec extends Specification {
       browser.url must_== "login"
     }
 
+    "click, fill and submit all elements found with $, like FluentLenium" in withBrowser { browser =>
+      browser.goTo("/")
+      browser.$("input.check").click()
+      browser.$("input.check").asFixedIterable().asScala.map(_.isSelected) must_== Seq(true, true)
+
+      val inputs = browser.$("#form input[type=text]")
+      inputs.fill().`with`("first", "second")
+      inputs.asFixedIterable().asScala.map(_.getValue) must_== Seq("first", "second")
+      inputs.write("same")
+      inputs.asFixedIterable().asScala.map(_.getValue) must_== Seq("same", "same")
+
+      browser.$("#form").submit()
+      browser.el("#result").text() must_== "email=same&items[0]=same"
+    }
+
+    "fill visible elements like FluentLenium, skipping disabled elements without skipping their value" in withBrowser {
+      browser =>
+        browser.goTo("/")
+        browser.$("input.partly-disabled").fill().`with`("first", "second")
+        browser.$("input.partly-disabled").asFixedIterable().asScala.map(_.getValue) must_== Seq("", "second")
+    }
+
+    "click a single element found with $" in withBrowser { browser =>
+      browser.goTo("/")
+      browser.$("#login").click()
+      browser.url must_== "login"
+    }
+
     "submit forms" in withBrowser { browser =>
       browser.goTo("/")
       browser.submit("#form", "email" -> "coco@example.com", "items[0]" -> "first")
@@ -144,6 +176,12 @@ class TestBrowserSpec extends Specification {
       browser.goTo("/")
       browser.getCookie("flavour").getValue must_== "chocolate"
       browser.getCookies.asScala.map(_.getName) must contain("flavour")
+    }
+
+    "take html dumps" in withBrowser { browser =>
+      browser.goTo("/")
+      val dump = browser.takeHtmlDump("target/TestBrowserSpec/dump.html")
+      new String(java.nio.file.Files.readAllBytes(dump.toPath), "UTF-8") must contain("Hello Guest")
     }
 
     "not record screenshots in Selenide's global screenshot laboratory" in withBrowser { browser =>
