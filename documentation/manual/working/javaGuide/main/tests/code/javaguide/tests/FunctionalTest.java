@@ -5,6 +5,7 @@
 package javaguide.tests;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -16,6 +17,11 @@ import play.libs.ws.*;
 
 import static play.test.Helpers.*;
 import static org.junit.Assert.*;
+// #test-browser-selenide-imports
+import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.WebDriverConditions.urlContaining;
+// #test-browser-selenide-imports
 
 // #bad-route-import
 import play.mvc.Http.RequestBuilder;
@@ -94,9 +100,27 @@ public class FunctionalTest extends WithApplication {
         browser -> {
           browser.goTo("/");
           assertEquals("Welcome to Play!", browser.el("#title").text());
-          browser.$("a").click();
+          browser.el("a").click();
           assertEquals("login", browser.url());
         });
   }
+
   // #test-browser
+
+  // #test-browser-selenide
+  @Test
+  public void runInBrowserWithSelenide() {
+    running(
+        testServer(),
+        HTMLUNIT,
+        browser -> {
+          browser.goTo("/");
+          browser.el("#title").shouldHave(text("Welcome to Play!"));
+          browser.$("a").shouldHave(size(1));
+          assertEquals(List.of("click me"), browser.$("a").texts());
+          browser.el("a").click();
+          browser.selenide().webdriver().shouldHave(urlContaining("/login"));
+        });
+  }
+  // #test-browser-selenide
 }

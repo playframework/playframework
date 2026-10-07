@@ -6,24 +6,25 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
+import scala.jdk.CollectionConverters._
 import scala.jdk.FunctionConverters._
 
-import io.fluentlenium.adapter.FluentAdapter
-import io.fluentlenium.core.domain.FluentList
-import io.fluentlenium.core.domain.FluentWebElement
+import com.codeborne.selenide.ElementsCollection
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
+import play.test.AbstractTestBrowser
 
 /**
- * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
+ * A test browser (Using Selenium WebDriver) backed by Selenide (https://selenide.org).
  *
  * @param webDriver The WebDriver instance to use.
+ * @param baseUrl The base url to use for relative requests.
+ * @see `play.test.AbstractTestBrowser`
  */
-case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends FluentAdapter() {
-  super.initFluent(webDriver)
-  baseUrl.foreach(baseUrl => super.getConfiguration.setBaseUrl(baseUrl))
+case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
+    extends AbstractTestBrowser(webDriver, baseUrl.orNull) {
 
   /**
    * Submits a form with the given field values
@@ -35,12 +36,19 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    *   )
    * }}}
    */
-  def submit(selector: String, fields: (String, String)*): FluentList[FluentWebElement] = {
+  def submit(selector: String, fields: (String, String)*): ElementsCollection = {
     fields.foreach {
       case (fieldName, fieldValue) =>
-        $(s"$selector *[name=$fieldName]").fill.`with`(fieldValue)
+        val inputs    = $(s"$selector *[name=${TestBrowser.cssString(fieldName)}]").asFixedIterable().asScala.toSeq
+        val displayed = inputs.filter(_.isDisplayed)
+        if (displayed.isEmpty) {
+          throw new NoSuchElementException(s"No displayed field named '$fieldName' found in '$selector'")
+        }
+        displayed.foreach(_.setValue(fieldValue))
     }
-    $(selector).submit()
+    val forms = $(selector)
+    forms.asFixedIterable().asScala.filter(_.isEnabled).foreach(_.submit())
+    forms
   }
 
   /**
@@ -88,18 +96,19 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    * retrieves the underlying option interface that can be used
    * to set cookies, manage timeouts among other things
    */
-  def manage: WebDriver.Options = super.getDriver.manage
+  def manage: WebDriver.Options = webDriver.manage
 
-  def quit(): Unit = {
-    Option(super.getDriver).foreach(_.quit())
-    releaseFluent()
-  }
+  def quit(): Unit = quitBrowser()
 }
 
 /**
  * Helper utilities to build TestBrowsers
  */
 object TestBrowser {
+
+  // Quotes a value for use in a CSS attribute selector, like [name="value"]
+  private def cssString(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
   /**
    * Creates an in-memory WebBrowser (using HtmlUnit)

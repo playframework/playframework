@@ -36,9 +36,11 @@ An application can also be passed to the test server, which is useful for settin
 
 ## WithBrowser
 
-If you want to test your application using a browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium) using [`WithBrowser`](api/scala/play/api/test/WithBrowser.html).  Like [`WithServer`](api/scala/play/api/test/WithServer.html), you can change the port, [`Application`](api/scala/play/api/Application.html), and you can also select the web browser to use:
+If you want to test your application using a browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/scala/play/api/test/TestBrowser.html) backed by [Selenide](https://selenide.org) using [`WithBrowser`](api/scala/play/api/test/WithBrowser.html).  Like [`WithServer`](api/scala/play/api/test/WithServer.html), you can change the port, [`Application`](api/scala/play/api/Application.html), and you can also select the web browser to use:
 
 @[scalafunctionaltest-testwithbrowser](code/specs2/ScalaFunctionalTestSpec.scala)
+
+`browser.el(selector)` returns the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) and `browser.$(selector)` (or `browser.find(selector)`) returns all matching elements as an [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html). Elements are looked up lazily, and actions and assertions on them wait until the element is ready. Use `browser.selenide` to access the complete [Selenide API](https://selenide.org/documentation.html) of the browser and `browser.webDriver` to access the underlying Selenium `WebDriver`.
 
 ## Injecting
 

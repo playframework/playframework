@@ -68,9 +68,17 @@ Just as there exists a `WithApplication` class, there is also a [`WithServer`](a
 
 ## Testing with a browser
 
-If you want to test your application from with a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
+If you want to test your application from within a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/java/play/test/TestBrowser.html) backed by [Selenide](https://selenide.org). By default, the browser is [HtmlUnit](https://www.htmlunit.org), which runs in-memory and does not require a browser installation.
 
 @[test-browser](code/javaguide/tests/FunctionalTest.java)
+
+`browser.el(selector)` returns the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) and `browser.$(selector)` (or `browser.find(selector)`) returns all matching elements as an [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html). Elements are looked up lazily, and actions and assertions on them wait until the element is ready, so you rarely need explicit waits:
+
+@[test-browser-selenide-imports](code/javaguide/tests/FunctionalTest.java)
+
+@[test-browser-selenide](code/javaguide/tests/FunctionalTest.java)
+
+Use `browser.selenide()` to access the complete [Selenide API](https://selenide.org/documentation.html) of the browser and `browser.getDriver()` to access the underlying Selenium `WebDriver`. Settings like timeouts can be changed per browser through `browser.selenideConfig()`, or for all browsers through `selenide.*` system properties.
 
 And, of course there, is the [`WithBrowser`](api/java/play/test/WithBrowser.html) class to automatically open and close a browser for each test:
 

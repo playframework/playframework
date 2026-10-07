@@ -691,6 +691,10 @@ object BuildSettings {
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
+      // Replace FluentLenium with Selenide
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.test.TestBrowser"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.test.TestBrowser"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.TestBrowser.submit"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

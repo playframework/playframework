@@ -87,6 +87,70 @@ This does not affect normal file uploads. Play file uploads use multipart form h
 
 If your application intentionally needs one of the removed bindings, register an explicit formatter or converter for that type in your application. See [[Register a custom DataBinder|JavaForms#Register-a-custom-DataBinder]] for the Java form formatter setup. If you think a removed binding should be supported by Play by default, please open an issue in the [Play issue tracker](https://github.com/playframework/playframework/issues).
 
+### FluentLenium has been replaced by Selenide
+
+Play's test browser, [`play.test.TestBrowser`](api/java/play/test/TestBrowser.html) (used by `WithBrowser` and `Helpers.running(testServer, HTMLUNIT, browser -> ...)`) and [`play.api.test.TestBrowser`](api/scala/play/api/test/TestBrowser.html) (used by the specs2 `WithBrowser` and `running(TestServer(...), HTMLUNIT) { browser => ... }`), was built on [FluentLenium](https://github.com/FluentLenium/FluentLenium). FluentLenium is no longer maintained and its repository has been archived. It also prevented Play from upgrading Selenium beyond 4.14 and HtmlUnit beyond 2.70, which is affected by [CVE-2023-26119](https://nvd.nist.gov/vuln/detail/CVE-2023-26119).
+
+Both test browsers are now backed by [Selenide](https://selenide.org), which is actively maintained and also built on Selenium WebDriver. Play uses Selenide's instance based API only (the `selenide-core` artifact, without Selenide's static `Selenide`/`WebDriverRunner` API): every test browser has its own Selenide driver and configuration.
+
+#### Dependency changes
+
+`play-test` now depends on `com.codeborne:selenide-core` (which brings Selenium 4.49 via `selenium-java`) and on `org.seleniumhq.selenium:htmlunit3-driver`, which uses HtmlUnit 5 (group id `org.htmlunit`). The `io.fluentlenium`, `org.seleniumhq.selenium:htmlunit-driver` and `net.sourceforge.htmlunit` dependencies have been removed.
+
+* If your build adds FluentLenium itself, remove it: FluentLenium 6.0.0 does not work with Selenium 4.17 or newer.
+* If your build pins Selenium or `htmlunit-driver` versions (for example for older [ScalaTest + Play](https://github.com/playframework/scalatestplus-play) versions), remove those pins or upgrade them. Do not mix `htmlunit-driver` and `htmlunit3-driver`: both contain the class `org.openqa.selenium.htmlunit.HtmlUnitDriver`.
+* If you use HtmlUnit classes directly, change the package `com.gargoylesoftware.htmlunit` to `org.htmlunit`.
+
+`HtmlUnitDriver` (`HTMLUNIT`) remains Play's default browser, and `FIREFOX` and all other Selenium drivers work as before.
+
+#### Test browser API changes
+
+`TestBrowser` no longer extends FluentLenium's `FluentAdapter`. Both test browsers now extend [`play.test.AbstractTestBrowser`](api/java/play/test/AbstractTestBrowser.html), which provides the most commonly used methods with the same names and behaviour as before:
+
+| Method | Notes |
+|--------|-------|
+| `goTo(url)`, `goToInNewTab(url)` | Relative urls are resolved against the base url, with or without a leading `/`, as before. Without a base url, `goTo` now fails with an `IllegalArgumentException` for a relative url. |
+| `url()` | Returns the url relative to the base url (e.g. `"login"`), or the absolute url if it does not start with the base url, as before. |
+| `pageSource()`, `getDriver()`, `getBaseUrl()`, `getCookies()`, `getCookie(name)` | Unchanged. |
+| `switchTo()`, `switchTo(element)`, `switchTo(elements)`, `switchToDefault()` | Unchanged, but take Selenium/Selenide elements. |
+| `takeScreenshot()`, `takeScreenshot(fileName)` | Unchanged. |
+| `executeScript(script, args...)`, `executeAsyncScript(script, args...)` | Return the script result directly instead of a `FluentJavascript`, e.g. `(String) browser.executeScript("return document.title")`. |
+| `el(selector)`, `el(by)` | Return the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) instead of a `FluentWebElement`. |
+| `$(selector)`, `$(by)`, `find(selector)`, `find(by)` | Return all matching elements as an [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html) instead of a `FluentList`. Note that, unlike Selenide's own `$`, Play's `$` still returns a collection. |
+| `fluentWait()`, `waitUntil(...)`, `manage()`, Scala `submit(selector, fields*)` | Unchanged (`submit` returns an `ElementsCollection`). |
+
+In addition, `browser.selenide()` gives access to the complete Selenide API of the browser (a [`SelenideDriver`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideDriver.html)), and `browser.selenideConfig()` to its configuration, e.g. `browser.selenideConfig().timeout(10000)`. Selenide's `selenide.*` system properties are supported as well. When an element can not be found or a Selenide assertion fails, Selenide saves the page source (and a screenshot, if the browser supports it) to `target/selenide/reports` (relative to the working directory, configurable via `selenideConfig().reportsFolder(...)` or the `selenide.reportsFolder` system property) and mentions the files in the error message.
+
+Selenide elements are looked up lazily and wait until they are ready (by default for up to 4 seconds), so most explicit waits can be removed. If an element can not be found within that time, Selenide throws an `ElementNotFound` error (an `AssertionError`) instead of Selenium's `NoSuchElementException`; use `element.exists()` to check for an element without waiting. Most element methods keep their names (`text()`, `click()`, `clear()`, `submit()`, `getAttribute(name)`, `isDisplayed()`, `isEnabled()`, `isSelected()`). The following FluentLenium methods need to be migrated:
+
+| FluentLenium | Selenide |
+|--------------|----------|
+| `element.value()` | `element.getValue()` or `element.val()` |
+| `element.attribute(name)` | `element.getAttribute(name)` or `element.attr(name)` |
+| `element.id()`, `element.name()` | `element.getAttribute("id")`, `element.name()` |
+| `element.tagName()` | `element.getTagName()` |
+| `element.html()` | `element.innerHtml()` |
+| `element.displayed()`, `element.enabled()`, `element.selected()` | `element.isDisplayed()`, `element.isEnabled()`, `element.isSelected()` |
+| `element.present()` | `element.exists()` |
+| `element.fill().with(value)`, `element.write(value)` | `element.setValue(value)` |
+| `element.fillSelect().withText(text)` | `element.selectOption(text)` |
+| `element.find(selector)`, `element.$(selector)` | `element.$$(selector)` (all children) or `element.$(selector)` (first child) |
+| `element.el(selector)` | `element.$(selector)` |
+| `list.first()`, `list.last()`, `list.get(i)`, `list.size()`, `list.texts()`, `list.attributes(name)` | Unchanged. |
+| `list.index(i)`, `list.count()` | `list.get(i)`, `list.size()` |
+| `browser.$("a", withText("x"))` and other `FilterConstructor` filters | `browser.$("a").findBy(exactText("x"))` (first match) or `browser.$("a").filterBy(exactText("x"))` (all matches) |
+| `list.click()`, `list.submit()`, `list.fill().with(value)` | Act on a single element instead, e.g. `browser.el("a").click()`, or iterate over `list.asFixedIterable()`. |
+| `browser.await().atMost(5, SECONDS).until(browser.el("#id")).displayed()` | `browser.el("#id").shouldBe(visible, Duration.ofSeconds(5))` |
+| `browser.await().until(browser.el("#id")).text().contains("x")` | `browser.el("#id").shouldHave(text("x"))` |
+| `browser.window().title()` | `browser.selenide().title()` |
+| `browser.window().maximize()` and other window actions | `browser.getDriver().manage().window().maximize()` |
+| `browser.alert().accept()` | `browser.selenide().switchTo().alert().accept()` |
+| `browser.keyboard()`, `browser.mouse()` | `browser.selenide().driver().actions()` (Selenium `Actions`) |
+| `browser.takeHtmlDump()` | `browser.pageSource()` |
+| `browser.getConfiguration()`, `browser.setXyz(...)` | `browser.selenideConfig()` |
+
+Conditions like `visible` and `text(...)` are in [`com.codeborne.selenide.Condition`](https://selenide.org/javadoc/current/com/codeborne/selenide/Condition.html), collection conditions like `size(...)` in [`com.codeborne.selenide.CollectionCondition`](https://selenide.org/javadoc/current/com/codeborne/selenide/CollectionCondition.html). FluentLenium page objects (`FluentPage`, `@Page`, `goTo(page)`), components, events and its JUnit/TestNG/AssertJ integrations have no Play replacement; use plain page object classes or Selenide's [page objects](https://selenide.org/documentation/page-objects.html) (`browser.selenide().page(...)`) instead.
+
 ### Raw WebSocket handlers now receive status 1006 for abnormal connection loss
 
 Raw WebSocket handlers that consume `play.api.http.websocket.Message` values now receive `CloseMessage(Some(1006), ...)` when the underlying connection closes or fails without Play receiving a WebSocket Close frame.
