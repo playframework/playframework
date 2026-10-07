@@ -68,7 +68,7 @@ Just as there exists a `WithApplication` class, there is also a [`WithServer`](a
 
 ## Testing with a browser
 
-If you want to test your application from within a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/java/play/test/TestBrowser.html) backed by [Selenide](https://selenide.org). By default, the browser is [HtmlUnit](https://www.htmlunit.org), which runs in-memory and does not require a browser installation.
+If you want to test your application from within a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/java/play/test/TestBrowser.html) backed by [Selenide](https://selenide.org). By default, the browser is [HtmlUnit](https://www.htmlunit.org), which runs in-memory and does not require a browser installation. To test with a real browser, use `FIREFOX`, `CHROME`, `EDGE` or `SAFARI` instead of `HTMLUNIT`, or pass any Selenium `WebDriver` instance, for example one configured to run headless.
 
 @[test-browser](code/javaguide/tests/FunctionalTest.java)
 
