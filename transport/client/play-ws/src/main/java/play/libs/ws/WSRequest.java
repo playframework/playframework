@@ -19,9 +19,8 @@ import play.mvc.Http;
 /**
  * This is the main interface to building a WS request in Java.
  *
- * <p>Note that this interface does not expose properties that are only exposed after building the
- * request: notably, the URL, headers and query parameters are shown before an OAuth signature is
- * calculated.
+ * <p>Note that this interface does not expose properties that are only exposed after building the request: notably, the
+ * URL, headers and query parameters are shown before an OAuth signature is calculated.
  */
 public interface WSRequest extends StandaloneWSRequest {
 
@@ -98,8 +97,7 @@ public interface WSRequest extends StandaloneWSRequest {
    * @param body represented as a MultipartFormData.Part
    * @return a promise to the response
    */
-  CompletionStage<WSResponse> patch(
-      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+  CompletionStage<WSResponse> patch(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
   // -------------------------------------------------------------------------
   // "POST"
@@ -162,8 +160,7 @@ public interface WSRequest extends StandaloneWSRequest {
    * @param body represented as a MultipartFormData.Part
    * @return a promise to the response
    */
-  CompletionStage<WSResponse> post(
-      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+  CompletionStage<WSResponse> post(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
   // -------------------------------------------------------------------------
   // "PUT"
@@ -226,8 +223,7 @@ public interface WSRequest extends StandaloneWSRequest {
    * @param body represented as a MultipartFormData.Part
    * @return a promise to the response
    */
-  CompletionStage<WSResponse> put(
-      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+  CompletionStage<WSResponse> put(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
   // -------------------------------------------------------------------------
   // "QUERY"
@@ -290,8 +286,7 @@ public interface WSRequest extends StandaloneWSRequest {
    * @param body represented as a MultipartFormData.Part
    * @return a promise to the response
    */
-  CompletionStage<WSResponse> query(
-      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+  CompletionStage<WSResponse> query(Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
   // -------------------------------------------------------------------------
   // Miscellaneous execution methods
@@ -411,8 +406,8 @@ public interface WSRequest extends StandaloneWSRequest {
   <U> WSRequest setBody(Source<ByteString, U> body);
 
   /**
-   * Adds a header to the request. Note that duplicate headers are allowed by the HTTP
-   * specification, and removing a header is not available through this API.
+   * Adds a header to the request. Note that duplicate headers are allowed by the HTTP specification, and removing a
+   * header is not available through this API.
    *
    * @param name the header name
    * @param value the header value
@@ -422,8 +417,8 @@ public interface WSRequest extends StandaloneWSRequest {
   WSRequest addHeader(String name, String value);
 
   /**
-   * Adds a header to the request. Note that duplicate headers are allowed by the HTTP
-   * specification, and removing a header is not available through this API.
+   * Adds a header to the request. Note that duplicate headers are allowed by the HTTP specification, and removing a
+   * header is not available through this API.
    *
    * @deprecated use {@link #addHeader(String, String)}
    * @param name the header name
@@ -461,8 +456,7 @@ public interface WSRequest extends StandaloneWSRequest {
   WSRequest setQueryString(Map<String, List<String>> params);
 
   /**
-   * Sets a query parameter with the given name, this can be called repeatedly. Duplicate query
-   * parameters are allowed.
+   * Sets a query parameter with the given name, this can be called repeatedly. Duplicate query parameters are allowed.
    *
    * @param name the query parameter name
    * @param value the query parameter value
@@ -472,8 +466,7 @@ public interface WSRequest extends StandaloneWSRequest {
   WSRequest addQueryParameter(String name, String value);
 
   /**
-   * Sets a query parameter with the given name, this can be called repeatedly. Duplicate query
-   * parameters are allowed.
+   * Sets a query parameter with the given name, this can be called repeatedly. Duplicate query parameters are allowed.
    *
    * @deprecated use {@link #addQueryParameter(String, String)}
    * @param name the query parameter name
@@ -588,8 +581,7 @@ public interface WSRequest extends StandaloneWSRequest {
    * Sets the request timeout in milliseconds.
    *
    * @deprecated use {@link #setRequestTimeout(Duration)}
-   * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request
-   *     timeout.
+   * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
    * @return the modified WSRequest.
    */
   @Deprecated
@@ -605,8 +597,8 @@ public interface WSRequest extends StandaloneWSRequest {
   WSRequest setRequestFilter(WSRequestFilter filter);
 
   /**
-   * Set the content type. If the request body is a String, and no charset parameter is included,
-   * then it will default to UTF-8.
+   * Set the content type. If the request body is a String, and no charset parameter is included, then it will default
+   * to UTF-8.
    *
    * @param contentType The content type
    * @return the modified WSRequest
@@ -619,22 +611,21 @@ public interface WSRequest extends StandaloneWSRequest {
   // -------------------------------------------------------------------------
 
   /**
-   * @return the URL of the request. This has not passed through an internal request builder and so
-   *     will not be signed.
+   * @return the URL of the request. This has not passed through an internal request builder and so will not be signed.
    */
   @Override
   String getUrl();
 
   /**
-   * @return the headers (a copy to prevent side-effects). This has not passed through an internal
-   *     request builder and so will not be signed.
+   * @return the headers (a copy to prevent side-effects). This has not passed through an internal request builder and
+   *     so will not be signed.
    */
   @Override
   Map<String, List<String>> getHeaders();
 
   /**
-   * @return the query parameters (a copy to prevent side-effects). This has not passed through an
-   *     internal request builder and so will not be signed.
+   * @return the query parameters (a copy to prevent side-effects). This has not passed through an internal request
+   *     builder and so will not be signed.
    */
   @Override
   Map<String, List<String>> getQueryParameters();

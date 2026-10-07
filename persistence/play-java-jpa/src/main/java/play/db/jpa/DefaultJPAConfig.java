@@ -38,8 +38,7 @@ public class DefaultJPAConfig implements JPAConfig {
     public JPAConfigProvider(Config configuration) {
       String jpaKey = configuration.getString("play.jpa.config");
 
-      ImmutableSet.Builder<JPAConfig.PersistenceUnit> persistenceUnits =
-          new ImmutableSet.Builder<>();
+      ImmutableSet.Builder<JPAConfig.PersistenceUnit> persistenceUnits = new ImmutableSet.Builder<>();
 
       if (configuration.hasPath(jpaKey)) {
         Config jpa = configuration.getConfig(jpaKey);
@@ -81,8 +80,7 @@ public class DefaultJPAConfig implements JPAConfig {
    * @return a default JPA configuration with the provided persistence units.
    */
   public static JPAConfig of(String n1, String u1, String n2, String u2) {
-    return new DefaultJPAConfig(
-        new JPAConfig.PersistenceUnit(n1, u1), new JPAConfig.PersistenceUnit(n2, u2));
+    return new DefaultJPAConfig(new JPAConfig.PersistenceUnit(n1, u1), new JPAConfig.PersistenceUnit(n2, u2));
   }
 
   /**

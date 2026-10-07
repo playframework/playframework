@@ -20,8 +20,7 @@ public class Filters extends DefaultHttpFilters {
     super(combine(enabledFilters.asJava().getFilters(), corsFilter.asJava()));
   }
 
-  private static List<EssentialFilter> combine(
-      List<EssentialFilter> filters, EssentialFilter toAppend) {
+  private static List<EssentialFilter> combine(List<EssentialFilter> filters, EssentialFilter toAppend) {
     List<EssentialFilter> combinedFilters = new ArrayList<>(filters);
     combinedFilters.add(toAppend);
     return combinedFilters;

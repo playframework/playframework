@@ -38,8 +38,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
   @Override
   public CompletionStage<Result> call(Http.Request req) {
 
-    CSRFActionHelper helper =
-        new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
+    CSRFActionHelper helper = new CSRFActionHelper(sessionConfiguration, config, tokenSigner, tokenProvider);
 
     play.api.mvc.Request<RequestBody> taggedRequest = helper.tagRequestFromHeader(req.asScala());
 
@@ -51,9 +50,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
       taggedRequest = helper.tagRequest(taggedRequest, newToken);
 
       // Also add it to the response
-      return delegate
-          .call(new RequestImpl(taggedRequest))
-          .thenApply(result -> placeToken(req, result, newToken));
+      return delegate.call(new RequestImpl(taggedRequest)).thenApply(result -> placeToken(req, result, newToken));
     }
     return delegate.call(new RequestImpl(taggedRequest));
   }
@@ -71,9 +68,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
               domain.isDefined() ? domain.get() : null,
               config.secureCookie(),
               config.httpOnlyCookie(),
-              OptionConverters.toJava(config.sameSiteCookie())
-                  .map(Cookie.SameSite::asJava)
-                  .orElse(null),
+              OptionConverters.toJava(config.sameSiteCookie()).map(Cookie.SameSite::asJava).orElse(null),
               config.partitionedCookie());
       return result.withCookies(cookie);
     }

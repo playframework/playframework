@@ -97,48 +97,42 @@ public class ResultsTest {
   public void sendPathWithOKStatus() {
     Result result = Results.ok().sendPath(file);
     assertEquals(Http.Status.OK, result.status());
-    assertEquals(
-        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendPathWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendPath(file);
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendPathAsAttachmentWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendPath(file, ATTACHMENT_FILE);
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendPathAsAttachmentWithOkStatus() {
     Result result = Results.ok().sendPath(file, ATTACHMENT_FILE);
     assertEquals(Http.Status.OK, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendPathWithFileName() {
     Result result = Results.unauthorized().sendPath(file, Optional.of("foo.bar"));
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendPathInlineWithFileName() {
     Result result = Results.unauthorized().sendPath(file, INLINE_FILE, Optional.of("foo.bar"));
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
@@ -175,48 +169,42 @@ public class ResultsTest {
   public void sendFileWithOKStatus() {
     Result result = Results.ok().sendFile(file.toFile());
     assertEquals(Http.Status.OK, result.status());
-    assertEquals(
-        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendFileWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendFile(file.toFile());
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendFileAsAttachmentWithUnauthorizedStatus() {
     Result result = Results.unauthorized().sendFile(file.toFile(), ATTACHMENT_FILE);
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendFileAsAttachmentWithOkStatus() {
     Result result = Results.ok().sendFile(file.toFile(), ATTACHMENT_FILE);
     assertEquals(Http.Status.OK, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendFileWithFileName() {
     Result result = Results.unauthorized().sendFile(file.toFile(), Optional.of("foo.bar"));
     assertEquals(Http.Status.UNAUTHORIZED, result.status());
-    assertEquals(
-        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
   public void sendFileInlineWithFileName() {
     Result result = Results.ok().sendFile(file.toFile(), INLINE_FILE, Optional.of("foo.bar"));
     assertEquals(Http.Status.OK, result.status());
-    assertEquals(
-        "inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
+    assertEquals("inline; filename=\"foo.bar\"", result.header(HeaderNames.CONTENT_DISPOSITION).get());
   }
 
   @Test
@@ -252,8 +240,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
-          Duration.create("60s"));
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)), Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
 
@@ -274,8 +261,7 @@ public class ResultsTest {
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
-          Duration.create("60s"));
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)), Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
 
@@ -292,13 +278,11 @@ public class ResultsTest {
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
-      Result result =
-          Results.ok().sendResource("multipart-form-data-file.txt", () -> fileSent.set(true), null);
+      Result result = Results.ok().sendResource("multipart-form-data-file.txt", () -> fileSent.set(true), null);
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
-          Duration.create("60s"));
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)), Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
 
@@ -317,16 +301,11 @@ public class ResultsTest {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result =
           Results.ok()
-              .sendInputStream(
-                  new ByteArrayInputStream("test data".getBytes()),
-                  9,
-                  () -> fileSent.set(true),
-                  null);
+              .sendInputStream(new ByteArrayInputStream("test data".getBytes()), 9, () -> fileSent.set(true), null);
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
-          Duration.create("60s"));
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)), Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
 
@@ -338,21 +317,18 @@ public class ResultsTest {
   }
 
   @Test
-  public void sendInputStreamChunkedHonoringOnClose()
-      throws TimeoutException, InterruptedException {
+  public void sendInputStreamChunkedHonoringOnClose() throws TimeoutException, InterruptedException {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
     try {
       AtomicBoolean fileSent = new AtomicBoolean(false);
       Result result =
           Results.ok()
-              .sendInputStream(
-                  new ByteArrayInputStream("test data".getBytes()), () -> fileSent.set(true), null);
+              .sendInputStream(new ByteArrayInputStream("test data".getBytes()), () -> fileSent.set(true), null);
 
       // Actually we need to wait until the Stream completes
       Await.ready(
-          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)),
-          Duration.create("60s"));
+          FutureConverters.asScala(result.body().dataStream().runWith(Sink.ignore(), mat)), Duration.create("60s"));
       // and then we need to wait until the onClose completes
       Thread.sleep(500);
 
@@ -366,9 +342,7 @@ public class ResultsTest {
   @Test
   public void getOptionalCookie() {
     Result result =
-        Results.ok()
-            .withCookies(
-                new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null, false));
+        Results.ok().withCookies(new Http.Cookie("foo", "1", 1000, "/", "example.com", false, true, null, false));
     assertTrue(result.cookie("foo").isPresent());
     assertEquals("foo", result.cookie("foo").get().name());
     assertFalse(result.cookie("bar").isPresent());
@@ -443,8 +417,7 @@ public class ResultsTest {
   public void keepAttributesWhenModifyingFlash() {
     TypedKey<String> x = TypedKey.create("x");
     TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
-    Result result =
-        Results.redirect("/").withAttrs(attrs).withFlash(new Http.Flash(Map.of("foo", "bar")));
+    Result result = Results.redirect("/").withAttrs(attrs).withFlash(new Http.Flash(Map.of("foo", "bar")));
     assertTrue(result.attrs().containsKey(x));
     assertEquals("y", result.attrs().get(x));
   }
@@ -453,8 +426,7 @@ public class ResultsTest {
   public void keepAttributesWhenModifyingSession() {
     TypedKey<String> x = TypedKey.create("x");
     TypedMap attrs = TypedMap.create(new TypedEntry<>(x, "y"));
-    Result result =
-        Results.ok().withAttrs(attrs).withSession(new Http.Session(Map.of("foo", "bar")));
+    Result result = Results.ok().withAttrs(attrs).withSession(new Http.Session(Map.of("foo", "bar")));
     assertTrue(result.attrs().containsKey(x));
     assertEquals("y", result.attrs().get(x));
   }

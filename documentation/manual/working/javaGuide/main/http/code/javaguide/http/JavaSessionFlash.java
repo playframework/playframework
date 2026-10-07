@@ -48,8 +48,7 @@ public class JavaSessionFlash extends WithApplication {
                 new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                   // #store-session
                   public Result login(Http.Request request) {
-                    return redirect("/home")
-                        .addingToSession(request, "connected", "user@gmail.com");
+                    return redirect("/home").addingToSession(request, "connected", "user@gmail.com");
                   }
                   // #store-session
                 },

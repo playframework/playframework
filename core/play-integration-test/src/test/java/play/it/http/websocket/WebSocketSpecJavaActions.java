@@ -38,18 +38,15 @@ public class WebSocketSpecJavaActions {
   }
 
   public static WebSocket allowConsumingMessages(Promise<List<String>> messages) {
-    return WebSocket.Text.accept(
-        request -> Flow.fromSinkAndSource(getChunks(messages::success), emptySource()));
+    return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(getChunks(messages::success), emptySource()));
   }
 
   public static WebSocket allowSendingMessages(List<String> messages) {
-    return WebSocket.Text.accept(
-        request -> Flow.fromSinkAndSource(Sink.ignore(), Source.from(messages)));
+    return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.ignore(), Source.from(messages)));
   }
 
   public static WebSocket closeWhenTheConsumerIsDone() {
-    return WebSocket.Text.accept(
-        request -> Flow.fromSinkAndSource(Sink.cancelled(), emptySource()));
+    return WebSocket.Text.accept(request -> Flow.fromSinkAndSource(Sink.cancelled(), emptySource()));
   }
 
   public static WebSocket allowRejectingAWebSocketWithAResult(int statusCode) {
@@ -60,8 +57,7 @@ public class WebSocketSpecJavaActions {
   public static WebSocket selectSubprotocol() {
     return WebSocket.Text.acceptWithOptions(
         request ->
-            new WebSocket.Accepted<>(
-                Flow.fromSinkAndSource(Sink.ignore(), Source.empty()), "graphql-transport-ws"));
+            new WebSocket.Accepted<>(Flow.fromSinkAndSource(Sink.ignore(), Source.empty()), "graphql-transport-ws"));
   }
 
   public static WebSocket selectSubprotocolWithoutCompression() {
@@ -104,8 +100,7 @@ public class WebSocketSpecJavaActions {
   public static WebSocket addHandshakeHeadersAndCookies() {
     return WebSocket.Text.acceptWithOptions(
         request -> {
-          Flow<String, String, ?> flow =
-              Flow.fromSinkAndSource(Sink.ignore(), Source.single("plain server message"));
+          Flow<String, String, ?> flow = Flow.fromSinkAndSource(Sink.ignore(), Source.single("plain server message"));
           return new WebSocket.Accepted<>(flow, "graphql-transport-ws", false)
               .withHeaders(
                   "X-WebSocket-Trace",

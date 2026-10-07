@@ -72,6 +72,7 @@ jobs:
       - "gradle-validation"
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
+      java: 21
       cmd: |
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "savePlayVersion; validateCode"
         cd dev-mode/gradle-plugin
@@ -88,6 +89,7 @@ jobs:
     needs: "prefetch-for-caching"
     uses: playframework/.github/.github/workflows/cmd.yml@unblock-repo_scala_sbt_org
     with:
+      java: 21
       cmd: |
         cd documentation
         sbt validateCode

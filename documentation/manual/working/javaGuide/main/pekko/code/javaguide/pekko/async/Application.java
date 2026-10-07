@@ -11,8 +11,7 @@ import play.mvc.*;
 
 public class Application extends Controller {
   public CompletionStage<Result> index() {
-    return CompletableFuture.supplyAsync(this::longComputation)
-        .thenApply((Integer i) -> ok("Got " + i));
+    return CompletableFuture.supplyAsync(this::longComputation).thenApply((Integer i) -> ok("Got " + i));
   }
 
   // ###skip: 3

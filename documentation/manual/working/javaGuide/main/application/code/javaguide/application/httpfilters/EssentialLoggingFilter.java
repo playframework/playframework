@@ -37,11 +37,7 @@ public class EssentialLoggingFilter extends EssentialFilter {
                 long requestTime = endTime - startTime;
 
                 log.info(
-                    "{} {} took {}ms and returned {}",
-                    request.method(),
-                    request.uri(),
-                    requestTime,
-                    result.status());
+                    "{} {} took {}ms and returned {}", request.method(), request.uri(), requestTime, result.status());
 
                 return result.withHeader("Request-Time", "" + requestTime);
               },

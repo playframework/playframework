@@ -5,8 +5,8 @@
 package play;
 
 /**
- * This helper class provides all the built-in component dependencies by trading them for a single
- * dependency - the {@linkplain #context() application loader context}.
+ * This helper class provides all the built-in component dependencies by trading them for a single dependency - the
+ * {@linkplain #context() application loader context}.
  */
 public abstract class BuiltInComponentsFromContext extends ContextBasedBuiltInComponents {
 

@@ -46,8 +46,8 @@ public class Langs {
   /**
    * Select a preferred language, given the list of candidates.
    *
-   * <p>Will select the preferred language, based on what languages are available, or return the
-   * default language if none of the candidates are available.
+   * <p>Will select the preferred language, based on what languages are available, or return the default language if
+   * none of the candidates are available.
    *
    * @param candidates The candidate languages
    * @return The preferred language

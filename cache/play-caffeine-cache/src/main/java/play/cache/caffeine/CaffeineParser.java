@@ -32,8 +32,8 @@ import org.apache.pekko.actor.ActorSystem;
  *   <li>{@code weakValues} and {@code softValues} set to {@code true}
  * </ul>
  *
- * <p>{@code CaffeineParser} does not support configuring {@code Caffeine} methods with non-value
- * parameters. These must be configured in code.
+ * <p>{@code CaffeineParser} does not support configuring {@code Caffeine} methods with non-value parameters. These must
+ * be configured in code.
  */
 public final class CaffeineParser {
   private final Caffeine<Object, Object> cacheBuilder;

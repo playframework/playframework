@@ -58,8 +58,7 @@ public final class Evolution {
     Evolution evolution = (Evolution) o;
 
     if (revision != evolution.revision) return false;
-    if (sqlDown != null ? !sqlDown.equals(evolution.sqlDown) : evolution.sqlDown != null)
-      return false;
+    if (sqlDown != null ? !sqlDown.equals(evolution.sqlDown) : evolution.sqlDown != null) return false;
     if (sqlUp != null ? !sqlUp.equals(evolution.sqlUp) : evolution.sqlUp != null) return false;
 
     return true;

@@ -29,8 +29,7 @@ import java.io.IOException;
 public interface WSClient extends java.io.Closeable {
 
   /**
-   * The underlying implementation of the client, if any. You must cast the returned value to the
-   * type you want.
+   * The underlying implementation of the client, if any. You must cast the returned value to the type you want.
    *
    * @return the backing object.
    */
@@ -42,9 +41,8 @@ public interface WSClient extends java.io.Closeable {
   play.api.libs.ws.WSClient asScala();
 
   /**
-   * Returns a WSRequest object representing the URL. You can append additional properties on the
-   * WSRequest by chaining calls, and execute the request to return an asynchronous {@code
-   * Promise<WSResponse>}.
+   * Returns a WSRequest object representing the URL. You can append additional properties on the WSRequest by chaining
+   * calls, and execute the request to return an asynchronous {@code Promise<WSResponse>}.
    *
    * @param url the URL to request
    * @return the request

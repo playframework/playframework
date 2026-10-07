@@ -32,8 +32,7 @@ public class DefaultDatabase implements Database {
         new play.api.db.PooledDatabase(
             name,
             new play.api.Configuration(
-                configuration.withFallback(
-                    ConfigFactory.defaultReference().getConfig("play.db.prototype")))));
+                configuration.withFallback(ConfigFactory.defaultReference().getConfig("play.db.prototype")))));
   }
 
   /**
@@ -48,8 +47,7 @@ public class DefaultDatabase implements Database {
             name,
             new play.api.Configuration(
                 ConfigFactory.parseMap(config)
-                    .withFallback(
-                        ConfigFactory.defaultReference().getConfig("play.db.prototype")))));
+                    .withFallback(ConfigFactory.defaultReference().getConfig("play.db.prototype")))));
   }
 
   @Override
@@ -113,8 +111,7 @@ public class DefaultDatabase implements Database {
   }
 
   @Override
-  public <A> A withTransaction(
-      TransactionIsolationLevel isolationLevel, ConnectionCallable<A> block) {
+  public <A> A withTransaction(TransactionIsolationLevel isolationLevel, ConnectionCallable<A> block) {
     return db.withTransaction(isolationLevel.asScala(), connectionFunction(block));
   }
 

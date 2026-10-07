@@ -14,9 +14,7 @@ public final class Main {
   public final ActorRef<ConfiguredActor.GetConfig> configuredActor;
 
   @Inject
-  public Main(
-      ActorRef<HelloActor.SayHello> helloActor,
-      ActorRef<ConfiguredActor.GetConfig> configuredActor) {
+  public Main(ActorRef<HelloActor.SayHello> helloActor, ActorRef<ConfiguredActor.GetConfig> configuredActor) {
     this.helloActor = helloActor;
     this.configuredActor = configuredActor;
   }

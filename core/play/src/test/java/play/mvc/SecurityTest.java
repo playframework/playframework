@@ -45,11 +45,9 @@ public class SecurityTest {
     assertEquals(Http.Status.UNAUTHORIZED, r.status());
   }
 
-  private Result callWithSecurity(Http.Request req, Function<Http.Request, Result> f)
-      throws Exception {
+  private Result callWithSecurity(Http.Request req, Function<Http.Request, Result> f) throws Exception {
     Injector injector = mock(Injector.class);
-    when(injector.instanceOf(Security.Authenticator.class))
-        .thenReturn(new Security.Authenticator());
+    when(injector.instanceOf(Security.Authenticator.class)).thenReturn(new Security.Authenticator());
     Security.AuthenticatedAction action = new Security.AuthenticatedAction(injector);
     action.configuration =
         new Security.Authenticated() {

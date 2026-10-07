@@ -19,9 +19,7 @@ public class GuiceAppLoader extends GuiceApplicationLoader {
     GuiceableModule[] modules = super.overrides(context);
     GuiceableModule module =
         GuiceableModule$.MODULE$.fromPlayBinding(
-            new BindingKey<>(play.api.routing.Router.class)
-                .toProvider(GuiceRouterProvider.class)
-                .eagerly());
+            new BindingKey<>(play.api.routing.Router.class).toProvider(GuiceRouterProvider.class).eagerly());
 
     List<GuiceableModule> copyModules = new ArrayList<>(Arrays.asList(modules));
     copyModules.add(module);

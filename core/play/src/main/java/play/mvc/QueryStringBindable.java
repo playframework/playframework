@@ -9,8 +9,8 @@ import java.util.*;
 /**
  * Binder for query string parameters.
  *
- * <p>Any type <code>T</code> that implements this class can be bound to/from query one or more
- * query string parameters. The only requirement is that the class provides a noarg constructor.
+ * <p>Any type <code>T</code> that implements this class can be bound to/from query one or more query string parameters.
+ * The only requirement is that the class provides a noarg constructor.
  *
  * <p>For example, the following type could be used to encode pagination:
  *
@@ -45,15 +45,14 @@ import java.util.*;
  * }
  * </pre>
  *
- * Then, to match the URL <code>/foo?p.index=5&amp;p.size=42</code>, you could define the following
- * route:
+ * Then, to match the URL <code>/foo?p.index=5&amp;p.size=42</code>, you could define the following route:
  *
  * <pre>
  * GET  /foo     controllers.Application.foo(p: Pager)
  * </pre>
  *
- * Of course, you could ignore the <code>p</code> key specified in the routes file and just use hard
- * coded index and size parameters if you pleased.
+ * Of course, you could ignore the <code>p</code> key specified in the routes file and just use hard coded index and
+ * size parameters if you pleased.
  */
 public interface QueryStringBindable<T extends QueryStringBindable<T>> {
 
@@ -62,8 +61,8 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
    *
    * @param key Parameter key
    * @param data The query string data
-   * @return An instance of this class (it could be this class) if the query string data can be
-   *     bound to this type, or None if it couldn't.
+   * @return An instance of this class (it could be this class) if the query string data can be bound to this type, or
+   *     None if it couldn't.
    */
   Optional<T> bind(String key, Map<String, String[]> data);
 
@@ -79,11 +78,11 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
   /**
    * Javascript function to unbind in the Javascript router.
    *
-   * <p>If this bindable just represents a single value, you may return null to let the default
-   * implementation handle it.
+   * <p>If this bindable just represents a single value, you may return null to let the default implementation handle
+   * it.
    *
-   * @return null for default behavior, otherwise a valid javascript function that accepts the key
-   *     and value as arguments and returns a valid query string fragment (in the format <code>
+   * @return null for default behavior, otherwise a valid javascript function that accepts the key and value as
+   *     arguments and returns a valid query string fragment (in the format <code>
    *     key=value</code>)
    */
   String javascriptUnbind();

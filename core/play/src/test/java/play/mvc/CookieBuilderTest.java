@@ -48,8 +48,7 @@ public class CookieBuilderTest {
 
   @Test
   public void createACookieWithNameAndValueWithSecureAndHttpOnlyEqualToTrue() {
-    Http.Cookie cookie =
-        Http.Cookie.builder("name", "value").withSecure(true).withHttpOnly(true).build();
+    Http.Cookie cookie = Http.Cookie.builder("name", "value").withSecure(true).withHttpOnly(true).build();
     assertEquals("name", cookie.name());
     assertEquals("value", cookie.value());
     assertEquals("/", cookie.path());

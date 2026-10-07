@@ -23,10 +23,7 @@ public class DatabaseTest {
     Evolutions.applyEvolutions(
         database,
         Evolutions.forDefault(
-            new Evolution(
-                1,
-                "create table test (id bigint not null, name varchar(255));",
-                "drop table test;")));
+            new Evolution(1, "create table test (id bigint not null, name varchar(255));", "drop table test;")));
   }
 
   @After
@@ -40,8 +37,7 @@ public class DatabaseTest {
     Connection connection = database.getConnection();
     connection.prepareStatement("insert into test values (10, 'testing')").execute();
 
-    assertTrue(
-        connection.prepareStatement("select * from test where id = 10").executeQuery().next());
+    assertTrue(connection.prepareStatement("select * from test where id = 10").executeQuery().next());
   }
 }
 // #database-test

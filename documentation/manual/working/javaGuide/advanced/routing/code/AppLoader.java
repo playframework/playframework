@@ -16,8 +16,7 @@ public class AppLoader implements ApplicationLoader {
   }
 }
 
-class MyComponents extends RoutingDslComponentsFromContext
-    implements play.filters.components.NoHttpFiltersComponents {
+class MyComponents extends RoutingDslComponentsFromContext implements play.filters.components.NoHttpFiltersComponents {
 
   MyComponents(ApplicationLoader.Context context) {
     super(context);

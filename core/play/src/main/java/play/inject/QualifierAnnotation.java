@@ -7,8 +7,8 @@ package play.inject;
 /**
  * A qualifier annotation.
  *
- * <p>Since bindings may specify either annotations, or instances of annotations, this abstraction
- * captures either of those two possibilities.
+ * <p>Since bindings may specify either annotations, or instances of annotations, this abstraction captures either of
+ * those two possibilities.
  *
  * <p>See the {@link Module} class for information on how to provide bindings.
  */

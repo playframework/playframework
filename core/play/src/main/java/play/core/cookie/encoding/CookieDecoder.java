@@ -32,8 +32,7 @@ abstract class CookieDecoder {
     this.strict = strict;
   }
 
-  protected DefaultCookie initCookie(
-      String header, int nameBegin, int nameEnd, int valueBegin, int valueEnd) {
+  protected DefaultCookie initCookie(String header, int nameBegin, int nameEnd, int valueBegin, int valueEnd) {
     if (nameBegin == -1 || nameBegin == nameEnd) {
       logger.debug("Skipping cookie with null name");
       return null;
@@ -48,10 +47,7 @@ abstract class CookieDecoder {
     CharSequence unwrappedValue = unwrapValue(wrappedValue);
     if (unwrappedValue == null) {
       if (logger.isDebugEnabled()) {
-        logger.debug(
-            "Skipping cookie because starting quotes are not properly balanced in '"
-                + wrappedValue
-                + "'");
+        logger.debug("Skipping cookie because starting quotes are not properly balanced in '" + wrappedValue + "'");
       }
       return null;
     }
@@ -62,11 +58,7 @@ abstract class CookieDecoder {
     if (strict && (invalidOctetPos = firstInvalidCookieNameOctet(name)) >= 0) {
       if (logger.isDebugEnabled()) {
         logger.debug(
-            "Skipping cookie because name '"
-                + name
-                + "' contains invalid char '"
-                + name.charAt(invalidOctetPos)
-                + "'");
+            "Skipping cookie because name '" + name + "' contains invalid char '" + name.charAt(invalidOctetPos) + "'");
       }
       return null;
     }

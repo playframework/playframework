@@ -30,8 +30,7 @@ public class ValidateWithDBComponents extends BuiltInComponentsFromContext
   @Override
   public MappedConstraintValidatorFactory constraintValidatorFactory() {
     return new MappedConstraintValidatorFactory()
-        .addConstraintValidator(
-            ValidateWithDBValidator.class, new ValidateWithDBValidator(database("default")));
+        .addConstraintValidator(ValidateWithDBValidator.class, new ValidateWithDBValidator(database("default")));
   }
 }
 

@@ -21,8 +21,8 @@ import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient;
 /**
  * The Play module to provide Java bindings for WS to an AsyncHTTPClient implementation.
  *
- * <p>This binding does not bind an AsyncHttpClient instance, as it's assumed you'll use the Scala
- * and Java modules together.
+ * <p>This binding does not bind an AsyncHttpClient instance, as it's assumed you'll use the Scala and Java modules
+ * together.
  */
 public class AhcWSModule extends Module {
 

@@ -8,8 +8,7 @@ import jakarta.validation.ConstraintValidator;
 import play.data.validation.Constraints;
 import play.libs.F;
 
-public class RedValidator extends Constraints.Validator<Red>
-    implements ConstraintValidator<ValidateRed, Red> {
+public class RedValidator extends Constraints.Validator<Red> implements ConstraintValidator<ValidateRed, Red> {
 
   public void initialize(ValidateRed constraintAnnotation) {}
 

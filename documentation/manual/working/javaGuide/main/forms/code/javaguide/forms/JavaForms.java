@@ -105,16 +105,14 @@ public class JavaForms extends WithApplication {
   @Test
   public void constraints() {
     Form<javaguide.forms.u2.User> userForm = formFactory().form(javaguide.forms.u2.User.class);
-    assertThat(userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors())
-        .isTrue();
+    assertThat(userForm.bind(null, TypedMap.empty(), ImmutableMap.of("password", "p")).hasErrors()).isTrue();
   }
 
   @Test
   public void adhocValidation() {
     Result result =
         call(
-            new U3UserController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new U3UserController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e", "password", "p")),
             mat);
 
@@ -153,8 +151,7 @@ public class JavaForms extends WithApplication {
   public void listValidation() {
     Result result =
         call(
-            new ListValidationController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new ListValidationController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e")),
             mat);
 
@@ -236,8 +233,7 @@ public class JavaForms extends WithApplication {
   public void objectValidation() {
     Result result =
         call(
-            new ObjectValidationController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new ObjectValidationController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of("email", "e")),
             mat);
 
@@ -291,8 +287,7 @@ public class JavaForms extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    ObjectValidationController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    ObjectValidationController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
@@ -401,12 +396,9 @@ public class JavaForms extends WithApplication {
   @Test
   public void registerFormatter() {
     Application application =
-        new GuiceApplicationBuilder()
-            .overrides(bind(Formatters.class).toProvider(FormattersProvider.class))
-            .build();
+        new GuiceApplicationBuilder().overrides(bind(Formatters.class).toProvider(FormattersProvider.class)).build();
 
-    Form<WithLocalTime> form =
-        application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
+    Form<WithLocalTime> form = application.injector().instanceOf(FormFactory.class).form(WithLocalTime.class);
     WithLocalTime obj = form.bind(null, TypedMap.empty(), ImmutableMap.of("time", "23:45")).get();
     assertThat(obj.getTime()).isEqualTo(LocalTime.of(23, 45));
     assertThat(form.fill(obj).field("time").value().get()).isEqualTo("23:45");
@@ -444,8 +436,7 @@ public class JavaForms extends WithApplication {
   public void partialFormSignupValidation() {
     Result result =
         call(
-            new PartialFormSignupController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new PartialFormSignupController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
@@ -457,8 +448,7 @@ public class JavaForms extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    PartialFormSignupController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    PartialFormSignupController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
@@ -484,8 +474,7 @@ public class JavaForms extends WithApplication {
   public void partialFormLoginValidation() {
     Result result =
         call(
-            new PartialFormLoginController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new PartialFormLoginController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
@@ -497,16 +486,14 @@ public class JavaForms extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    PartialFormLoginController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    PartialFormLoginController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
 
     public Result index(Http.Request request) {
       // #partial-validate-login
-      Form<PartialUserForm> form =
-          formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest(request);
+      Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, LoginCheck.class).bindFromRequest(request);
       // #partial-validate-login
 
       Messages messages = this.messagesApi.preferred(request);
@@ -524,8 +511,7 @@ public class JavaForms extends WithApplication {
   public void partialFormDefaultValidation() {
     Result result =
         call(
-            new PartialFormDefaultController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new PartialFormDefaultController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
@@ -537,16 +523,14 @@ public class JavaForms extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    PartialFormDefaultController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    PartialFormDefaultController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
 
     public Result index(Http.Request request) {
       // #partial-validate-default
-      Form<PartialUserForm> form =
-          formFactory().form(PartialUserForm.class, Default.class).bindFromRequest(request);
+      Form<PartialUserForm> form = formFactory().form(PartialUserForm.class, Default.class).bindFromRequest(request);
       // #partial-validate-default
 
       Messages messages = this.messagesApi.preferred(request);
@@ -564,8 +548,7 @@ public class JavaForms extends WithApplication {
   public void partialFormNoGroupValidation() {
     Result result =
         call(
-            new PartialFormNoGroupController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new PartialFormNoGroupController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
@@ -577,16 +560,14 @@ public class JavaForms extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    PartialFormNoGroupController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    PartialFormNoGroupController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }
 
     public Result index(Http.Request request) {
       // #partial-validate-nogroup
-      Form<PartialUserForm> form =
-          formFactory().form(PartialUserForm.class).bindFromRequest(request);
+      Form<PartialUserForm> form = formFactory().form(PartialUserForm.class).bindFromRequest(request);
       // #partial-validate-nogroup
 
       Messages messages = this.messagesApi.preferred(request);
@@ -604,8 +585,7 @@ public class JavaForms extends WithApplication {
   public void OrderedGroupSequenceValidation() {
     Result result =
         call(
-            new OrderedGroupSequenceController(
-                instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
+            new OrderedGroupSequenceController(instanceOf(JavaHandlerComponents.class), instanceOf(MessagesApi.class)),
             fakeRequest("POST", "/").bodyForm(ImmutableMap.of()),
             mat);
 
@@ -617,8 +597,7 @@ public class JavaForms extends WithApplication {
 
     private final MessagesApi messagesApi;
 
-    OrderedGroupSequenceController(
-        JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
+    OrderedGroupSequenceController(JavaHandlerComponents javaHandlerComponents, MessagesApi messagesApi) {
       super(javaHandlerComponents);
       this.messagesApi = messagesApi;
     }

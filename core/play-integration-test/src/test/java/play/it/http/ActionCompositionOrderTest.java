@@ -28,9 +28,7 @@ public class ActionCompositionOrderTest {
           .thenApply(
               result -> {
                 String newContent =
-                    this.annotatedElement.getClass().getName()
-                        + "controller"
-                        + Helpers.contentAsString(result);
+                    this.annotatedElement.getClass().getName() + "controller" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
               });
     }
@@ -49,9 +47,7 @@ public class ActionCompositionOrderTest {
           .thenApply(
               result -> {
                 String newContent =
-                    this.annotatedElement.getClass().getName()
-                        + "action"
-                        + Helpers.contentAsString(result);
+                    this.annotatedElement.getClass().getName() + "action" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
               });
     }
@@ -92,9 +88,7 @@ public class ActionCompositionOrderTest {
           .thenApply(
               result -> {
                 String newContent =
-                    this.annotatedElement.getClass().getName()
-                        + "action1"
-                        + Helpers.contentAsString(result);
+                    this.annotatedElement.getClass().getName() + "action1" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
               });
     }
@@ -108,17 +102,15 @@ public class ActionCompositionOrderTest {
           .thenApply(
               result -> {
                 String newContent =
-                    this.annotatedElement.getClass().getName()
-                        + "action2"
-                        + Helpers.contentAsString(result);
+                    this.annotatedElement.getClass().getName() + "action2" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
               });
     }
   }
 
   /**
-   * Could be seen as a container annotation (like SomeRepeatable.List above), however it
-   * defines @With so it's simply seen as action annotation
+   * Could be seen as a container annotation (like SomeRepeatable.List above), however it defines @With so it's simply
+   * seen as action annotation
    */
   @With(SomeActionAnnotationAction.class)
   @Target({ElementType.TYPE, ElementType.METHOD})
@@ -134,8 +126,7 @@ public class ActionCompositionOrderTest {
           .call(req)
           .thenApply(
               result -> {
-                String newContent =
-                    "do_NOT_treat_me_as_container_annotation" + Helpers.contentAsString(result);
+                String newContent = "do_NOT_treat_me_as_container_annotation" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
               });
     }

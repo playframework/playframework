@@ -58,8 +58,7 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnRangeResultForInputStreamWhenHeaderIsPresentAndContentTypeWasSpecified()
-      throws IOException {
+  public void shouldReturnRangeResultForInputStreamWhenHeaderIsPresentAndContentTypeWasSpecified() throws IOException {
     Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt", HTML);
@@ -74,21 +73,18 @@ public class RangeResultsTest {
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt");
       assertEquals(PARTIAL_CONTENT, result.status());
-      assertEquals(
-          "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+      assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
   }
 
   @Test
-  public void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresentWithCustomFilename()
-      throws IOException {
+  public void shouldNotReturnRangeResultForInputStreamWhenHeaderIsNotPresentWithCustomFilename() throws IOException {
     Http.Request req = mockRegularRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt");
       assertEquals(OK, result.status());
       assertEquals(BINARY, result.body().contentType().orElse(""));
-      assertEquals(
-          "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+      assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
   }
 
@@ -103,15 +99,13 @@ public class RangeResultsTest {
   }
 
   @Test
-  public void shouldReturnPartialContentForInputStreamWithGivenNameAndContentType()
-      throws IOException {
+  public void shouldReturnPartialContentForInputStreamWithGivenNameAndContentType() throws IOException {
     Http.Request req = mockRangeRequest();
     try (InputStream stream = Files.newInputStream(path)) {
       Result result = RangeResults.ofStream(req, stream, Files.size(path), "file.txt", TEXT);
       assertEquals(PARTIAL_CONTENT, result.status());
       assertEquals(TEXT, result.body().contentType().orElse(""));
-      assertEquals(
-          "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+      assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
     }
   }
 
@@ -123,8 +117,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofPath(req, path);
 
     assertEquals(PARTIAL_CONTENT, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -134,8 +127,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofPath(req, path);
 
     assertEquals(OK, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -144,8 +136,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofPath(req, path, "file.txt");
 
     assertEquals(PARTIAL_CONTENT, result.status());
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -155,8 +146,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofPath(req, path, "file.txt");
 
     assertEquals(OK, result.status());
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -191,8 +181,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofFile(req, path.toFile());
 
     assertEquals(PARTIAL_CONTENT, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -202,8 +191,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofFile(req, path.toFile());
 
     assertEquals(OK, result.status());
-    assertEquals(
-        "attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"test.tmp\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -212,8 +200,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofFile(req, path.toFile(), "file.txt");
 
     assertEquals(PARTIAL_CONTENT, result.status());
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -223,8 +210,7 @@ public class RangeResultsTest {
     Result result = RangeResults.ofFile(req, path.toFile(), "file.txt");
 
     assertEquals(OK, result.status());
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -258,21 +244,18 @@ public class RangeResultsTest {
     Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result =
-        RangeResults.ofSource(req, Files.size(path), source, path.toFile().getName(), BINARY);
+    Result result = RangeResults.ofSource(req, Files.size(path), source, path.toFile().getName(), BINARY);
 
     assertEquals(OK, result.status());
     assertEquals(BINARY, result.body().contentType().orElse(""));
   }
 
   @Test
-  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified()
-      throws IOException {
+  public void shouldReturnRangeResultForSourceWhenHeaderIsPresentAndContentTypeWasSpecified() throws IOException {
     Http.Request req = mockRangeRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
-    Result result =
-        RangeResults.ofSource(req, Files.size(path), source, path.toFile().getName(), TEXT);
+    Result result = RangeResults.ofSource(req, Files.size(path), source, path.toFile().getName(), TEXT);
 
     assertEquals(PARTIAL_CONTENT, result.status());
     assertEquals(TEXT, result.body().contentType().orElse(""));
@@ -287,13 +270,11 @@ public class RangeResultsTest {
 
     assertEquals(PARTIAL_CONTENT, result.status());
     assertEquals(BINARY, result.body().contentType().orElse(""));
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
-  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename()
-      throws IOException {
+  public void shouldNotReturnRangeResultForSourceWhenHeaderIsNotPresentWithCustomFilename() throws IOException {
     Http.Request req = mockRegularRequest();
 
     Source<ByteString, CompletionStage<IOResult>> source = FileIO.fromPath(path);
@@ -301,8 +282,7 @@ public class RangeResultsTest {
 
     assertEquals(OK, result.status());
     assertEquals(BINARY, result.body().contentType().orElse(""));
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -315,8 +295,7 @@ public class RangeResultsTest {
 
     assertEquals(PARTIAL_CONTENT, result.status());
     assertEquals(TEXT, result.body().contentType().orElse(""));
-    assertEquals(
-        "attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
+    assertEquals("attachment; filename=\"file.txt\"", result.header(CONTENT_DISPOSITION).orElse(""));
   }
 
   @Test
@@ -353,8 +332,7 @@ public class RangeResultsTest {
     Http.Request req = mockRangeRequestWithOffset();
     long entityLength = Files.size(path);
     byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
-    Result result =
-        RangeResults.ofSource(req, entityLength, preSeekingSourceFunction(data), "file.tmp", TEXT);
+    Result result = RangeResults.ofSource(req, entityLength, preSeekingSourceFunction(data), "file.tmp", TEXT);
     assertEquals("bc", getBody(result));
   }
 
@@ -363,8 +341,7 @@ public class RangeResultsTest {
     Http.Request req = mockRangeRequestWithOffset();
     long entityLength = Files.size(path);
     byte[] data = "abcdefghijklmnopqrstuvwxyz".getBytes();
-    Result result =
-        RangeResults.ofSource(req, entityLength, noSeekingSourceFunction(data), "file.tmp", TEXT);
+    Result result = RangeResults.ofSource(req, entityLength, noSeekingSourceFunction(data), "file.tmp", TEXT);
     assertEquals("bc", getBody(result));
   }
 
@@ -419,9 +396,7 @@ public class RangeResultsTest {
   private String getBody(Result result) throws Exception {
     ActorSystem actorSystem = ActorSystem.create("TestSystem");
     Materializer mat = Materializer.matFromSystem(actorSystem);
-    ByteString bs =
-        Await.result(
-            FutureConverters.asScala(result.body().consumeData(mat)), Duration.create("60s"));
+    ByteString bs = Await.result(FutureConverters.asScala(result.body().consumeData(mat)), Duration.create("60s"));
     return bs.utf8String();
   }
 }

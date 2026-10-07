@@ -18,9 +18,7 @@ public class AppModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(new TypeLiteral<ActorRef<HelloActor.SayHello>>() {})
-        .toProvider(HelloActorProvider.class)
-        .asEagerSingleton();
+    bind(new TypeLiteral<ActorRef<HelloActor.SayHello>>() {}).toProvider(HelloActorProvider.class).asEagerSingleton();
     bind(new TypeLiteral<ActorRef<ConfiguredActor.GetConfig>>() {})
         .toProvider(ConfiguredActorProvider.class)
         .asEagerSingleton();
@@ -40,8 +38,7 @@ public class AppModule extends AbstractModule {
     }
   }
 
-  public static class ConfiguredActorProvider
-      implements Provider<ActorRef<ConfiguredActor.GetConfig>> {
+  public static class ConfiguredActorProvider implements Provider<ActorRef<ConfiguredActor.GetConfig>> {
 
     private final ActorSystem actorSystem;
     private final Config config;

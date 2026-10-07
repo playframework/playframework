@@ -5,8 +5,8 @@
 package play.libs.typedmap;
 
 /**
- * An entry that binds a typed key and a value. These entries can be placed into a {@link TypedMap}
- * or any other type of object with typed values.
+ * An entry that binds a typed key and a value. These entries can be placed into a {@link TypedMap} or any other type of
+ * object with typed values.
  *
  * @param <A> The type of the key and value in this entry.
  */

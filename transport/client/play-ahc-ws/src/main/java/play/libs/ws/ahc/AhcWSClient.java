@@ -36,19 +36,18 @@ public class AhcWSClient implements WSClient {
   }
 
   /**
-   * Creates WS client manually from configuration, internally creating a new instance of
-   * AsyncHttpClient and managing its own thread pool.
+   * Creates WS client manually from configuration, internally creating a new instance of AsyncHttpClient and managing
+   * its own thread pool.
    *
-   * <p>This client is not managed as part of Play's lifecycle, and <b>must</b> be closed by calling
-   * ws.close(), otherwise you will run into memory leaks.
+   * <p>This client is not managed as part of Play's lifecycle, and <b>must</b> be closed by calling ws.close(),
+   * otherwise you will run into memory leaks.
    *
    * @param config a config object, usually from AhcWSClientConfigFactory
    * @param cache if not null, provides HTTP caching.
    * @param materializer an Pekko materializer
    * @return a new instance of AhcWSClient.
    */
-  public static AhcWSClient create(
-      AhcWSClientConfig config, AhcHttpCache cache, Materializer materializer) {
+  public static AhcWSClient create(AhcWSClientConfig config, AhcHttpCache cache, Materializer materializer) {
     final StandaloneAhcWSClient client = StandaloneAhcWSClient.create(config, cache, materializer);
     return new AhcWSClient(client, materializer);
   }
@@ -61,8 +60,7 @@ public class AhcWSClient implements WSClient {
   @Override
   public play.api.libs.ws.WSClient asScala() {
     return new play.api.libs.ws.ahc.AhcWSClient(
-        new play.api.libs.ws.ahc.StandaloneAhcWSClient(
-            (AsyncHttpClient) getUnderlying(), materializer));
+        new play.api.libs.ws.ahc.StandaloneAhcWSClient((AsyncHttpClient) getUnderlying(), materializer));
   }
 
   @Override

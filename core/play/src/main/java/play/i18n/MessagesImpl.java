@@ -9,12 +9,11 @@ import java.util.List;
 /**
  * This class implements the Messages interface.
  *
- * <p>This class serves two purposes. One is for backwards compatibility, it serves the old static
- * API for accessing messages. The other is a new API, which carries an inject messages, and a
- * selected language.
+ * <p>This class serves two purposes. One is for backwards compatibility, it serves the old static API for accessing
+ * messages. The other is a new API, which carries an inject messages, and a selected language.
  *
- * <p>The methods for looking up messages on the old API are called get, on the new API, they are
- * called at. In Play 3.0, when we remove the old API, we may alias the at methods to the get names.
+ * <p>The methods for looking up messages on the old API are called get, on the new API, they are called at. In Play
+ * 3.0, when we remove the old API, we may alias the at methods to the get names.
  */
 public class MessagesImpl implements Messages {
 

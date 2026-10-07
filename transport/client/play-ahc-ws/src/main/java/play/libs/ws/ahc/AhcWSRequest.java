@@ -30,8 +30,7 @@ public class AhcWSRequest implements WSRequest {
   private final Function<StandaloneWSRequest, WSRequest> converter =
       new Function<StandaloneWSRequest, WSRequest>() {
         public WSRequest apply(StandaloneWSRequest standaloneWSRequest) {
-          final StandaloneAhcWSRequest plainAhcWSRequest =
-              (StandaloneAhcWSRequest) standaloneWSRequest;
+          final StandaloneAhcWSRequest plainAhcWSRequest = (StandaloneAhcWSRequest) standaloneWSRequest;
           return new AhcWSRequest(client, plainAhcWSRequest);
         }
       };
@@ -324,10 +323,7 @@ public class AhcWSRequest implements WSRequest {
         cookie.value(),
         cookie.domain(),
         cookie.path(),
-        Optional.ofNullable(cookie.maxAge())
-            .map(Integer::longValue)
-            .filter(f -> f > -1L)
-            .orElse(null),
+        Optional.ofNullable(cookie.maxAge()).map(Integer::longValue).filter(f -> f > -1L).orElse(null),
         cookie.secure(),
         cookie.httpOnly());
   }
@@ -384,8 +380,7 @@ public class AhcWSRequest implements WSRequest {
 
   /**
    * @deprecated Use {@link #setRequestTimeout(Duration timeout)}
-   * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request
-   *     timeout.
+   * @param timeout the request timeout in milliseconds. A value of -1 indicates an infinite request timeout.
    */
   @Deprecated
   @Override

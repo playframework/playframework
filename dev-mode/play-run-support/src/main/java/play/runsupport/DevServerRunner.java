@@ -34,9 +34,7 @@ public final class DevServerRunner {
     var mainClass = applicationLoader.loadClass(mainClassName);
 
     if (settings.isHttpPortDefined() && settings.isHttpsPortDefined()) {
-      var m =
-          mainClass.getMethod(
-              "mainDevHttpAndHttpsMode", BuildLink.class, int.class, int.class, String.class);
+      var m = mainClass.getMethod("mainDevHttpAndHttpsMode", BuildLink.class, int.class, int.class, String.class);
       server = (ReloadableServer) m.invoke(null, reloader, httpPort, httpsPort, httpAddress);
     } else if (settings.isHttpPortDefined()) {
       var m = mainClass.getMethod("mainDevHttpMode", BuildLink.class, int.class, String.class);
@@ -67,16 +65,12 @@ public final class DevServerRunner {
       String mainClassName,
       Object reloadLock) {
     if (reloader != null) {
-      throw new IllegalStateException(
-          "Cannot run a dev server because another one is already running!");
+      throw new IllegalStateException("Cannot run a dev server because another one is already running!");
     }
 
-    var settings =
-        DevServerSettings.parse(
-            javaOptions, args, devSettings, defaultHttpPort, defaultHttpAddress);
+    var settings = DevServerSettings.parse(javaOptions, args, devSettings, defaultHttpPort, defaultHttpAddress);
     if (!settings.isAnyPortDefined()) {
-      throw new IllegalArgumentException(
-          "You have to specify https.port when http.port is disabled");
+      throw new IllegalArgumentException("You have to specify https.port when http.port is disabled");
     }
     // Set Java system properties
     settings.getMergedProperties().forEach(System::setProperty);
@@ -137,8 +131,7 @@ public final class DevServerRunner {
               commonClassLoader, Build.sharedClasses, buildLoader, () -> reloader.getClassLoader());
 
       var applicationLoader =
-          new NamedURLClassLoader(
-              "DependencyClassLoader", urls(dependencyClasspath), delegatingLoader);
+          new NamedURLClassLoader("DependencyClassLoader", urls(dependencyClasspath), delegatingLoader);
 
       // Need to call the assetsClassLoader function _after_ (!) the beforeStarted run hooks ran
       var assetsLoader = assetsClassLoader.apply(applicationLoader);

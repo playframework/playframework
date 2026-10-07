@@ -99,8 +99,7 @@ public class DevServerSettings {
 
     Function<String, Optional<String>> findInArgsOrSystemProps =
         (String key) ->
-            Optional.ofNullable(propertyArgs.get(key))
-                .or(() -> Optional.ofNullable(System.getProperty(key)));
+            Optional.ofNullable(propertyArgs.get(key)).or(() -> Optional.ofNullable(System.getProperty(key)));
 
     // http port can be defined as the first non-property argument, or a -D(play.server.)http.port
     // argument or system property
@@ -135,8 +134,7 @@ public class DevServerSettings {
             .or(() -> Optional.ofNullable(System.getenv("PLAY_HTTP_ADDRESS")))
             .orElse(defaultHttpAddress);
 
-    return new DevServerSettings(
-        extractProperties(javaOptions), propertyArgs, httpPort, httpsPort, httpAddress);
+    return new DevServerSettings(extractProperties(javaOptions), propertyArgs, httpPort, httpsPort, httpAddress);
   }
 
   private static Integer parsePort(String portValue, Integer defaultValue) {

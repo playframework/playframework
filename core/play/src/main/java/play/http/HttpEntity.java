@@ -50,8 +50,8 @@ public abstract class HttpEntity {
   /**
    * Consumes the data.
    *
-   * <p>This method should be used carefully, since if the source represents an ephemeral stream,
-   * then the entity may not be usable after this method is invoked.
+   * <p>This method should be used carefully, since if the source represents an ephemeral stream, then the entity may
+   * not be usable after this method is invoked.
    *
    * @param mat the application's materializer.
    * @return a CompletionStage holding the data
@@ -63,8 +63,7 @@ public abstract class HttpEntity {
   public abstract play.api.http.HttpEntity asScala();
 
   /** No entity. */
-  public static final HttpEntity NO_ENTITY =
-      new Strict(ByteString.emptyByteString(), Optional.empty());
+  public static final HttpEntity NO_ENTITY = new Strict(ByteString.emptyByteString(), Optional.empty());
 
   /**
    * Create an entity from the given content.
@@ -82,8 +81,7 @@ public abstract class HttpEntity {
       body = content.body();
     }
     return new Strict(
-        ByteString.fromString(body, charset),
-        Optional.of(content.contentType() + "; charset=" + charset));
+        ByteString.fromString(body, charset), Optional.of(content.contentType() + "; charset=" + charset));
   }
 
   /**
@@ -94,8 +92,7 @@ public abstract class HttpEntity {
    * @return the HTTP entity.
    */
   public static final HttpEntity fromString(String content, String charset) {
-    return new Strict(
-        ByteString.fromString(content, charset), Optional.of("text/plain; charset=" + charset));
+    return new Strict(ByteString.fromString(content, charset), Optional.of("text/plain; charset=" + charset));
   }
 
   /**
@@ -160,8 +157,7 @@ public abstract class HttpEntity {
     private final Optional<Long> contentLength;
     private final Optional<String> contentType;
 
-    public Streamed(
-        Source<ByteString, ?> data, Optional<Long> contentLength, Optional<String> contentType) {
+    public Streamed(Source<ByteString, ?> data, Optional<Long> contentLength, Optional<String> contentType) {
       this.data = data;
       this.contentType = contentType;
       this.contentLength = contentLength;
@@ -245,15 +241,12 @@ public abstract class HttpEntity {
     @Override
     public Source<ByteString, ?> dataStream() {
       return chunks.<ByteString>collect(
-          new PFBuilder<HttpChunk, ByteString>()
-              .match(HttpChunk.Chunk.class, HttpChunk.Chunk::data)
-              .build());
+          new PFBuilder<HttpChunk, ByteString>().match(HttpChunk.Chunk.class, HttpChunk.Chunk::data).build());
     }
 
     @Override
     public play.api.http.HttpEntity asScala() {
-      return new play.api.http.HttpEntity.Chunked(
-          chunks.asScala(), OptionConverters.toScala(contentType));
+      return new play.api.http.HttpEntity.Chunked(chunks.asScala(), OptionConverters.toScala(contentType));
     }
   }
 }

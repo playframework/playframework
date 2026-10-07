@@ -27,8 +27,7 @@ public class FiltersTest extends WithApplication {
             .build();
 
     // #test-with-request-builder
-    Http.RequestBuilder request =
-        new Http.RequestBuilder().method(GET).host("localhost").uri("/xx/Kiwi");
+    Http.RequestBuilder request = new Http.RequestBuilder().method(GET).host("localhost").uri("/xx/Kiwi");
     // #test-with-request-builder
 
     Helpers.routeAndCall(app, router, request, 10_000 /* 10 seconds */);

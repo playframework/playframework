@@ -34,15 +34,14 @@ import scala.reflect.ClassTag$;
 /**
  * A DSL for building a router.
  *
- * <p>This DSL matches requests based on method and a path pattern, and is able to extract up to
- * three parameters out of the path pattern to pass into lambdas.
+ * <p>This DSL matches requests based on method and a path pattern, and is able to extract up to three parameters out of
+ * the path pattern to pass into lambdas.
  *
- * <p>The passed in lambdas may optionally declare the types of the input parameters. If they don't,
- * the JVM will infer a type of Object, but the parameters themselves are passed in as Strings.
- * Supported types are java.lang.Integer, java.lang.Long, java.lang.Float, java.lang.Double,
- * java.lang.Boolean, and any class that extends play.mvc.PathBindable. The router will attempt to
- * decode parameters using a PathBindable for each of those types, if it fails it will return a 400
- * error.
+ * <p>The passed in lambdas may optionally declare the types of the input parameters. If they don't, the JVM will infer
+ * a type of Object, but the parameters themselves are passed in as Strings. Supported types are java.lang.Integer,
+ * java.lang.Long, java.lang.Float, java.lang.Double, java.lang.Boolean, and any class that extends
+ * play.mvc.PathBindable. The router will attempt to decode parameters using a PathBindable for each of those types, if
+ * it fails it will return a 400 error.
  *
  * <p>Example usage:
  *
@@ -78,9 +77,9 @@ import scala.reflect.ClassTag$;
  * }
  * </pre>
  *
- * The path pattern supports three different types of parameters, path segment parameters, prefixed
- * with :, full path parameters, prefixed with *, and regular expression parameters, prefixed with $
- * and post fixed with a regular expression in angled braces.
+ * The path pattern supports three different types of parameters, path segment parameters, prefixed with :, full path
+ * parameters, prefixed with *, and regular expression parameters, prefixed with $ and post fixed with a regular
+ * expression in angled braces.
  */
 public class RoutingDsl {
 
@@ -97,8 +96,7 @@ public class RoutingDsl {
    * @deprecated Deprecated as of 2.8.0. Use constructor without JavaContextComponents
    */
   @Deprecated
-  public RoutingDsl(
-      play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {
+  public RoutingDsl(play.mvc.BodyParser.Default bodyParser, JavaContextComponents contextComponents) {
     this(bodyParser);
   }
 
@@ -196,8 +194,7 @@ public class RoutingDsl {
     return new RouterBuilderHelper(this.bodyParser).build(this);
   }
 
-  private RoutingDsl with(
-      String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
+  private RoutingDsl with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
 
     // Parse the pattern
     Matcher matcher = paramExtractor.matcher(pathPattern);
@@ -218,18 +215,13 @@ public class RoutingDsl {
 
     if (matches.size() != arity) {
       throw new IllegalArgumentException(
-          "Path contains "
-              + matches.size()
-              + " params but function of arity "
-              + arity
-              + " was passed");
+          "Path contains " + matches.size() + " params but function of arity " + arity + " was passed");
     }
 
     StringBuilder sb = new StringBuilder();
     List<RouteParam> params = new ArrayList<>(arity);
     Iterator<Class<?>> argumentTypes =
-        Arrays.asList(TypeResolver.resolveRawArguments(actionFunction, action.getClass()))
-            .iterator();
+        Arrays.asList(TypeResolver.resolveRawArguments(actionFunction, action.getClass())).iterator();
 
     int start = 0;
     for (MatchResult result : matches) {
@@ -291,8 +283,7 @@ public class RoutingDsl {
     }
   }
 
-  private static <A extends play.mvc.PathBindable<A>> PathBindable<?> javaPathBindableFor(
-      Class<?> clazz) {
+  private static <A extends play.mvc.PathBindable<A>> PathBindable<?> javaPathBindableFor(Class<?> clazz) {
     return PathBindable$.MODULE$.<A>javaPathBindable(ClassTag$.MODULE$.apply(clazz));
   }
 
@@ -303,12 +294,7 @@ public class RoutingDsl {
     final Object action;
     final Method actionMethod;
 
-    Route(
-        String method,
-        Pattern pathPattern,
-        List<RouteParam> params,
-        Object action,
-        Method actionMethod) {
+    Route(String method, Pattern pathPattern, List<RouteParam> params, Object action, Method actionMethod) {
       this.method = method;
       this.pathPattern = pathPattern;
       this.params = params;
@@ -330,8 +316,7 @@ public class RoutingDsl {
   }
 
   private static final Pattern paramExtractor =
-      Pattern.compile(
-          "([:*$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
+      Pattern.compile("([:*$])(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)(?:<(.*)>)?");
 
   /** A matcher for routes. */
   public class PathPatternMatcher {
@@ -396,8 +381,7 @@ public class RoutingDsl {
      * @param action The action to execute.
      * @return This router builder.
      */
-    public RoutingDsl routingAsync(
-        RequestFunctions.Params0<? extends CompletionStage<Result>> action) {
+    public RoutingDsl routingAsync(RequestFunctions.Params0<? extends CompletionStage<Result>> action) {
       return build(0, action, RequestFunctions.Params0.class);
     }
 
@@ -408,8 +392,7 @@ public class RoutingDsl {
      * @param action The action to execute.
      * @return This router builder.
      */
-    public <P1> RoutingDsl routingAsync(
-        RequestFunctions.Params1<P1, ? extends CompletionStage<Result>> action) {
+    public <P1> RoutingDsl routingAsync(RequestFunctions.Params1<P1, ? extends CompletionStage<Result>> action) {
       return build(1, action, RequestFunctions.Params1.class);
     }
 

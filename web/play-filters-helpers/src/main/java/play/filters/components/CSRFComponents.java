@@ -30,16 +30,11 @@ public interface CSRFComponents
 
   default RequireCSRFCheckAction requireCSRFCheckAction() {
     return new RequireCSRFCheckAction(
-        csrfConfig(),
-        sessionConfiguration(),
-        csrfTokenProvider(),
-        csrfTokenSigner().asScala(),
-        csrfErrorHandler());
+        csrfConfig(), sessionConfiguration(), csrfTokenProvider(), csrfTokenSigner().asScala(), csrfErrorHandler());
   }
 
   default CSRFErrorHandler csrfErrorHandler() {
-    return new CSRFErrorHandler.DefaultCSRFErrorHandler(
-        new CSRF.CSRFHttpErrorHandler(scalaHttpErrorHandler()));
+    return new CSRFErrorHandler.DefaultCSRFErrorHandler(new CSRF.CSRFHttpErrorHandler(scalaHttpErrorHandler()));
   }
 
   default CSRFFilter csrfFilter() {
@@ -53,8 +48,7 @@ public interface CSRFComponents
   }
 
   default CSRFCheck csrfCheck() {
-    return new CSRFCheck(
-        csrfConfig(), csrfTokenSigner(), sessionConfiguration(), csrfErrorHandler());
+    return new CSRFCheck(csrfConfig(), csrfTokenSigner(), sessionConfiguration(), csrfErrorHandler());
   }
 
   default CSRFAddToken csrfAddToken() {

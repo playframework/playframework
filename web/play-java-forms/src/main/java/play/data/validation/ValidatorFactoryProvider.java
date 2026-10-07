@@ -30,17 +30,13 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
 
   @Inject
   public ValidatorFactoryProvider(
-      ConstraintValidatorFactory constraintValidatorFactory,
-      Langs langs,
-      final ApplicationLifecycle lifecycle) {
+      ConstraintValidatorFactory constraintValidatorFactory, Langs langs, final ApplicationLifecycle lifecycle) {
 
-    Set<Locale> supportedLocales =
-        langs.availables().stream().map(l -> l.locale()).collect(Collectors.toSet());
+    Set<Locale> supportedLocales = langs.availables().stream().map(l -> l.locale()).collect(Collectors.toSet());
     Locale defaultLocale = langs.preferred(langs.availables()).toLocale();
 
     ParameterMessageInterpolator messageInterpolator =
-        new ParameterMessageInterpolator(
-            supportedLocales, defaultLocale, new RequestAwareLocaleResolver(langs), false);
+        new ParameterMessageInterpolator(supportedLocales, defaultLocale, new RequestAwareLocaleResolver(langs), false);
 
     this.validatorFactory =
         Validation.byDefaultProvider()

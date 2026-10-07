@@ -24,8 +24,7 @@ public class MyAppComponents extends BuiltInComponentsFromContext implements Htt
 
   @Override
   public List<EssentialFilter> httpFilters() {
-    List<EssentialFilter> combinedFilters =
-        new ArrayList<>(HttpFiltersComponents.super.httpFilters());
+    List<EssentialFilter> combinedFilters = new ArrayList<>(HttpFiltersComponents.super.httpFilters());
     combinedFilters.add(new LoggingFilter(materializer()));
     return combinedFilters;
   }

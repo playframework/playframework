@@ -35,12 +35,8 @@ class DelegateLoggerConfigurator implements LoggerConfigurator {
   }
 
   @Override
-  public void configure(
-      Environment env, Config configuration, Map<String, String> optionalProperties) {
-    delegate.configure(
-        env.asScala(),
-        new play.api.Configuration(configuration),
-        Scala.asScala(optionalProperties));
+  public void configure(Environment env, Config configuration, Map<String, String> optionalProperties) {
+    delegate.configure(env.asScala(), new play.api.Configuration(configuration), Scala.asScala(optionalProperties));
   }
 
   @Override

@@ -56,10 +56,7 @@ public class JavaAsync {
     Futures futures = mock(Futures.class);
     when(futures.timeout(any(), any())).thenReturn(CompletableFuture.completedFuture(Math.PI));
     final Double actual =
-        new MyClass(futures)
-            .callWithOneSecondTimeout()
-            .toCompletableFuture()
-            .get(1, TimeUnit.SECONDS);
+        new MyClass(futures).callWithOneSecondTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
     assertThat(actual).isEqualTo(expected);
   }
@@ -69,22 +66,18 @@ public class JavaAsync {
     // #promise-pi
     CompletionStage<Double> promiseOfPIValue = computePIAsynchronously();
     // Runs in same thread
-    CompletionStage<Result> promiseOfResult =
-        promiseOfPIValue.thenApply(pi -> ok("PI value computed: " + pi));
+    CompletionStage<Result> promiseOfResult = promiseOfPIValue.thenApply(pi -> ok("PI value computed: " + pi));
     // #promise-pi
-    assertThat(promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status())
-        .isEqualTo(200);
+    assertThat(promiseOfResult.toCompletableFuture().get(1, TimeUnit.SECONDS).status()).isEqualTo(200);
   }
 
   @Test
   public void promiseAsync() throws Exception {
     // #promise-async
     // creates new task
-    CompletionStage<Integer> promiseOfInt =
-        CompletableFuture.supplyAsync(() -> intensiveComputation());
+    CompletionStage<Integer> promiseOfInt = CompletableFuture.supplyAsync(() -> intensiveComputation());
     // #promise-async
-    assertEquals(
-        intensiveComputation(), promiseOfInt.toCompletableFuture().get(1, TimeUnit.SECONDS));
+    assertEquals(intensiveComputation(), promiseOfInt.toCompletableFuture().get(1, TimeUnit.SECONDS));
   }
 
   private static CompletionStage<Double> computePIAsynchronously() {

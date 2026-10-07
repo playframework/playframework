@@ -24,9 +24,7 @@ public class DefaultConnectionPool implements ConnectionPool {
 
   public DataSource create(String name, Config config, Environment environment) {
     return cp.create(
-        name,
-        DatabaseConfig.fromConfig(new play.api.Configuration(config), environment.asScala()),
-        config);
+        name, DatabaseConfig.fromConfig(new play.api.Configuration(config), environment.asScala()), config);
   }
 
   public void close(DataSource dataSource) {

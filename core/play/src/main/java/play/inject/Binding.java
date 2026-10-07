@@ -11,13 +11,13 @@ import scala.jdk.javaapi.OptionConverters;
 /**
  * A binding.
  *
- * <p>Bindings are used to bind classes, optionally qualified by a JSR-330 qualifier annotation, to
- * instances, providers or implementation classes.
+ * <p>Bindings are used to bind classes, optionally qualified by a JSR-330 qualifier annotation, to instances, providers
+ * or implementation classes.
  *
  * <p>Bindings may also specify a JSR-330 scope. If, and only if that scope is <a
  * href="https://jakarta.ee/specifications/dependency-injection/2.0/apidocs/jakarta/inject/Singleton.html">jakarta.inject.Singleton</a>,
- * then the binding may declare itself to be eagerly instantiated. In which case, it should be
- * eagerly instantiated when Play starts up.
+ * then the binding may declare itself to be eagerly instantiated. In which case, it should be eagerly instantiated when
+ * Play starts up.
  *
  * <p>See the {@link Module} class for information on how to provide bindings.
  */

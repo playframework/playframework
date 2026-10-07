@@ -30,12 +30,11 @@ public class WSTestClient {
   /**
    * Create a new WSClient for use in testing.
    *
-   * <p>This client holds on to resources such as connections and threads, and so must be closed
-   * after use.
+   * <p>This client holds on to resources such as connections and threads, and so must be closed after use.
    *
-   * <p>If the URL passed into the url method of this client is a host relative absolute path (that
-   * is, if it starts with /), then this client will make the request on localhost using the
-   * supplied port. This is particularly useful in test situations.
+   * <p>If the URL passed into the url method of this client is a host relative absolute path (that is, if it starts
+   * with /), then this client will make the request on localhost using the supplied port. This is particularly useful
+   * in test situations.
    *
    * @param port The port to use on localhost when relative URLs are requested.
    * @return A running WS client.

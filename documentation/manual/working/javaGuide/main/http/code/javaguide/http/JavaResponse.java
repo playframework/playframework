@@ -40,8 +40,7 @@ public class JavaResponse extends WithApplication {
     Result textResult = ok("Hello World!");
     // #text-content-type
 
-    assertThat(textResult.contentType())
-        .hasValueSatisfying(__ -> assertThat(__).contains("text/plain"));
+    assertThat(textResult.contentType()).hasValueSatisfying(__ -> assertThat(__).contains("text/plain"));
   }
 
   @Test
@@ -52,8 +51,7 @@ public class JavaResponse extends WithApplication {
     Result jsonResult = ok(json);
     // #json-content-type
 
-    assertThat(jsonResult.contentType())
-        .hasValueSatisfying(__ -> assertThat(__).contains("application/json"));
+    assertThat(jsonResult.contentType()).hasValueSatisfying(__ -> assertThat(__).contains("application/json"));
   }
 
   @Test
@@ -62,8 +60,7 @@ public class JavaResponse extends WithApplication {
     Result htmlResult = ok("<h1>Hello World!</h1>").as("text/html");
     // #custom-content-type
 
-    assertThat(htmlResult.contentType())
-        .hasValueSatisfying(__ -> assertThat(__).contains("text/html"));
+    assertThat(htmlResult.contentType()).hasValueSatisfying(__ -> assertThat(__).contains("text/html"));
   }
 
   @Test
@@ -72,8 +69,7 @@ public class JavaResponse extends WithApplication {
     Result htmlResult = ok("<h1>Hello World!</h1>").as(MimeTypes.HTML);
     // #content-type_defined_html
 
-    assertThat(htmlResult.contentType())
-        .hasValueSatisfying(__ -> assertThat(__).contains("text/html"));
+    assertThat(htmlResult.contentType()).hasValueSatisfying(__ -> assertThat(__).contains("text/html"));
   }
 
   @Test
@@ -115,9 +111,7 @@ public class JavaResponse extends WithApplication {
             .cookies();
 
     Optional<Cookie> cookie = cookies.get("theme");
-    assertThat(cookie)
-        .isPresent()
-        .hasValueSatisfying(__ -> assertThat(__.value()).isEqualTo("blue"));
+    assertThat(cookie).isPresent().hasValueSatisfying(__ -> assertThat(__.value()).isEqualTo("blue"));
   }
 
   @Test
@@ -194,8 +188,7 @@ public class JavaResponse extends WithApplication {
                     new MockJavaAction(instanceOf(JavaHandlerComponents.class)) {
                       // #charset
                       public Result index() {
-                        return ok("<h1>Hello World!</h1>", "iso-8859-1")
-                            .as("text/html; charset=iso-8859-1");
+                        return ok("<h1>Hello World!</h1>", "iso-8859-1").as("text/html; charset=iso-8859-1");
                       }
                       // #charset
                     },
@@ -239,8 +232,7 @@ public class JavaResponse extends WithApplication {
               public Result index(Http.Request request) {
                 String content = "This is the full content!";
                 Source<ByteString, NotUsed> source = sourceFrom(content);
-                return RangeResults.ofSource(
-                    request, (long) content.length(), source, "file.txt", MimeTypes.TEXT);
+                return RangeResults.ofSource(request, (long) content.length(), source, "file.txt", MimeTypes.TEXT);
               }
 
               // #range-result-source
@@ -273,8 +265,7 @@ public class JavaResponse extends WithApplication {
                 return RangeResults.ofSource(
                     request,
                     (long) content.length(),
-                    offset ->
-                        new RangeResults.SourceAndOffset(offset, sourceFrom(content).drop(offset)),
+                    offset -> new RangeResults.SourceAndOffset(offset, sourceFrom(content).drop(offset)),
                     "file.txt",
                     MimeTypes.TEXT);
               }

@@ -16,9 +16,9 @@ import scala.concurrent.ExecutionContext;
 /**
  * The components necessary to handle a Java handler.
  *
- * <p>But this implementation does not uses an Injector. Instead, the necessary {@link
- * play.mvc.Action} and {@link play.mvc.BodyParser} must be added here manually. This is way we
- * avoid mixing runtime dependency injector components with compile time injected ones.
+ * <p>But this implementation does not uses an Injector. Instead, the necessary {@link play.mvc.Action} and {@link
+ * play.mvc.BodyParser} must be added here manually. This is way we avoid mixing runtime dependency injector components
+ * with compile time injected ones.
  */
 public class MappedJavaHandlerComponents implements JavaHandlerComponents {
 
@@ -28,13 +28,10 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
   private final JavaContextComponents contextComponents;
 
   private final Map<Class<? extends Action<?>>, Supplier<Action<?>>> actions = new HashMap<>();
-  private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyParsers =
-      new HashMap<>();
+  private final Map<Class<? extends BodyParser<?>>, Supplier<BodyParser<?>>> bodyParsers = new HashMap<>();
 
   public MappedJavaHandlerComponents(
-      ActionCreator actionCreator,
-      HttpConfiguration httpConfiguration,
-      ExecutionContext executionContext) {
+      ActionCreator actionCreator, HttpConfiguration httpConfiguration, ExecutionContext executionContext) {
     this(actionCreator, httpConfiguration, executionContext, null);
   }
 
@@ -86,8 +83,7 @@ public class MappedJavaHandlerComponents implements JavaHandlerComponents {
     return this.contextComponents;
   }
 
-  public <A extends Action<?>> MappedJavaHandlerComponents addAction(
-      Class<A> clazz, Supplier<A> actionSupplier) {
+  public <A extends Action<?>> MappedJavaHandlerComponents addAction(Class<A> clazz, Supplier<A> actionSupplier) {
     actions.put(clazz, widenSupplier(actionSupplier));
     return this;
   }

@@ -51,17 +51,14 @@ public interface EhCacheComponents extends ConfigurationComponents, PekkoCompone
   ApplicationLifecycle applicationLifecycle();
 
   default CacheManager ehCacheManager() {
-    return new CacheManagerProvider(
-            environment().asScala(), configuration(), applicationLifecycle().asScala())
-        .get();
+    return new CacheManagerProvider(environment().asScala(), configuration(), applicationLifecycle().asScala()).get();
   }
 
   default AsyncCacheApi cacheApi(String name) {
     boolean createNamedCaches = config().getBoolean("play.cache.createBoundCaches");
     play.api.cache.AsyncCacheApi scalaAsyncCacheApi =
         new EhCacheApi(
-            NamedEhCacheProvider$.MODULE$.getNamedCache(name, ehCacheManager(), createNamedCaches),
-            executionContext());
+            NamedEhCacheProvider$.MODULE$.getNamedCache(name, ehCacheManager(), createNamedCaches), executionContext());
     return new DefaultAsyncCacheApi(scalaAsyncCacheApi);
   }
 

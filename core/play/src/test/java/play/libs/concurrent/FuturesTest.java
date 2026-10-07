@@ -39,8 +39,7 @@ public class FuturesTest {
         return futures.timeout(computePIAsynchronously(), Duration.ofSeconds(1));
       }
     }
-    final Double actual =
-        new MyClass().callWithTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
+    final Double actual = new MyClass().callWithTimeout().toCompletableFuture().get(1, TimeUnit.SECONDS);
     final Double expected = Math.PI;
     assertThat(actual).isEqualTo(expected);
   }
@@ -53,11 +52,7 @@ public class FuturesTest {
       }
     }
     final Double actual =
-        new MyClass()
-            .callWithTimeout()
-            .toCompletableFuture()
-            .exceptionally(e -> 100d)
-            .get(1, TimeUnit.SECONDS);
+        new MyClass().callWithTimeout().toCompletableFuture().exceptionally(e -> 100d).get(1, TimeUnit.SECONDS);
     final Double expected = 100d;
     assertThat(actual).isEqualTo(expected);
   }

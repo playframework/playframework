@@ -31,13 +31,11 @@ public class DevServerSettingsTest {
   }
 
   private DevServerSettings devServerSettings(Map<String, String> devSettings) {
-    return DevServerSettings.parse(
-        List.of(), List.of(), devSettings, defaultHttpPort, defaultHttpAddress);
+    return DevServerSettings.parse(List.of(), List.of(), devSettings, defaultHttpPort, defaultHttpAddress);
   }
 
   private DevServerSettings devServerSettings(List<String> args, Map<String, String> devSettings) {
-    return DevServerSettings.parse(
-        List.of(), args, devSettings, defaultHttpPort, defaultHttpAddress);
+    return DevServerSettings.parse(List.of(), args, devSettings, defaultHttpPort, defaultHttpAddress);
   }
 
   @Test
@@ -72,8 +70,7 @@ public class DevServerSettingsTest {
 
   @Test
   public void shouldSupportOverridingPortPropertyFromDevSettingByTheOneFromCommandLine() {
-    var settings =
-        devServerSettings(List.of("-Dhttp.port=9876"), Map.of("play.server.http.port", "1234"));
+    var settings = devServerSettings(List.of("-Dhttp.port=9876"), Map.of("play.server.http.port", "1234"));
     check(settings, Map.of("http.port", "9876"), 9876, null, defaultHttpAddress);
   }
 
@@ -89,12 +86,7 @@ public class DevServerSettingsTest {
         devServerSettings(
             List.of("1234", "-Dplay.server.http.port=5555", "-Dhttp.port=9876"),
             Map.of("play.server.http.port", "5678"));
-    check(
-        settings,
-        Map.of("play.server.http.port", "5555", "http.port", "9876"),
-        5555,
-        null,
-        defaultHttpAddress);
+    check(settings, Map.of("play.server.http.port", "5555", "http.port", "9876"), 5555, null, defaultHttpAddress);
   }
 
   @Test
@@ -124,12 +116,7 @@ public class DevServerSettingsTest {
   @Test
   public void shouldSupportHttpsDisabled() {
     var settings = devServerSettings(List.of("-Dhttps.port=disabled", "-Dhttp.port=1234"));
-    check(
-        settings,
-        Map.of("https.port", "disabled", "http.port", "1234"),
-        1234,
-        null,
-        defaultHttpAddress);
+    check(settings, Map.of("https.port", "disabled", "http.port", "1234"), 1234, null, defaultHttpAddress);
   }
 
   @Test
@@ -147,12 +134,7 @@ public class DevServerSettingsTest {
   @Test
   public void shouldSupportAllOptions() {
     var settings =
-        devServerSettings(
-            List.of(
-                "-Dhttp.address=localhost",
-                "-Dhttps.port=4321",
-                "-Dtest.option=something",
-                "1234"));
+        devServerSettings(List.of("-Dhttp.address=localhost", "-Dhttps.port=4321", "-Dtest.option=something", "1234"));
     check(
         settings,
         Map.of("http.address", "localhost", "https.port", "4321", "test.option", "something"),
@@ -165,11 +147,7 @@ public class DevServerSettingsTest {
   public void lastSystemPropertyValueWins() {
     var settings =
         DevServerSettings.parse(
-            List.of("-Dhttp.port=1234", "-Dhttp.port=9876"),
-            List.of(),
-            Map.of(),
-            defaultHttpPort,
-            defaultHttpAddress);
+            List.of("-Dhttp.port=1234", "-Dhttp.port=9876"), List.of(), Map.of(), defaultHttpPort, defaultHttpAddress);
     assertEquals(Map.of("http.port", "9876"), settings.getJavaOptionProperties());
   }
 }

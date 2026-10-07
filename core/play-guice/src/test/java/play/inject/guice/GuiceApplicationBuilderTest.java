@@ -26,10 +26,7 @@ public class GuiceApplicationBuilderTest {
   @Test
   public void addBindings() {
     Injector injector =
-        new GuiceApplicationBuilder()
-            .bindings(new AModule())
-            .bindings(bind(B.class).to(B1.class))
-            .injector();
+        new GuiceApplicationBuilder().bindings(new AModule()).bindings(bind(B.class).to(B1.class)).injector();
 
     assertThat(injector.instanceOf(A.class)).isInstanceOf(A1.class);
     assertThat(injector.instanceOf(B.class)).isInstanceOf(B1.class);
@@ -44,12 +41,9 @@ public class GuiceApplicationBuilderTest {
                 // override the scala api configuration, which should underlie the java api
                 // configuration
                 bind(play.api.Configuration.class)
-                    .to(
-                        new GuiceApplicationBuilderSpec.ExtendConfiguration(
-                            Scala.varargs(Scala.Tuple("a", 1)))),
+                    .to(new GuiceApplicationBuilderSpec.ExtendConfiguration(Scala.varargs(Scala.Tuple("a", 1)))),
                 // also override the java api configuration
-                bind(Config.class)
-                    .to(new ExtendConfiguration(ConfigFactory.parseMap(ImmutableMap.of("b", 2)))),
+                bind(Config.class).to(new ExtendConfiguration(ConfigFactory.parseMap(ImmutableMap.of("b", 2)))),
                 bind(A.class).to(A2.class))
             .injector()
             .instanceOf(Application.class);
@@ -61,8 +55,7 @@ public class GuiceApplicationBuilderTest {
 
   @Test
   public void disableModules() {
-    Injector injector =
-        new GuiceApplicationBuilder().bindings(new AModule()).disable(AModule.class).injector();
+    Injector injector = new GuiceApplicationBuilder().bindings(new AModule()).disable(AModule.class).injector();
     assertThrows(ConfigurationException.class, () -> injector.instanceOf(A.class));
   }
 

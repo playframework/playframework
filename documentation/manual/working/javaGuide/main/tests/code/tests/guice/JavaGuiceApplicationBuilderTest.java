@@ -99,11 +99,7 @@ public class JavaGuiceApplicationBuilderTest {
     Map<String, Object> configMap = ImmutableMap.of("b", 2, "c", "three");
 
     Application application =
-        new GuiceApplicationBuilder()
-            .configure(extraConfig)
-            .configure(configMap)
-            .configure("key", "value")
-            .build();
+        new GuiceApplicationBuilder().configure(extraConfig).configure(configMap).configure("key", "value").build();
     // #add-configuration
 
     assertThat(application.config().getInt("a")).isEqualTo(1);
@@ -116,9 +112,7 @@ public class JavaGuiceApplicationBuilderTest {
   public void overrideConfiguration() {
     // #override-configuration
     Application application =
-        new GuiceApplicationBuilder()
-            .withConfigLoader(env -> ConfigFactory.load(env.classLoader()))
-            .build();
+        new GuiceApplicationBuilder().withConfigLoader(env -> ConfigFactory.load(env.classLoader())).build();
     // #override-configuration
   }
 
@@ -132,8 +126,7 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #add-bindings
 
-    assertThat(application.injector().instanceOf(Component.class))
-        .isInstanceOf(DefaultComponent.class);
+    assertThat(application.injector().instanceOf(Component.class)).isInstanceOf(DefaultComponent.class);
   }
 
   @Test
@@ -172,8 +165,7 @@ public class JavaGuiceApplicationBuilderTest {
             .build();
     // #load-modules
 
-    assertThat(application.injector().instanceOf(Component.class))
-        .isInstanceOf(DefaultComponent.class);
+    assertThat(application.injector().instanceOf(Component.class)).isInstanceOf(DefaultComponent.class);
   }
 
   @Test
@@ -212,9 +204,7 @@ public class JavaGuiceApplicationBuilderTest {
   public void findById() {
     ClassLoader classLoader = classLoader();
     Application application =
-        new GuiceApplicationBuilder()
-            .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
-            .build();
+        new GuiceApplicationBuilder().in(new Environment(new File("path/to/app"), classLoader, Mode.TEST)).build();
 
     running(
         application,

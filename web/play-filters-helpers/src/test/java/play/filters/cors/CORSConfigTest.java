@@ -20,10 +20,7 @@ public class CORSConfigTest {
     Predicate<String> headers = header -> header.equalsIgnoreCase("X-Allowed");
 
     CORSConfig config =
-        CORSConfig.denyAll()
-            .withOriginsAllowed(origins)
-            .withMethodsAllowed(methods)
-            .withHeadersAllowed(headers);
+        CORSConfig.denyAll().withOriginsAllowed(origins).withMethodsAllowed(methods).withHeadersAllowed(headers);
 
     assertTrue(config.allowedForOrigin("https://allowed.example").isDefined());
     assertFalse(config.allowedForOrigin("https://denied.example").isDefined());

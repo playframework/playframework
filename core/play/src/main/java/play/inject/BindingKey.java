@@ -33,8 +33,7 @@ public final class BindingKey<T> {
    */
   public BindingKey(final Class<T> clazz, final Optional<QualifierAnnotation> qualifier) {
     this(
-        play.api.inject.BindingKey.apply(
-            clazz, OptionConverters.toScala(qualifier.map(QualifierAnnotation::asScala))));
+        play.api.inject.BindingKey.apply(clazz, OptionConverters.toScala(qualifier.map(QualifierAnnotation::asScala))));
   }
 
   public BindingKey(final play.api.inject.BindingKey<T> underlying) {
@@ -50,8 +49,7 @@ public final class BindingKey<T> {
   }
 
   public Optional<QualifierAnnotation> getQualifier() {
-    return OptionConverters.toJava(underlying.qualifier())
-        .map(play.api.inject.QualifierAnnotation::asJava);
+    return OptionConverters.toJava(underlying.qualifier()).map(play.api.inject.QualifierAnnotation::asJava);
   }
 
   /**
@@ -66,8 +64,8 @@ public final class BindingKey<T> {
   /**
    * Qualify this binding key with the given annotation.
    *
-   * <p>For example, you may have both a cached implementation, and a direct implementation of a
-   * service. To differentiate between them, you may define a Cached annotation:
+   * <p>For example, you may have both a cached implementation, and a direct implementation of a service. To
+   * differentiate between them, you may define a Cached annotation:
    *
    * <pre>{@code
    * bindClass(Foo.class).qualifiedWith(Cached.class).to(FooCached.class),
@@ -93,8 +91,8 @@ public final class BindingKey<T> {
   /**
    * Qualify this binding key with the given name.
    *
-   * <p>For example, you may have both a cached implementation, and a direct implementation of a
-   * service. To differentiate between them, you may decide to name the cached one:
+   * <p>For example, you may have both a cached implementation, and a direct implementation of a service. To
+   * differentiate between them, you may decide to name the cached one:
    *
    * <pre>{@code
    * bindClass(Foo.class).qualifiedWith("cached").to(FooCached.class),
@@ -148,8 +146,8 @@ public final class BindingKey<T> {
   /**
    * Bind this binding key to the given provider class.
    *
-   * <p>The dependency injection framework will instantiate and inject this provider, and then
-   * invoke its `get` method whenever an instance of the class is needed.
+   * <p>The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
+   * whenever an instance of the class is needed.
    */
   public <P extends Provider<? extends T>> Binding<T> toProvider(final Class<P> provider) {
     return underlying.toProvider(provider).asJava();

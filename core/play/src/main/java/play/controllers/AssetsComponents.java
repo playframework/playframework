@@ -12,24 +12,19 @@ import play.components.HttpErrorHandlerComponents;
 import play.inject.ApplicationLifecycle;
 
 /** Java components for Assets. */
-public interface AssetsComponents
-    extends ConfigurationComponents, HttpErrorHandlerComponents, FileMimeTypesComponents {
+public interface AssetsComponents extends ConfigurationComponents, HttpErrorHandlerComponents, FileMimeTypesComponents {
 
   Environment environment();
 
   ApplicationLifecycle applicationLifecycle();
 
   default AssetsConfiguration assetsConfiguration() {
-    return AssetsConfiguration$.MODULE$.fromConfiguration(
-        configuration(), environment().asScala().mode());
+    return AssetsConfiguration$.MODULE$.fromConfiguration(configuration(), environment().asScala().mode());
   }
 
   default AssetsMetadata assetsMetadata() {
     return new AssetsMetadataProvider(
-            environment().asScala(),
-            assetsConfiguration(),
-            fileMimeTypes().asScala(),
-            applicationLifecycle().asScala())
+            environment().asScala(), assetsConfiguration(), fileMimeTypes().asScala(), applicationLifecycle().asScala())
         .get();
   }
 

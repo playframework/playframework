@@ -254,9 +254,7 @@ public class Formats {
 
   private static boolean isHexNumber(String value) {
     int index = (value.startsWith("-") ? 1 : 0);
-    return value.startsWith("0x", index)
-        || value.startsWith("0X", index)
-        || value.startsWith("#", index);
+    return value.startsWith("0x", index) || value.startsWith("0X", index) || value.startsWith("#", index);
   }
 
   private static BigInteger decodeBigInteger(String value) {
@@ -328,8 +326,7 @@ public class Formats {
     for (int i = 0; i < localePart.length(); i++) {
       char ch = localePart.charAt(i);
       if (ch != ' ' && ch != '_' && ch != '-' && ch != '#' && !Character.isLetterOrDigit(ch)) {
-        throw new IllegalArgumentException(
-            "Locale part \"" + localePart + "\" contains invalid characters");
+        throw new IllegalArgumentException("Locale part \"" + localePart + "\" contains invalid characters");
       }
     }
   }
@@ -338,8 +335,7 @@ public class Formats {
     String value = hasText(timeZoneString) ? timeZoneString.trim() : timeZoneString;
     TimeZone timeZone = TimeZone.getTimeZone(value);
     if ("GMT".equals(timeZone.getID()) && (value == null || !value.startsWith("GMT"))) {
-      throw new IllegalArgumentException(
-          "Invalid time zone specification '" + timeZoneString + "'");
+      throw new IllegalArgumentException("Invalid time zone specification '" + timeZoneString + "'");
     }
     return timeZone;
   }
@@ -354,8 +350,7 @@ public class Formats {
       int fragmentIndex = value.indexOf('#');
       if (colonIndex >= 0 && (fragmentIndex < 0 || colonIndex < fragmentIndex)) {
         String scheme = value.substring(0, colonIndex);
-        String ssp =
-            value.substring(colonIndex + 1, fragmentIndex > 0 ? fragmentIndex : value.length());
+        String ssp = value.substring(colonIndex + 1, fragmentIndex > 0 ? fragmentIndex : value.length());
         String fragment = (fragmentIndex > 0 ? value.substring(fragmentIndex + 1) : null);
         return new URI(scheme, ssp, fragment);
       }
@@ -403,8 +398,8 @@ public class Formats {
     private final String patternNoApp;
 
     /**
-     * Creates a date formatter. The value defined for the message file key "formats.date" will be
-     * used as the default pattern.
+     * Creates a date formatter. The value defined for the message file key "formats.date" will be used as the default
+     * pattern.
      *
      * @param messagesApi messages to look up the pattern
      */
@@ -416,8 +411,7 @@ public class Formats {
      * Creates a date formatter.
      *
      * @param messagesApi messages to look up the pattern
-     * @param pattern date pattern, as specified for {@link SimpleDateFormat}. Can be a message file
-     *     key.
+     * @param pattern date pattern, as specified for {@link SimpleDateFormat}. Can be a message file key.
      */
     public DateFormatter(MessagesApi messagesApi, String pattern) {
       this(messagesApi, pattern, "yyyy-MM-dd");
@@ -427,8 +421,7 @@ public class Formats {
      * Creates a date formatter.
      *
      * @param messagesApi messages to look up the pattern
-     * @param pattern date pattern, as specified for {@link SimpleDateFormat}. Can be a message file
-     *     key.
+     * @param pattern date pattern, as specified for {@link SimpleDateFormat}. Can be a message file key.
      * @param patternNoApp date pattern to use as fallback when no app is started.
      */
     public DateFormatter(MessagesApi messagesApi, String pattern, String patternNoApp) {
@@ -451,9 +444,7 @@ public class Formats {
       Lang lang = new Lang(locale);
       SimpleDateFormat sdf =
           new SimpleDateFormat(
-              Optional.ofNullable(this.messagesApi)
-                  .map(messages -> messages.get(lang, pattern))
-                  .orElse(patternNoApp),
+              Optional.ofNullable(this.messagesApi).map(messages -> messages.get(lang, pattern)).orElse(patternNoApp),
               locale);
       sdf.setLenient(false);
       return sdf.parse(text);
@@ -472,9 +463,7 @@ public class Formats {
       }
       Lang lang = new Lang(locale);
       return new SimpleDateFormat(
-              Optional.ofNullable(this.messagesApi)
-                  .map(messages -> messages.get(lang, pattern))
-                  .orElse(patternNoApp),
+              Optional.ofNullable(this.messagesApi).map(messages -> messages.get(lang, pattern)).orElse(patternNoApp),
               locale)
           .format(value);
     }
@@ -497,8 +486,7 @@ public class Formats {
   }
 
   /** Annotation formatter, triggered by the <code>@DateTime</code> annotation. */
-  public static class AnnotationDateFormatter
-      extends Formatters.AnnotationFormatter<DateTime, Date> {
+  public static class AnnotationDateFormatter extends Formatters.AnnotationFormatter<DateTime, Date> {
 
     private final MessagesApi messagesApi;
 
@@ -519,8 +507,7 @@ public class Formats {
      * @param locale the current <code>Locale</code>
      * @return a new value
      */
-    public Date parse(DateTime annotation, String text, Locale locale)
-        throws java.text.ParseException {
+    public Date parse(DateTime annotation, String text, Locale locale) throws java.text.ParseException {
       if (text == null || text.trim().isEmpty()) {
         return null;
       }
@@ -565,8 +552,7 @@ public class Formats {
   public static @interface NonEmpty {}
 
   /** Annotation formatter, triggered by the <code>@NonEmpty</code> annotation. */
-  public static class AnnotationNonEmptyFormatter
-      extends Formatters.AnnotationFormatter<NonEmpty, String> {
+  public static class AnnotationNonEmptyFormatter extends Formatters.AnnotationFormatter<NonEmpty, String> {
 
     /**
      * Binds the field - constructs a concrete value from submitted data.
@@ -576,8 +562,7 @@ public class Formats {
      * @param locale the current <code>Locale</code>
      * @return a new value
      */
-    public String parse(NonEmpty annotation, String text, Locale locale)
-        throws java.text.ParseException {
+    public String parse(NonEmpty annotation, String text, Locale locale) throws java.text.ParseException {
       if (text == null || text.trim().isEmpty()) {
         return null;
       }

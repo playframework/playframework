@@ -10,8 +10,7 @@ import play.components.HttpComponents;
 import play.mvc.EssentialFilter;
 
 /**
- * Java component to mix in when no default filters should be mixed in to {@link
- * play.BuiltInComponents}.
+ * Java component to mix in when no default filters should be mixed in to {@link play.BuiltInComponents}.
  *
  * <p>Usage:
  *

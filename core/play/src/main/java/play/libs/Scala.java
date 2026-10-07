@@ -101,8 +101,7 @@ public class Scala {
    * @return the scala map.
    */
   public static <K, V> scala.collection.immutable.Map<K, V> asScala(Map<K, V> javaMap) {
-    return play.utils.Conversions.newMap(
-        scala.jdk.javaapi.CollectionConverters.asScala(javaMap).toSeq());
+    return play.utils.Conversions.newMap(scala.jdk.javaapi.CollectionConverters.asScala(javaMap).toSeq());
   }
 
   /**
@@ -113,8 +112,7 @@ public class Scala {
    * @param <B> the output type of Seq element
    * @return the scala Seq.
    */
-  public static <A extends B, B> scala.collection.immutable.Seq<B> asScala(
-      Collection<A> javaCollection) {
+  public static <A extends B, B> scala.collection.immutable.Seq<B> asScala(Collection<A> javaCollection) {
     final scala.collection.immutable.List<A> as =
         scala.jdk.javaapi.CollectionConverters.asScala(javaCollection).toList();
     @SuppressWarnings("unchecked")
@@ -270,9 +268,9 @@ public class Scala {
   /**
    * Create a Scala PartialFunction from a function.
    *
-   * <p>A PartialFunction is one that isn't defined for the whole of its domain. If the function
-   * isn't defined for a particular input parameter, it can throw <code>F.noMatch()</code>, and this
-   * will be translated into the semantics of a Scala PartialFunction.
+   * <p>A PartialFunction is one that isn't defined for the whole of its domain. If the function isn't defined for a
+   * particular input parameter, it can throw <code>F.noMatch()</code>, and this will be translated into the semantics
+   * of a Scala PartialFunction.
    *
    * <p>For example:
    *
@@ -286,8 +284,8 @@ public class Scala {
    *     }));
    * </pre>
    *
-   * The above code will convert a flow of String into a flow of Integer, dropping any strings that
-   * can't be parsed as integers.
+   * The above code will convert a flow of String into a flow of Integer, dropping any strings that can't be parsed as
+   * integers.
    *
    * @param f The function to make a partial function from.
    * @param <A> input parameter type

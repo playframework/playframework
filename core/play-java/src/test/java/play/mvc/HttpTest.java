@@ -22,8 +22,8 @@ import play.mvc.Http.Request;
 import play.mvc.Http.RequestBuilder;
 
 /**
- * Tests for the Http class. This test is in the play-java project because we want to use some of
- * the play-java classes, e.g. the GuiceApplicationBuilder.
+ * Tests for the Http class. This test is in the play-java project because we want to use some of the play-java classes,
+ * e.g. the GuiceApplicationBuilder.
  */
 public class HttpTest {
 
@@ -43,8 +43,7 @@ public class HttpTest {
   }
 
   private static Config addLangs(Environment environment) {
-    Config langOverrides =
-        ConfigFactory.parseString("play.i18n.langs = [\"en\", \"en-US\", \"fr\" ]");
+    Config langOverrides = ConfigFactory.parseString("play.i18n.langs = [\"en\", \"en-US\", \"fr\" ]");
     Config loaded = ConfigFactory.load(environment.classLoader());
     return langOverrides.withFallback(loaded);
   }

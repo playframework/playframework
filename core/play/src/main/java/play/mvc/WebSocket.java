@@ -38,29 +38,25 @@ public abstract class WebSocket {
    * Invoke the WebSocket.
    *
    * @param request The request for the WebSocket.
-   * @return A future of either a result to reject the WebSocket connection with, or a Flow to
-   *     handle the WebSocket.
+   * @return A future of either a result to reject the WebSocket connection with, or a Flow to handle the WebSocket.
    */
-  public abstract CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(
-      Http.RequestHeader request);
+  public abstract CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(Http.RequestHeader request);
 
   /**
    * Invoke the WebSocket, including WebSocket handshake metadata.
    *
    * @param request The request for the WebSocket.
-   * @return A future of either a result to reject the WebSocket connection with, or an accepted
-   *     WebSocket with the flow and handshake metadata.
+   * @return A future of either a result to reject the WebSocket connection with, or an accepted WebSocket with the flow
+   *     and handshake metadata.
    */
-  public CompletionStage<F.Either<Result, Accepted<Message, Message>>> applyWithOptions(
-      Http.RequestHeader request) {
+  public CompletionStage<F.Either<Result, Accepted<Message, Message>>> applyWithOptions(Http.RequestHeader request) {
     return apply(request)
         .thenApply(
             resultOrFlow -> {
               if (resultOrFlow.left.isPresent()) {
                 return F.Either.Left(resultOrFlow.left.get());
               } else {
-                return F.Either.Right(
-                    new Accepted<>(resultOrFlow.right.get(), firstRequestedSubprotocol(request)));
+                return F.Either.Right(new Accepted<>(resultOrFlow.right.get(), firstRequestedSubprotocol(request)));
               }
             });
   }
@@ -79,8 +75,7 @@ public abstract class WebSocket {
                   return F.Either.Left(((Message.Text) message).data());
                 } else if (message instanceof Message.Binary) {
                   return F.Either.Right(
-                      new Message.Close(
-                          CloseCodes.Unacceptable(), "This websocket only accepts text frames"));
+                      new Message.Close(CloseCodes.Unacceptable(), "This websocket only accepts text frames"));
                 } else {
                   throw Scala.noMatch();
                 }
@@ -96,8 +91,7 @@ public abstract class WebSocket {
                   return F.Either.Left(((Message.Binary) message).data());
                 } else if (message instanceof Message.Text) {
                   return F.Either.Right(
-                      new Message.Close(
-                          CloseCodes.Unacceptable(), "This websocket only accepts binary frames"));
+                      new Message.Close(CloseCodes.Unacceptable(), "This websocket only accepts binary frames"));
                 } else {
                   throw Scala.noMatch();
                 }
@@ -111,14 +105,12 @@ public abstract class WebSocket {
               message -> {
                 try {
                   if (message instanceof Message.Binary) {
-                    return F.Either.Left(
-                        play.libs.Json.parse(((Message.Binary) message).data().asInputStream()));
+                    return F.Either.Left(play.libs.Json.parse(((Message.Binary) message).data().asInputStream()));
                   } else if (message instanceof Message.Text) {
                     return F.Either.Left(play.libs.Json.parse(((Message.Text) message).data()));
                   }
                 } catch (RuntimeException e) {
-                  return F.Either.Right(
-                      new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
+                  return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
                 }
                 throw Scala.noMatch();
               }),
@@ -139,15 +131,12 @@ public abstract class WebSocket {
               try {
                 if (message instanceof Message.Binary) {
                   return F.Either.Left(
-                      play.libs.Json.mapper()
-                          .readValue(((Message.Binary) message).data().asInputStream(), in));
+                      play.libs.Json.mapper().readValue(((Message.Binary) message).data().asInputStream(), in));
                 } else if (message instanceof Message.Text) {
-                  return F.Either.Left(
-                      play.libs.Json.mapper().readValue(((Message.Text) message).data(), in));
+                  return F.Either.Left(play.libs.Json.mapper().readValue(((Message.Text) message).data(), in));
                 }
               } catch (Exception e) {
-                return F.Either.Right(
-                    new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
+                return F.Either.Right(new Message.Close(CloseCodes.Unacceptable(), "Unable to parse JSON message"));
               }
               throw Scala.noMatch();
             }),
@@ -161,8 +150,7 @@ public abstract class WebSocket {
   }
 
   /**
-   * Information about an outbound WebSocket message for which Play is deciding whether to use
-   * compression.
+   * Information about an outbound WebSocket message for which Play is deciding whether to use compression.
    *
    * @since 3.1.0
    */
@@ -171,13 +159,11 @@ public abstract class WebSocket {
     private final long payloadLength;
     private final boolean isAboveCompressionThreshold;
 
-    public CompressionContext(
-        Message message, long payloadLength, boolean isAboveCompressionThreshold) {
+    public CompressionContext(Message message, long payloadLength, boolean isAboveCompressionThreshold) {
       this(() -> message, payloadLength, isAboveCompressionThreshold);
     }
 
-    public CompressionContext(
-        Supplier<Message> message, long payloadLength, boolean isAboveCompressionThreshold) {
+    public CompressionContext(Supplier<Message> message, long payloadLength, boolean isAboveCompressionThreshold) {
       this.message = F.LazySupplier.lazy(message);
       this.payloadLength = payloadLength;
       this.isAboveCompressionThreshold = isAboveCompressionThreshold;
@@ -203,8 +189,7 @@ public abstract class WebSocket {
       CompressionContext::isAboveCompressionThreshold;
 
   /**
-   * An accepted WebSocket, including the flow that handles WebSocket messages and optional
-   * handshake metadata.
+   * An accepted WebSocket, including the flow that handles WebSocket messages and optional handshake metadata.
    *
    * @param <In> the type the websocket reads from clients
    * @param <Out> the type the websocket outputs back to remote clients
@@ -223,24 +208,14 @@ public abstract class WebSocket {
         Optional<String> subprotocol,
         boolean compressionEnabled,
         Predicate<CompressionContext> shouldCompress) {
-      this(
-          flow,
-          subprotocol,
-          compressionEnabled,
-          shouldCompress,
-          Collections.emptyList(),
-          Collections.emptyList());
+      this(flow, subprotocol, compressionEnabled, shouldCompress, Collections.emptyList(), Collections.emptyList());
     }
 
-    public Accepted(
-        Flow<In, Out, ?> flow, Optional<String> subprotocol, boolean compressionEnabled) {
+    public Accepted(Flow<In, Out, ?> flow, Optional<String> subprotocol, boolean compressionEnabled) {
       this(flow, subprotocol, compressionEnabled, DEFAULT_SHOULD_COMPRESS);
     }
 
-    public Accepted(
-        Flow<In, Out, ?> flow,
-        Optional<String> subprotocol,
-        Predicate<CompressionContext> shouldCompress) {
+    public Accepted(Flow<In, Out, ?> flow, Optional<String> subprotocol, Predicate<CompressionContext> shouldCompress) {
       this(flow, subprotocol, true, shouldCompress);
     }
 
@@ -291,14 +266,7 @@ public abstract class WebSocket {
         List<Map.Entry<String, String>> headers,
         List<Http.Cookie> cookies,
         Http.Session session) {
-      this(
-          flow,
-          subprotocol,
-          compressionEnabled,
-          DEFAULT_SHOULD_COMPRESS,
-          headers,
-          cookies,
-          session);
+      this(flow, subprotocol, compressionEnabled, DEFAULT_SHOULD_COMPRESS, headers, cookies, session);
     }
 
     public Accepted(
@@ -316,10 +284,7 @@ public abstract class WebSocket {
       this.headers =
           Collections.unmodifiableList(
               headers.stream()
-                  .map(
-                      header ->
-                          new AbstractMap.SimpleImmutableEntry<>(
-                              header.getKey(), header.getValue()))
+                  .map(header -> new AbstractMap.SimpleImmutableEntry<>(header.getKey(), header.getValue()))
                   .collect(Collectors.toList()));
       this.cookies = Collections.unmodifiableList(new ArrayList<>(cookies));
       this.session = session;
@@ -341,8 +306,7 @@ public abstract class WebSocket {
       this(flow, Optional.of(subprotocol), compressionEnabled, shouldCompress);
     }
 
-    public Accepted(
-        Flow<In, Out, ?> flow, String subprotocol, Predicate<CompressionContext> shouldCompress) {
+    public Accepted(Flow<In, Out, ?> flow, String subprotocol, Predicate<CompressionContext> shouldCompress) {
       this(flow, Optional.of(subprotocol), true, shouldCompress);
     }
 
@@ -354,10 +318,7 @@ public abstract class WebSocket {
       this(flow, Optional.empty(), compressionEnabled);
     }
 
-    public Accepted(
-        Flow<In, Out, ?> flow,
-        boolean compressionEnabled,
-        Predicate<CompressionContext> shouldCompress) {
+    public Accepted(Flow<In, Out, ?> flow, boolean compressionEnabled, Predicate<CompressionContext> shouldCompress) {
       this(flow, Optional.empty(), compressionEnabled, shouldCompress);
     }
 
@@ -372,27 +333,26 @@ public abstract class WebSocket {
     /**
      * Returns the WebSocket subprotocol selected by the application, if any.
      *
-     * <p>The selected subprotocol must be one of the subprotocols offered by the client. Otherwise,
-     * Play passes the application error to its configured HTTP error handler, which returns an HTTP
-     * 500 response by default.
+     * <p>The selected subprotocol must be one of the subprotocols offered by the client. Otherwise, Play passes the
+     * application error to its configured HTTP error handler, which returns an HTTP 500 response by default.
      */
     public Optional<String> subprotocol() {
       return subprotocol;
     }
 
     /**
-     * Returns whether this accepted WebSocket may negotiate compression when compression is enabled
-     * in the server configuration. Returning {@code true} does not enable compression globally.
+     * Returns whether this accepted WebSocket may negotiate compression when compression is enabled in the server
+     * configuration. Returning {@code true} does not enable compression globally.
      */
     public boolean compressionEnabled() {
       return compressionEnabled;
     }
 
     /**
-     * Returns the selector for outbound text and binary messages after compression is negotiated.
-     * Its result can override the configured compression threshold, but cannot enable compression
-     * when it is disabled globally, disabled for this accepted WebSocket, or not negotiated with
-     * the client. The selector must not block; an exception from it fails the WebSocket stream.
+     * Returns the selector for outbound text and binary messages after compression is negotiated. Its result can
+     * override the configured compression threshold, but cannot enable compression when it is disabled globally,
+     * disabled for this accepted WebSocket, or not negotiated with the client. The selector must not block; an
+     * exception from it fails the WebSocket stream.
      */
     public Predicate<CompressionContext> shouldCompress() {
       return shouldCompress;
@@ -414,11 +374,10 @@ public abstract class WebSocket {
     }
 
     /**
-     * Return a copy of this accepted WebSocket with the given handshake response header added or
-     * replaced.
+     * Return a copy of this accepted WebSocket with the given handshake response header added or replaced.
      *
-     * <p>Connection and framing headers, and all {@code Sec-WebSocket-*} headers, are controlled by
-     * Play and will not be sent.
+     * <p>Connection and framing headers, and all {@code Sec-WebSocket-*} headers, are controlled by Play and will not
+     * be sent.
      *
      * @param name the header name
      * @param value the header value
@@ -427,39 +386,34 @@ public abstract class WebSocket {
     public Accepted<In, Out> withHeader(String name, String value) {
       List<Map.Entry<String, String>> newHeaders = new ArrayList<>(headers);
       replaceHeader(newHeaders, name, value);
-      return new Accepted<>(
-          flow, subprotocol, compressionEnabled, shouldCompress, newHeaders, cookies, session);
+      return new Accepted<>(flow, subprotocol, compressionEnabled, shouldCompress, newHeaders, cookies, session);
     }
 
     /**
-     * Return a copy of this accepted WebSocket with the given handshake response headers added or
-     * replaced.
+     * Return a copy of this accepted WebSocket with the given handshake response headers added or replaced.
      *
-     * <p>Connection and framing headers, and all {@code Sec-WebSocket-*} headers, are controlled by
-     * Play and will not be sent.
+     * <p>Connection and framing headers, and all {@code Sec-WebSocket-*} headers, are controlled by Play and will not
+     * be sent.
      *
-     * <p>The headers are processed in pairs, so nameValues(0) is the first header's name, and
-     * nameValues(1) is the first header's value, nameValues(2) is second header's name, and so on.
+     * <p>The headers are processed in pairs, so nameValues(0) is the first header's name, and nameValues(1) is the
+     * first header's value, nameValues(2) is second header's name, and so on.
      *
      * @param nameValues the array of names and values.
      * @return the transformed copy
      */
     public Accepted<In, Out> withHeaders(String... nameValues) {
       if (nameValues.length % 2 != 0) {
-        throw new IllegalArgumentException(
-            "Headers must be supplied as alternating name and value strings");
+        throw new IllegalArgumentException("Headers must be supplied as alternating name and value strings");
       }
 
       List<Map.Entry<String, String>> newHeaders = new ArrayList<>(headers);
       for (int i = 0; i < nameValues.length; i += 2) {
         replaceHeader(newHeaders, nameValues[i], nameValues[i + 1]);
       }
-      return new Accepted<>(
-          flow, subprotocol, compressionEnabled, shouldCompress, newHeaders, cookies, session);
+      return new Accepted<>(flow, subprotocol, compressionEnabled, shouldCompress, newHeaders, cookies, session);
     }
 
-    private static void replaceHeader(
-        List<Map.Entry<String, String>> headers, String name, String value) {
+    private static void replaceHeader(List<Map.Entry<String, String>> headers, String name, String value) {
       headers.removeIf(header -> header.getKey().equalsIgnoreCase(name));
       headers.add(new AbstractMap.SimpleImmutableEntry<>(name, value));
     }
@@ -476,8 +430,7 @@ public abstract class WebSocket {
           headers.stream()
               .filter(header -> !header.getKey().toLowerCase(Locale.ROOT).equals(lowerName))
               .collect(Collectors.toList());
-      return new Accepted<>(
-          flow, subprotocol, compressionEnabled, shouldCompress, newHeaders, cookies, session);
+      return new Accepted<>(flow, subprotocol, compressionEnabled, shouldCompress, newHeaders, cookies, session);
     }
 
     /**
@@ -499,8 +452,7 @@ public abstract class WebSocket {
                           }),
                   Stream.of(newCookies))
               .collect(Collectors.toList());
-      return new Accepted<>(
-          flow, subprotocol, compressionEnabled, shouldCompress, headers, finalCookies, session);
+      return new Accepted<>(flow, subprotocol, compressionEnabled, shouldCompress, headers, finalCookies, session);
     }
 
     /**
@@ -541,8 +493,7 @@ public abstract class WebSocket {
      * @param domain The domain of the cookie to discard, may be null
      * @param secure Whether the cookie to discard is secure
      */
-    public Accepted<In, Out> discardingCookie(
-        String name, String path, String domain, boolean secure) {
+    public Accepted<In, Out> discardingCookie(String name, String path, String domain, boolean secure) {
       return discardingCookie(name, path, domain, secure, false);
     }
 
@@ -585,12 +536,7 @@ public abstract class WebSocket {
      * @param partitioned Whether the cookie to discard is partitioned
      */
     public Accepted<In, Out> discardingCookie(
-        String name,
-        String path,
-        String domain,
-        boolean secure,
-        Http.Cookie.SameSite sameSite,
-        boolean partitioned) {
+        String name, String path, String domain, boolean secure, Http.Cookie.SameSite sameSite, boolean partitioned) {
       return withCookies(
           new DiscardingCookie(
                   name,
@@ -605,8 +551,8 @@ public abstract class WebSocket {
 
     /**
      * @param request Current request
-     * @return The session carried by this WebSocket upgrade response. Reads the given request's
-     *     session if this response does not modify the session.
+     * @return The session carried by this WebSocket upgrade response. Reads the given request's session if this
+     *     response does not modify the session.
      */
     public Http.Session session(Http.RequestHeader request) {
       if (session != null) {
@@ -623,8 +569,7 @@ public abstract class WebSocket {
      * @return the transformed copy
      */
     public Accepted<In, Out> withSession(Http.Session session) {
-      return new Accepted<>(
-          flow, subprotocol, compressionEnabled, shouldCompress, headers, cookies, session);
+      return new Accepted<>(flow, subprotocol, compressionEnabled, shouldCompress, headers, cookies, session);
     }
 
     /**
@@ -652,8 +597,7 @@ public abstract class WebSocket {
      * @param values A map with values to add to this response's session
      * @return the transformed copy
      */
-    public Accepted<In, Out> addingToSession(
-        Http.RequestHeader request, Map<String, String> values) {
+    public Accepted<In, Out> addingToSession(Http.RequestHeader request, Map<String, String> values) {
       return withSession(session(request).adding(values));
     }
 
@@ -692,8 +636,7 @@ public abstract class WebSocket {
     private final Function<Out, Message> outMapper;
 
     public MappedWebSocketAcceptor(
-        PartialFunction<Message, F.Either<In, Message>> inMapper,
-        Function<Out, Message> outMapper) {
+        PartialFunction<Message, F.Either<In, Message>> inMapper, Function<Out, Message> outMapper) {
       this.inMapper = inMapper;
       this.outMapper = outMapper;
     }
@@ -701,8 +644,8 @@ public abstract class WebSocket {
     /**
      * Accept a WebSocket.
      *
-     * @param f A function that takes the request header, and returns a future of either the result
-     *     to reject the WebSocket connection with, or a flow to handle the WebSocket messages.
+     * @param f A function that takes the request header, and returns a future of either the result to reject the
+     *     WebSocket connection with, or a flow to handle the WebSocket messages.
      * @return The WebSocket handler.
      */
     public WebSocket acceptOrResult(
@@ -713,9 +656,8 @@ public abstract class WebSocket {
     /**
      * Accept a WebSocket with handshake metadata.
      *
-     * @param f A function that takes the request header, and returns a future of either the result
-     *     to reject the WebSocket connection with, or an accepted WebSocket with its flow and
-     *     handshake metadata.
+     * @param f A function that takes the request header, and returns a future of either the result to reject the
+     *     WebSocket connection with, or an accepted WebSocket with its flow and handshake metadata.
      * @return The WebSocket handler.
      */
     public WebSocket acceptOrResultWithOptions(
@@ -726,34 +668,31 @@ public abstract class WebSocket {
     /**
      * Accept a WebSocket.
      *
-     * @param f A function that takes the request header, and returns a flow to handle the WebSocket
-     *     messages.
+     * @param f A function that takes the request header, and returns a flow to handle the WebSocket messages.
      * @return The WebSocket handler.
      */
     public WebSocket accept(Function<Http.RequestHeader, Flow<In, Out, ?>> f) {
-      return acceptOrResult(
-          request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
+      return acceptOrResult(request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
     }
 
     /**
      * Accept a WebSocket with handshake metadata.
      *
-     * @param f A function that takes the request header, and returns an accepted WebSocket with its
-     *     flow and handshake metadata.
+     * @param f A function that takes the request header, and returns an accepted WebSocket with its flow and handshake
+     *     metadata.
      * @return The WebSocket handler.
      */
     public WebSocket acceptWithOptions(Function<Http.RequestHeader, Accepted<In, Out>> f) {
-      return acceptOrResultWithOptions(
-          request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
+      return acceptOrResultWithOptions(request -> CompletableFuture.completedFuture(F.Either.Right(f.apply(request))));
     }
   }
 
   /**
    * Helper to create handlers for WebSockets.
    *
-   * @param inMapper Function to map input messages. If it produces left, the message will be passed
-   *     to the WebSocket flow, if it produces right, the message will be sent back out to the
-   *     client - this can be used to send errors directly to the client.
+   * @param inMapper Function to map input messages. If it produces left, the message will be passed to the WebSocket
+   *     flow, if it produces right, the message will be sent back out to the client - this can be used to send errors
+   *     directly to the client.
    * @param f The function to handle the WebSocket.
    * @param outMapper Function to map output messages.
    * @return The WebSocket handler.
@@ -764,8 +703,7 @@ public abstract class WebSocket {
       Function<Out, Message> outMapper) {
     return new WebSocket() {
       @Override
-      public CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(
-          Http.RequestHeader request) {
+      public CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(Http.RequestHeader request) {
         return f.apply(request)
             .thenApply(
                 resultOrFlow -> {
@@ -790,8 +728,7 @@ public abstract class WebSocket {
       Function<Out, Message> outMapper) {
     return new WebSocket() {
       @Override
-      public CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(
-          Http.RequestHeader request) {
+      public CompletionStage<F.Either<Result, Flow<Message, Message, ?>>> apply(Http.RequestHeader request) {
         return applyWithOptions(request)
             .thenApply(
                 resultOrAccepted -> {

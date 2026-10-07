@@ -15,17 +15,11 @@ import play.mvc.BodyParser;
  * @see BodyParser
  */
 public interface BodyParserComponents
-    extends HttpErrorHandlerComponents,
-        HttpConfigurationComponents,
-        PekkoComponents,
-        TemporaryFileComponents {
+    extends HttpErrorHandlerComponents, HttpConfigurationComponents, PekkoComponents, TemporaryFileComponents {
 
   default PlayBodyParsers scalaBodyParsers() {
     return PlayBodyParsers$.MODULE$.apply(
-        tempFileCreator().asScala(),
-        scalaHttpErrorHandler(),
-        httpConfiguration().parser(),
-        materializer());
+        tempFileCreator().asScala(), scalaHttpErrorHandler(), httpConfiguration().parser(), materializer());
   }
 
   default play.api.mvc.BodyParser<AnyContent> defaultScalaBodyParser() {

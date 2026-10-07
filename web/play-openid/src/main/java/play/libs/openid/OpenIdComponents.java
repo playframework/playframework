@@ -19,7 +19,6 @@ public interface OpenIdComponents extends WSClientComponents, PekkoComponents {
 
   default OpenIdClient openIdClient() {
     return new DefaultOpenIdClient(
-        new WsOpenIdClient(wsClient().asScala(), openIdDiscovery(), executionContext()),
-        executionContext());
+        new WsOpenIdClient(wsClient().asScala(), openIdDiscovery(), executionContext()), executionContext());
   }
 }

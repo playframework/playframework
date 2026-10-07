@@ -13,22 +13,19 @@ import play.mvc.Http.RequestHeader;
 import scala.runtime.AbstractFunction1;
 
 /**
- * Given a `RequestHeader`, an `EssentialAction` consumes the request body (a `ByteString`) and
- * returns a `Result`.
+ * Given a `RequestHeader`, an `EssentialAction` consumes the request body (a `ByteString`) and returns a `Result`.
  *
- * <p>An `EssentialAction` is a `Handler`, which means it is one of the objects that Play uses to
- * handle requests. You can use this to create your action inside a filter, for example.
+ * <p>An `EssentialAction` is a `Handler`, which means it is one of the objects that Play uses to handle requests. You
+ * can use this to create your action inside a filter, for example.
  *
  * <p>Unlike traditional method-based Java actions, EssentialAction does not use a context.
  */
 public abstract class EssentialAction
     extends AbstractFunction1<
-        play.api.mvc.RequestHeader,
-        play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result>>
+        play.api.mvc.RequestHeader, play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result>>
     implements play.api.mvc.EssentialAction, Handler {
 
-  public static EssentialAction of(
-      Function<RequestHeader, Accumulator<ByteString, Result>> action) {
+  public static EssentialAction of(Function<RequestHeader, Accumulator<ByteString, Result>> action) {
     return new EssentialAction() {
       @Override
       public Accumulator<ByteString, Result> apply(RequestHeader requestHeader) {
@@ -40,8 +37,7 @@ public abstract class EssentialAction
   public abstract Accumulator<ByteString, Result> apply(RequestHeader requestHeader);
 
   @Override
-  public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result> apply(
-      play.api.mvc.RequestHeader rh) {
+  public play.api.libs.streams.Accumulator<ByteString, play.api.mvc.Result> apply(play.api.mvc.RequestHeader rh) {
     return apply(rh.asJava()).map(Result::asScala, Execution.trampoline()).asScala();
   }
 

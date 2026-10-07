@@ -27,8 +27,7 @@ public class JavaCache extends WithApplication {
 
   @Override
   protected Application provideApplication() {
-    return fakeApplication(
-        ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
+    return fakeApplication(ImmutableMap.of("play.cache.bindCaches", Collections.singletonList("session-cache")));
   }
 
   private class News {}
@@ -64,8 +63,7 @@ public class JavaCache extends WithApplication {
     // #get
     assertThat(block(news).get()).isEqualTo(frontPageNews);
     // #get-or-else
-    CompletionStage<News> maybeCached =
-        cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
+    CompletionStage<News> maybeCached = cache.getOrElseUpdate("item.key", this::lookUpFrontPageNews);
     // #get-or-else
     assertThat(block(maybeCached)).isEqualTo(frontPageNews);
     {

@@ -19,13 +19,12 @@ public interface InjectedActorSupport {
    *
    * @param create A function to create the actor.
    * @param name The name of the actor.
-   * @param props A function to provide props for the actor. The props passed in will just describe
-   *     how to create the actor, this function can be used to provide additional configuration such
-   *     as router and dispatcher configuration.
+   * @param props A function to provide props for the actor. The props passed in will just describe how to create the
+   *     actor, this function can be used to provide additional configuration such as router and dispatcher
+   *     configuration.
    * @return An ActorRef for the created actor.
    */
-  default ActorRef injectedChild(
-      Supplier<Actor> create, String name, Function<Props, Props> props) {
+  default ActorRef injectedChild(Supplier<Actor> create, String name, Function<Props, Props> props) {
     return context().actorOf(props.apply(Props.create(Actor.class, create::get)), name);
   }
 

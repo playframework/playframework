@@ -19,20 +19,16 @@ import java.text.ParsePosition;
 import java.util.Date;
 
 /**
- * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used
- * client side.
+ * A <a href="https://tools.ietf.org/html/rfc6265">RFC6265</a> compliant cookie decoder to be used client side.
  *
- * <p>It will store the way the raw value was wrapped in {@link Cookie#setWrap(boolean)} so it can
- * be eventually sent back to the Origin server as is.
+ * <p>It will store the way the raw value was wrapped in {@link Cookie#setWrap(boolean)} so it can be eventually sent
+ * back to the Origin server as is.
  *
  * @see ClientCookieEncoder
  */
 public final class ClientCookieDecoder extends CookieDecoder {
 
-  /**
-   * Strict encoder that validates that name and value chars are in the valid scope defined in
-   * RFC6265
-   */
+  /** Strict encoder that validates that name and value chars are in the valid scope defined in RFC6265 */
   public static final ClientCookieDecoder STRICT = new ClientCookieDecoder(true);
 
   /** Lax instance that doesn't validate name and value */
@@ -74,8 +70,7 @@ public final class ClientCookieDecoder extends CookieDecoder {
           // deprecated, modern browsers only parse the first one
           break loop;
 
-        } else if (c == '\t' || c == '\n' || c == 0x0b || c == '\f' || c == '\r' || c == ' '
-            || c == ';') {
+        } else if (c == '\t' || c == '\n' || c == 0x0b || c == '\f' || c == '\r' || c == ' ' || c == ';') {
           i++;
           continue;
         }
@@ -191,8 +186,8 @@ public final class ClientCookieDecoder extends CookieDecoder {
     }
 
     /**
-     * Parse and store a key-value pair. First one is considered to be the cookie name/value.
-     * Unknown attribute names are silently discarded.
+     * Parse and store a key-value pair. First one is considered to be the cookie name/value. Unknown attribute names
+     * are silently discarded.
      *
      * @param header the HTTP header
      * @param keyStart where the key starts in the header

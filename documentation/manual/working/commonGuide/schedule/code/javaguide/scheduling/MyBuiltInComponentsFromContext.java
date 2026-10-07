@@ -10,8 +10,7 @@ import play.BuiltInComponentsFromContext;
 import play.filters.components.NoHttpFiltersComponents;
 import play.routing.Router;
 
-public class MyBuiltInComponentsFromContext extends BuiltInComponentsFromContext
-    implements NoHttpFiltersComponents {
+public class MyBuiltInComponentsFromContext extends BuiltInComponentsFromContext implements NoHttpFiltersComponents {
 
   public MyBuiltInComponentsFromContext(ApplicationLoader.Context context) {
     super(context);

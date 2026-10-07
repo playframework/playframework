@@ -22,8 +22,7 @@ public class MessagesTest {
     Langs langs = new Langs(new play.api.i18n.DefaultLangs());
 
     Map<String, String> messagesMap = Collections.singletonMap("foo", "bar");
-    Map<String, Map<String, String>> langMap =
-        Collections.singletonMap(Lang.defaultLang().code(), messagesMap);
+    Map<String, Map<String, String>> langMap = Collections.singletonMap(Lang.defaultLang().code(), messagesMap);
     MessagesApi messagesApi = play.test.Helpers.stubMessagesApi(langMap, langs);
 
     Messages messages = messagesApi.preferred(langs.availables());

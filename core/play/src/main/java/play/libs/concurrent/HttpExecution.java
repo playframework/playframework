@@ -16,8 +16,7 @@ import scala.concurrent.ExecutionContextExecutor;
 public class HttpExecution {
 
   /**
-   * @deprecated Deprecated as of 2.9.0. Use to {@link
-   *     ClassLoaderExecution#fromThread(ExecutionContext)} instead.
+   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecution#fromThread(ExecutionContext)} instead.
    */
   @Deprecated
   public static ExecutionContextExecutor fromThread(ExecutionContext delegate) {
@@ -25,8 +24,8 @@ public class HttpExecution {
   }
 
   /**
-   * @deprecated Deprecated as of 2.9.0. Use to {@link
-   *     ClassLoaderExecution#fromThread(ExecutionContextExecutor)} instead.
+   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecution#fromThread(ExecutionContextExecutor)}
+   *     instead.
    */
   @Deprecated
   public static ExecutionContextExecutor fromThread(ExecutionContextExecutor delegate) {
@@ -34,8 +33,7 @@ public class HttpExecution {
   }
 
   /**
-   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecution#fromThread(Executor)}
-   *     instead.
+   * @deprecated Deprecated as of 2.9.0. Use to {@link ClassLoaderExecution#fromThread(Executor)} instead.
    */
   @Deprecated
   public static ExecutionContextExecutor fromThread(Executor delegate) {

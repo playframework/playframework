@@ -56,8 +56,7 @@ public class JavaXmlRequests extends Controller {
     } else {
       String name = XPath.selectText("//name", dom);
       if (name == null) {
-        return badRequest("<message \"status\"=\"KO\">Missing parameter [name]</message>")
-            .as("application/xml");
+        return badRequest("<message \"status\"=\"KO\">Missing parameter [name]</message>").as("application/xml");
       } else {
         return ok("<message \"status\"=\"OK\">Hello " + name + "</message>").as("application/xml");
       }

@@ -23,15 +23,14 @@ import java.lang.reflect.Modifier;
 public class ConstructorUtils {
 
   /**
-   * Validate that the specified argument is not {@code null}; otherwise throwing an exception with
-   * the specified message.
+   * Validate that the specified argument is not {@code null}; otherwise throwing an exception with the specified
+   * message.
    *
    * <pre>notNull(myObject, "The object must not be null");</pre>
    *
    * @param <T> the object type
    * @param object the object to check
-   * @param message the {@link String#format(String, Object...)} exception message if invalid, not
-   *     null
+   * @param message the {@link String#format(String, Object...)} exception message if invalid, not null
    * @param values the optional values for the formatted exception message
    * @return the validated object (never {@code null} for method chaining)
    * @throws NullPointerException if the object is {@code null}
@@ -62,13 +61,12 @@ public class ConstructorUtils {
   /**
    * Finds an accessible constructor with compatible parameters.
    *
-   * <p>This checks all the constructor and finds one with compatible parameters This requires that
-   * every parameter is assignable from the given parameter types. This is a more flexible search
-   * than the normal exact matching algorithm.
+   * <p>This checks all the constructor and finds one with compatible parameters This requires that every parameter is
+   * assignable from the given parameter types. This is a more flexible search than the normal exact matching algorithm.
    *
-   * <p>First it checks if there is a constructor matching the exact signature. If not then all the
-   * constructors of the class are checked to see if their signatures are assignment-compatible with
-   * the parameter types. The first assignment-compatible matching constructor is returned.
+   * <p>First it checks if there is a constructor matching the exact signature. If not then all the constructors of the
+   * class are checked to see if their signatures are assignment-compatible with the parameter types. The first
+   * assignment-compatible matching constructor is returned.
    *
    * @param <T> the constructor type
    * @param cls the class to find a constructor for, not {@code null}
@@ -102,8 +100,7 @@ public class ConstructorUtils {
         ctor = getAccessibleConstructor(ctor);
         if (ctor != null) {
           MemberUtils.setAccessibleWorkaround(ctor);
-          if (result == null
-              || MemberUtils.compareConstructorFit(ctor, result, parameterTypes) < 0) {
+          if (result == null || MemberUtils.compareConstructorFit(ctor, result, parameterTypes) < 0) {
             // temporary variable for annotation, see comment above (1)
             @SuppressWarnings("unchecked")
             final Constructor<T> constructor = (Constructor<T>) ctor;
@@ -116,8 +113,7 @@ public class ConstructorUtils {
   }
 
   /**
-   * Learn whether the specified class is generally accessible, i.e. is declared in an entirely
-   * {@code public} manner.
+   * Learn whether the specified class is generally accessible, i.e. is declared in an entirely {@code public} manner.
    *
    * @param type to check
    * @return {@code true} if {@code type} and any enclosing classes are {@code public}.
