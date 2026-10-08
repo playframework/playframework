@@ -8,6 +8,8 @@ import java.io.File
 import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicBoolean
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
@@ -249,16 +251,19 @@ final class DevServerStart(
               lastState
             } catch {
               case e: PlayException =>
+                stopFailedApplication(projectClassloader)
                 lastState = Failure(e)
                 logExceptionAndGetResult(path, e)
                 lastState
 
               case e: LinkageError =>
+                stopFailedApplication(projectClassloader)
                 lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 logExceptionAndGetResult(path, e)
                 lastState
 
               case NonFatal(e) =>
+                stopFailedApplication(projectClassloader)
                 val useful: UsefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
                   Some(sourceMapper),
                   isProd = false,
@@ -275,6 +280,18 @@ final class DevServerStart(
                 lastState
             }
           }
+
+          /**
+           * Stops the lifecycle of an application that failed to start. Components that got created before the failure,
+           * like database connection pools, may have registered stop hooks already. As there is no application that could
+           * be stopped, nothing else would run them.
+           */
+          private def stopFailedApplication(projectClassloader: ClassLoader): Unit =
+            lastLifecycle.foreach { lifecycle =>
+              Threads.withContextClassLoader(projectClassloader) {
+                Await.ready(lifecycle.stop(), Duration.Inf)
+              }
+            }
 
           private def logExceptionAndGetResult(path: File, e: Throwable, hint: String = ""): Unit = {
             e.printStackTrace()

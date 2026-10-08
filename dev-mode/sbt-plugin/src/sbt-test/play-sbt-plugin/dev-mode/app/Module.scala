@@ -5,8 +5,12 @@
 import java.io.FileWriter
 import java.util.Date
 
+import scala.concurrent.Future
+
 import com.google.inject.AbstractModule
+import jakarta.inject.Inject
 import play.api._
+import play.api.inject.ApplicationLifecycle
 
 class Module(environment: Environment, configuration: Configuration) extends AbstractModule {
 
@@ -15,8 +19,23 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     writer.write(s"${new Date()} - reloaded\n")
     writer.close()
 
+    bind(classOf[StopRecorder]).asEagerSingleton()
     if (configuration.getOptional[Boolean]("fail").getOrElse(false)) {
-      throw new RuntimeException("fail=true")
+      bind(classOf[FailingComponent]).asEagerSingleton()
     }
   }
+}
+
+class StopRecorder @Inject() (environment: Environment, lifecycle: ApplicationLifecycle) {
+  lifecycle.addStopHook { () =>
+    val writer = new FileWriter(environment.getFile("target/stop.log"), true)
+    writer.write(s"${new Date()} - stopped\n")
+    writer.close()
+    Future.unit
+  }
+}
+
+// Fails to start after the StopRecorder has registered its stop hook
+class FailingComponent @Inject() (stopRecorder: StopRecorder) {
+  throw new RuntimeException("fail=true")
 }
