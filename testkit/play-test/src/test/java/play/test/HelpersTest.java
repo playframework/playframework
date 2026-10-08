@@ -5,6 +5,7 @@
 package play.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static play.test.Helpers.POST;
 
 import java.util.Collections;
@@ -15,6 +16,12 @@ import org.apache.pekko.actor.Terminated;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.util.ByteString;
 import org.junit.Test;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.safari.SafariDriver;
 import play.Application;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -175,5 +182,23 @@ public class HelpersTest {
     Http.Request request =
         Helpers.fakeRequest("POST", "/uri").bodyRaw(ByteString.fromString("a")).build();
     assertThat(request.hasBody()).isTrue();
+  }
+
+  @Test
+  public void shouldProvideTheBrowserClasses() {
+    // The constants are looked up by name, so check the names
+    assertThat(Helpers.HTMLUNIT).isEqualTo(HtmlUnitDriver.class);
+    assertThat(Helpers.FIREFOX).isEqualTo(FirefoxDriver.class);
+    assertThat(Helpers.CHROME).isEqualTo(ChromeDriver.class);
+    assertThat(Helpers.EDGE).isEqualTo(EdgeDriver.class);
+    assertThat(Helpers.SAFARI).isEqualTo(SafariDriver.class);
+  }
+
+  @Test
+  public void shouldExplainANullWebDriverClass() {
+    Class<? extends WebDriver> noWebDriver = null;
+    assertThatThrownBy(() -> Helpers.testBrowser(noWebDriver, 0))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("playTestBrowser");
   }
 }

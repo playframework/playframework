@@ -70,6 +70,14 @@ Just as there exists a `WithApplication` class, there is also a [`WithServer`](a
 
 If you want to test your application from within a Web browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in a [`TestBrowser`](api/java/play/test/TestBrowser.html) backed by [Selenide](https://selenide.org). By default, the browser is [HtmlUnit](https://www.htmlunit.org), which runs in-memory and does not require a browser installation. To test with a real browser, use `FIREFOX`, `CHROME`, `EDGE` or `SAFARI` instead of `HTMLUNIT`. Firefox, Chrome and Edge run headless if the system property `selenide.headless` is `true`, and use the browser executable set by `selenide.browserBinary`. To configure a browser differently, pass your own Selenium `WebDriver` instance.
 
+The test browser needs Selenide, Selenium and HtmlUnit, which you add with the `play-test-browser` dependency:
+
+```scala
+libraryDependencies += playTestBrowser % Test
+```
+
+With Gradle or Maven, add `org.playframework:play-test-browser_2.13` (or `play-test-browser_3` for Scala 3) as a test dependency.
+
 @[test-browser](code/javaguide/tests/FunctionalTest.java)
 
 `browser.el(selector)` returns the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) and `browser.$(selector)` (or `browser.find(selector)`) returns all matching elements as a [`BrowserElements`](api/java/play/test/BrowserElements.html) collection, a Selenide [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html) that can also click, fill and submit all of its elements. Elements are looked up lazily, and actions and assertions on them wait until the element is ready, so you rarely need explicit waits:

@@ -197,7 +197,8 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
     var port: Int = Helpers.testServerPort
 ) extends AroundHelper(classOf[WithBrowser[?]])
     with Scope {
-  def this(webDriver: Class[WEBDRIVER], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
+  // Takes any web driver class, so that the browser constants (typed Class[? <: WebDriver]) can be passed
+  def this(webDriver: Class[? <: WebDriver], app: Application, port: Int) = this(WebDriverFactory(webDriver), app, port)
 
   implicit def implicitApp: Application = app
   implicit def implicitPort: Port       = port

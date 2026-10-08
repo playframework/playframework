@@ -18,11 +18,6 @@ import java.util.function.Function;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.util.ByteString;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
-import org.openqa.selenium.safari.SafariDriver;
 import play.Application;
 import play.api.i18n.DefaultLangs;
 import play.api.test.Helpers$;
@@ -57,11 +52,52 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
   // --
   public static String HEAD = "HEAD";
-  public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
-  public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
-  public static Class<? extends WebDriver> CHROME = ChromeDriver.class;
-  public static Class<? extends WebDriver> EDGE = EdgeDriver.class;
-  public static Class<? extends WebDriver> SAFARI = SafariDriver.class;
+
+  // The browser classes are looked up by name, so that Helpers also works without the test
+  // browser's dependencies, which play-test only declares as optional (applications add them with
+  // play-test-browser). Without them, these constants are null.
+
+  /** The HtmlUnit browser, or {@code null} if the test browser's dependencies are missing. */
+  public static Class<? extends WebDriver> HTMLUNIT =
+      webDriverClass("org.openqa.selenium.htmlunit.HtmlUnitDriver");
+
+  /** The Firefox browser, or {@code null} if the test browser's dependencies are missing. */
+  public static Class<? extends WebDriver> FIREFOX =
+      webDriverClass("org.openqa.selenium.firefox.FirefoxDriver");
+
+  /** The Chrome browser, or {@code null} if the test browser's dependencies are missing. */
+  public static Class<? extends WebDriver> CHROME =
+      webDriverClass("org.openqa.selenium.chrome.ChromeDriver");
+
+  /** The Edge browser, or {@code null} if the test browser's dependencies are missing. */
+  public static Class<? extends WebDriver> EDGE =
+      webDriverClass("org.openqa.selenium.edge.EdgeDriver");
+
+  /** The Safari browser, or {@code null} if the test browser's dependencies are missing. */
+  public static Class<? extends WebDriver> SAFARI =
+      webDriverClass("org.openqa.selenium.safari.SafariDriver");
+
+  @SuppressWarnings("unchecked")
+  private static Class<? extends WebDriver> webDriverClass(String className) {
+    try {
+      // Like a class literal, this doesn't initialize the class
+      return (Class<? extends WebDriver>)
+          Class.forName(className, false, Helpers.class.getClassLoader());
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
+  }
+
+  // Must run before any browser class is used, because those need the test browser's dependencies
+  private static void requireWebDriverClass(Class<? extends WebDriver> webDriver) {
+    if (webDriver == null) {
+      throw new IllegalArgumentException(
+          "The web driver class is null. Helpers.HTMLUNIT, FIREFOX, CHROME, EDGE and SAFARI are"
+              + " null if the test browser's dependencies are missing: add play-test-browser to"
+              + " your test dependencies, e.g. with sbt:"
+              + " libraryDependencies += playTestBrowser % Test");
+    }
+  }
 
   // --
   @SuppressWarnings(value = "unchecked")
@@ -555,6 +591,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    */
   public static void running(
       TestServer server, Class<? extends WebDriver> webDriver, final Consumer<TestBrowser> block) {
+    requireWebDriverClass(webDriver);
     running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
   }
 
@@ -639,6 +676,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
    * @return the test browser.
    */
   public static TestBrowser testBrowser(Class<? extends WebDriver> webDriver, int port) {
+    requireWebDriverClass(webDriver);
     try {
       return new TestBrowser(webDriver, "http://localhost:" + port);
     } catch (RuntimeException e) {
