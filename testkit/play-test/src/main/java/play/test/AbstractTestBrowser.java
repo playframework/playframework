@@ -32,8 +32,9 @@ import org.openqa.selenium.WebDriverException;
  * browser methods Play's test browser offered when it was based on FluentLenium. Use {@link
  * #selenide()} to access the complete Selenide API.
  *
- * <p>The Selenide instance is created without Selenide's static API, so no browser, configuration
- * or screenshot state is kept in {@link ThreadLocal}s.
+ * <p>The Selenide instance is created without Selenide's static API, so neither the browser nor its
+ * configuration is kept in {@link ThreadLocal}s, and the browser's own screenshot laboratory
+ * doesn't use them either.
  */
 public abstract class AbstractTestBrowser {
 

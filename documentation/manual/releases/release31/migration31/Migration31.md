@@ -105,7 +105,7 @@ Both test browsers are now backed by [Selenide](https://selenide.org), which is 
 
 #### Test browser API changes
 
-`TestBrowser` no longer extends FluentLenium's `FluentAdapter`. Both test browsers now extend [`play.test.AbstractTestBrowser`](api/java/play/test/AbstractTestBrowser.html), which provides the most commonly used methods with the same names and behaviour as before:
+`TestBrowser` no longer extends FluentLenium's `FluentAdapter`. Both test browsers now extend [`play.test.AbstractTestBrowser`](api/java/play/test/AbstractTestBrowser.html), which provides the most commonly used methods with the same names as before. Most of them also behave as before; the notes below describe where their behaviour changed:
 
 | Method | Notes |
 |--------|-------|
