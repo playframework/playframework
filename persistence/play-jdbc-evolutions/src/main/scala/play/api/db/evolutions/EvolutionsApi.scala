@@ -875,6 +875,20 @@ object SimpleEvolutionsReader {
 }
 
 /**
+ * JavaScript snippets for the evolutions pages.
+ */
+private[evolutions] object EvolutionsJavascript {
+
+  /**
+   * The URL to return to after applying or resolving evolutions. If the current page is the result of that itself, e.g.
+   * because applying the evolutions failed, it's the URL that page returns to. So that one doesn't get nested again,
+   * which would let the URL grow with each attempt.
+   */
+  val ReturnUrl: String =
+    """((/\/@evolutions\//.test(window.location.pathname) && new URLSearchParams(window.location.search).get('redirect')) || window.location.href)"""
+}
+
+/**
  * Exception thrown when the database is in an inconsistent state.
  *
  * @param db the database name
@@ -893,7 +907,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
   def content  = script
 
   private val resolvePathJavascript =
-    if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(window.location)"
+    if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(${EvolutionsJavascript.ReturnUrl})"
     else "'/@evolutions'"
   private val redirectJavascript =
     s"""window.location = window.location.href.split(/[?#]/)[0].replace(/\\/@evolutions.*$$|\\/$$/, '') + $resolvePathJavascript"""
