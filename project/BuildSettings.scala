@@ -691,6 +691,22 @@ object BuildSettings {
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
+      // Replace FluentLenium with Selenide
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.test.TestBrowser"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.test.TestBrowser"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.TestBrowser.submit"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.PlayRunners.CHROME"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.PlayRunners.EDGE"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.PlayRunners.SAFARI"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$CHROME_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$EDGE_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$SAFARI_="
+      ),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {

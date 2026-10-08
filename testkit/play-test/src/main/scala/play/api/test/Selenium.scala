@@ -8,22 +8,28 @@ import java.util.concurrent.TimeUnit
 
 import scala.jdk.FunctionConverters._
 
-import io.fluentlenium.adapter.FluentAdapter
-import io.fluentlenium.core.domain.FluentList
-import io.fluentlenium.core.domain.FluentWebElement
+import com.codeborne.selenide.Config
+import com.codeborne.selenide.SelenideConfig
 import org.openqa.selenium._
+import org.openqa.selenium.chrome.ChromeDriver
+import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.edge.EdgeDriver
+import org.openqa.selenium.edge.EdgeOptions
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
+import play.test.AbstractTestBrowser
+import play.test.BrowserElements
 
 /**
- * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
+ * A test browser (Using Selenium WebDriver) backed by Selenide (https://selenide.org).
  *
  * @param webDriver The WebDriver instance to use.
+ * @param baseUrl The base url to use for relative requests.
+ * @see `play.test.AbstractTestBrowser`
  */
-case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends FluentAdapter() {
-  super.initFluent(webDriver)
-  baseUrl.foreach(baseUrl => super.getConfiguration.setBaseUrl(baseUrl))
+case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
+    extends AbstractTestBrowser(webDriver, baseUrl.orNull) {
 
   /**
    * Submits a form with the given field values
@@ -35,10 +41,10 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    *   )
    * }}}
    */
-  def submit(selector: String, fields: (String, String)*): FluentList[FluentWebElement] = {
+  def submit(selector: String, fields: (String, String)*): BrowserElements = {
     fields.foreach {
       case (fieldName, fieldValue) =>
-        $(s"$selector *[name=$fieldName]").fill.`with`(fieldValue)
+        $(s"$selector *[name=${TestBrowser.cssString(fieldName)}]").fill().`with`(fieldValue)
     }
     $(selector).submit()
   }
@@ -88,18 +94,19 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
    * retrieves the underlying option interface that can be used
    * to set cookies, manage timeouts among other things
    */
-  def manage: WebDriver.Options = super.getDriver.manage
+  def manage: WebDriver.Options = webDriver.manage
 
-  def quit(): Unit = {
-    Option(super.getDriver).foreach(_.quit())
-    releaseFluent()
-  }
+  def quit(): Unit = quitBrowser()
 }
 
 /**
  * Helper utilities to build TestBrowsers
  */
 object TestBrowser {
+
+  // Quotes a value for use in a CSS attribute selector, like [name="value"]
+  private def cssString(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
   /**
    * Creates an in-memory WebBrowser (using HtmlUnit)
@@ -127,17 +134,46 @@ object TestBrowser {
 object WebDriverFactory {
 
   /**
-   * Creates a Selenium Web Driver and configures it
+   * Creates a Selenium Web Driver and configures it.
+   *
+   * Chrome, Edge and Firefox are started with WebDriver BiDi enabled, so Selenide can collect the browser's console
+   * logs. They also use Selenide's `headless` and `browserBinary` settings, e.g. from the system properties
+   * `selenide.headless=true` and `selenide.browserBinary=/path/to/browser`.
+   *
    * @param clazz Type of driver to create
    * @return The driver instance
    */
   def apply[D <: WebDriver](clazz: Class[D]): WebDriver = {
-    val driver = clazz.getDeclaredConstructor().newInstance()
+    // Reads the selenide.* system properties and a selenide.properties file on the classpath
+    val config            = new SelenideConfig()
+    val driver: WebDriver =
+      if (clazz == classOf[ChromeDriver]) new ChromeDriver(chromeOptions(config))
+      else if (clazz == classOf[EdgeDriver]) new EdgeDriver(edgeOptions(config))
+      else if (clazz == classOf[FirefoxDriver]) new FirefoxDriver(firefoxOptions(config))
+      else clazz.getDeclaredConstructor().newInstance()
     // Driver-specific configuration
     driver match {
       case htmlunit: HtmlUnitDriver => htmlunit.setJavascriptEnabled(true)
       case _                        =>
     }
     driver
+  }
+
+  private[test] def chromeOptions(config: Config): ChromeOptions = {
+    val options = new ChromeOptions().enableBiDi()
+    Option(config.browserBinary()).foreach(binary => options.setBinary(binary))
+    if (config.headless()) options.addArguments("--headless=new") else options
+  }
+
+  private[test] def edgeOptions(config: Config): EdgeOptions = {
+    val options = new EdgeOptions().enableBiDi()
+    Option(config.browserBinary()).foreach(binary => options.setBinary(binary))
+    if (config.headless()) options.addArguments("--headless=new") else options
+  }
+
+  private[test] def firefoxOptions(config: Config): FirefoxOptions = {
+    val options = new FirefoxOptions().enableBiDi()
+    Option(config.browserBinary()).foreach(binary => options.setBinary(binary))
+    if (config.headless()) options.addArguments("-headless") else options
   }
 }
