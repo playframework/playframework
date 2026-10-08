@@ -95,7 +95,17 @@ Both test browsers are now backed by [Selenide](https://selenide.org), which is 
 
 #### Dependency changes
 
-`play-test` now depends on `com.codeborne:selenide-core` (which brings Selenium 4.49 via `selenium-java`) and on `org.seleniumhq.selenium:htmlunit3-driver`, which uses HtmlUnit 5 (group id `org.htmlunit`). The `io.fluentlenium`, `org.seleniumhq.selenium:htmlunit-driver` and `net.sourceforge.htmlunit` dependencies have been removed.
+Play's test browser now uses `com.codeborne:selenide-core` (which brings Selenium 4.49 via `selenium-java`) and `org.seleniumhq.selenium:htmlunit3-driver`, which uses HtmlUnit 5 (group id `org.htmlunit`). The `io.fluentlenium`, `org.seleniumhq.selenium:htmlunit-driver` and `net.sourceforge.htmlunit` dependencies have been removed.
+
+These browser dependencies are no longer added to the tests of every application. `play-test`, which Play's sbt plugin adds to every project, and `play-specs2` only declare them as optional dependencies, and otherwise only depend on Selenium's small `selenium-api` artifact. If your tests use Play's test browser (`TestBrowser`, `WithBrowser`, `testBrowser(...)` or `running(..., HTMLUNIT, ...)`), add the new `play-test-browser` dependency, which brings them:
+
+```scala
+libraryDependencies += playTestBrowser % Test
+```
+
+With Gradle or Maven, add `org.playframework:play-test-browser_2.13` (or `play-test-browser_3` for Scala 3) as a test dependency. Apart from the changes for Selenide described below, this dependency is usually all your browser tests need. The only code change the dependency split can require is in Scala: the browser constants `HTMLUNIT`, `FIREFOX`, `CHROME`, `EDGE` and `SAFARI` of `Helpers` and `PlaySpecification` are now typed `Class[? <: WebDriver]` instead of their driver class, so that they compile without the browser drivers. Where you need the exact type, for example `Class[FirefoxDriver]`, use `classOf[FirefoxDriver]` instead. Without the dependency, browser tests fail to compile or to run, because Selenide, Selenium's browser drivers and HtmlUnit are missing. In Java, `Helpers.HTMLUNIT`, `FIREFOX`, `CHROME`, `EDGE` and `SAFARI` are `null` then, and `Helpers.testBrowser(...)` fails with an error that explains how to add the dependency.
+
+Tests that don't use a browser no longer get these dependencies: `Helpers`, `PlaySpecification`, `WithApplication` and `WithServer` work without them. If your build excludes Selenium or HtmlUnit for this reason, you can remove that exclusion; if you keep it, don't exclude `selenium-api`, which Play's test helpers need.
 
 * If your build adds FluentLenium itself, remove it: FluentLenium 6.0.0 does not work with Selenium 4.17 or newer.
 * If your build pins Selenium or `htmlunit-driver` versions (for example for older [ScalaTest + Play](https://github.com/playframework/scalatestplus-play) versions), remove those pins or upgrade them. Do not mix `htmlunit-driver` and `htmlunit3-driver`: both contain the class `org.openqa.selenium.htmlunit.HtmlUnitDriver`.

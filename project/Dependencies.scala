@@ -245,14 +245,28 @@ object Dependencies {
   )
 
   val selenideVersion = "7.18.2"
+  // Must be the Selenium version selenide-core brings, see selenium-api below
+  val seleniumVersion = "4.49.0"
   // HtmlUnitDriver is not part of Selenium/Selenide, but it is still the default browser of Play's TestBrowser.
   val htmlunitDriverVersion = "4.48.0"
 
-  val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
+  // The dependencies of Play's test browser (TestBrowser, WithBrowser). play-test and play-specs2 only declare them as
+  // optional, so applications get them only by adding play-test-browser, which depends on them.
+  val testBrowserDependencies = Seq(
     // selenide-core contains only the instance based API (SelenideDriver), without the static Selenide/WebDriverRunner
     // facade which keeps browsers in ThreadLocals. It brings selenium-java.
     "com.codeborne"           % "selenide-core"    % selenideVersion,
     "org.seleniumhq.selenium" % "htmlunit3-driver" % htmlunitDriverVersion,
+  )
+
+  val testDependencies = Seq(
+    junit,
+    junitInterface,
+    guava,
+    logback,
+    // Only Selenium's API (WebDriver), without any browser. Play's test helpers mention WebDriver in their signatures,
+    // so the compiler needs it even for tests that don't use a browser (e.g. any PlaySpecification).
+    "org.seleniumhq.selenium" % "selenium-api" % seleniumVersion,
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test

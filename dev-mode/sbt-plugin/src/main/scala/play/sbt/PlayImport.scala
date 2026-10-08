@@ -82,6 +82,9 @@ object PlayImport {
 
   val playTest = component("play-test")
 
+  /** The dependencies of Play's test browser (`TestBrowser`, `WithBrowser`), e.g. `playTestBrowser % Test` */
+  val playTestBrowser = component("play-test-browser")
+
   val specs2 = component("play-specs2")
 
   val clusterSharding     = component("play-cluster-sharding")

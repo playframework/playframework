@@ -144,6 +144,7 @@ object WebDriverFactory {
    * @return The driver instance
    */
   def apply[D <: WebDriver](clazz: Class[D]): WebDriver = {
+    require(clazz != null, "The web driver class is null")
     // Reads the selenide.* system properties and a selenide.properties file on the classpath
     val config            = new SelenideConfig()
     val driver: WebDriver =

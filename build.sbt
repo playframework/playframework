@@ -186,7 +186,8 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
-    libraryDependencies ++= testDependencies ++ Seq(h2database, assertj).map(_ % "test"),
+    libraryDependencies ++= testDependencies ++ testBrowserDependencies.map(_ % Optional) ++
+      Seq(h2database, assertj).map(_ % "test"),
     (Test / parallelExecution) := false
   )
   .dependsOn(
@@ -197,13 +198,36 @@ lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test
     PlayPekkoHttpServerProject % "test"
   )
 
+// Contains no code: it only brings the test browser's dependencies, which play-test and play-specs2 declare as optional
+lazy val PlayTestBrowserProject = PlayCrossBuiltProject("Play-Test-Browser", "testkit/play-test-browser")
+  .settings(
+    libraryDependencies ++= testBrowserDependencies,
+    mimaPreviousArtifacts := Set.empty
+  )
+  .dependsOn(PlayTestProject)
+
 lazy val PlaySpecs2Project = PlayCrossBuiltProject("Play-Specs2", "testkit/play-specs2")
   .settings(
-    libraryDependencies ++= specs2Deps :+ (if (ScalaArtifacts.isScala3(scalaVersion.value)) { mockitoAll }
-                                           else { specs2Mock }),
+    libraryDependencies ++= (specs2Deps :+ (if (ScalaArtifacts.isScala3(scalaVersion.value)) { mockitoAll }
+                                            else { specs2Mock })) ++ testBrowserDependencies.map(_ % Optional),
     (Test / parallelExecution) := false
   )
   .dependsOn(PlayTestProject)
+
+// Tests that play-test and play-specs2 work without the test browser's dependencies (play-test-browser)
+lazy val PlayTestWithoutBrowserProject =
+  PlayCrossBuiltProject("Play-Test-Without-Browser", "testkit/play-test-without-browser")
+    .settings(disablePublishing)
+    .settings(
+      mimaPreviousArtifacts := Set.empty,
+      // Like for applications without play-test-browser: the optional dependencies (and theirs) are missing
+      excludeDependencies ++= Seq(
+        ExclusionRule("com.codeborne", "selenide-core"),
+        ExclusionRule("org.seleniumhq.selenium", "htmlunit3-driver"),
+      ),
+      (Test / parallelExecution) := false
+    )
+    .dependsOn(PlaySpecs2Project % "test", PlayPekkoHttpServerProject % "test")
 
 lazy val PlayJavaProject = PlayCrossBuiltProject("Play-Java", "core/play-java")
   .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
@@ -360,7 +384,8 @@ lazy val PlayIntegrationTestProject = PlayCrossBuiltProject("Play-Integration-Te
     PlayLogback       % "test->test",
     PlayAhcWsProject  % "test->test",
     PlayServerProject % "test->test",
-    PlaySpecs2Project
+    PlaySpecs2Project,
+    PlayTestBrowserProject // for WithBrowser, like applications that add playTestBrowser
   )
   .dependsOn(PlayFiltersHelpersProject)
   .dependsOn(PlayJavaProject)
@@ -487,6 +512,7 @@ lazy val userProjects = Seq[ProjectReference](
   PlayOpenIdProject,
   PlaySpecs2Project,
   PlayTestProject,
+  PlayTestBrowserProject,
   PlayExceptionsProject,
   PlayFiltersHelpersProject,
   PlayStreamsProject,
@@ -497,6 +523,7 @@ lazy val nonUserProjects = Seq[ProjectReference](
   PlayMicrobenchmarkProject,
   PlayDocsProject,
   PlayIntegrationTestProject,
+  PlayTestWithoutBrowserProject,
   PlayDocsSbtPlugin,
   PlayRunSupportProject,
   SbtRoutesCompilerProject,

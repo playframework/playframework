@@ -42,6 +42,14 @@ If you want to test your application using a browser, you can use [Selenium WebD
 
 `browser.el(selector)` returns the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) and `browser.$(selector)` (or `browser.find(selector)`) returns all matching elements as a [`BrowserElements`](api/java/play/test/BrowserElements.html) collection, a Selenide [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html) that can also click, fill and submit all of its elements. Elements are looked up lazily, and actions and assertions on them wait until the element is ready. Use `browser.selenide` to access the complete [Selenide API](https://selenide.org/documentation.html) of the browser and `browser.webDriver` to access the underlying Selenium `WebDriver`. Besides `HTMLUNIT`, which runs in-memory and does not require a browser installation, you can use `FIREFOX`, `CHROME`, `EDGE` or `SAFARI`. Firefox, Chrome and Edge run headless if the system property `selenide.headless` is `true`, and use the browser executable set by `selenide.browserBinary`. These settings can also be set in a `selenide.properties` file on the test classpath, and must be set before the browser is created; changing them through `browser.selenideConfig` does not affect a running browser. To configure a browser differently, pass your own Selenium `WebDriver` instance.
 
+The test browser needs Selenide, Selenium and HtmlUnit, which you add with the `play-test-browser` dependency:
+
+```scala
+libraryDependencies += playTestBrowser % Test
+```
+
+With Gradle or Maven, add `org.playframework:play-test-browser_2.13` (or `play-test-browser_3` for Scala 3) as a test dependency.
+
 ## Injecting
 
 There are many functional tests that use the injector directly through the implicit `app`:
