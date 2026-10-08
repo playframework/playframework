@@ -68,6 +68,18 @@ When evolutions are activated, Play will check your database schema state before
 
 If you agree with the SQL script, you can apply it directly by clicking on the ‘Apply evolutions’ button.
 
+### Accessing the database while the application starts
+
+In DEV mode, the application starts even if evolutions still need to be applied (unless `autoApply` is enabled, see [below](#Evolutions-configuration)), so that Play can show the page above. Therefore, a component that accesses the database while it gets created, e.g. to insert some initial data, can't rely on the database schema being up to date. Inject `ApplicationEvolutions` into such a component, so that Play checks (and, if `autoApply` is enabled, applies) the evolutions before creating it, and only access the database if `upToDate` returns `true`:
+
+Java
+: @[startup-evolutions](code/jdatabase/StartupDataLoader.java)
+
+Scala
+: @[startup-evolutions](code/sdatabase/StartupDataLoader.scala)
+
+Once you apply (or resolve) the evolutions in the browser, Play reloads the application, which creates the component again, this time with `upToDate` returning `true`.
+
 ## Evolutions configuration
 
 Evolutions can be configured both globally and per datasource.  For global configuration, keys should be prefixed with `play.evolutions`.  For per datasource configuration, keys should be prefixed with `play.evolutions.db.<datasourcename>`, for example `play.evolutions.db.default`.  The following configuration options are supported:
