@@ -186,14 +186,30 @@ class SyncCaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) e
   private val syncCache: Cache[Any, Any] = cache.synchronous()
 
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
-    Done
+    if (expiration == Duration.MinusInf || (expiration.isFinite && expiration.lteq(Duration.Zero))) {
+      // Setting an already expired value also needs to remove a value previously stored under the same key.
+      syncCache.invalidate(key)
+    } else {
+      syncCache.put(key, ExpirableCacheValue(value, Some(expiration)))
+    }
   }
 
   override def remove(key: String): Unit = syncCache.invalidate(key)
 
-  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
-    syncCache.get(key, _ => ExpirableCacheValue(orElse, Some(expiration))).asInstanceOf[ExpirableCacheValue[A]].value
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A =
+    getOrElseUpdate(key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
+    syncCache
+      .get(
+        key,
+        _ => {
+          val value = orElse
+          ExpirableCacheValue(value, Some(expiration(value)))
+        }
+      )
+      .asInstanceOf[ExpirableCacheValue[A]]
+      .value
   }
 
   override def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
@@ -230,10 +246,16 @@ class CaffeineCacheApi @Inject() (val cache: NamedCaffeineCache[Any, Any]) exten
     Future.successful(Done)
   }
 
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
+    getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](
+      key: String,
+      expiration: A => Duration
+  )(orElse: => Future[A]): Future[A] = {
     lazy val orElseAsJavaFuture =
       orElse
-        .map(ExpirableCacheValue(_, Some(expiration)).asInstanceOf[Any])(using trampoline)
+        .map(value => ExpirableCacheValue(value, Some(expiration(value))).asInstanceOf[Any])(using trampoline)
         .asJava
         .toCompletableFuture
 
