@@ -25,6 +25,11 @@ $ sleep 2000
 # It will then fail since there is error
 > verifyResourceContains / 500 evolution
 
+# Reloading the application (e.g. after changing some code) must keep the inconsistent state resolvable
+$ copy-file changes/Reload.java app/controllers/Reload.java
+$ sleep 2000
+> verifyResourceContains / 500 evolution
+
 # And it can be market as resolved
 > applyEvolutions /@evolutions/resolve/default/3
 > verifyResourceContains / 200 7_PlayerFromThirdEvolution

@@ -57,94 +57,100 @@ class ApplicationEvolutions @Inject() (
 
     dbApi
       .databases()
-      .foreach(
-        ApplicationEvolutions.runEvolutions(
-          _,
-          config,
-          evolutions,
-          reader,
-          (db, dbConfig, scripts, hasDown) => {
-            import Evolutions.toHumanReadableScript
+      .foreach(database =>
+        try {
+          ApplicationEvolutions.runEvolutions(
+            database,
+            config,
+            evolutions,
+            reader,
+            (db, dbConfig, scripts, hasDown) => {
+              import Evolutions.toHumanReadableScript
 
-            def invalidDatabaseRevision() = {
-              invalidDatabaseRevisions += 1
-              throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+              def invalidDatabaseRevision() = {
+                invalidDatabaseRevisions += 1
+                throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+              }
+
+              environment.mode match {
+                case Mode.Test =>
+                  evolutions.evolve(
+                    db,
+                    scripts,
+                    dbConfig.autocommit,
+                    dbConfig.schema,
+                    dbConfig.metaTable,
+                    dbConfig.substitutionsMappings,
+                    dbConfig.substitutionsPrefix,
+                    dbConfig.substitutionsSuffix,
+                    dbConfig.substitutionsEscape
+                  )
+                case Mode.Dev if !dbConfig.autoApply =>
+                  invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands handle non-autoApply evolutions
+                case Mode.Dev if dbConfig.autoApply =>
+                  evolutions.evolve(
+                    db,
+                    scripts,
+                    dbConfig.autocommit,
+                    dbConfig.schema,
+                    dbConfig.metaTable,
+                    dbConfig.substitutionsMappings,
+                    dbConfig.substitutionsPrefix,
+                    dbConfig.substitutionsSuffix,
+                    dbConfig.substitutionsEscape
+                  )
+                case Mode.Prod if !hasDown && dbConfig.autoApply =>
+                  evolutions.evolve(
+                    db,
+                    scripts,
+                    dbConfig.autocommit,
+                    dbConfig.schema,
+                    dbConfig.metaTable,
+                    dbConfig.substitutionsMappings,
+                    dbConfig.substitutionsPrefix,
+                    dbConfig.substitutionsSuffix,
+                    dbConfig.substitutionsEscape
+                  )
+                case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
+                  evolutions.evolve(
+                    db,
+                    scripts,
+                    dbConfig.autocommit,
+                    dbConfig.schema,
+                    dbConfig.metaTable,
+                    dbConfig.substitutionsMappings,
+                    dbConfig.substitutionsPrefix,
+                    dbConfig.substitutionsSuffix,
+                    dbConfig.substitutionsEscape
+                  )
+                case Mode.Prod if hasDown =>
+                  logger.warn(
+                    s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}"
+                  )
+                  logger.warn(
+                    s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)"
+                  )
+
+                  invalidDatabaseRevision()
+
+                case Mode.Prod =>
+                  logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
+                  logger.warn(
+                    s"Run with -Dplay.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)"
+                  )
+
+                  invalidDatabaseRevision()
+
+                case _ =>
+                  invalidDatabaseRevision()
+              }
             }
-
-            environment.mode match {
-              case Mode.Test =>
-                evolutions.evolve(
-                  db,
-                  scripts,
-                  dbConfig.autocommit,
-                  dbConfig.schema,
-                  dbConfig.metaTable,
-                  dbConfig.substitutionsMappings,
-                  dbConfig.substitutionsPrefix,
-                  dbConfig.substitutionsSuffix,
-                  dbConfig.substitutionsEscape
-                )
-              case Mode.Dev if !dbConfig.autoApply =>
-                invalidDatabaseRevisions += 1 // In DEV mode EvolutionsWebCommands handle non-autoApply evolutions
-              case Mode.Dev if dbConfig.autoApply =>
-                evolutions.evolve(
-                  db,
-                  scripts,
-                  dbConfig.autocommit,
-                  dbConfig.schema,
-                  dbConfig.metaTable,
-                  dbConfig.substitutionsMappings,
-                  dbConfig.substitutionsPrefix,
-                  dbConfig.substitutionsSuffix,
-                  dbConfig.substitutionsEscape
-                )
-              case Mode.Prod if !hasDown && dbConfig.autoApply =>
-                evolutions.evolve(
-                  db,
-                  scripts,
-                  dbConfig.autocommit,
-                  dbConfig.schema,
-                  dbConfig.metaTable,
-                  dbConfig.substitutionsMappings,
-                  dbConfig.substitutionsPrefix,
-                  dbConfig.substitutionsSuffix,
-                  dbConfig.substitutionsEscape
-                )
-              case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns =>
-                evolutions.evolve(
-                  db,
-                  scripts,
-                  dbConfig.autocommit,
-                  dbConfig.schema,
-                  dbConfig.metaTable,
-                  dbConfig.substitutionsMappings,
-                  dbConfig.substitutionsPrefix,
-                  dbConfig.substitutionsSuffix,
-                  dbConfig.substitutionsEscape
-                )
-              case Mode.Prod if hasDown =>
-                logger.warn(
-                  s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}"
-                )
-                logger.warn(
-                  s"Run with -Dplay.evolutions.db.$db.autoApply=true and -Dplay.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)"
-                )
-
-                invalidDatabaseRevision()
-
-              case Mode.Prod =>
-                logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
-                logger.warn(
-                  s"Run with -Dplay.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)"
-                )
-
-                invalidDatabaseRevision()
-
-              case _ =>
-                invalidDatabaseRevision()
-            }
-          }
-        )
+          )
+        } catch {
+          // In DEV mode, start the application anyway, so that the EvolutionsWebCommands can show the inconsistent
+          // state and resolving it works, like for evolutions that still need to be applied
+          case _: InconsistentDatabase if environment.mode == Mode.Dev => invalidDatabaseRevisions += 1
+        }
       )
   }
 
@@ -632,8 +638,8 @@ case class InvalidDatabaseRevision(db: String, script: String)
 
   private val javascript =
     """
-        window.location = window.location.href.split(/[?#]/)[0].replace(/\/@evolutions.*$|\/$/, '') + '/@evolutions/apply/%s?redirect=' + encodeURIComponent(location)
-    """.format(db).trim
+        window.location = window.location.href.split(/[?#]/)[0].replace(/\/@evolutions.*$|\/$/, '') + '/@evolutions/apply/%s?redirect=' + encodeURIComponent(%s)
+    """.format(db, EvolutionsJavascript.ReturnUrl).trim
 
   def htmlDescription = {
     <span>An SQL script will be run on your database -</span>
