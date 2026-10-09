@@ -13,6 +13,7 @@ import java.util.concurrent.CompletionStage
 import jakarta.inject.Provider
 import play._
 import play.api.{ Application => ScalaApplication }
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc.RequestHeader
 import play.api.test.ApplicationFactories
 import play.api.test.ApplicationFactory
@@ -42,7 +43,11 @@ class JavaHttpErrorHandlingSpec
       filters: Seq[EssentialFilter]
   ): ApplicationFactory = new ApplicationFactory {
     override def create(): ScalaApplication = {
-      val components = new BuiltInComponentsFromContext(applicationContext) with RoutingDslComponents {
+      // Each application needs its own lifecycle, as stopping it stops everything that registered a stop hook, like
+      // the actor system
+      val components = new BuiltInComponentsFromContext(
+        new ApplicationLoader.Context(applicationContext.asScala().copy(lifecycle = new DefaultApplicationLifecycle()))
+      ) with RoutingDslComponents {
         import scala.jdk.CollectionConverters._
         import scala.jdk.OptionConverters._
 

@@ -30,6 +30,7 @@ import org.apache.pekko.Done
 import org.slf4j.LoggerFactory
 import play.api._
 import play.api.inject._
+import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
 
 /**
  * Helper to access the application defined Pekko Actor system.
@@ -98,10 +99,9 @@ trait PekkoComponents {
 
   def configuration: Configuration
 
-  @deprecated("Since Play 2.7.0 this is no longer required to create an ActorSystem.", "2.7.0")
   def applicationLifecycle: ApplicationLifecycle
 
-  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration).get
+  lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
 
   lazy val classicActorSystemProvider: ClassicActorSystemProvider = new ClassicActorSystemProviderProvider(
     actorSystem
@@ -125,11 +125,30 @@ trait PekkoTypedComponents {
 
 /**
  * Provider for the actor system
+ *
+ * When the application lifecycle stops, it runs the coordinated shutdown of the actor system, which terminates it. That
+ * matters if the application failed to start after the actor system got created, as then there is no application
+ * whose stop would run it.
  */
 @Singleton
-class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration)
-    extends Provider[ActorSystem] {
-  lazy val get: ActorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil*)
+class ActorSystemProvider @Inject() (
+    environment: Environment,
+    configuration: Configuration,
+    applicationLifecycle: ApplicationLifecycle
+) extends Provider[ActorSystem] {
+
+  /**
+   * Creates a provider whose actor system only gets terminated when its coordinated shutdown runs, e.g. when the
+   * application gets stopped, but not when only the application lifecycle stops.
+   */
+  def this(environment: Environment, configuration: Configuration) =
+    this(environment, configuration, new DefaultApplicationLifecycle())
+
+  lazy val get: ActorSystem = {
+    val actorSystem = ActorSystemProvider.start(environment.classLoader, configuration, Nil*)
+    ActorSystemProvider.shutdownOnStop(actorSystem, applicationLifecycle)
+    actorSystem
+  }
 }
 
 /**
@@ -172,6 +191,19 @@ object ActorSystemProvider {
   private val logger = LoggerFactory.getLogger(classOf[ActorSystemProvider])
 
   case object ApplicationShutdownReason extends CoordinatedShutdown.Reason
+
+  /**
+   * Runs the coordinated shutdown of the actor system when the application lifecycle stops, unless it runs already.
+   *
+   * When the application gets stopped, its coordinated shutdown is what stops the application lifecycle, so the stop
+   * hook must not wait for the coordinated shutdown to complete, as that would wait for itself until it times out.
+   * It uses the same reason as stopping the application, so that it doesn't make a difference which one starts it.
+   */
+  private def shutdownOnStop(actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle): Unit =
+    applicationLifecycle.addStopHook { () =>
+      CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason)
+      Future.unit
+    }
 
   /**
    * Start an ActorSystem, using the given configuration and ClassLoader.

@@ -155,6 +155,8 @@ $ copy-file changes/application.conf.1 conf/application.conf
 > verifyReloads 4
 # The previous applications got stopped, and the stop hooks of the application that failed to start have run too
 > verifyStops 4
+# The actor systems of the previous applications got terminated, and the one of the application that failed to start too
+> verifyTerminations 4
 
 # Revert to the original application.conf
 $ sleep 1000
@@ -162,9 +164,11 @@ $ copy-file conf/application.original conf/application.conf
 > verifyResourceContains / 200
 # The stop hooks of the application that failed to start don't run again
 > verifyStops 4
+> verifyTerminations 4
 
 > playStop
 > verifyStops 5
+> verifyTerminations 5
 
 # devSettings tests
 # -----------------
