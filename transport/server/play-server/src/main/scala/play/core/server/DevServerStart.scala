@@ -7,10 +7,13 @@ package play.core.server
 import java.io.File
 import java.net.InetAddress
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.TimeoutException
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Await
 import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.Failure
@@ -36,6 +39,14 @@ import play.utils.Threads
  * is reloaded whenever its source changes.
  */
 object DevServerStart {
+
+  private val logger = Logger(getClass)
+
+  /**
+   * How long to wait for the stop hooks of an application that failed to start. The same as Pekko's default phase
+   * timeout, which also applies to the stop hooks of an application that gets stopped.
+   */
+  private val FailedApplicationStopTimeout: FiniteDuration = 5.seconds
 
   /**
    * Provides an HTTPS-only server for the dev environment.
@@ -90,6 +101,43 @@ object DevServerStart {
     // Be aware that since we are in dev mode here the application.conf isn't included in the server conf!
     val devModePekkoConfig = conf.underlying.getConfig("play.pekko.dev-mode").withFallback(conf.underlying)
     ActorSystem("play-dev-mode", devModePekkoConfig)
+  }
+
+  /**
+   * Stops the lifecycle of an application that failed to start. Components that got created before the failure,
+   * like database connection pools, may have registered stop hooks already. As there is no application that could
+   * be stopped, nothing else would run them.
+   *
+   * The stop hooks run in a separate thread, so that a stop hook that blocks, or whose future never completes, can't
+   * block the dev server. If they don't complete within the timeout, they keep running in the background and the
+   * startup error gets shown anyway.
+   */
+  private[server] def stopFailedApplication(
+      lifecycle: DefaultApplicationLifecycle,
+      classLoader: ClassLoader,
+      timeout: FiniteDuration = FailedApplicationStopTimeout
+  ): Unit = {
+    val stopped = Promise[Any]()
+    val thread  = new Thread(
+      () => {
+        stopped.completeWith(
+          try lifecycle.stop()
+          catch { case NonFatal(e) => Future.failed(e) }
+        )
+        ()
+      },
+      "play-dev-mode-failed-application-stop"
+    )
+    thread.setContextClassLoader(classLoader)
+    thread.setDaemon(true)
+    thread.start()
+    try Await.ready(stopped.future, timeout)
+    catch {
+      case _: TimeoutException =>
+        logger.warn(
+          s"The stop hooks of the application that failed to start didn't complete within $timeout, they keep running in the background"
+        )
+    }
   }
 }
 
@@ -251,19 +299,19 @@ final class DevServerStart(
               lastState
             } catch {
               case e: PlayException =>
-                stopFailedApplication(projectClassloader)
+                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader))
                 lastState = Failure(e)
                 logExceptionAndGetResult(path, e)
                 lastState
 
               case e: LinkageError =>
-                stopFailedApplication(projectClassloader)
+                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader))
                 lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 logExceptionAndGetResult(path, e)
                 lastState
 
               case NonFatal(e) =>
-                stopFailedApplication(projectClassloader)
+                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader))
                 val useful: UsefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
                   Some(sourceMapper),
                   isProd = false,
@@ -280,18 +328,6 @@ final class DevServerStart(
                 lastState
             }
           }
-
-          /**
-           * Stops the lifecycle of an application that failed to start. Components that got created before the failure,
-           * like database connection pools, may have registered stop hooks already. As there is no application that could
-           * be stopped, nothing else would run them.
-           */
-          private def stopFailedApplication(projectClassloader: ClassLoader): Unit =
-            lastLifecycle.foreach { lifecycle =>
-              Threads.withContextClassLoader(projectClassloader) {
-                Await.ready(lifecycle.stop(), Duration.Inf)
-              }
-            }
 
           private def logExceptionAndGetResult(path: File, e: Throwable, hint: String = ""): Unit = {
             e.printStackTrace()
