@@ -9,6 +9,7 @@ import scala.concurrent.Future
 
 import com.google.inject.AbstractModule
 import jakarta.inject.Inject
+import org.apache.pekko.actor.ActorSystem
 import play.api._
 import play.api.inject.ApplicationLifecycle
 
@@ -20,6 +21,7 @@ class Module(environment: Environment, configuration: Configuration) extends Abs
     writer.close()
 
     bind(classOf[StopRecorder]).asEagerSingleton()
+    bind(classOf[TerminationRecorder]).asEagerSingleton()
     if (configuration.getOptional[Boolean]("fail").getOrElse(false)) {
       bind(classOf[FailingComponent]).asEagerSingleton()
     }
@@ -35,7 +37,15 @@ class StopRecorder @Inject() (environment: Environment, lifecycle: ApplicationLi
   }
 }
 
-// Fails to start after the StopRecorder has registered its stop hook
-class FailingComponent @Inject() (stopRecorder: StopRecorder) {
+class TerminationRecorder @Inject() (environment: Environment, actorSystem: ActorSystem) {
+  actorSystem.registerOnTermination {
+    val writer = new FileWriter(environment.getFile("target/termination.log"), true)
+    writer.write(s"${new Date()} - terminated\n")
+    writer.close()
+  }
+}
+
+// Fails to start after the StopRecorder has registered its stop hook, and the actor system got created
+class FailingComponent @Inject() (stopRecorder: StopRecorder, terminationRecorder: TerminationRecorder) {
   throw new RuntimeException("fail=true")
 }

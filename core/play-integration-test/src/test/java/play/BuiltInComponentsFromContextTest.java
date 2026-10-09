@@ -9,6 +9,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
+import org.apache.pekko.actor.ActorSystem;
 import org.junit.Before;
 import org.junit.Test;
 import play.api.http.HttpConfiguration;
@@ -102,6 +104,15 @@ public class BuiltInComponentsFromContextTest {
   @Test
   public void shouldProvidePekkoActorSystem() {
     assertThat(this.componentsFromContext.actorSystem()).isNotNull();
+  }
+
+  @Test
+  public void shouldTerminatePekkoActorSystemWhenApplicationLifecycleStops() throws Exception {
+    ActorSystem actorSystem = this.componentsFromContext.actorSystem();
+
+    this.componentsFromContext.applicationLifecycle().asScala().stop();
+
+    actorSystem.getWhenTerminated().toCompletableFuture().get(10, TimeUnit.SECONDS);
   }
 
   @Test
