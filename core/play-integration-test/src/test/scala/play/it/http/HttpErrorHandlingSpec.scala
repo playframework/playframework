@@ -13,6 +13,7 @@ import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.http.HttpErrorConfig
 import play.api.http.HttpErrorHandler
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.test.ApplicationFactories
@@ -35,7 +36,11 @@ class HttpErrorHandlingSpec
       filters: Seq[EssentialFilter]
   ): ApplicationFactory = new ApplicationFactory {
     override def create(): Application = {
-      val components = new BuiltInComponentsFromContext(applicationContext) {
+      // Each application needs its own lifecycle, as stopping it stops everything that registered a stop hook, like
+      // the actor system
+      val components = new BuiltInComponentsFromContext(
+        applicationContext.copy(lifecycle = new DefaultApplicationLifecycle())
+      ) {
         // Add the web command handler if it is available
         webCommandHandler.foreach(super.webCommands.addHandler)
 
