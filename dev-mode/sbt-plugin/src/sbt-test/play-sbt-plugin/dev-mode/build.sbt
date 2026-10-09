@@ -7,7 +7,10 @@ lazy val root = (project in file("."))
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     PlayKeys.fileWatchService    := play.dev.filewatch.FileWatchService.polling(500),
     libraryDependencies += guice,
-    TaskKey[Unit]("resetReloads")   := (baseDirectory.value / "target" / "reload.log").delete(),
+    TaskKey[Unit]("resetReloads") := {
+      (baseDirectory.value / "target" / "reload.log").delete()
+      (baseDirectory.value / "target" / "stop.log").delete()
+    },
     InputKey[Unit]("verifyReloads") := {
       val expected = Def.spaceDelimited().parsed.head.toInt
       val actual   = IO.readLines(baseDirectory.value / "target" / "reload.log").count(_.nonEmpty)
@@ -15,6 +18,16 @@ lazy val root = (project in file("."))
         println(s"Expected and got $expected reloads")
       } else {
         sys.error(s"Expected $expected reloads but got $actual")
+      }
+    },
+    InputKey[Unit]("verifyStops") := {
+      val expected = Def.spaceDelimited().parsed.head.toInt
+      val stopLog  = baseDirectory.value / "target" / "stop.log"
+      val actual   = if (stopLog.exists) IO.readLines(stopLog).count(_.nonEmpty) else 0
+      if (expected == actual) {
+        println(s"Expected and got $expected stops")
+      } else {
+        sys.error(s"Expected $expected stops but got $actual")
       }
     },
     InputKey[Unit]("makeRequestWithHeader") := {

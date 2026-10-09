@@ -153,13 +153,18 @@ $ copy-file conf/application.conf conf/application.original
 $ copy-file changes/application.conf.1 conf/application.conf
 > verifyResourceContains / 500
 > verifyReloads 4
+# The previous applications got stopped, and the stop hooks of the application that failed to start have run too
+> verifyStops 4
 
 # Revert to the original application.conf
 $ sleep 1000
 $ copy-file conf/application.original conf/application.conf
 > verifyResourceContains / 200
+# The stop hooks of the application that failed to start don't run again
+> verifyStops 4
 
 > playStop
+> verifyStops 5
 
 # devSettings tests
 # -----------------
