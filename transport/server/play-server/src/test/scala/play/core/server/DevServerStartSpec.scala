@@ -17,6 +17,7 @@ import scala.concurrent.Promise
 
 import org.specs2.mutable.Specification
 import play.api.inject.DefaultApplicationLifecycle
+import play.api.Configuration
 
 class DevServerStartSpec extends Specification {
 
@@ -82,6 +83,37 @@ class DevServerStartSpec extends Specification {
         stopFailedApplication(lifecycle) must not(throwA[Throwable])
         started.await(10, TimeUnit.SECONDS) must beTrue
       } finally release.countDown()
+    }
+  }
+
+  "DevServerStart.failedApplicationStopTimeout" should {
+
+    def failedApplicationStopTimeout(settings: (String, Any)*) =
+      DevServerStart.failedApplicationStopTimeout(
+        Configuration.from(settings.toMap).withFallback(Configuration.reference)
+      )
+
+    "be Pekko's default phase timeout by default" in {
+      failedApplicationStopTimeout() must_== 5.seconds
+    }
+
+    "be the configured timeout of the service-stop phase" in {
+      failedApplicationStopTimeout(
+        "pekko.coordinated-shutdown.phases.service-stop.timeout" -> "30 s"
+      ) must_== 30.seconds
+    }
+
+    "be the configured default phase timeout if the service-stop phase has no timeout" in {
+      failedApplicationStopTimeout("pekko.coordinated-shutdown.default-phase-timeout" -> "10 s") must_== 10.seconds
+    }
+
+    "fall back to Pekko's default phase timeout if the timeout is invalid" in {
+      failedApplicationStopTimeout("pekko.coordinated-shutdown.phases.service-stop.timeout" -> "invalid") must_==
+        5.seconds
+    }
+
+    "fall back to Pekko's default phase timeout if the configuration doesn't contain one" in {
+      DevServerStart.failedApplicationStopTimeout(Configuration.empty) must_== 5.seconds
     }
   }
 }

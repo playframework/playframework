@@ -15,6 +15,7 @@ import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters._
+import scala.jdk.DurationConverters._
 import scala.util.control.NonFatal
 import scala.util.Failure
 import scala.util.Success
@@ -43,10 +44,10 @@ object DevServerStart {
   private val logger = Logger(getClass)
 
   /**
-   * How long to wait for the stop hooks of an application that failed to start. The same as Pekko's default phase
-   * timeout, which also applies to the stop hooks of an application that gets stopped.
+   * How long to wait for the stop hooks of an application that failed to start, if its configuration doesn't tell.
+   * The same as Pekko's default phase timeout.
    */
-  private val FailedApplicationStopTimeout: FiniteDuration = 5.seconds
+  private val DefaultFailedApplicationStopTimeout: FiniteDuration = 5.seconds
 
   /**
    * Provides an HTTPS-only server for the dev environment.
@@ -104,6 +105,20 @@ object DevServerStart {
   }
 
   /**
+   * How long to wait for the stop hooks of an application that failed to start. That's as long as they get when the
+   * application gets stopped, i.e. the timeout of the coordinated shutdown phase that runs them. Falls back to Pekko's
+   * default phase timeout if the configuration doesn't contain a valid timeout, so that this never fails.
+   */
+  private[server] def failedApplicationStopTimeout(configuration: Configuration): FiniteDuration =
+    Try {
+      val coordinatedShutdown = configuration.underlying.getConfig("pekko.coordinated-shutdown")
+      val phaseTimeout        = "phases.service-stop.timeout"
+      coordinatedShutdown
+        .getDuration(if (coordinatedShutdown.hasPath(phaseTimeout)) phaseTimeout else "default-phase-timeout")
+        .toScala
+    }.getOrElse(DefaultFailedApplicationStopTimeout)
+
+  /**
    * Stops the lifecycle of an application that failed to start. Components that got created before the failure,
    * like database connection pools, may have registered stop hooks already. As there is no application that could
    * be stopped, nothing else would run them.
@@ -115,7 +130,7 @@ object DevServerStart {
   private[server] def stopFailedApplication(
       lifecycle: DefaultApplicationLifecycle,
       classLoader: ClassLoader,
-      timeout: FiniteDuration = FailedApplicationStopTimeout
+      timeout: FiniteDuration
   ): Unit = {
     val stopped = Promise[Any]()
     val thread  = new Thread(
@@ -256,6 +271,8 @@ final class DevServerStart(
                 }
               }
             }
+            // How long to wait for the stop hooks if the application fails to start
+            var stopTimeout = DevServerStart.DefaultFailedApplicationStopTimeout
             try {
               if (lastState.isSuccess) {
                 println()
@@ -279,6 +296,7 @@ final class DevServerStart(
                   lifecycle = lifecycle,
                   devContext = Some(ApplicationLoader.DevContext(sourceMapper, buildLink))
                 )
+                stopTimeout = DevServerStart.failedApplicationStopTimeout(context.initialConfiguration)
                 val loader = ApplicationLoader(context)
                 loader.load(context)
               }
@@ -299,19 +317,19 @@ final class DevServerStart(
               lastState
             } catch {
               case e: PlayException =>
-                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader))
+                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader, stopTimeout))
                 lastState = Failure(e)
                 logExceptionAndGetResult(path, e)
                 lastState
 
               case e: LinkageError =>
-                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader))
+                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader, stopTimeout))
                 lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 logExceptionAndGetResult(path, e)
                 lastState
 
               case NonFatal(e) =>
-                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader))
+                lastLifecycle.foreach(DevServerStart.stopFailedApplication(_, projectClassloader, stopTimeout))
                 val useful: UsefulException = HttpErrorHandlerExceptions.throwableToUsefulException(
                   Some(sourceMapper),
                   isProd = false,
