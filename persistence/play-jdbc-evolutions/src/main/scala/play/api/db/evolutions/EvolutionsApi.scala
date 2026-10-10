@@ -406,23 +406,34 @@ class DatabaseEvolutions(
     }
 
     checkEvolutionsState()
+
+    // Split all scripts before recording any of them, so an invalid script doesn't leave an inconsistent state behind
+    val scriptStatements = scripts.map { script =>
+      try script.statements
+      catch {
+        case e: IllegalArgumentException =>
+          throw new IllegalArgumentException(s"Evolution ${script.evolution.revision}: ${e.getMessage}", e)
+      }
+    }
+
     implicit val connection = database.getConnection(autocommit = autocommit)
     var applying            = -1
     var lastScript: Script  = null
 
     try {
-      scripts.foreach { script =>
-        lastScript = script
-        applying = script.evolution.revision
-        logBefore(script)
-        // Execute script
-        script.statements.foreach { statement =>
-          logger.debug(s"Execute: $statement")
-          val start = System.currentTimeMillis()
-          execute(statement, false)
-          logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
-        }
-        logAfter(script)
+      scripts.zip(scriptStatements).foreach {
+        case (script, statements) =>
+          lastScript = script
+          applying = script.evolution.revision
+          logBefore(script)
+          // Execute script
+          statements.foreach { statement =>
+            logger.debug(s"Execute: $statement")
+            val start = System.currentTimeMillis()
+            execute(statement, false)
+            logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
+          }
+          logAfter(script)
       }
 
       if (!autocommit) {

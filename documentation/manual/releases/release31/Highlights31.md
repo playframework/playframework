@@ -14,6 +14,10 @@ Play WS now supports the [HTTP QUERY method](https://www.rfc-editor.org/rfc/rfc1
 
 Play's test browser (`TestBrowser`, used by `WithBrowser`) is now backed by [Selenide](https://selenide.org) instead of the archived FluentLenium project. This brings current Selenium (4.49) and HtmlUnit (5.x) versions, and with them support for current browsers and a fix for [CVE-2023-26119](https://nvd.nist.gov/vuln/detail/CVE-2023-26119). The commonly used browser methods like `goTo`, `url`, `pageSource`, `el` and `$` (including `$(...).click()` and `$(...).fill().with(...)`) keep working, elements are now Selenide elements which wait until they are ready, and `browser.selenide()` gives access to the complete Selenide API. Next to `HTMLUNIT` and `FIREFOX`, there are now also `CHROME`, `EDGE` and `SAFARI` constants to select the browser, and Chrome, Edge and Firefox run headless with `-Dselenide.headless=true`. See the [[migration guide|Migration31#FluentLenium-has-been-replaced-by-Selenide]] for details.
 
+### Splitting evolutions without escaping semicolons
+
+Evolution scripts can now contain comment lines like `-- !split-semicolon: never`, which change on which semicolons Play splits the following lines into statements. That keeps e.g. the body of a stored procedure together without escaping its semicolons as `;;`, and `-- !split-semicolon: last` only splits on semicolons that end a line. See [[Evolutions scripts|Evolutions#Evolutions-scripts]] for details.
+
 ### Typed request and forwarded metadata
 
 Play now keeps the selected remote identity, direct transport connection, and effective request scheme and authority as separate typed values. The model supports RFC 7239 unknown and obfuscated identities, retained forwarding paths and `by` nodes, trusted forwarded hosts and schemes, endpoint ports, and identity-aware IP filtering.
