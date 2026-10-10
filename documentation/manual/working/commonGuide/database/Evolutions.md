@@ -60,6 +60,32 @@ The **Ups** and **Downs** parts are delimited by using a standard, single-line S
 
 > Play splits your `.sql` files into a series of semicolon-delimited statements before executing them one-by-one against the database. So if you need to use a semicolon *within* a statement, escape it by entering `;;` instead of `;`. For example, `INSERT INTO punctuation(name, character) VALUES ('semicolon', ';;');`.
 
+Escaping every semicolon can be cumbersome, e.g. in the body of a stored procedure, or in many statements with semicolons in their strings. Instead, a comment line containing `!split-semicolon:` and a mode changes on which semicolons Play splits the following lines, until the next such comment line, or the end of the **Ups** or **Downs** part:
+
+- `always`, the default: on every semicolon
+- `never`: on no semicolon
+- `last`: only on a semicolon that ends a line
+
+```sql
+-- !Ups
+
+CREATE PROCEDURE add_user(IN p_email VARCHAR(255))
+-- !split-semicolon: never
+BEGIN
+  INSERT INTO User (email) VALUES (p_email);
+  UPDATE UserStats SET count = count + 1;
+-- !split-semicolon: always
+END;
+
+-- !split-semicolon: last
+INSERT INTO punctuation(name, character) VALUES ('semicolon', ';');
+INSERT INTO punctuation(name, character) VALUES ('comma', ',');
+```
+
+These comment lines don't get sent to the database. With `never` and `last`, Play takes the lines as they are, so `;;` doesn't stand for a single `;` there. An unknown mode is reported as an error before Play applies any of the evolutions.
+
+Play looks at each line on its own, without parsing SQL: with `last`, a semicolon followed by a comment on the same line doesn't end the statement, but a semicolon at the end of a line within a multi-line string does. Likewise, a line within a multi-line string that looks like a `!split-semicolon:` comment changes the mode.
+
 Evolutions are automatically activated if a database is configured in `application.conf` and evolution scripts are present. You can disable them by setting `play.evolutions.enabled=false`. For example when tests set up their own database you can disable evolutions for the test environment.
 
 When evolutions are activated, Play will check your database schema state before each request in DEV mode, or before starting the application in PROD mode. In DEV mode, if your database schema is not up to date, an error page will suggest that you synchronize your database schema by running the appropriate SQL script.
