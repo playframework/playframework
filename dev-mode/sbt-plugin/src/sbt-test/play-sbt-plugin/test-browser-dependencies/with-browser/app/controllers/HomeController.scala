@@ -8,7 +8,10 @@ import jakarta.inject.Inject
 import play.api.mvc._
 
 class HomeController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
-  def index = Action {
-    Ok("<html><body><h1 id=\"greeting\">Hello browser</h1></body></html>").as(HTML)
+  def index = Action { request =>
+    val email = request.getQueryString("email").getOrElse("")
+    Ok(s"""<html><body><h1 id="greeting">Hello browser</h1>
+          |<form id="form" method="get" action="/"><input name="email"></form>
+          |<p id="received">$email</p></body></html>""".stripMargin).as(HTML)
   }
 }

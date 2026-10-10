@@ -12,6 +12,14 @@ class WithoutBrowserSpec extends PlaySpecification {
       Class.forName("org.openqa.selenium.firefox.FirefoxDriver") must throwA[ClassNotFoundException]
     }
 
+    "allow extending PlayRunners without browser dependencies" in {
+      val runners = new PlayRunners {}
+      val app     = runners.baseApplicationBuilder.build()
+      runners.running(app) {
+        app.mode must equalTo(play.api.Mode.Test)
+      }
+    }
+
     "run an application" in new WithApplication() {
       override def running() = {
         app.mode must equalTo(play.api.Mode.Test)

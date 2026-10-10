@@ -19,7 +19,6 @@ import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 import org.openqa.selenium.support.ui.FluentWait
 import play.test.AbstractTestBrowser
-import play.test.BrowserElements
 
 /**
  * A test browser (Using Selenium WebDriver) backed by Selenide (https://selenide.org).
@@ -31,23 +30,7 @@ import play.test.BrowserElements
 case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
     extends AbstractTestBrowser(webDriver, baseUrl.orNull) {
 
-  /**
-   * Submits a form with the given field values
-   *
-   * @example {{{
-   *   submit("#login", fields =
-   *     "email" -> email,
-   *     "password" -> password
-   *   )
-   * }}}
-   */
-  def submit(selector: String, fields: (String, String)*): BrowserElements = {
-    fields.foreach {
-      case (fieldName, fieldValue) =>
-        $(s"$selector *[name=${TestBrowser.cssString(fieldName)}]").fill().`with`(fieldValue)
-    }
-    $(selector).submit()
-  }
+  // submit is inherited from the Java base class so loading TestBrowser's Scala signature doesn't require Selenide.
 
   /**
    * Repeatedly applies this instance's input value to the given block until one of the following occurs:
@@ -103,10 +86,6 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String])
  * Helper utilities to build TestBrowsers
  */
 object TestBrowser {
-
-  // Quotes a value for use in a CSS attribute selector, like [name="value"]
-  private def cssString(value: String): String =
-    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
   /**
    * Creates an in-memory WebBrowser (using HtmlUnit)
