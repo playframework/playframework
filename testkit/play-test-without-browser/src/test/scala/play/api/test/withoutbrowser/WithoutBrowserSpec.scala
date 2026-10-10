@@ -2,11 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
-package play.api.test
+package play.api.test.withoutbrowser
 
 import scala.concurrent.Future
 
 import play.api.mvc.Results
+import play.api.test._
 
 /**
  * play-test and play-specs2 only declare the test browser's dependencies (Selenide, Selenium, HtmlUnit) as optional,
@@ -29,6 +30,14 @@ class WithoutBrowserSpec extends PlaySpecification {
 
     "allow using Helpers" in {
       Helpers.contentAsString(Future.successful(Results.Ok("hello"))) must_== "hello"
+    }
+
+    "allow extending PlayRunners without browser dependencies" in {
+      val runners = new PlayRunners {}
+      val app     = runners.baseApplicationBuilder.build()
+      runners.running(app) {
+        app.mode must_== play.api.Mode.Test
+      }
     }
 
     "run WithApplication" in new WithApplication() {

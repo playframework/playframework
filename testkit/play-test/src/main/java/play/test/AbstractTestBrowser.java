@@ -13,6 +13,8 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import org.openqa.selenium.By;
@@ -23,6 +25,9 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
+import scala.Tuple2;
+import scala.collection.immutable.Seq;
+import scala.jdk.javaapi.CollectionConverters;
 
 /**
  * Base class of Play's test browsers ({@link play.test.TestBrowser} and {@code
@@ -229,6 +234,41 @@ public abstract class AbstractTestBrowser {
    */
   public BrowserElements find(By locator) {
     return $(locator);
+  }
+
+  /**
+   * Submits a form with the given field names and values.
+   *
+   * @param selector the form selector.
+   * @param fields field name/value pairs, e.g. {@code "email" -> "user@example.com"} in Scala.
+   * @return the form elements.
+   */
+  @SuppressWarnings("unchecked")
+  public BrowserElements submit(String selector, Tuple2<String, String>... fields) {
+    return submitFields(selector, Arrays.asList(fields).iterator());
+  }
+
+  /**
+   * Submits a form with the given field names and values.
+   *
+   * @param selector the form selector.
+   * @param fields field name/value pairs.
+   * @return the form elements.
+   */
+  public BrowserElements submit(String selector, Seq<Tuple2<String, String>> fields) {
+    return submitFields(selector, CollectionConverters.asJava(fields.iterator()));
+  }
+
+  private BrowserElements submitFields(String selector, Iterator<Tuple2<String, String>> fields) {
+    while (fields.hasNext()) {
+      Tuple2<String, String> field = fields.next();
+      $(selector + " *[name=" + cssString(field._1()) + "]").fill().with(field._2());
+    }
+    return $(selector).submit();
+  }
+
+  private static String cssString(String value) {
+    return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
   }
 
   /* ---------------------------- Scripts ---------------------------- */

@@ -186,6 +186,8 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
+    // Keep Scala named arguments for the browser methods inherited from the Java base class.
+    Compile / javacOptions += "-parameters",
     libraryDependencies ++= testDependencies ++ testBrowserDependencies.map(_ % Optional) ++
       Seq(h2database, assertj).map(_ % "test"),
     (Test / parallelExecution) := false

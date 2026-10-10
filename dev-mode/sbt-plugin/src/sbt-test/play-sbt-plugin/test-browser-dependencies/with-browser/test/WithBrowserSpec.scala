@@ -11,6 +11,9 @@ class WithBrowserSpec extends PlaySpecification {
       override def running() = {
         browser.goTo("/")
         browser.el("#greeting").getText must equalTo("Hello browser")
+        val fields = Seq("email" -> "consumer@example.com")
+        browser.submit(selector = "#form", fields = fields: _*)
+        browser.el("#received").getText must equalTo("consumer@example.com")
       }
     }
   }
