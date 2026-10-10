@@ -244,7 +244,7 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val selenideVersion = "7.18.2"
+  val selenideVersion = "7.19.0"
   // HtmlUnitDriver is not part of Selenium/Selenide, but it is still the default browser of Play's TestBrowser.
   val htmlunitDriverVersion = "4.48.0"
 
