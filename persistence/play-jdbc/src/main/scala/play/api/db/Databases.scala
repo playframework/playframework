@@ -15,6 +15,7 @@ import scala.util.control.NonFatal
 import com.typesafe.config.Config
 import play.api.Configuration
 import play.api.Environment
+import play.api.Logger
 import play.utils.ProxyDriver
 import play.utils.Reflect
 
@@ -112,6 +113,8 @@ object Databases {
  * Provides driver registration and connection methods.
  */
 abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
+  import DefaultDatabase._
+
   private val config                 = Configuration(configuration)
   val databaseConfig: DatabaseConfig = DatabaseConfig.fromConfig(config, environment)
 
@@ -195,7 +198,7 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
           connection.commit()
           throw e
         case e: Throwable =>
-          connection.rollback()
+          rollbackQuietly(connection)
           throw e
       }
     }
@@ -214,11 +217,39 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
           connection.commit()
           throw e
         case e: Throwable =>
-          connection.rollback()
+          rollbackQuietly(connection)
           throw e
       } finally {
-        connection.setTransactionIsolation(oldIsolationLevel)
+        restoreIsolationLevelQuietly(connection, oldIsolationLevel)
       }
+    }
+  }
+
+  private def rollbackQuietly(connection: Connection): Unit = {
+    try {
+      if (!connection.isClosed) {
+        // attempt to do things in a clean way, with explicit rollback
+        connection.rollback()
+      }
+    } catch {
+      // we failed to rollback: the connection handle is dead anyways
+      // it will be, or has already been, rollbacked server-side
+      // swallow the exception so we can throw the original one from the block statement
+      case NonFatal(ex) =>
+        logger.warn(s"Could not rollback transaction on database [$name], its connection is likely already dead", ex)
+    }
+  }
+
+  private def restoreIsolationLevelQuietly(connection: Connection, isolationLevel: Int): Unit = {
+    try {
+      if (!connection.isClosed) {
+        connection.setTransactionIsolation(isolationLevel)
+      }
+    } catch {
+      // the connection is already dead, its isolation level no longer matters
+      // swallow the exception so we can throw the original one from the block statement
+      case NonFatal(ex) =>
+        logger.warn(s"Could not restore transaction isolation level on database [$name]", ex)
     }
   }
 
@@ -232,6 +263,10 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
   def deregisterDriver(): Unit = {
     driver.foreach(DriverManager.deregisterDriver)
   }
+}
+
+object DefaultDatabase {
+  private val logger = Logger(classOf[DefaultDatabase])
 }
 
 /**
