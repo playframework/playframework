@@ -1,0 +1,5 @@
+# Without play-test-browser, the tests don't get the test browser's dependencies, but Play's test helpers work
+> withoutBrowser/test
+
+# With play-test-browser, the test browser works
+> withBrowser/test

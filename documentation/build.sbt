@@ -125,6 +125,7 @@ lazy val main = Project("Play-Documentation", file("."))
     playDocs,
     playProject("Play")                       % "test",
     playProject("Play-Specs2")                % "test",
+    playProject("Play-Test-Browser")          % "test",
     playProject("Play-Java")                  % "test",
     playProject("Play-Java-Forms")            % "test",
     playProject("Play-Java-JPA")              % "test",
