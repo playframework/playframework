@@ -6,7 +6,7 @@ resolvers += Resolver.sonatypeCentralSnapshots
 
 // when updating sbtNativePackager version, be sure to also update the documentation links in
 // documentation/manual/working/commonGuide/production/Deploying.md
-val sbtNativePackager  = "1.12.0"
+val sbtNativePackager  = "1.13.0"
 val mima               = "1.2.1"
 val sbtJavaFormatter   = "0.14.0"
 val sbtJmh             = "0.4.8"
