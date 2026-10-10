@@ -50,7 +50,90 @@ trait AssetsSpec extends PlaySpecification with WsTestClient with ServerIntegrat
       } { implicit port => withClient(block) }
     }
 
+    def withServerFallback[T](
+        fallback: String = "fallbackasset.txt",
+        versioned: Boolean = false,
+        additionalConfig: Option[String] = None
+    )(block: WSClient => T): T = {
+      Server.withApplicationFromContext(ServerConfig(mode = Mode.Prod, port = Some(0))) { context =>
+        new BuiltInComponentsFromContext(context) with AssetsComponents with HttpFiltersComponents {
+
+          override def configuration: Configuration = additionalConfig match {
+            case Some(s) => Configuration(ConfigFactory.parseString(s)).withFallback(super.configuration)
+            case None    => super.configuration
+          }
+
+          override def router: Router = Router.from {
+            case req if versioned => assets.versioned("/testassets", Assets.Asset(req.path), fallback)
+            case req              => assets.at("/testassets", req.path, fallback)
+          }
+
+          defaultCacheControl = configuration.get[Option[String]]("play.assets.defaultCache")
+          aggressiveCacheControl = configuration.get[Option[String]]("play.assets.aggressiveCache")
+        }.application
+      } { implicit port =>
+        withClient(block)
+      }
+    }
+
     val etagPattern = """([wW]/)?"([^"]|\\")*""""
+
+    "serve an asset with fallback" in withServerFallback() { client =>
+      val result = await(client.url("/bar.txt").get())
+
+      result.status must_== OK
+      result.body[String] must_== "This is a test asset."
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+      result.header(ETAG) must beSome(matching(etagPattern))
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
+    }
+
+    "serve a fallback for a missing versioned asset" in withServerFallback(versioned = true) { client =>
+      val result = await(client.url("/nonexistantfile.txt").get())
+
+      result.status must_== OK
+      result.body[String] must_== "fallbackasset"
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+      result.header(ETAG) must beSome(matching(etagPattern))
+      result.header(LAST_MODIFIED) must beSome
+      result.header(CACHE_CONTROL) must beSome("no-cache")
+    }
+
+    "not treat a dynamically created empty fallback as a file" in withServerFallback(
+      fallback = new String(Array.empty[Char])
+    ) { client =>
+      val result = await(client.url("/nonexistantfile.txt").get())
+
+      result.status must_== NOT_FOUND
+    }
+
+    "serve a fallback without caching it" in withServerFallback(
+      additionalConfig = Some("play.assets.cache.\"/testassets/fallbackasset.txt\" = \"max-age=1234\"")
+    ) { client =>
+      val result = await(client.url("/nonexistantfile.txt").get())
+
+      result.status must_== OK
+      result.body[String] must_== "fallbackasset"
+      result.header(CONTENT_TYPE) must beSome(startWith("text/plain"))
+      result.header(ETAG) must beSome(matching(etagPattern))
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must beSome("no-cache")
+    }
+
+    "serve a versioned asset with normal caching when fallback is configured" in withServerFallback(
+      versioned = true
+    ) { client =>
+      val result = await(client.url("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
+
+      result.status must_== OK
+      result.body[String] must_== "This is a test asset."
+      result.header(CACHE_CONTROL) must_== aggressiveCacheControl
+    }
 
     "serve an asset" in withServer() { client =>
       val result = await(client.url("/bar.txt").get())
