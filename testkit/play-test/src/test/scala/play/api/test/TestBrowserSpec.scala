@@ -173,6 +173,13 @@ class TestBrowserSpec extends Specification {
       browser.el("#result").text() must_== "email=coco@example.com&items[0]=first"
     }
 
+    "submit forms through a method reference with a Scala sequence" in withBrowser { browser =>
+      browser.goTo("/")
+      val submit: (String, Seq[(String, String)]) => play.test.BrowserElements = browser.submit
+      submit("#form", Seq("email" -> "coco@example.com", "items[0]" -> "first"))
+      browser.el("#result").text() must_== "email=coco@example.com&items[0]=first"
+    }
+
     "submit forms without field values" in withBrowser { browser =>
       browser.goTo("/")
       browser.submit("#form")
