@@ -32,6 +32,11 @@ class WithoutBrowserSpec extends PlaySpecification {
       Helpers.contentAsString(Future.successful(Results.Ok("hello"))) must_== "hello"
     }
 
+    "allow building pairs with ->" in {
+      // Scala 3.10 failed to compile this without Selenide while TestBrowser.submit was defined in Scala
+      ("email" -> "user@example.com")._1 must_== "email"
+    }
+
     "allow extending PlayRunners without browser dependencies" in {
       val runners = new PlayRunners {}
       val app     = runners.baseApplicationBuilder.build()

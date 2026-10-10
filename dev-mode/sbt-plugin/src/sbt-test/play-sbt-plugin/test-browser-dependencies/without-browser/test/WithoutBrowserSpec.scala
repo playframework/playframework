@@ -12,6 +12,11 @@ class WithoutBrowserSpec extends PlaySpecification {
       Class.forName("org.openqa.selenium.firefox.FirefoxDriver") must throwA[ClassNotFoundException]
     }
 
+    "allow building pairs with ->" in {
+      // Scala 3.10 failed to compile this without Selenide while TestBrowser.submit was defined in Scala
+      ("email" -> "user@example.com")._1 must equalTo("email")
+    }
+
     "allow extending PlayRunners without browser dependencies" in {
       val runners = new PlayRunners {}
       val app     = runners.baseApplicationBuilder.build()
