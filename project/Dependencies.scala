@@ -130,7 +130,7 @@ object Dependencies {
   ).map(_ % Test)
 
   val guiceVersion = "7.0.0"
-  val asmVersion   = "9.10.1"
+  val asmVersion   = "9.11"
   val guiceDeps    = Seq(
     ("com.google.inject" % "guice" % guiceVersion).classifier("classes"),
     // Keep assistedinject from pulling the default shaded Guice jar alongside the unshaded classes classifier.
