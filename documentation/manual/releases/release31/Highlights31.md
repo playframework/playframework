@@ -18,6 +18,8 @@ Play's test browser (`TestBrowser`, used by `WithBrowser`) is now backed by [Sel
 
 Evolution scripts can now contain comment lines like `-- !split-semicolon: never`, which change on which semicolons Play splits the following lines into statements. That keeps e.g. the body of a stored procedure together without escaping its semicolons as `;;`, and `-- !split-semicolon: last` only splits on semicolons that end a line. See [[Evolutions scripts|Evolutions#Evolutions-scripts]] for details.
 
+Play Ebean 9 uses this for the evolution scripts it generates, so that they now also work with Ebean's stored procedures on MySQL, MariaDB and SQL Server, its triggers for `@History`, and Oracle's PL/SQL blocks for sequences. If a production database already uses such a generated script, see the [[migration guide|Migration31#Play-Ebean-9-writes-generated-evolution-scripts-differently]] before you upgrade Play Ebean.
+
 ### Typed request and forwarded metadata
 
 Play now keeps the selected remote identity, direct transport connection, and effective request scheme and authority as separate typed values. The model supports RFC 7239 unknown and obfuscated identities, retained forwarding paths and `by` nodes, trusted forwarded hosts and schemes, endpoint ports, and identity-aware IP filtering.
