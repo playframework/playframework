@@ -237,3 +237,16 @@ When Play can send an error Close in response to a malformed peer Close frame, i
 sending the error and does not wait for another Close acknowledgement.
 
 Applications that create raw `CloseMessage` values should avoid sending reserved status codes such as `1005`, `1006`, and `1015`, and should keep Close reasons short enough to fit in 123 UTF-8 bytes.
+
+### Play Ebean 9 writes generated evolution scripts differently
+
+Upgrading Play alone doesn't change any evolution script: Play splits scripts without `!split-semicolon` comments exactly as before (see [[Evolutions scripts|Evolutions#Evolutions-scripts]]).
+
+[Play Ebean](https://github.com/playframework/play-ebean) 9, the version for Play 3.1, however uses these comments in the evolution script `conf/evolutions/<server>/1.sql`, which it generates from the models in dev and test mode, as long as the script starts with the `-- Created by Ebean DDL` comment. So that Play runs Ebean's statements with semicolons as a whole, like the stored procedures on MySQL, MariaDB and SQL Server, the triggers for `@History`, or Oracle's PL/SQL blocks for sequences, Play Ebean 9 writes the script differently where Ebean's DDL contains such statements.
+
+If a production database already uses such a generated script, stop Play Ebean from regenerating it before you upgrade Play Ebean, or run the application in dev mode or its tests again:
+
+* Remove the `-- Created by Ebean DDL` comment (both lines) from the script. This doesn't change the evolution itself.
+* Or turn off generating the script of that Ebean server with `play.ebean.db.<server>.generateEvolutionsScripts = false` (in the Play Ebean releases after 8.5.0, 7.5.0 and 9.0.0-M2), or of all Ebean servers with `play.ebean.generateEvolutionsScripts = false`.
+
+Then write further changes as new evolution scripts (`2.sql` and so on). Otherwise, the next dev mode start or test run can rewrite `1.sql`, and Play then sees a changed evolution, which it can only apply by first reverting the applied one with its down script, which drops Ebean's tables. In production, Play then refuses to start, unless it's allowed to apply downs automatically (`autoApplyDowns`), in which case it drops the tables. See [[Generating evolution scripts|JavaEbean#Generating-evolution-scripts]] in the Play Ebean documentation.
