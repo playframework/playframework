@@ -95,7 +95,7 @@ Both test browsers are now backed by [Selenide](https://selenide.org), which is 
 
 #### Dependency changes
 
-`play-test` now depends on `com.codeborne:selenide-core`, `org.seleniumhq.selenium:selenium-java` (Selenium 4.51), and `org.seleniumhq.selenium:htmlunit3-driver`, which uses HtmlUnit 5 (group id `org.htmlunit`). The `io.fluentlenium`, `org.seleniumhq.selenium:htmlunit-driver` and `net.sourceforge.htmlunit` dependencies have been removed.
+`play-test` now depends on `com.codeborne:selenide-core` (which brings Selenium 4.51 via `selenium-java`) and on `org.seleniumhq.selenium:htmlunit3-driver`, which uses HtmlUnit 5 (group id `org.htmlunit`). The `io.fluentlenium`, `org.seleniumhq.selenium:htmlunit-driver` and `net.sourceforge.htmlunit` dependencies have been removed.
 
 * If your build adds FluentLenium itself, remove it: FluentLenium 6.0.0 does not work with Selenium 4.17 or newer.
 * If your build pins Selenium or `htmlunit-driver` versions (for example for older [ScalaTest + Play](https://github.com/playframework/scalatestplus-play) versions), remove those pins or upgrade them. Do not mix `htmlunit-driver` and `htmlunit3-driver`: both contain the class `org.openqa.selenium.htmlunit.HtmlUnitDriver`.

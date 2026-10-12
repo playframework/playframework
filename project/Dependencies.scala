@@ -244,17 +244,14 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val selenideVersion = "7.18.2"
-  val seleniumVersion = "4.51.0"
+  val selenideVersion = "7.19.0"
   // HtmlUnitDriver is not part of Selenium/Selenide, but it is still the default browser of Play's TestBrowser.
   val htmlunitDriverVersion = "4.51.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
     // selenide-core contains only the instance based API (SelenideDriver), without the static Selenide/WebDriverRunner
     // facade which keeps browsers in ThreadLocals. It brings selenium-java.
-    "com.codeborne" % "selenide-core" % selenideVersion,
-    // Align Selenium's drivers with the version required by HtmlUnitDriver.
-    "org.seleniumhq.selenium" % "selenium-java"    % seleniumVersion,
+    "com.codeborne"           % "selenide-core"    % selenideVersion,
     "org.seleniumhq.selenium" % "htmlunit3-driver" % htmlunitDriverVersion,
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
 
