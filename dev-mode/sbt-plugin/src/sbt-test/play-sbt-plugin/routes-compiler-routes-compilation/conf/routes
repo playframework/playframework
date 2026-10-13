@@ -154,3 +154,74 @@ GET         /reverse/non-fixed              controllers.Application.reverse(b: B
 # This triggers a string interpolation warning, since there is an identifier called "routes" in scope, and it
 # generates a non interpolated string containing $routes. As does this comment.
 GET         /intwarn/:routes                controllers.Application.interpolatorWarning(routes)
+
+### Java request
+# Java style actions which get the request passed (`Request` or `play.mvc.Http.Request` parameter), combined with
+# other routes features
+GET         /java-request                   controllers.JavaRequestController.index(r: Request)
+POST        /java-request/post              controllers.JavaRequestController.post(req: play.mvc.Http.Request)
+GET         /java-request/with/:param       controllers.JavaRequestController.withParam(request: Request, param)
+
+GET         /java-request/instance          @controllers.JavaRequestInstanceController.index(request: Request)
+
+GET         /java-request/users/:userId     controllers.JavaRequestController.user(userId: models.UserId, req: Request)
+GET         /java-request/query-user        controllers.JavaRequestController.queryUser(req: Request, userId: models.UserId)
+
+GET         /java-request/escapes/$i<\d+>   controllers.JavaRequestController.takeInt(req: Request, i: Integer)
+
+GET         /java-request/take-bool         controllers.JavaRequestController.takeBool(b: Boolean, req: Request)
+GET         /java-request/take-bool-2/:b    controllers.JavaRequestController.takeBool2(b: Boolean, req: Request)
+GET         /java-request/take-list         controllers.JavaRequestController.takeList(req: Request, x: java.util.List[Integer])
+GET         /java-request/take-java-list    controllers.JavaRequestController.takeJavaList(x: java.util.List[Integer], req: Request)
+
+GET         /java-request/urlcoding/:d/*s   controllers.JavaRequestController.urlcoding(d, s, req: Request, q)
+
+GET         /java-request/ident/:è27        controllers.πø7ß.ôü65tJavaRequest(req: Request, è27: Integer)
+
+GET         /java-request/hello             controllers.JavaRequestController.hello(req: Request)
+GET         /java-request/hello2            controllers.JavaRequestController.hello(req: Request)
+
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, abstract)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, case)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, catch)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, class)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, def)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, do)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, else)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, extends)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, false)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, final)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, finally)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, for)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, forSome)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, if)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, implicit)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, import)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, lazy)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, match)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, new)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, null)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, object)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, override)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, package)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, private)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, protected)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, return)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, sealed)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, super)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, this)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, throw)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, trait)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, try)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, true)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, type)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, val)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, var)
+GET         /java-request/routes            controllers.JavaRequestController.route(req: Request, while)
+GET         /java-request/routestest        controllers.JavaRequestController.routetest(req: Request, with)
+GET         /java-request/routestest        controllers.JavaRequestController.routetest(req: Request, yield)
+
+# Default value for a parameter that comes _after_ the request, see #8827
+GET         /java-request/routesdefault     controllers.JavaRequestController.routedefault(req: Request, type ?= "x")
+
+GET         /java-request/intwarn/:routes   controllers.JavaRequestController.interpolatorWarning(req: Request, routes)
