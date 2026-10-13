@@ -7,6 +7,7 @@ package controllers
 import scala.jdk.CollectionConverters._
 
 import jakarta.inject.Inject
+import models.OpaqueUserId
 import models.UserId
 import play.api.mvc._
 
@@ -24,6 +25,12 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
     Ok(userId.id)
   }
   def queryUser(userId: UserId) = Action {
+    Ok(userId.id)
+  }
+  def opaqueUser(userId: OpaqueUserId) = Action {
+    Ok(userId.id)
+  }
+  def opaqueQueryUser(userId: OpaqueUserId) = Action {
     Ok(userId.id)
   }
   def takeInt(i: Int) = Action {

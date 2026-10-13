@@ -6,6 +6,7 @@ package test
 
 import scala.concurrent.Future
 
+import models.OpaqueUserId
 import models.UserId
 import play.api.mvc.Result
 import play.api.test._
@@ -38,6 +39,25 @@ object RouterSpec extends PlaySpecification {
       controllers.routes.Application.user(UserId("foo%bar")).url must equalTo("/users/foo%25bar")
       // & is not special for path segments
       controllers.routes.Application.user(UserId("foo&bar")).url must equalTo("/users/foo&bar")
+    }
+  }
+
+  "support an opaque type parameter" in {
+    "reverse routing" in {
+      controllers.routes.Application.opaqueUser(OpaqueUserId("foo")).url must equalTo("/opaque-users/foo")
+      controllers.routes.Application
+        .opaqueQueryUser(OpaqueUserId("foo"))
+        .url must equalTo("/opaque-query-user?userId=foo")
+    }
+    "binding from the path" in new WithApplication() {
+      override def running() = {
+        contentAsString(route(implicitApp, FakeRequest(GET, "/opaque-users/foo")).get) must equalTo("foo")
+      }
+    }
+    "binding from the query string" in new WithApplication() {
+      override def running() = {
+        contentAsString(route(implicitApp, FakeRequest(GET, "/opaque-query-user?userId=foo")).get) must equalTo("foo")
+      }
     }
   }
 
