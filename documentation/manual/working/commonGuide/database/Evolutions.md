@@ -108,7 +108,7 @@ As already mentioned, evolution scripts by default are located in the `conf/evol
 play.evolutions.db.default.path = "db_migration"
 
 # Or, if you want to set the location for all databases
-play.evolutions.db.path = "db_migration"
+play.evolutions.path = "db_migration"
 ```
 
 Play can always load these scripts, because the content of the `conf` folder is on the classpath in development mode as well as [[in production|Production]].
