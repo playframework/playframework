@@ -2,8 +2,12 @@
  * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
  */
 
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
 import play.api.test._
 
+// The Gradle plugin's tests run this spec with JUnit
+@RunWith(classOf[JUnitRunner])
 class WithoutBrowserSpec extends PlaySpecification {
   "Tests without play-test-browser" should {
     "not get the test browser's dependencies" in {
