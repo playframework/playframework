@@ -251,6 +251,36 @@ package eagerplaymodule {
   }
 //#eager-play-module
 }
+package noscope {
+  import jakarta.inject.Singleton
+  import play.api.inject._
+  import play.api.Configuration
+  import play.api.Environment
+  import play.inject.guice.NoScope
+
+  trait Hello
+
+  @Singleton
+  class EnglishHello extends Hello
+
+//#no-scope-construction
+  class FreshHelloModule extends Module {
+    def bindings(environment: Environment, configuration: Configuration): Seq[Binding[?]] = Seq(
+      bind[Hello].to[EnglishHello].in[NoScope]
+    )
+  }
+//#no-scope-construction
+
+//#no-scope-self
+  class UnscopedHelloModule extends Module {
+    def bindings(environment: Environment, configuration: Configuration): Seq[Binding[?]] = Seq(
+      bind[Hello].to[EnglishHello],
+      bind[EnglishHello].toSelf.in[NoScope]
+    )
+  }
+//#no-scope-self
+}
+
 package injected.controllers {
   import jakarta.inject.Inject
   import play.api.mvc._

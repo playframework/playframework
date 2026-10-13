@@ -6,17 +6,22 @@ package play.api.inject
 package guice
 
 import java.io.File
+import java.lang.reflect.Constructor
 
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 import com.google.inject.{ Module => GuiceModule }
+import com.google.inject.spi.InjectionPoint
 import com.google.inject.util.{ Modules => GuiceModules }
 import com.google.inject.util.{ Providers => GuiceProviders }
 import com.google.inject.Binder
+import com.google.inject.ConfigurationException
 import com.google.inject.CreationException
 import com.google.inject.Guice
+import com.google.inject.Scopes
 import com.google.inject.Stage
+import com.google.inject.TypeLiteral
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 import play.api.inject.{ Binding => PlayBinding }
@@ -26,6 +31,7 @@ import play.api.Configuration
 import play.api.Environment
 import play.api.Mode
 import play.api.PlayException
+import play.inject.guice.NoScope
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
 
@@ -367,23 +373,67 @@ trait GuiceableModuleConversions {
    */
   def guice(bindings: Seq[PlayBinding[?]], binderOptions: Set[BinderOption]): GuiceModule = {
     new com.google.inject.AbstractModule {
+      private def noScopeConstructor(
+          binding: PlayBinding[Any],
+          implementationClass: Class[?],
+          requireAtInject: Boolean
+      ): Option[Constructor[Any]] = {
+        try {
+          Some(
+            InjectionPoint
+              .forConstructorOf(TypeLiteral.get(implementationClass), requireAtInject)
+              .getMember
+              .asInstanceOf[Constructor[Any]]
+          )
+        } catch {
+          case e: ConfigurationException =>
+            val errorBinder = binder().withSource(binding)
+            val requirement =
+              if (requireAtInject) "a constructor annotated with @Inject"
+              else "a constructor annotated with @Inject or a non-private no-argument constructor"
+            errorBinder.addError(
+              s"NoScope binding to ${implementationClass.getName} requires $requirement. " +
+                "Use a provider binding if the implementation cannot be constructed directly."
+            )
+            e.getErrorMessages.asScala.foreach(errorBinder.addError(_))
+            None
+        }
+      }
+
       override def configure(): Unit = {
         binderOptions.foreach(_(binder))
         for (b <- bindings) {
-          val binding = b.asInstanceOf[PlayBinding[Any]]
-          val builder = binder().withSource(binding).bind(GuiceKey(binding.key))
-          binding.target.foreach {
-            case ProviderTarget(provider)             => builder.toProvider(GuiceProviders.guicify(provider))
-            case ProviderConstructionTarget(provider) => builder.toProvider(provider)
-            case ConstructionTarget(implementation)   => builder.to(implementation)
-            case BindingKeyTarget(key)                => builder.to(GuiceKey(key))
+          val binding           = b.asInstanceOf[PlayBinding[Any]]
+          val noScope           = binding.scope.contains(classOf[NoScope])
+          val constructorTarget = binding.target.collect {
+            case ConstructionTarget(implementationClass) if noScope => implementationClass
           }
-          (binding.scope, binding.eager) match {
-            case (Some(scope), false) => builder.in(scope)
-            case (None, true)         => builder.asEagerSingleton()
-            case (Some(scope), true)  =>
-              throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
-            case _ => // do nothing
+          val constructor = constructorTarget.flatMap { implementationClass =>
+            noScopeConstructor(
+              binding,
+              implementationClass,
+              binderOptions.contains(BinderOption.RequireAtInjectOnConstructors)
+            )
+          }
+          // Do not leave an untargeted binding behind when constructor selection failed.
+          if (constructorTarget.isEmpty || constructor.isDefined) {
+            val builder = binder().withSource(binding).bind(GuiceKey(binding.key))
+            binding.target.foreach {
+              case ProviderTarget(provider)             => builder.toProvider(GuiceProviders.guicify(provider))
+              case ProviderConstructionTarget(provider) => builder.toProvider(provider)
+              // A linked binding would still consult the implementation key's own scope.
+              case ConstructionTarget(_) if noScope   => builder.toConstructor(constructor.get)
+              case ConstructionTarget(implementation) => builder.to(implementation)
+              case BindingKeyTarget(key)              => builder.to(GuiceKey(key))
+            }
+            (binding.scope, binding.eager) match {
+              case (Some(_), false) if noScope => builder.in(Scopes.NO_SCOPE)
+              case (Some(scope), false)        => builder.in(scope)
+              case (None, true)                => builder.asEagerSingleton()
+              case (Some(scope), true)         =>
+                throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
+              case _ => // do nothing
+            }
           }
         }
       }
