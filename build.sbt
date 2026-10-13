@@ -537,13 +537,12 @@ val sbtValidateCodeProp = sys.props += ("sbt_validateCode" -> List(
 ).mkString(";"))
 
 lazy val savePlayVersion = taskKey[Unit]("Save Play version")
-savePlayVersion := {
+savePlayVersion := Def.uncached {
   val props  = new Properties()
   val writer = new StringWriter()
   val file   = baseDirectory.value / "version.properties"
   props.setProperty("play.version", version.value)
   props.store(writer, "")
   IO.write(file, writer.getBuffer.toString)
-  Seq(file)
 }
 savePlayVersion / aggregate := false
