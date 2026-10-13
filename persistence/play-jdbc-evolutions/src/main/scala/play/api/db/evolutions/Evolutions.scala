@@ -197,8 +197,8 @@ object Evolutions {
       ups: String,
       downs: String
   )(implicit environment: Environment): Unit = {
-    val evolutions = environment.getFile(fileName(db, revision, path))
-    Files.createDirectory(environment.getFile(directoryName(db, path)).toPath)
+    val evolutions = file(fileName(db, revision, path))
+    Files.createDirectories(file(directoryName(db, path)).toPath)
     writeFileIfChanged(
       evolutions,
       """|-- %s
@@ -213,8 +213,17 @@ object Evolutions {
     )
   }
 
+  /**
+   * Resolves the location of an evolution script like the evolutions reader does: an absolute path as it is, any other
+   * path relative to the application's root folder.
+   */
+  private def file(path: String)(implicit environment: Environment): File = {
+    val p = Path.of(path)
+    if (p.isAbsolute) p.toFile else environment.getFile(path)
+  }
+
   private def writeFileIfChanged(path: File, content: String): Unit = {
-    if (content != PlayIO.readFileAsString(path.toPath)) {
+    if (!path.exists() || content != PlayIO.readFileAsString(path.toPath)) {
       writeFile(path, content)
     }
   }
