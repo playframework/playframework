@@ -149,14 +149,15 @@ object RouterSpec extends PlaySpecification {
         contentAsString(result) must equalTo("1,2,3")
       }
     }
-    "use a new instance for each instantiated controller" in new WithApplication() {
-      override def running() = {
-        route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
-          case result => contentAsString(result) must_== "1"
-        }
-        route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
-          case result => contentAsString(result) must_== "1"
-        }
+  }
+
+  "use a new instance for each instantiated controller" in new WithApplication() {
+    override def running() = {
+      route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
+        case result => contentAsString(result) must_== "1"
+      }
+      route(implicitApp, FakeRequest(GET, "/instance")) must beSome[Future[Result]].like {
+        case result => contentAsString(result) must_== "1"
       }
     }
   }
