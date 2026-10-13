@@ -247,6 +247,6 @@ Upgrading Play alone doesn't change any evolution script: Play splits scripts wi
 If a production database already uses such a generated script, stop Play Ebean from regenerating it before you upgrade Play Ebean, or run the application in dev mode or its tests again:
 
 * Remove the `-- Created by Ebean DDL` comment (both lines) from the script. This doesn't change the evolution itself.
-* Or turn off generating the script of that Ebean server with `play.ebean.db.<server>.generateEvolutionsScripts = false` (in the Play Ebean releases after 8.5.0, 7.5.0 and 9.0.0-M2), or of all Ebean servers with `play.ebean.generateEvolutionsScripts = false`.
+* Or turn off generating the script of that Ebean server with `play.ebean.db.<server>.generateEvolutionsScripts = false` (available since Play Ebean 8.6.0 and 7.6.0), or of all Ebean servers with `play.ebean.generateEvolutionsScripts = false`.
 
 Then write further changes as new evolution scripts (`2.sql` and so on). Otherwise, the next dev mode start or test run can rewrite `1.sql`, and Play then sees a changed evolution, which it can only apply by first reverting the applied one with its down script, which drops Ebean's tables. In production, Play then refuses to start, unless it's allowed to apply downs automatically (`autoApplyDowns`), in which case it drops the tables. See [[Generating evolution scripts|JavaEbean#Generating-evolution-scripts]] in the Play Ebean documentation.
