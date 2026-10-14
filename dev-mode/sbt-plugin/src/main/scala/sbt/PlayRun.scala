@@ -4,15 +4,16 @@
 
 package sbt
 
-import java.nio.file.Files
 import java.util.function.Supplier
 import java.util.Map as JMap
 
-import scala.annotation.tailrec
 import scala.collection.JavaConverters.*
 import scala.sys.process.*
+import scala.util.control.NonFatal
 
 import sbt.*
+import sbt.internal.ConsoleChannel
+import sbt.internal.ContinuousCommands
 import sbt.util.LoggerContext
 import sbt.Keys.*
 import sbt.LoggerCompat.*
@@ -119,6 +120,22 @@ object PlayRun {
 
     }
 
+    val compileOnChange =
+      if (isTriggeredRun(state)) {
+        new Runnable {
+          override def run(): Unit = {
+            try {
+              reloadCompile.get()
+              ()
+            } catch {
+              case NonFatal(e) =>
+                state.log.error("Error while compiling changed sources in triggered run.")
+                state.log.trace(e)
+            }
+          }
+        }
+      } else null
+
     lazy val devModeServer = DevServerRunner.startDevMode(
       runHooks.value.asJava,
       (Runtime / javaOptions).value.asJava,
@@ -137,7 +154,8 @@ object PlayRun {
       devSettings.value.toMap.asJava,
       args.asJava,
       (Compile / run / mainClass).value.get,
-      PlayRun
+      PlayRun,
+      compileOnChange
     )
 
     val serverDidStart = interaction match {
@@ -159,6 +177,13 @@ object PlayRun {
         true
     }
     (interaction, serverDidStart)
+  }
+
+  private[sbt] def isTriggeredRun(state: State): Boolean = {
+    val channelName = state.source.map(_.channelName).getOrElse(ConsoleChannel.defaultName)
+    StandardMain.exchange
+      .channelForName(channelName)
+      .exists(channel => ContinuousCommands.isInWatch(state, channel))
   }
 
   def playBgRunTask(): Def.Initialize[InputTask[JobHandle]] = Def.inputTask {

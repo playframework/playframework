@@ -79,20 +79,35 @@ class DevServerReloader implements BuildLink, Closeable {
       List<File> monitoredFiles,
       FileWatchService fileWatchService,
       Map<String, ? extends GeneratedSourceMapping> generatedSourceHandlers,
-      Object reloadLock) {
+      Object reloadLock,
+      Runnable onChange) {
     this.projectPath = projectPath;
     this.baseClassLoader = baseClassLoader;
     this.compile = compile;
     this.devSettings = devSettings;
     this.generatedSourceHandlers = generatedSourceHandlers;
     this.triggerReload = triggerReload;
+    this.reloadLock = reloadLock;
     if (!monitoredFiles.isEmpty() && fileWatchService != null) {
       // Create the watcher, updates the changed boolean when a file has changed:
-      this.watcher = fileWatchService.watch(monitoredFiles, () -> changed = true);
+      this.watcher =
+          fileWatchService.watch(
+              monitoredFiles,
+              () -> {
+                changed = true;
+                if (onChange != null) {
+                  synchronized (reloadLock) {
+                    withReloaderContextClassLoader(
+                        () -> {
+                          onChange.run();
+                          return null;
+                        });
+                  }
+                }
+              });
     } else {
       this.watcher = null;
     }
-    this.reloadLock = reloadLock;
   }
 
   /** Execute f with context ClassLoader of Reloader */
