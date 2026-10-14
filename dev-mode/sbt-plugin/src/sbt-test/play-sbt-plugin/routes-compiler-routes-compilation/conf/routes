@@ -224,4 +224,5 @@ GET         /java-request/routestest        controllers.JavaRequestController.ro
 # Default value for a parameter that comes _after_ the request, see #8827
 GET         /java-request/routesdefault     controllers.JavaRequestController.routedefault(req: Request, type ?= "x")
 
-GET         /java-request/intwarn/:routes   controllers.JavaRequestController.interpolatorWarning(req: Request, routes)
+# Separated by tabs on purpose, to cover tabs as separators in routes files
+GET					/java-request/intwarn/:routes   controllers.JavaRequestController.interpolatorWarning(req: Request, routes)
