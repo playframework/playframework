@@ -4,6 +4,7 @@
 
 package test;
 
+import static controllers.routes.Application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static play.mvc.Http.HttpVerbs.GET;
 import static play.mvc.Http.Status.INTERNAL_SERVER_ERROR;
@@ -44,6 +45,14 @@ public class ApplicationTest extends AbstractRoutesTest {
     var result = route(app, fakeRequest(GET, "/same-escaped-java-identifier?%5B%5D=a&%25%25=b"));
     assertThat(result.status()).isEqualTo(OK);
     assertThat(contentAsString(result)).isEqualTo("ab");
+  }
+
+  @Test
+  public void checkRootPrefixedController() {
+    var url = Application.rootPrefixedController().url();
+    assertThat(url).isEqualTo("/root-prefixed-controller");
+    var result = route(app, fakeRequest(GET, url));
+    assertThat(result.status()).isEqualTo(OK);
   }
 
   @Test
