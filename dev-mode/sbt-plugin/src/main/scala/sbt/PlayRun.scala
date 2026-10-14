@@ -4,15 +4,18 @@
 
 package sbt
 
-import java.nio.file.Files
+import java.io.Closeable
 import java.util.function.Supplier
 import java.util.Map as JMap
 
-import scala.annotation.tailrec
 import scala.collection.JavaConverters.*
 import scala.sys.process.*
 
 import sbt.*
+import sbt.internal.ConsoleChannel
+import sbt.internal.ContinuousCommands
+import sbt.nio.Keys.watchOnTermination
+import sbt.nio.Watch as NioWatch
 import sbt.util.LoggerContext
 import sbt.Keys.*
 import sbt.LoggerCompat.*
@@ -22,6 +25,7 @@ import com.typesafe.sbt.packager.Keys.executableScriptName
 import com.typesafe.sbt.web.SbtWeb.autoImport.*
 import play.runsupport.classloader.AssetsClassLoader
 import play.runsupport.CompileResult
+import play.runsupport.DevServer
 import play.runsupport.DevServerRunner
 import play.runsupport.DevServerSettings
 import play.runsupport.GeneratedSourceMapping
@@ -44,6 +48,73 @@ import xsbti.FileConverter
  * Provides mechanisms for running a Play application in sbt
  */
 object PlayRun {
+  private val continuousRun = settingKey[ContinuousRun]("The server owned by continuous execution of run.")
+
+  val playWatchSettings: Seq[Def.Setting[?]] = Def.settings(
+    continuousRun                      := new ContinuousRun,
+    Compile / run / watchOnTermination := {
+      val server   = continuousRun.value
+      val previous = (Compile / run / watchOnTermination).?.value.getOrElse(NioWatch.defaultCommandOnTermination)
+      (action, command, count, state) =>
+        try previous(action, command, count, state)
+        finally server.stop(watchChannelName(state))
+    }
+  )
+
+  private def channelName(state: State): String =
+    state.source.map(_.channelName).getOrElse(ConsoleChannel.defaultName)
+
+  private def watchChannelName(state: State): String =
+    state.currentCommand
+      .flatMap { exec =>
+        // sbt's cancellation and disconnect commands omit CommandSource. The channel
+        // being stopped is their argument, even when another channel issued the command.
+        Seq(ContinuousCommands.stopWatch, ContinuousCommands.failWatch)
+          .map(_ + " ")
+          .find(prefix => exec.commandLine.startsWith(prefix))
+          .map(prefix => exec.commandLine.stripPrefix(prefix).trim)
+      }
+      .getOrElse(channelName(state))
+
+  private def isTriggeredRun(state: State): Boolean =
+    StandardMain.exchange
+      .channelForName(channelName(state))
+      .exists(channel => ContinuousCommands.isInWatch(state, channel))
+
+  private class ContinuousRun {
+    private var current: Option[(String, DevServer)] = None
+
+    def start(channel: String, server: => Closeable): Boolean = synchronized {
+      current match {
+        case Some((owner, _)) =>
+          require(owner == channel, "Play is already running in another continuous execution.")
+          false
+        case None =>
+          current = Some(channel -> server.asInstanceOf[DevServer])
+          true
+      }
+    }
+
+    def compile(channel: String): Unit = synchronized {
+      current.filter(_._1 == channel).foreach(_._2.compile())
+    }
+
+    def stop(channel: String): Unit = synchronized {
+      current.filter(_._1 == channel).foreach {
+        case (_, server) =>
+          current = None
+          server.close()
+      }
+    }
+  }
+
+  private class ContinuousInteractionMode(server: ContinuousRun, channel: String)
+      extends PlayNonBlockingInteractionMode {
+    override def start(devServer: => Closeable): Boolean = server.start(channel, devServer)
+    override def stop(): Unit                            = server.stop(channel)
+    def compile(): Unit                                  = server.compile(channel)
+  }
+
   class TwirlSourceMapping extends GeneratedSourceMapping {
     def getOriginalLine(generatedSource: File, line: Integer): Integer = {
       MaybeGeneratedSource.unapply(generatedSource).map(_.mapLine(line): java.lang.Integer).orNull
@@ -82,7 +153,13 @@ object PlayRun {
 
     val state       = Keys.state.value
     val scope       = resolvedScoped.value.scope
-    val interaction = interactionMode.getOrElse(playInteractionMode.value)
+    val interaction = interactionMode.getOrElse {
+      if (isTriggeredRun(state)) new ContinuousInteractionMode(continuousRun.value, channelName(state))
+      else playInteractionMode.value
+    }
+
+    // Expose compilation's file inputs to sbt's watcher without compiling during ordinary run.
+    val _ = playReload.taskValue
 
     val reloadCompile: Supplier[CompileResult] = () => {
       // This code and the below Project.runTask(...) run outside of a user-called sbt command/task.
@@ -141,6 +218,10 @@ object PlayRun {
     )
 
     val serverDidStart = interaction match {
+      case continuous: ContinuousInteractionMode =>
+        val started = continuous.start(devModeServer)
+        continuous.compile()
+        started
       case nonBlocking: PlayNonBlockingInteractionMode => nonBlocking.start(devModeServer)
       case _                                           =>
         devModeServer

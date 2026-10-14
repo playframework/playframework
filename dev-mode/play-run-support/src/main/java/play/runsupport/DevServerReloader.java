@@ -58,6 +58,9 @@ class DevServerReloader implements BuildLink, Closeable {
   // Whether any source files have changed since the last request.
   private volatile boolean changed = false;
 
+  // A triggered compilation is kept until the next request. Accessed under reloadLock.
+  private CompileResult pendingCompile;
+
   // The last successful compile results. Used for rendering nice errors.
   private volatile Map<String, Source> currentSourceMap;
 
@@ -121,7 +124,8 @@ class DevServerReloader implements BuildLink, Closeable {
 
   private Object reload(boolean shouldReload) {
     // Run the reload task, which will trigger everything to compile
-    CompileResult compileResult = compile.get();
+    CompileResult compileResult = pendingCompile != null ? pendingCompile : compile.get();
+    pendingCompile = null;
     if (compileResult instanceof CompileFailure) {
       var result = (CompileFailure) compileResult;
       // We force reload next time because compilation failed this time
@@ -159,6 +163,15 @@ class DevServerReloader implements BuildLink, Closeable {
     }
   }
 
+  /** Compile eagerly, leaving application loading and reloading to the next request. */
+  public void compile() {
+    synchronized (reloadLock) {
+      changed = false;
+      pendingCompile = null;
+      pendingCompile = withReloaderContextClassLoader(compile);
+    }
+  }
+
   /**
    * Contrary to its name, this doesn't necessarily reload the app. It is invoked on every request,
    * and will only trigger a reload of the app if something has changed.
@@ -175,11 +188,14 @@ class DevServerReloader implements BuildLink, Closeable {
   public Object reload() {
     synchronized (reloadLock) {
       if (changed
+          || pendingCompile != null
           || (triggerReload != null && triggerReload.get())
           || forceReloadNextTime
           || currentSourceMap == null
           || currentApplicationClassLoader == null) {
         var shouldReload = forceReloadNextTime;
+        // A change after the eager compilation makes that result obsolete.
+        if (changed) pendingCompile = null;
         changed = false;
         forceReloadNextTime = false;
         // use Reloader context ClassLoader to avoid ClassLoader leaks in sbt/scala-compiler threads
@@ -232,9 +248,12 @@ class DevServerReloader implements BuildLink, Closeable {
   }
 
   public void close() {
-    currentApplicationClassLoader = null;
-    currentSourceMap = null;
     if (watcher != null) watcher.stop();
+    synchronized (reloadLock) {
+      currentApplicationClassLoader = null;
+      currentSourceMap = null;
+      pendingCompile = null;
+    }
   }
 
   public URLClassLoader getClassLoader() {

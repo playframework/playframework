@@ -54,6 +54,8 @@ You then need to import the application into your Workspace with the **File/Impo
 
 To debug, start your application with `sbt -jvm-debug 9999 run` and in Eclipse right-click on the project and select **Debug As**, **Debug Configurations**. In the **Debug Configurations** dialog, right-click on **Remote Java Application** and select **New**. Change **Port** to 9999 and click **Apply**. From now on you can click on **Debug** to connect to the running application. Stopping the debugging session will not stop the server.
 
+> **Tip**: Use `~run` to compile source and template changes as soon as you save them. This also makes newly created templates available to your IDE without first sending a request to the application.
+
 If you make any important changes to your application, such as changing the classpath, use `eclipse` again to regenerate the configuration files.
 
 > **Tip**: Do not commit Eclipse configuration files when you work in a team. To make that easier, add the following lines to your `.gitignore` file:

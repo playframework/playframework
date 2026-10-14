@@ -11,6 +11,9 @@ import play.core.BuildLink;
 public interface DevServer extends Closeable {
   BuildLink buildLink();
 
+  /** Compiles the application without loading it. The next request uses the compilation result. */
+  void compile();
+
   /** Reloads the application. */
   void reload();
 }

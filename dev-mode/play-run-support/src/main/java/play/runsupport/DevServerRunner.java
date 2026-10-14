@@ -169,6 +169,10 @@ public final class DevServerRunner {
           return reloader;
         }
 
+        public void compile() {
+          reloader.compile();
+        }
+
         public void reload() {
           server.reload();
         }
