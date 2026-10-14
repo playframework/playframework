@@ -123,9 +123,37 @@ case include @ Include(path, router) => {
   @if(rules.isEmpty) {
     return play.libs.Scala.emptyMap();
   } else {
-    return new JavaPartialFunction<>() @ob
+    // Avoid the inherited runWith signature clash between Scala library versions.
+    return new scala.PartialFunction<>() @ob
       @@Override
-      public Handler apply(RequestHeader _req, boolean isCheck) @ob
+      public boolean isDefinedAt(RequestHeader _req) @ob
+        try @ob
+          apply(_req, true);
+          return true;
+        @cb catch (JavaPartialFunction.NoMatchException e) @ob
+          return false;
+        @cb
+      @cb
+
+      @@Override
+      public Handler apply(RequestHeader _req) @ob
+        try @ob
+          return apply(_req, false);
+        @cb catch (JavaPartialFunction.NoMatchException e) @ob
+          throw new scala.MatchError(_req);
+        @cb
+      @cb
+
+      @@Override
+      public <A1 extends RequestHeader, B1> B1 applyOrElse(A1 _req, scala.Function1<A1, B1> defaultFunction) @ob
+        try @ob
+          return (B1) apply(_req, false);
+        @cb catch (JavaPartialFunction.NoMatchException e) @ob
+          return defaultFunction.apply(_req);
+        @cb
+      @cb
+
+      private Handler apply(RequestHeader _req, boolean isCheck) @ob
         if (_req != null) @ob
           scala.Option<RouteParams> params;
           scala.Option<Handler> include;
@@ -141,6 +169,9 @@ case include @ Include(path, router) => {
           @markLines(route)
           params = @(routeIdentifier(route, index))().unapply(_req);
           if (params.isDefined()) @ob
+            if (isCheck) @ob
+              return null;
+            @cb
             return call(
               @javaRouteBinding(route)
               @javaLocalNames(route)
@@ -152,11 +183,8 @@ case include @ Include(path, router) => {
           @cb
           }
         }}
-          if (isCheck) @ob
-            return null;
-          @cb
         @cb
-        throw noMatch();
+        throw Scala.noMatch();
       @cb
     @cb;
   }@cb
