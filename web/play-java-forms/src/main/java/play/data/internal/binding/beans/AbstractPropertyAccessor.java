@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import play.data.internal.binding.core.convert.ConversionService;
+import play.data.internal.binding.util.Assert;
 
 /**
  * Abstract implementation of the {@link PropertyAccessor} interface.
@@ -41,6 +42,8 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 	private boolean autoGrowNestedPaths = false;
 
 	private int autoGrowCollectionLimit = Integer.MAX_VALUE;
+
+	private AutoGrowBudget autoGrowBudget = new AutoGrowBudget(Integer.MAX_VALUE);
 
 	private ConversionService conversionService;
 
@@ -73,6 +76,17 @@ public abstract class AbstractPropertyAccessor implements ConfigurablePropertyAc
 	@Override
 	public int getAutoGrowCollectionLimit() {
 		return this.autoGrowCollectionLimit;
+	}
+
+	@Override
+	public void setAutoGrowBudget(AutoGrowBudget autoGrowBudget) {
+		Assert.notNull(autoGrowBudget, "AutoGrowBudget must not be null");
+		this.autoGrowBudget = autoGrowBudget;
+	}
+
+	@Override
+	public AutoGrowBudget getAutoGrowBudget() {
+		return this.autoGrowBudget;
 	}
 
 
