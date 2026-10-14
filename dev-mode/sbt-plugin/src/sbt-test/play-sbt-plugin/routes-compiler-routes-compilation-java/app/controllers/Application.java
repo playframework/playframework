@@ -119,4 +119,8 @@ public class Application extends Controller {
   public Result sameEscapedJavaIdentifier(String brackets, String percent) {
     return ok(brackets + percent);
   }
+
+  public Result rootPrefixedController() {
+    return ok();
+  }
 }

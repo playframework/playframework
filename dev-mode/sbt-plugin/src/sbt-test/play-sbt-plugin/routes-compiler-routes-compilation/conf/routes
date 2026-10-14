@@ -139,7 +139,8 @@ GET         /routestest                     controllers.Application.routetest(yi
 # Test for default values for scala keywords
 GET         /routesdefault                  controllers.Application.routedefault(type ?= "x")
 
-GET         /public/*file                   controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
+# Prefixed with "_root_." while namespaceReverseRouter keeps its default (false), see #10153
+GET         /public/*file                   _root_.controllers.Assets.versioned(path="/public", file: controllers.Assets.Asset)
 
 # Test for fixed values for scala keywords
 
