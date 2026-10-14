@@ -26,7 +26,12 @@ object JavaScriptRouterGenerator {
         Application.withParam,
         Application.takeBool,
         Application.takeOptionalInt,
-        Application.takeOptionalIntWithDefault
+        Application.takeOptionalIntWithDefault,
+        JavaRequestController.index,
+        JavaRequestController.post,
+        JavaRequestController.withParam,
+        JavaRequestController.takeBool,
+        JavaRequestController.takeList
       )
       .body
 

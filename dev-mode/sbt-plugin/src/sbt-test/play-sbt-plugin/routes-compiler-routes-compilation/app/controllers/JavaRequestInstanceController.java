@@ -4,9 +4,11 @@
 
 package controllers;
 
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
 
-public class InstanceController extends Controller {
+public class JavaRequestInstanceController extends Controller {
   private int invoked = 0;
 
   public Result index(Http.Request req) {
