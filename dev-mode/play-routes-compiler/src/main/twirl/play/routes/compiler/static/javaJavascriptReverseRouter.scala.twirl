@@ -50,9 +50,9 @@ public class JavaScriptReverseRoutes @ob
       return new JavaScriptReverseRoute(
       "@{packageName.map(_ + ".").getOrElse("")}@(controller).@(method)",
       "function @(javaReverseSignatureJavaScript(routes)) @ob\n" +
-        @for((route, constraints) <- javaJavascriptCollectNonDeadRoutes(routes)) {
+        @for((route, localNames, constraints) <- javaJavascriptCollectNonDeadRoutes(routes)) {
           "if (@constraints) @ob\n" +
-            @javaJavascriptCall(route) +
+            @javaJavascriptCall(route, localNames) +
           "\n@cb\n" +
         }
       "\n@cb\n"

@@ -131,4 +131,24 @@ public class Application extends Controller {
   public Result rootPrefixedProvider() {
     return ok();
   }
+
+  public Result renamedParams(String value) {
+    return ok(value);
+  }
+
+  public Result renamedQueryParam(String value) {
+    return ok(value);
+  }
+
+  public Result sharedFixedParams(String first, String second) {
+    return ok(first + ":" + second);
+  }
+
+  public Result fixedOnlyParams(String first, String second) {
+    return ok(first + ":" + second);
+  }
+
+  public Result unconstrainedFirst(String value) {
+    return ok(value);
+  }
 }
