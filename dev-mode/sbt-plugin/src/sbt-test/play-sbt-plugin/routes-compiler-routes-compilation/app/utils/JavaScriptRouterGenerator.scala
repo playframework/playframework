@@ -12,11 +12,13 @@ object JavaScriptRouterGenerator {
   import controllers.routes.javascript._
 
   def main(args: Array[String]): Unit = {
+    val host = if (args.length > 1) args(1) else "localhost"
+
     val jsFile = play.api.routing
       .JavaScriptReverseRouter(
         "jsRoutes",
         None,
-        "localhost",
+        host,
         Assets.versioned,
         Application.index,
         Application.reverse,
