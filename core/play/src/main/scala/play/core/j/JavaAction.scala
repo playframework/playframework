@@ -20,6 +20,7 @@ import play.api.http.ActionCompositionConfiguration
 import play.api.http.HttpConfiguration
 import play.api.inject.Injector
 import play.api.mvc._
+import play.api.mvc.request.RequestAttrKey
 import play.api.Logger
 import play.core.Execution.Implicits.trampoline
 import play.i18n.{ Langs => JLangs }
@@ -114,18 +115,31 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
   val executionContext: ExecutionContext = handlerComponents.executionContext
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
-    val javaRequest: JRequest = new JRequestImpl(req)
+    val javaRequest: JRequest            = new JRequestImpl(req)
+    val runActionCreatorAfterBodyParsing =
+      req.attrs.contains(RequestAttrKey.DeferredBodyParsing) && !config.executeActionCreatorActionFirst
 
     val rootAction = new JAction[Any] {
-      override def call(request: JRequest): CompletionStage[JResult] =
+      override def call(request: JRequest): CompletionStage[JResult] = {
         // It's totally OK to call parseBody(...) even when body parsing was not deferred because it won't do anything
         // if body was parsed already and just passes through
         BodyParser
           .parseBody(
             parser,
             request.asScala(),
-            (r: Request[?]) =>
-              invocation(r.asJava).toCompletableFuture.asScala
+            (r: Request[?]) => {
+              val actionInvocation = if (runActionCreatorAfterBodyParsing) {
+                val actionCreatorAction = handlerComponents.actionCreator.createAction(r.asJava, annotations.method)
+                val invocationAction    = new JAction[Any] {
+                  override def call(request: JRequest): CompletionStage[JResult] = invocation(request)
+                }
+                invocationAction.precursor = actionCreatorAction
+                actionCreatorAction.delegate = invocationAction
+                actionCreatorAction.call(r.asJava)
+              } else {
+                invocation(r.asJava)
+              }
+              actionInvocation.toCompletableFuture.asScala
                 .map(_.asScala())
                 .andThen { _ =>
                   // This andThen block is used to keep a reference to the request until invocation() is completed.
@@ -133,19 +147,22 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
                   // By keeping a reference to the request, it prevents the TemporaryFiles from becoming GC targets.
                   r
                 }(using trampoline)
+            }
           )(using executionContext)
           .map(_.asJava)
           .asJava
+      }
     }
-
-    val baseAction = handlerComponents.actionCreator.createAction(javaRequest, annotations.method)
 
     val endOfChainAction = if (config.executeActionCreatorActionFirst) {
       rootAction
-    } else {
+    } else if (!runActionCreatorAfterBodyParsing) {
+      val baseAction = handlerComponents.actionCreator.createAction(javaRequest, annotations.method)
       rootAction.precursor = baseAction
       baseAction.delegate = rootAction
       baseAction
+    } else {
+      rootAction
     }
 
     val firstUserDeclaredAction = annotations.actionMixins.foldLeft[JAction[? <: Any]](endOfChainAction) {
@@ -162,6 +179,7 @@ abstract class JavaAction(val handlerComponents: JavaHandlerComponents)
     }
 
     val firstAction = if (config.executeActionCreatorActionFirst) {
+      val baseAction = handlerComponents.actionCreator.createAction(javaRequest, annotations.method)
       firstUserDeclaredAction.precursor = baseAction
       baseAction.delegate = firstUserDeclaredAction
       baseAction
