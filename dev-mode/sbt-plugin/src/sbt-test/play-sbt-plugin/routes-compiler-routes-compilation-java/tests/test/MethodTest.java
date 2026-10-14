@@ -12,6 +12,7 @@ import static play.mvc.Http.HttpVerbs.HEAD;
 import static play.mvc.Http.HttpVerbs.OPTIONS;
 import static play.mvc.Http.HttpVerbs.PATCH;
 import static play.mvc.Http.HttpVerbs.PUT;
+import static play.mvc.Http.HttpVerbs.QUERY;
 import static play.mvc.Http.Status.NOT_FOUND;
 import static play.mvc.Http.Status.OK;
 import static play.mvc.Http.HttpVerbs.GET;
@@ -82,6 +83,15 @@ public class MethodTest extends AbstractRoutesTest {
     assertThat(result.status()).isEqualTo(OK);
     assertThat(contentAsString(result)).isEqualTo("OPTIONS");
     result = route(app, fakeRequest(GET, "/method/options"));
+    assertThat(result.status()).isEqualTo(NOT_FOUND);
+  }
+
+  @Test
+  public void checkQuery() {
+    var result = route(app, fakeRequest(QUERY, "/method/query"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("QUERY");
+    result = route(app, fakeRequest(GET, "/method/query"));
     assertThat(result.status()).isEqualTo(NOT_FOUND);
   }
 }
