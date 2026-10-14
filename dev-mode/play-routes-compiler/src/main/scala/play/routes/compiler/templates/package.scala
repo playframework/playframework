@@ -806,7 +806,7 @@ package object templates {
    * @param fqn Scala FQN
    * @return Java FQN
    */
-  def asJavaFQN(fqn: String) = fqn.replaceAll("\\[", "<").replaceAll("]", ">")
+  def asJavaFQN(fqn: String) = fqn.replace("_root_.", "").replaceAll("\\[", "<").replaceAll("]", ">")
 
   def groupRoutesByPackage(routes: Seq[Route]): Map[Option[String], Seq[Route]]       = routes.groupBy(_.call.packageName)
   def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]]            = routes.groupBy(_.call.controller)

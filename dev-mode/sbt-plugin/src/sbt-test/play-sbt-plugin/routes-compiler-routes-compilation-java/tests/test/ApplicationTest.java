@@ -70,6 +70,14 @@ public class ApplicationTest extends AbstractRoutesTest {
   }
 
   @Test
+  public void checkRootPrefixedProvider() {
+    var url = Application.rootPrefixedProvider().url();
+    assertThat(url).isEqualTo("/root-prefixed-provider");
+    var result = route(app, fakeRequest(GET, url));
+    assertThat(result.status()).isEqualTo(OK);
+  }
+
+  @Test
   public void checkWebSocket() {
     var server = testServer();
     running(

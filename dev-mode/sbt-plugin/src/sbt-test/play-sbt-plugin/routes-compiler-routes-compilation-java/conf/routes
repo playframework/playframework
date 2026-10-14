@@ -22,6 +22,7 @@ GET            /only-request                      controllers.Application.onlyRe
 GET            /not-first-request                 controllers.Application.notFirstRequestParam(a, r: play.mvc.Http.Request)
 GET            /same-escaped-java-identifier      controllers.Application.sameEscapedJavaIdentifier(`[]`, `%%`)
 GET            /root-prefixed-controller          _root_.controllers.Application.rootPrefixedController
+GET            /root-prefixed-provider            @_root_.controllers.Application.rootPrefixedProvider
 
 ### Boolean
 GET            /bool-p/:x                         controllers.BooleanController.path(x: java.lang.Boolean)

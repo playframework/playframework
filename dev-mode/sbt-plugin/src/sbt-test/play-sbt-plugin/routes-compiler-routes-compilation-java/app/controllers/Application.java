@@ -127,4 +127,8 @@ public class Application extends Controller {
   public Result rootPrefixedController() {
     return ok();
   }
+
+  public Result rootPrefixedProvider() {
+    return ok();
+  }
 }
