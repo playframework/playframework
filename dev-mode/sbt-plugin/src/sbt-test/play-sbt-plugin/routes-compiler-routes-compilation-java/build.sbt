@@ -21,6 +21,12 @@ Test / sourceDirectory := baseDirectory.value / "tests"
 
 Test / scalaSource := baseDirectory.value / "tests"
 
+Test / unmanagedSourceDirectories ++= {
+  if (play.sbt.routes.RoutesKeys.routesLang.value == play.routes.compiler.Language.SCALA)
+    Seq(baseDirectory.value / "scala-compat-tests")
+  else Nil
+}
+
 // Generate a js router so we can test it with mocha
 @transient val generateJsRouter = TaskKey[Seq[File]]("generate-js-router")
 
