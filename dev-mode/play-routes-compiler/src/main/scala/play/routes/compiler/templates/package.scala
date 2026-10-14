@@ -352,10 +352,10 @@ package object templates {
     }
   }
 
-  def javaReverseParameterConstraints(route: Route): String = {
+  def javaReverseParameterConstraints(route: Route, localNames: Map[String, String]): String = {
     route.call.routeParams
-      .filter { p => p.fixed.isDefined }
-      .map { p => "Objects.equals(" + p.localName + ", " + p.fixed.get + ")" } match {
+      .filter { p => localNames.contains(p.name) && p.fixed.isDefined }
+      .map { p => "Objects.equals(" + localNames(p.name) + ", " + p.fixed.get + ")" } match {
       case Nil      => ""
       case nonEmpty => nonEmpty.mkString("if (", " && ", ")")
     }
@@ -367,6 +367,11 @@ package object templates {
   def reverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] =
     params.map {
       case (lp, i) => route.call.routeParams(i).name -> lp.name
+    }.toMap
+
+  def javaReverseLocalNames(route: Route, params: Seq[(Parameter, Int)]): Map[String, String] =
+    params.map {
+      case (lp, i) => route.call.routeParams(i).name -> lp.localName
     }.toMap
 
   /**
@@ -384,12 +389,17 @@ package object templates {
   }
 
   def javaReverseUniqueConstraints(routes: Seq[Route], params: Seq[(Parameter, Int)])(
-      block: (Route, String, String) => ScalaContent
+      block: (Route, String, String, Map[String, String]) => ScalaContent
   ): Seq[ScalaContent] = {
-    ListMap(routes.reverse.map { route =>
+    val fallback = routes.indexWhere { route =>
+      javaReverseParameterConstraints(route, javaReverseLocalNames(route, params)).isEmpty
+    }
+    val liveRoutes = if (fallback < 0) routes else routes.take(fallback + 1)
+    ListMap(liveRoutes.reverse.map { route =>
+      val localNames           = javaReverseLocalNames(route, params)
       val parameters           = reverseMatchParameters(params, annotateUnchecked = false)
-      val parameterConstraints = javaReverseParameterConstraints(route)
-      (parameters -> parameterConstraints) -> block(route, parameters, parameterConstraints)
+      val parameterConstraints = javaReverseParameterConstraints(route, localNames)
+      (parameters -> parameterConstraints) -> block(route, parameters, parameterConstraints, localNames)
     }*).values.toSeq.reverse
   }
 
@@ -524,7 +534,7 @@ package object templates {
     """Call("%s", %s%s)""".format(route.verb.value, callPath, callQueryString)
   }
 
-  def javaReverseCall(route: Route): String = {
+  def javaReverseCall(route: Route, localNames: Map[String, String] = Map()): String = {
     val df       = if (route.path.parts.isEmpty) "" else " + _defaultPrefix() + "
     val callPath = "_prefix.get()" + df + route.path.parts
       .map {
@@ -536,7 +546,7 @@ package object templates {
               val paramName: String = paramNameOnQueryString(param.name)
               val unbound           =
                 s"""((PathBindable<${asJavaFQN(param.typeNameReal)}>)JavaGeneratedRouter.pathBindableFor(_rrc, ${param.typeNameErasure}.class))""" +
-                  s""".unbind("$paramName", ${param.localName})"""
+                  s""".unbind("$paramName", ${localNames.getOrElse(param.name, param.localName)})"""
               if (encode) "play.core.routing.package$.MODULE$.dynamicString(" + unbound + ")" else unbound
             }
             .getOrElse {
@@ -563,11 +573,14 @@ package object templates {
             (s"((QueryStringBindable<${asJavaFQN(p.typeNameReal)}>)JavaGeneratedRouter.queryStringBindableFor(_rrc, ${p.genericTypes
                 .map(_ + ".class")
                 .mkString(", ")})" + """).unbind("""" +
-              paramNameOnQueryString(p.name) + """", """ + p.localName + """)""") -> p
+              paramNameOnQueryString(p.name) + """", """ + localNames.getOrElse(p.name, p.localName) + """)""") -> p
           }
           .map {
             case up @ (u, Parameter(name, typeName, None, Some(default), _)) =>
-              """Objects.equals(""" + up._2.localName + """,""" + default + """) ? scala.Option.<String>empty() : scala.Option.apply(""" + u + """)"""
+              """Objects.equals(""" + localNames.getOrElse(
+                up._2.name,
+                up._2.localName
+              ) + """,""" + default + """) ? scala.Option.<String>empty() : scala.Option.apply(""" + u + """)"""
             case (u, Parameter(name, typeName, None, None, _)) => "scala.Option.apply(" + u + ")"
           }
           .mkString(", ")
@@ -595,12 +608,12 @@ package object templates {
     ).filterNot(_.isEmpty).map(_.mkString(" && "))
   }
 
-  def javaJavascriptParameterConstraints(route: Route): Option[String] = {
+  def javaJavascriptParameterConstraints(route: Route, localNames: Map[String, String]): Option[String] = {
     Option(
       route.call.routeParams
-        .filter { p => p.fixed.isDefined }
+        .filter { p => localNames.contains(p.name) && p.fixed.isDefined }
         .map { p =>
-          p.localName + s""" == \" + ((JavascriptLiteral<${asJavaFQN(
+          localNames(p.name) + s""" == \" + ((JavascriptLiteral<${asJavaFQN(
               p.typeNameReal
             )}>)JavaGeneratedRouter.javascriptLiteralFor(${p.genericTypes.map(_ + ".class").mkString(", ")})).to(""" + p.fixed.get + """) + """"
         }
@@ -633,14 +646,18 @@ package object templates {
       ._1
   }
 
-  def javaJavascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, String)] = {
+  def javaJavascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, Map[String, String], String)] = {
     routes
-      .map { route => (route, javaJavascriptParameterConstraints(route)) }
-      .foldLeft((Seq.empty[(Route, String)], false)) {
-        case ((_routes, true), dead)                        => (_routes, true)
-        case ((_routes, false), (route, None))              => (_routes :+ ((route, "true")), true)
-        case ((_routes, false), (route, Some(constraints))) =>
-          (_routes :+ ((route, constraints)), false)
+      .map { route =>
+        val localNames  = javaReverseLocalNames(route, reverseParameters(routes))
+        val constraints = javaJavascriptParameterConstraints(route, localNames)
+        (route, localNames, constraints)
+      }
+      .foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
+        case ((_routes, true), dead)                                    => (_routes, true)
+        case ((_routes, false), (route, localNames, None))              => (_routes :+ ((route, localNames, "true")), true)
+        case ((_routes, false), (route, localNames, Some(constraints))) =>
+          (_routes :+ ((route, localNames, constraints)), false)
       }
       ._1
   }
@@ -701,7 +718,7 @@ package object templates {
     "return _wA({method:\"%s\", url:%s%s})".format(route.verb.value, path, queryString)
   }
 
-  def javaJavascriptCall(route: Route): String = {
+  def javaJavascriptCall(route: Route, localNames: Map[String, String] = Map()): String = {
     val path = "'\" + _prefix.get() + " + {
       if (route.path.parts.isEmpty) "" else "_defaultPrefix() + "
     } + "\"" + route.path.parts.map {
@@ -713,7 +730,7 @@ package object templates {
             val paramName: String = paramNameOnQueryString(param.name)
             val jsUnbound         =
               s"""(\" + ((PathBindable<${asJavaFQN(param.typeNameReal)}>)JavaGeneratedRouter.pathBindableFor(${param.typeNameErasure}.class))""" +
-                s""".javascriptUnbind() + \")('$paramName', ${param.localName})"""
+                s""".javascriptUnbind() + \")('$paramName', ${localNames.getOrElse(param.name, param.localName)})"""
             if (encode) s" + encodeURIComponent($jsUnbound)" else s" + $jsUnbound"
           }
           .getOrElse {
@@ -740,11 +757,11 @@ package object templates {
             (s"""(\" + ((QueryStringBindable<${asJavaFQN(
                 p.typeNameReal
               )}>)JavaGeneratedRouter.queryStringBindableFor(${p.genericTypes.map(_ + ".class").mkString(", ")})""" +
-              s""").javascriptUnbind() + \")('$paramName', ${p.localName})""") -> p
+              s""").javascriptUnbind() + \")('$paramName', ${localNames.getOrElse(p.name, p.localName)})""") -> p
           }
           .map {
             case up @ (u, Parameter(_, _, None, Some(default), _)) =>
-              """(""" + up._2.localName + " == null ? null : " + u + ")"
+              """(""" + localNames.getOrElse(up._2.name, up._2.localName) + " == null ? null : " + u + ")"
             case (u, Parameter(_, _, None, None, _)) => u
           }
           .mkString(", ")

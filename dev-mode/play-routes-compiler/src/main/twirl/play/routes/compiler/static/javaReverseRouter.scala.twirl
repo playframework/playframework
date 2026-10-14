@@ -41,17 +41,20 @@ public class ReverseRoutes @ob
     @markLines(routes: _*)
     public Call @(method)@(javaReverseSignature(routes)) @ob
     @defining(reverseParameters(routes)) { params =>
-      @javaReverseUniqueConstraints(routes, params) { (route, parameters, parameterConstraints) =>
+      @javaReverseUniqueConstraints(routes, params) { (route, parameters, parameterConstraints, localNames) =>
       @markLines(route)
         @if(parameterConstraints) {
       @parameterConstraints @ob
         @javaReverseRouteContext(route)
-        @javaReverseCall(route)
+        @javaReverseCall(route, localNames)
       @cb
         } else {
       @javaReverseRouteContext(route)
-      @javaReverseCall(route)
+      @javaReverseCall(route, localNames)
         }
+      }
+      @if(routes.forall(route => javaReverseParameterConstraints(route, javaReverseLocalNames(route, params)).nonEmpty)) {
+      throw new scala.MatchError(Arrays.asList(@params.map(_._1.localName).mkString(", ")));
       }
     }
     @cb

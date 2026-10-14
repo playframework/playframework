@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ApplicationTest extends AbstractRoutesTest {
@@ -75,6 +76,47 @@ public class ApplicationTest extends AbstractRoutesTest {
     assertThat(url).isEqualTo("/root-prefixed-provider");
     var result = route(app, fakeRequest(GET, url));
     assertThat(result.status()).isEqualTo(OK);
+  }
+
+  @Test
+  public void checkRenamedReversePathParam() {
+    assertThat(Application.renamedParams("fixed").url()).isEqualTo("/reverse/renamed/fixed");
+    var url = Application.renamedParams("other").url();
+    assertThat(url).isEqualTo("/reverse/renamed/other");
+    checkResult(url, okContains("other"));
+  }
+
+  @Test
+  public void checkRenamedReverseQueryParam() {
+    assertThat(Application.renamedQueryParam("fixed").url()).isEqualTo("/reverse/query/fixed");
+    assertThat(Application.renamedQueryParam("default").url()).isEqualTo("/reverse/query");
+    var url = Application.renamedQueryParam("other").url();
+    assertThat(url).isEqualTo("/reverse/query?alias=other");
+    checkResult(url, okContains("other"));
+  }
+
+  @Test
+  public void checkSharedFixedReverseParam() {
+    assertThat(Application.sharedFixedParams("one").url()).isEqualTo("/reverse/shared/one");
+    assertThat(Application.sharedFixedParams("two").url()).isEqualTo("/reverse/shared/two");
+    assertThat(Application.sharedFixedParams("default").url()).isEqualTo("/reverse/shared");
+    var url = Application.sharedFixedParams("other").url();
+    assertThat(url).isEqualTo("/reverse/shared?second=other");
+    checkResult(url, okContains("constant:other"));
+  }
+
+  @Test
+  public void checkFixedOnlyReverseParams() {
+    assertThat(Application.fixedOnlyParams("one").url()).isEqualTo("/reverse/fixed-only/one");
+    assertThat(Application.fixedOnlyParams("two").url()).isEqualTo("/reverse/fixed-only/two");
+    Assert.assertThrows(scala.MatchError.class, () -> Application.fixedOnlyParams("other"));
+  }
+
+  @Test
+  public void checkFirstUnconstrainedReverseRoute() {
+    var url = Application.unconstrainedFirst("fixed").url();
+    assertThat(url).isEqualTo("/reverse/unconstrained/fixed");
+    checkResult(url, okContains("fixed"));
   }
 
   @Test
