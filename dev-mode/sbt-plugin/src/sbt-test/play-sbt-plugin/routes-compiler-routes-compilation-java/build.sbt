@@ -12,6 +12,10 @@ libraryDependencies ++= Seq(
 scalaVersion := ScriptedTools.scalaVersionFromJavaProperties()
 crossPaths   := false
 
+// Keep the scripted source checks independent of sbt's default cross-target layout.
+Compile / play.sbt.routes.RoutesKeys.routes / target := baseDirectory.value / "target" / "routes" / "main"
+cleanFiles += (Compile / play.sbt.routes.RoutesKeys.routes / target).value
+
 // can't use test directory since scripted calls its script "test"
 Test / sourceDirectory := baseDirectory.value / "tests"
 
