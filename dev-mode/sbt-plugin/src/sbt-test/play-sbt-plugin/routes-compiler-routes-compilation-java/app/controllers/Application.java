@@ -22,6 +22,7 @@ import play.mvc.Controller;
 import play.mvc.Http.Request;
 import play.mvc.Result;
 import play.mvc.WebSocket;
+import play.routing.Router;
 
 public class Application extends Controller {
 
@@ -130,6 +131,10 @@ public class Application extends Controller {
 
   public Result rootPrefixedProvider() {
     return ok();
+  }
+
+  public Result modifiers(Request request) {
+    return ok(String.join(",", request.attrs().get(Router.Attrs.HANDLER_DEF).getModifiers()));
   }
 
   public Result renamedParams(String value) {

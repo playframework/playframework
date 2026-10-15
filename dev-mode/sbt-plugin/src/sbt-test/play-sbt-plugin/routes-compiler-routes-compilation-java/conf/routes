@@ -23,6 +23,8 @@ GET            /not-first-request                 controllers.Application.notFir
 GET            /same-escaped-java-identifier      controllers.Application.sameEscapedJavaIdentifier(`[]`, `%%`)
 GET            /root-prefixed-controller          _root_.controllers.Application.rootPrefixedController
 GET            /root-prefixed-provider            @_root_.controllers.Application.rootPrefixedProvider
++ plain quote"and\backslash
+GET            /modifiers                         controllers.Application.modifiers(request: Request)
 
 ### Reverse routes sharing an action
 GET /reverse/renamed/fixed       controllers.Application.renamedParams(value = "fixed")

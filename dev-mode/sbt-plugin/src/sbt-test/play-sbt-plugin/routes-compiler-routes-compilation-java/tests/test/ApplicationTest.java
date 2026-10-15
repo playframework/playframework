@@ -79,6 +79,11 @@ public class ApplicationTest extends AbstractRoutesTest {
   }
 
   @Test
+  public void checkModifiers() {
+    checkResult("/modifiers", okContains("plain,quote\"and\\backslash"));
+  }
+
+  @Test
   public void checkRenamedReversePathParam() {
     assertThat(Application.renamedParams("fixed").url()).isEqualTo("/reverse/renamed/fixed");
     var url = Application.renamedParams("other").url();
