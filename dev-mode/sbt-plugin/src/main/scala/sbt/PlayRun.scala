@@ -64,6 +64,8 @@ object PlayRun {
   private def channelName(state: State): String =
     state.source.map(_.channelName).getOrElse(ConsoleChannel.defaultName)
 
+  // This workaround can be removed once Play requires sbt 1.13.1+ and sbt 2.1.0+.
+  // See https://github.com/sbt/sbt/pull/9901 and https://github.com/sbt/sbt/pull/9902.
   private def watchChannelName(state: State): String =
     state.currentCommand
       .flatMap { exec =>
