@@ -791,22 +791,38 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
 
   /**
    * Generates an `Action` that serves a versioned static resource.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL.
    */
-  def versioned(path: String, file: Asset): Action[AnyContent] = Action.async { implicit request =>
-    val f = new File(file.name)
-    // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
-    // otherwise we can't.
-    val requestedDigest = f.getName.takeWhile(_ != '-')
-    if (!requestedDigest.isEmpty) {
-      val bareFile         = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
-      val bareResourceName = resourceNameAt(path, bareFile)
-      blocking(bareResourceName.flatMap(digest)) match {
-        case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
-        case _                       => assetAt(path, file.name, aggressiveCaching = false)
+  def versioned(path: String, file: Asset): Action[AnyContent] = versioned(path, file, None)
+
+  /**
+   * Generates an `Action` that serves a versioned static resource and falls back to a fixed asset.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL.
+   * @param fallback the file to serve with `Cache-Control: no-cache` if the requested asset cannot be found.
+   */
+  def versioned(path: String, file: Asset, fallback: String): Action[AnyContent] =
+    versioned(path, file, Option(fallback).filter(_.nonEmpty))
+
+  private def versioned(path: String, file: Asset, fallback: Option[String]): Action[AnyContent] = Action.async {
+    implicit request =>
+      val f = new File(file.name)
+      // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
+      // otherwise we can't.
+      val requestedDigest = f.getName.takeWhile(_ != '-')
+      if (!requestedDigest.isEmpty) {
+        val bareFile         = new File(f.getParent, f.getName.drop(requestedDigest.length + 1)).getPath.replace('\\', '/')
+        val bareResourceName = resourceNameAt(path, bareFile)
+        blocking(bareResourceName.flatMap(digest)) match {
+          case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true, fallback)
+          case _                       => assetAt(path, file.name, aggressiveCaching = false, fallback)
+        }
+      } else {
+        assetAt(path, file.name, aggressiveCaching = false, fallback)
       }
-    } else {
-      assetAt(path, file.name, aggressiveCaching = false)
-    }
   }
 
   /**
@@ -815,12 +831,39 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
    * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
    * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
+   * @param fallback the file to serve with `Cache-Control: no-cache` if the requested asset cannot be found.
    */
-  def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async {
-    implicit request => assetAt(path, file, aggressiveCaching)
+  def at(path: String, file: String, aggressiveCaching: Boolean, fallback: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      assetAt(path, file, aggressiveCaching, Option(fallback).filter(_.nonEmpty))
   }
 
-  private def assetAt(path: String, file: String, aggressiveCaching: Boolean)(
+  /**
+   * Generates an `Action` that serves a static resource and falls back to a fixed asset.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
+   * @param fallback the file to serve with `Cache-Control: no-cache` if the requested asset cannot be found.
+   */
+  def at(path: String, file: String, fallback: String): Action[AnyContent] = at(path, file, false, fallback)
+
+  /**
+   * Generates an `Action` that serves a static resource.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
+   * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
+   */
+  def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] =
+    Action.async { implicit request => assetAt(path, file, aggressiveCaching, None) }
+
+  private def assetAt(
+      path: String,
+      file: String,
+      aggressiveCaching: Boolean,
+      fallback: Option[String],
+      cacheControlOverride: Option[String] = None
+  )(
       implicit request: RequestHeader
   ): Future[Result] = {
     val assetName: Option[String]                                    = resourceNameAt(path, file)
@@ -830,13 +873,19 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
 
     def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
 
+    def fallbackOrNotFound: Future[Result] = fallback match {
+      case Some(fallbackFile) =>
+        assetAt(path, fallbackFile, aggressiveCaching = false, None, cacheControlOverride = Some("no-cache"))
+      case None => notFound
+    }
+
     val pendingResult: Future[Result] = assetInfoFuture.flatMap {
       case Some((assetInfo, acceptEncoding)) =>
         val connection = assetInfo.url(acceptEncoding).openConnection()
         // Make sure it's not a directory
         if (Resources.isUrlConnectionADirectory(if (env != null) env.classLoader else null, connection)) {
           Resources.closeUrlConnection(connection)
-          notFound
+          fallbackOrNotFound
         } else {
           val stream = connection.getInputStream
           val source = StreamConverters.fromInputStream(() => stream)
@@ -850,15 +899,20 @@ class AssetsBuilder(errorHandler: HttpErrorHandler, meta: AssetsMetadata, env: E
             Option(assetInfo.mimeType)
           )
 
-          Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
+          val resultWithAssetCaching = maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
             cacheableResult(
               assetInfo,
               aggressiveCaching,
               asEncodedResult(result, acceptEncoding, assetInfo)
             )
-          })
+          }
+          Future.successful(
+            cacheControlOverride.fold(resultWithAssetCaching) { cacheControl =>
+              resultWithAssetCaching.withHeaders(CACHE_CONTROL -> cacheControl)
+            }
+          )
         }
-      case None => notFound
+      case None => fallbackOrNotFound
     }
 
     pendingResult.recoverWith {
