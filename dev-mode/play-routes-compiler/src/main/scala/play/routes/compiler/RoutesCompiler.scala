@@ -88,7 +88,7 @@ object RoutesCompiler {
       reverseRouter: Boolean,
       jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean,
-      lang: Language
+      lang: Language = Language.SCALA
   ) {
     def this(
         file: File,

@@ -21,7 +21,6 @@ import org.playframework.docs.sbtplugin.PlayDocsValidation.ValidationConfig
 import play.core.server.ReloadableServer
 import play.core.BuildDocHandler
 import play.core.PlayVersion
-import play.routes.compiler.Language
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.sbt.routes.RoutesCompiler
 import play.sbt.routes.RoutesKeys._
@@ -188,7 +187,7 @@ object PlayDocsPlugin extends AutoPlugin with PlayDocsPluginCompat {
       val scalaRoutes  = (scalaManualSourceDirectories.value * "*.routes").get()
       val commonRoutes = (commonManualSourceDirectories.value * "*.routes").get()
       (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil) ++ commonRoutes.map(_ -> Nil)).map {
-        case (file, imports) => RoutesCompilerTask(file, imports, true, true, true, true, Language.SCALA)
+        case (file, imports) => RoutesCompilerTask(file, imports, true, true, true, true)
       }
     },
     routesGenerator  := InjectedRoutesGenerator,

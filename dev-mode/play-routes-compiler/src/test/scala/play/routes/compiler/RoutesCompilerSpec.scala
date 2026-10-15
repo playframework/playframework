@@ -57,6 +57,13 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
       new File(tmp, "controllers/routes.java") must exist
     }
 
+    "generate Scala routes classes unless another language is requested" in {
+      val file = new File("routes")
+      RoutesCompilerTask(file, Seq.empty, true, true, true, false).lang must_== Language.SCALA
+      new RoutesCompilerTask(file, Seq.empty, true, true, true, false).lang must_== Language.SCALA
+      new RoutesCompilerTask(file, Seq.empty, true, true, false).lang must_== Language.SCALA
+    }
+
     "generate Java routes classes when requested" in withTempDir { tmp =>
       val file = copyResource("generating.routes", tmp)
       RoutesCompiler.compile(
