@@ -21,18 +21,6 @@ Play's default routes generator creates a router class that accepts controller i
 
 Before Play 2.7.0, Play supported a static routes generator that supported defining actions as `static` methods. That is no longer supported, as Play no longer relies on static state. If you wish to use your own static state you can still do so in a controller using instance methods.
 
-## Router source language
-
-By default, the sbt plugin generates the router implementation as Scala source code, including for Java applications.
-
-To generate the router implementation entirely as Java source code, add this setting to `build.sbt`:
-
-```scala
-routesLang := play.routes.compiler.Language.JAVA
-```
-
-Both modes use the same routes-file syntax. Calls through the generated reverse-routing facades, such as `controllers.routes`, remain unchanged.
-
 ## The routes file syntax
 
 `conf/routes` is the configuration file used by the router. This file lists all of the routes needed by the application. Each route consists of an HTTP method and URI pattern associated with a call to an action method.
@@ -225,6 +213,26 @@ Play includes a [`Default` controller](api/scala/controllers/Default.html) which
 @[defaultcontroller](code/javaguide.http.routing.defaultcontroller.routes)
 
 In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
+
+## Router source language
+
+By default, the sbt plugin generates the router as Scala source code, also for Java applications. To generate it as Java source code instead, add this setting to `build.sbt`:
+
+```scala
+routesLang := play.routes.compiler.Language.JAVA
+```
+
+Applications that keep the default are not affected by the rest of this section. The Gradle plugin does not support this setting yet and always generates Scala source code.
+
+The routes file grammar stays the same, but the router copies parameter types, fixed values, default values and `routesImport` entries into Java source code, so they must be valid Java:
+
+- Use Java types. For example, write `page: Integer ?= 1` instead of `page: Int ?= 1`, and `java.util.Optional[String]` instead of `Option[String]`. Generic types still use `[]`.
+- Write fixed and default values as Java expressions. For example, a `java.lang.Long` parameter needs `?= 1L`, because Java does not convert the `int` literal `1` to a `Long`.
+- Only add Java imports to `routesImport`, such as `models.UserId` or `models.*`. Scala imports like `models._` do not compile.
+
+The Java router looks up parameter binders and action return types at runtime instead of at compile time. Parameters can use the Java types that Play binds out of the box, such as `String`, `Integer`, `Long`, `UUID`, `java.util.Optional` and `java.util.List`, and [[custom binders|RequestBinders]] that implement `play.mvc.PathBindable` or `play.mvc.QueryStringBindable`. Scala binders brought into scope with `routesImport` are not used. A route with an unsupported parameter type still compiles, but fails at runtime when a request reaches it or when its reverse route is called. Likewise, an action whose return type Play cannot handle may still compile and then fail only when a request reaches it.
+
+Java code calls the reverse router through `controllers.routes` as before. Scala code, such as Twirl templates, sees Java methods instead of Scala ones, so it can no longer leave out parameters that have a default value in the routes file or pass arguments by their names from the routes file. The reverse controller classes are also nested in a `ReverseRoutes` class, for example `controllers.ReverseRoutes.ReverseApplication` instead of `controllers.ReverseApplication`, which only matters if your code refers to these types directly.
 
 ## Advanced Routing
 
