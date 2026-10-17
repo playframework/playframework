@@ -313,6 +313,11 @@ object BuildSettings {
         "play.api.libs.crypto.DefaultCSRFTokenSigner.constantTimeEquals"
       ),
       ProblemFilters.exclude[MissingClassProblem]("play.api.libs.crypto.CSRFTokenSigner$"),
+      // Play 5.0: Remove HttpExecution[Context], deprecated and replaced by ClassLoaderExecution[Context] in Play 2.9
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.HttpExecutionContext"),
+      ProblemFilters.exclude[MissingClassProblem]("play.core.j.HttpExecutionContext$"),
+      ProblemFilters.exclude[MissingClassProblem]("play.libs.concurrent.HttpExecution"),
+      ProblemFilters.exclude[MissingClassProblem]("play.libs.concurrent.HttpExecutionContext"),
       // Add routeModifierExcluded to RedirectHttpsConfiguration to implement route modifier black/whitelist
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.apply"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
