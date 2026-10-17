@@ -14,9 +14,10 @@ import play.sbt.routes.RoutesKeys.LazyProjectReference
 import xsbti.FileConverter
 
 object PluginCompat {
-  type MainClass     = sbt.Package.MainClass
-  type FileRef       = File
-  type PathFinderRef = Seq[File]
+  type MainClass      = sbt.Package.MainClass
+  type FixedTimestamp = sbt.Package.FixedTimestamp
+  type FileRef        = File
+  type PathFinderRef  = Seq[File]
 
   def runTask[T](taskKey: TaskKey[T], state: State): Option[(State, Result[T])] =
     Project.runTask(taskKey, state)
