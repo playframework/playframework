@@ -134,7 +134,7 @@ object Dependencies {
   val guiceDeps    = Seq(
     ("com.google.inject" % "guice" % guiceVersion).classifier("classes"),
     // Keep assistedinject from pulling the default shaded Guice jar alongside the unshaded classes classifier.
-    ("com.google.inject.extensions" % "guice-assistedinject" % guiceVersion).exclude("com.google.inject", "guice"),
+    ("com.google.inject.extensions" % "guice-assistedinject" % guiceVersion).exclude("com.google.inject" % "guice"),
     "org.ow2.asm"                   % "asm"                  % asmVersion
   )
 
