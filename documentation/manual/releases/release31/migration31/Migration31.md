@@ -14,7 +14,15 @@ TBD
 
 ### sbt upgrade
 
-TBD
+Play 3.1 supports sbt 1.13.1 or newer in the sbt 1.x family, and sbt 2.1.0 or newer. To update, change your `project/build.properties` so that it reads:
+
+```properties
+sbt.version=2.1.0
+```
+
+To stay on sbt 1, use `sbt.version=1.13.1` instead. Check the release notes for sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+
+With older sbt versions, `~run` started from an sbt client (`sbt --client`, the default in sbt 2) does not stop the development server when the watch ends.
 
 ### Minimum required Java and sbt version
 
