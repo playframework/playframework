@@ -193,14 +193,12 @@ jobs:
         ]
       # Match each scripted sbt version with the Scala version used to
       # build its plugin variant.
-      # The sbt 1.x scripted runner inherits terminal settings from a thin-client parent.
-      # Use a foreground parent without those settings so ~ commands have a console channel.
       cmd: >-
         case "$MATRIX_SBT" in
           1.*) export SBT_PLUGIN_SCALA=2.12.x ;;
           *) export SBT_PLUGIN_SCALA=3.9.x ;;
         esac;
-        env -u SBT_TERMINAL_PROPS sbt --server "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
+        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "
           project Sbt-Plugin;
           ++ $SBT_PLUGIN_SCALA;
           set scriptedSbt := \"$MATRIX_SBT\";
