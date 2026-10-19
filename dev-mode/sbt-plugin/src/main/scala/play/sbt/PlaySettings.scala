@@ -110,6 +110,7 @@ object PlaySettings {
     // Assets classloader (used by PlayRun.playDefaultRunTask)
     PlayInternalKeys.playAllAssets := uncached { Seq.empty },
     PlayRun.playAssetsClassLoaderSetting,
+    PlayRun.playWatchSettings,
     // THE `in Compile` IS IMPORTANT!
     Compile / Keys.run             := PlayRun.playDefaultRunTask.evaluated,
     Compile / Keys.run / mainClass := Some("play.core.server.DevServerStart"),
