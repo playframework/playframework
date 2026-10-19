@@ -24,6 +24,10 @@ Play Ebean 9 uses this for the evolution scripts it generates, so that they now 
 
 Play modules can now override a scope annotation such as `@Singleton` when using Guice, including on classes from libraries. With the new `play.inject.guice.NoScope` marker, `bind[Hello].to[EnglishHello].in[NoScope]` in Scala or `bindClass(Hello.class).to(EnglishHello.class).in(NoScope.class)` in Java constructs a new `EnglishHello` each time Guice supplies `Hello`, even when `EnglishHello` is annotated with `@Singleton`. Direct lookups of `EnglishHello` keep that key's own scope. Alternatively, `bind[EnglishHello].toSelf.in[NoScope]` suppresses the implementation type's own scope annotation. See the [[Scala|ScalaDependencyInjection#Unscoped-Guice-bindings]] and [[Java|JavaDependencyInjection#Unscoped-Guice-bindings]] dependency injection documentation for details.
 
+### `~run` works again
+
+Since sbt 1.3, `~run` didn't react to file changes, because Play's `run` blocked sbt's watch loop. Now `~run` works with sbt 1 and sbt 2: it starts the development server and compiles changed sources, templates, routes and configuration, including those of dependency projects, as soon as you save them. The application still loads or reloads on the next request. See [[Using sbt features|PlayConsole#Using-sbt-features]] for details.
+
 ### Typed request and forwarded metadata
 
 Play now keeps the selected remote identity, direct transport connection, and effective request scheme and authority as separate typed values. The model supports RFC 7239 unknown and obfuscated identities, retained forwarding paths and `by` nodes, trusted forwarded hosts and schemes, endpoint ports, and identity-aware IP filtering.
