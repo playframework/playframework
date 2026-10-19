@@ -1,0 +1,68 @@
+# A custom key built with playRunTask has no termination hook. It keeps the blocking run, so its server stops before the watch starts.
+> prepareScenario
+> ~customRun
+> verifyLifecycle 1 1 0
+
+# Wrapping the hook preserves both cleanup and the user's callback, without a recovery warning.
+> prepareScenario
+> set Compile / run / watchOnTermination ~= { previous => (action, command, count, state) => { ContinuousRunLifecycleTest.record(file("."), "wrapped-callbacks"); previous(action, command, count, state) } }
+> ~run
+> verifyLifecycle 1 1 0
+> verifyWrapped
+
+# sbt can call a delegated callback both directly and through Play's wrapper.
+# Require that it runs, without making its invocation count part of Play's contract.
+> session clear
+> prepareScenario
+> ~;compile;run
+> verifyLifecycle 1 1 0
+
+# A replaced hook leaves a server behind. Plain run must recover it before binding its port.
+> set Compile / run / watchOnTermination := { val base = baseDirectory.value; (_, _, _, state) => { ContinuousRunLifecycleTest.record(base, "user-callbacks"); state } }
+> prepareScenario
+> ~run
+> verifyLifecycle 1 0 0
+> run
+> verifyLifecycle 2 2 1
+
+# A second watch on the same channel must use its own compilation state and dependency inputs.
+> set Compile / run / watchOnIteration := { val base = baseDirectory.value; val classes = (library / Compile / classDirectory).value; val port = PlayKeys.playDefaultPort.value; (_, _, _) => ContinuousRunLifecycleTest.onIteration(base, classes, port) }
+> prepareScenario
+> ~run
+> verifyLifecycle 1 0 0
+> ~run
+> verifyLifecycle 2 1 1
+> run
+> verifyLifecycle 3 3 2
+
+# Settings reapplication must not discard the leftover server's recovery state.
+> session clear
+> set Compile / run / watchOnTermination := { val base = baseDirectory.value; (_, _, _, state) => { ContinuousRunLifecycleTest.record(base, "user-callbacks"); state } }
+> prepareScenario
+> ~run
+> verifyLifecycle 1 0 0
+> set PlayKeys.devSettings += ("review.setting" -> "changed")
+> run
+> verifyLifecycle 2 2 1
+
+# A different project must recover the JVM's leftover server too.
+> prepareScenario
+> ~run
+> verifyLifecycle 1 0 0
+> other/run
+> other/verifyLifecycle 2 2 1
+
+# Clearing the session must not discard the leftover server's recovery state either.
+> prepareScenario
+> ~run
+> verifyLifecycle 1 0 0
+> session clear
+> run
+> verifyLifecycle 2 2 1
+
+# A second run task in the same watch must not silently use the first project's server.
+> session clear
+> prepareScenario
+> ~;run;other/run
+> verifyLifecycle 1 1 0
+> verifyProjectConflict
