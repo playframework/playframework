@@ -9,7 +9,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static play.api.templates.PlayMagic.translate;
 import static play.libs.F.Tuple;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import jakarta.validation.ConstraintViolation;
@@ -25,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -33,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -755,12 +764,7 @@ public class Form<T> {
 
     Map<String, String> jsonData = new HashMap<>();
     if (request.body().asJson() != null) {
-      jsonData =
-          play.libs.Scala.asJava(
-              play.api.data.FormUtils.fromJson(
-                  play.api.libs.json.Json.parse(play.libs.Json.stringify(request.body().asJson())),
-                  maxJsonChars(),
-                  maxJsonDepth()));
+      jsonData = convertJsonToFormData(request.body().asJson(), maxJsonChars(), maxJsonDepth());
     }
 
     Map<String, String> data = new HashMap<>();
@@ -937,15 +941,7 @@ public class Form<T> {
    */
   public Form<T> bind(
       Lang lang, TypedMap attrs, JsonNode data, long maxChars, String... allowedFields) {
-    return bind(
-        lang,
-        attrs,
-        play.libs.Scala.asJava(
-            play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)),
-                maxChars,
-                maxJsonDepth())),
-        allowedFields);
+    return bind(lang, attrs, data, maxChars, maxJsonDepth(), allowedFields);
   }
 
   /**
@@ -971,13 +967,115 @@ public class Form<T> {
       long maxChars,
       int maxDepth,
       String... allowedFields) {
-    return bind(
-        lang,
-        attrs,
-        play.libs.Scala.asJava(
-            play.api.data.FormUtils.fromJson(
-                play.api.libs.json.Json.parse(play.libs.Json.stringify(data)), maxChars, maxDepth)),
-        allowedFields);
+    return bind(lang, attrs, convertJsonToFormData(data, maxChars, maxDepth), allowedFields);
+  }
+
+  private Map<String, String> convertJsonToFormData(JsonNode json, long maxChars, int maxDepth) {
+    ObjectMapper mapper = play.libs.Json.mapper();
+    JsonNode formData =
+        remapJsonProperties(
+            json, mapper.getTypeFactory().constructType(backedType), mapper, maxDepth, 0);
+
+    return play.libs.Scala.asJava(
+        play.api.data.FormUtils.fromJson(
+            play.api.libs.json.Json.parse(play.libs.Json.stringify(formData)), maxChars, maxDepth));
+  }
+
+  private JsonNode remapJsonProperties(
+      JsonNode json, JavaType type, ObjectMapper mapper, int maxDepth, int depth) {
+    if (depth > maxDepth) {
+      throw new play.api.data.FormJsonExpansionTooDeep(maxDepth);
+    }
+    JavaType targetType = unwrapReferenceType(type);
+    if (json == null || targetType == null) {
+      return json;
+    }
+
+    if (json.isArray()) {
+      JavaType elementType = targetType.isContainerType() ? targetType.getContentType() : null;
+      ArrayNode remapped = mapper.createArrayNode();
+      json.forEach(
+          element ->
+              remapped.add(remapJsonProperties(element, elementType, mapper, maxDepth, depth + 1)));
+      return remapped;
+    }
+    if (!json.isObject()
+        || targetType.hasRawClass(Object.class)
+        || JsonNode.class.isAssignableFrom(targetType.getRawClass())) {
+      return json;
+    }
+
+    ObjectNode remapped = mapper.createObjectNode();
+    boolean mapLike = targetType.isMapLikeType();
+    JavaType valueType = mapLike ? targetType.getContentType() : null;
+    json.properties()
+        .forEach(
+            field -> {
+              BeanPropertyDefinition property =
+                  mapLike ? null : findJsonProperty(targetType, field.getKey(), mapper);
+              BeanPropertyDefinition renamedProperty =
+                  mapLike || property != null
+                      ? null
+                      : findInternalProperty(targetType, field.getKey(), mapper);
+              if (renamedProperty != null && !renamedProperty.getName().equals(field.getKey())) {
+                return;
+              }
+              String propertyName = property == null ? field.getKey() : property.getInternalName();
+              JavaType propertyType = property == null ? valueType : property.getPrimaryType();
+              remapped.set(
+                  propertyName,
+                  remapJsonProperties(field.getValue(), propertyType, mapper, maxDepth, depth + 1));
+            });
+    return remapped;
+  }
+
+  private JavaType unwrapReferenceType(JavaType type) {
+    while (type != null && type.isReferenceType()) {
+      type = type.getContentType();
+    }
+    return type;
+  }
+
+  private BeanPropertyDefinition findJsonProperty(
+      JavaType type, String jsonName, ObjectMapper mapper) {
+    return jsonProperties(type, mapper).stream()
+        .filter(property -> property.getName().equals(jsonName))
+        .min(Comparator.comparingInt(this::jsonPropertyPriority))
+        .orElse(null);
+  }
+
+  private BeanPropertyDefinition findInternalProperty(
+      JavaType type, String internalName, ObjectMapper mapper) {
+    return jsonProperties(type, mapper).stream()
+        .filter(property -> property.getInternalName().equals(internalName))
+        .min(Comparator.comparingInt(this::jsonPropertyPriority))
+        .orElse(null);
+  }
+
+  private List<BeanPropertyDefinition> jsonProperties(JavaType type, ObjectMapper mapper) {
+    JavaType targetType = unwrapReferenceType(type);
+    if (targetType == null
+        || targetType.isContainerType()
+        || targetType.hasRawClass(Object.class)
+        || JsonNode.class.isAssignableFrom(targetType.getRawClass())) {
+      return Collections.emptyList();
+    }
+    return mapper.getDeserializationConfig().introspect(targetType).findProperties().stream()
+        .filter(BeanPropertyDefinition::couldDeserialize)
+        .collect(Collectors.toList());
+  }
+
+  private int jsonPropertyPriority(BeanPropertyDefinition property) {
+    if (property.getField() != null && property.getField().hasAnnotation(JsonProperty.class)) {
+      return 0;
+    }
+    if (property.getSetter() != null && property.getSetter().hasAnnotation(JsonSetter.class)) {
+      return 1;
+    }
+    if (property.getSetter() != null && property.getSetter().hasAnnotation(JsonProperty.class)) {
+      return 2;
+    }
+    return 3;
   }
 
   private static final Set<String> internalAnnotationAttributes = new HashSet<>(3);
@@ -1476,10 +1574,55 @@ public class Form<T> {
             } else {
               messages.add(error.message());
             }
-            allMessages.put(error.key(), messages);
+            allMessages.put(jsonErrorKey(error.key()), messages);
           }
         });
     return play.libs.Json.toJson(allMessages);
+  }
+
+  private String jsonErrorKey(String errorKey) {
+    if (errorKey == null || errorKey.isEmpty() || backedType == null) {
+      return errorKey;
+    }
+
+    String path = errorKey;
+    String prefix = "";
+    if (rootName != null && !rootName.isEmpty()) {
+      if (rootName.equals(errorKey)) {
+        return errorKey;
+      }
+      if (errorKey.startsWith(rootName + ".")) {
+        prefix = rootName + ".";
+        path = errorKey.substring(prefix.length());
+      }
+    }
+
+    ObjectMapper mapper = play.libs.Json.mapper();
+    JavaType type = mapper.getTypeFactory().constructType(backedType);
+    StringJoiner remapped = new StringJoiner(".");
+    for (String segment : path.split("\\.")) {
+      int indexStart = segment.indexOf('[');
+      String internalName = indexStart < 0 ? segment : segment.substring(0, indexStart);
+      String indexes = indexStart < 0 ? "" : segment.substring(indexStart);
+
+      type = unwrapReferenceType(type);
+      if (type != null && type.isMapLikeType()) {
+        remapped.add(segment);
+        type = type.getContentType();
+        continue;
+      }
+
+      BeanPropertyDefinition property = findInternalProperty(type, internalName, mapper);
+      remapped.add((property == null ? internalName : property.getName()) + indexes);
+      type = property == null ? null : property.getPrimaryType();
+      for (int cursor = indexes.indexOf('[');
+          cursor >= 0;
+          cursor = indexes.indexOf('[', cursor + 1)) {
+        type = unwrapReferenceType(type);
+        type = type != null && type.isContainerType() ? type.getContentType() : null;
+      }
+    }
+    return prefix + remapped;
   }
 
   /**
