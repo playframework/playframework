@@ -7,7 +7,7 @@ package play.sbt
 object Colors {
   import scala.Console.*
 
-  private[sbt] lazy val isANSISupported: Boolean = {
+  private lazy val isANSISupported: Boolean = {
     sys.props
       .get("sbt.log.noformat")
       .map(_ != "true")
