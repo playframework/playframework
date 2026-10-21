@@ -115,6 +115,32 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
 
   override def waitForCancel(): Unit = waitForKey()
 
+  /**
+   * Like waitForCancel(), but reads the keys from the given sbt terminal, which belongs to the
+   * sbt console or thin client that runs the task. The terminal is put into raw mode, so that
+   * Enter (13) and Ctrl-D (4) stop and Ctrl-J (10) prints a new line, whichever terminal started
+   * the sbt server.
+   */
+  def waitForCancel(terminal: sbt.Terminal): Unit = terminal.withRawInput(waitForKey(terminal))
+
+  private def waitForKey(terminal: sbt.Terminal): Unit = {
+    val out                      = terminal.printStream
+    @tailrec def waitEOF(): Unit = {
+      terminal.inputStream.read() match {
+        case 4 | 13 => // STOP on Ctrl-D or Enter
+        case 11     =>
+          if (Colors.isANSISupported) {
+            out.print("\u001b[2J\u001b[1;1H")
+            out.flush()
+          }
+          waitEOF()
+        case 10 => out.println(); waitEOF()
+        case _  => waitEOF()
+      }
+    }
+    waitEOF()
+  }
+
   override def toString = "Console Interaction Mode"
 }
 
