@@ -129,10 +129,10 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
       terminal.inputStream.read() match {
         case 4 | 13 => // STOP on Ctrl-D or Enter
         case 11     =>
-          if (Colors.isANSISupported) {
-            out.print("\u001b[2J\u001b[1;1H")
-            out.flush()
-          }
+          // Clear the screen, then move the cursor to the top left with relative moves, because sbt
+          // removes those for clients without ANSI support, but not absolute cursor positions
+          out.print("\u001b[2J\u001b[999A\u001b[999D")
+          out.flush()
           waitEOF()
         case 10 => out.println(); waitEOF()
         case _  => waitEOF()
