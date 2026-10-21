@@ -97,7 +97,9 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
           case 4 | 13 => // STOP on Ctrl-D or Enter
           case 11     => consoleReader.clearScreen(); waitEOF()
           case 10     => println(); waitEOF()
-          case _      => waitEOF()
+          // EOF, e.g. with redirected input: wait instead of spinning
+          case -1 => Thread.sleep(50); waitEOF()
+          case _  => waitEOF()
         }
       }
       doWithoutEcho(waitEOF())
@@ -135,6 +137,8 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
           out.flush()
           waitEOF()
         case 10 => out.println(); waitEOF()
+        // EOF, e.g. with redirected input: wait instead of spinning
+        case -1 => Thread.sleep(50); waitEOF()
         case _  => waitEOF()
       }
     }
