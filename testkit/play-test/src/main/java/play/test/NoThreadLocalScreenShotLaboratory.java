@@ -12,7 +12,6 @@ import com.codeborne.selenide.impl.WebPageSourceExtractor;
 import com.codeborne.selenide.impl.WebdriverPhotographer;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A screenshot laboratory owned by a single test browser.
@@ -23,10 +22,6 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 final class NoThreadLocalScreenShotLaboratory extends ScreenShotLaboratory {
 
-  // Shared by all browsers, like the counter of Selenide's JVM-wide default laboratory, so browsers
-  // taking a screenshot at the same millisecond don't overwrite each other's files
-  private static final AtomicLong fileCounter = new AtomicLong();
-
   NoThreadLocalScreenShotLaboratory() {
     super(
         new WebdriverPhotographer(),
@@ -35,9 +30,12 @@ final class NoThreadLocalScreenShotLaboratory extends ScreenShotLaboratory {
         new Clock());
   }
 
+  // Like Selenide's, but without the context, which Selenide keeps in a ThreadLocal. The counter is
+  // shared by all laboratories, so browsers taking a screenshot at the same millisecond don't
+  // overwrite each other's files.
   @Override
   protected String generateScreenshotFileName() {
-    return clock.timestamp() + "." + fileCounter.getAndIncrement();
+    return clock.timestamp() + "." + screenshotCounter.getAndIncrement();
   }
 
   @Override
