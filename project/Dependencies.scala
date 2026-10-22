@@ -179,7 +179,7 @@ object Dependencies {
 
   val jimfs = "com.google.jimfs" % "jimfs" % "1.3.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.5.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.5.1"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
