@@ -1289,4 +1289,23 @@ object RouterSpec extends PlaySpecification {
       }
     }
   }
+
+  "routes with 21 and 22 parameters" should {
+    "bind 21 parameters" in new WithApplication() {
+      override def running() = {
+        contentAsString(route(implicitApp, FakeRequest(GET, "/params-21?p1=v1&p2=v2&p3=v3&p4=v4&p5=v5&p6=v6&p7=v7&p8=v8&p9=v9&p10=v10&p11=v11&p12=v12&p13=v13&p14=v14&p15=v15&p16=v16&p17=v17&p18=v18&p19=v19&p20=v20&p21=v21")).get) must_== "v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21"
+      }
+    }
+    "bind 22 parameters" in new WithApplication() {
+      override def running() = {
+        contentAsString(route(implicitApp, FakeRequest(GET, "/params-22?p1=v1&p2=v2&p3=v3&p4=v4&p5=v5&p6=v6&p7=v7&p8=v8&p9=v9&p10=v10&p11=v11&p12=v12&p13=v13&p14=v14&p15=v15&p16=v16&p17=v17&p18=v18&p19=v19&p20=v20&p21=v21&p22=v22")).get) must_== "v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22"
+      }
+    }
+    "pass a null default value through for 22 parameters" in new WithApplication() {
+      override def running() = {
+        contentAsString(route(implicitApp, FakeRequest(GET, "/params-22-nullable?p1=v1&p2=v2&p3=v3&p4=v4&p5=v5&p6=v6&p7=v7&p8=v8&p9=v9&p10=v10&p11=v11&p12=v12&p13=v13&p14=v14&p15=v15&p16=v16&p17=v17&p18=v18&p19=v19&p20=v20&p21=v21")).get) must_== "v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,null"
+        contentAsString(route(implicitApp, FakeRequest(GET, "/params-22-nullable?p1=v1&p2=v2&p3=v3&p4=v4&p5=v5&p6=v6&p7=v7&p8=v8&p9=v9&p10=v10&p11=v11&p12=v12&p13=v13&p14=v14&p15=v15&p16=v16&p17=v17&p18=v18&p19=v19&p20=v20&p21=v21&p22=v22")).get) must_== "v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11,v12,v13,v14,v15,v16,v17,v18,v19,v20,v21,v22"
+      }
+    }
+  }
 }

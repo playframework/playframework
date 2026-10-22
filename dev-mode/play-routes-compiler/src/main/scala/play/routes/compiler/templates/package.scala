@@ -112,15 +112,25 @@ package object templates {
 
   /**
    * Extract the local names out from the route, as List. See PR#4244
+   *
+   * The values are read by index and cast instead of being pattern matched: a match on an unsealed `Seq` makes `-Xlint`
+   * warn (strict-unsealed-patmat), and a typed pattern never matches a `null` value.
    */
   def listNames(route: Route): String =
     route.call.parameters
       .filterNot(_.isEmpty)
       .map { params =>
-        params.filterNot(_.isJavaRequest).map(x => "(" + safeKeyword(x.name) + ": " + x.typeName + ")").mkString(":: ")
+        params
+          .filterNot(_.isJavaRequest)
+          .zipWithIndex
+          .map {
+            case (x, i) =>
+              "val " + safeKeyword(x.name) + " = routeParams__(" + i + ").asInstanceOf[" + x.typeName + "]"
+          }
+          .mkString("; ")
       }
       .filterNot(_.isEmpty)
-      .map("case " + _ + " :: Nil =>")
+      .map("routeParams__ => " + _ + ";")
       .getOrElse("")
 
   /**
