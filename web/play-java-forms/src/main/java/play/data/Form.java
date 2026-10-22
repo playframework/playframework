@@ -177,7 +177,7 @@ public class Form<T> {
        * Spring turns regular PropertyAccessException failures, such as type mismatches, into
        * FieldErrors. InvalidPropertyException is different: it is a FatalBeanException and escapes
        * DataBinder.bind(...). One common way to trigger it is an indexed path beyond the
-       * auto-grow collection limit, for example list[256].name with Spring's default limit of 256.
+       * auto-grow collection limit, for example list[256].name with Play's default limit of 256.
        *
        * From Play's Form API perspective that should behave like any other invalid submitted
        * field: the returned Form should contain an error and still expose successfully bound
@@ -232,6 +232,7 @@ public class Form<T> {
   private final Lang lang;
   private final boolean directFieldAccess;
   private final int autoGrowCollectionLimit;
+  private final int maxAutoGrowOperations;
   final MessagesApi messagesApi;
   final Langs langs;
   final Formatters formatters;
@@ -255,6 +256,10 @@ public class Form<T> {
 
   private static int configuredAutoGrowCollectionLimit(Config config) {
     return config != null ? config.getInt("play.forms.binding.autoGrowCollectionLimit") : 256;
+  }
+
+  private static int configuredMaxAutoGrowOperations(Config config) {
+    return config != null ? config.getInt("play.forms.binding.maxAutoGrowOperations") : 1024;
   }
 
   /**
@@ -623,7 +628,8 @@ public class Form<T> {
         config,
         lang,
         config != null && config.getBoolean("play.forms.binding.directFieldAccess"),
-        configuredAutoGrowCollectionLimit(config));
+        configuredAutoGrowCollectionLimit(config),
+        configuredMaxAutoGrowOperations(config));
   }
 
   /**
@@ -674,7 +680,8 @@ public class Form<T> {
         config,
         lang,
         directFieldAccess,
-        configuredAutoGrowCollectionLimit(config));
+        configuredAutoGrowCollectionLimit(config),
+        configuredMaxAutoGrowOperations(config));
   }
 
   /**
@@ -714,6 +721,64 @@ public class Form<T> {
       Lang lang,
       boolean directFieldAccess,
       int autoGrowCollectionLimit) {
+    this(
+        rootName,
+        clazz,
+        data,
+        files,
+        errors,
+        value,
+        groups,
+        messagesApi,
+        langs,
+        formatters,
+        validatorFactory,
+        config,
+        lang,
+        directFieldAccess,
+        autoGrowCollectionLimit,
+        configuredMaxAutoGrowOperations(config));
+  }
+
+  /**
+   * Creates a new <code>Form</code>. Consider using a {@link FormFactory} rather than this
+   * constructor.
+   *
+   * @param rootName the root name.
+   * @param clazz wrapped class
+   * @param data the current form data (used to display the form)
+   * @param files the current form file data
+   * @param errors the collection of errors associated with this form
+   * @param value optional concrete value of type <code>T</code> if the form submission was
+   *     successful
+   * @param groups the array of classes with the groups.
+   * @param messagesApi needed to look up various messages
+   * @param formatters used for parsing and printing form fields
+   * @param validatorFactory the validatorFactory component.
+   * @param config the config component.
+   * @param lang used for formatting when retrieving a field (via {@link #field(String)} or {@link
+   *     #apply(String)}) and for translations in {@link #errorsAsJson()}
+   * @param directFieldAccess access fields of form directly during binding instead of using getters
+   * @param autoGrowCollectionLimit the limit for array and collection auto-growing
+   * @param maxAutoGrowOperations the limit for cumulative auto-growing during one form binding
+   */
+  public Form(
+      String rootName,
+      Class<T> clazz,
+      Map<String, String> data,
+      Map<String, Http.MultipartFormData.FilePart<?>> files,
+      List<ValidationError> errors,
+      Optional<T> value,
+      Class<?>[] groups,
+      MessagesApi messagesApi,
+      Langs langs,
+      Formatters formatters,
+      ValidatorFactory validatorFactory,
+      Config config,
+      Lang lang,
+      boolean directFieldAccess,
+      int autoGrowCollectionLimit,
+      int maxAutoGrowOperations) {
     this.rootName = rootName;
     this.backedType = clazz;
     this.rawData = data != null ? new HashMap<>(data) : new HashMap<>();
@@ -729,6 +794,7 @@ public class Form<T> {
     this.lang = lang;
     this.directFieldAccess = directFieldAccess;
     this.autoGrowCollectionLimit = autoGrowCollectionLimit;
+    this.maxAutoGrowOperations = maxAutoGrowOperations;
   }
 
   /** The default maximum number of chars to support when binding a form from JSON. */
@@ -1077,6 +1143,7 @@ public class Form<T> {
     play.data.format.FormattersInternals$.MODULE$.configureDataBinder(formatters, dataBinder);
     dataBinder.setAutoGrowNestedPaths(true);
     dataBinder.setAutoGrowCollectionLimit(this.autoGrowCollectionLimit);
+    dataBinder.setMaxAutoGrowOperations(this.maxAutoGrowOperations);
     if (this.directFieldAccess) {
       // FYI: initBeanPropertyAccess() is the default, let's switch to direct field access instead
       dataBinder
@@ -1293,7 +1360,8 @@ public class Form<T> {
           config,
           lang,
           directFieldAccess,
-          autoGrowCollectionLimit);
+          autoGrowCollectionLimit,
+          maxAutoGrowOperations);
     }
     return new Form<>(
         rootName,
@@ -1310,7 +1378,8 @@ public class Form<T> {
         config,
         lang,
         directFieldAccess,
-        autoGrowCollectionLimit);
+        autoGrowCollectionLimit,
+        maxAutoGrowOperations);
   }
 
   /**
@@ -1381,7 +1450,8 @@ public class Form<T> {
         config,
         lang,
         directFieldAccess,
-        autoGrowCollectionLimit);
+        autoGrowCollectionLimit,
+        maxAutoGrowOperations);
   }
 
   /**
@@ -1538,7 +1608,8 @@ public class Form<T> {
         this.config,
         this.lang,
         this.directFieldAccess,
-        this.autoGrowCollectionLimit);
+        this.autoGrowCollectionLimit,
+        this.maxAutoGrowOperations);
   }
 
   /**
@@ -1597,7 +1668,8 @@ public class Form<T> {
         this.config,
         this.lang,
         this.directFieldAccess,
-        this.autoGrowCollectionLimit);
+        this.autoGrowCollectionLimit,
+        this.maxAutoGrowOperations);
   }
 
   /**
@@ -1787,7 +1859,8 @@ public class Form<T> {
         this.config,
         lang,
         this.directFieldAccess,
-        this.autoGrowCollectionLimit);
+        this.autoGrowCollectionLimit,
+        this.maxAutoGrowOperations);
   }
 
   /**
@@ -1812,7 +1885,8 @@ public class Form<T> {
         this.config,
         lang,
         directFieldAccess,
-        this.autoGrowCollectionLimit);
+        this.autoGrowCollectionLimit,
+        this.maxAutoGrowOperations);
   }
 
   /**
@@ -1836,7 +1910,33 @@ public class Form<T> {
         this.config,
         lang,
         this.directFieldAccess,
-        autoGrowCollectionLimit);
+        autoGrowCollectionLimit,
+        this.maxAutoGrowOperations);
+  }
+
+  /**
+   * Sets the limit for cumulative auto-growing during a single form binding.
+   *
+   * @param maxAutoGrowOperations the limit for cumulative auto-growing during one form binding
+   */
+  public Form<T> withMaxAutoGrowOperations(int maxAutoGrowOperations) {
+    return new Form<>(
+        this.rootName,
+        this.backedType,
+        this.rawData,
+        this.files,
+        this.errors,
+        this.value,
+        this.groups,
+        this.messagesApi,
+        this.langs,
+        this.formatters,
+        this.validatorFactory,
+        this.config,
+        lang,
+        this.directFieldAccess,
+        this.autoGrowCollectionLimit,
+        maxAutoGrowOperations);
   }
 
   ConfigurablePropertyAccessor propertyAccessor(Object target) {
