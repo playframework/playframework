@@ -8,7 +8,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -72,7 +75,9 @@ class PlayRunPluginTest {
     ((DefaultProject) kotlinLib).evaluate();
     ((DefaultProject) project).evaluate();
 
-    assertThat(((PlayRun) project.getTasks().findByName("playRun")).getClasses())
+    PlayRun playRun = (PlayRun) project.getTasks().findByName("playRun");
+
+    assertThat(playRun.getClasses())
         .contains(
             project.getLayout().getBuildDirectory().file("classes/scala/main").get().getAsFile(),
             project.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
@@ -85,5 +90,13 @@ class PlayRunPluginTest {
             kotlinLib.getLayout().getBuildDirectory().file("classes/kotlin/main").get().getAsFile(),
             kotlinLib.getLayout().getBuildDirectory().file("classes/java/main").get().getAsFile(),
             kotlinLib.getLayout().getBuildDirectory().file("resources/main").get().getAsFile());
+
+    Set<Task> dependencies = new HashSet<>(playRun.getTaskDependencies().getDependencies(playRun));
+    assertThat(dependencies)
+        .contains(
+            project.getTasks().findByName("classes"),
+            javaLib.getTasks().findByName("classes"),
+            scalaLib.getTasks().findByName("classes"),
+            kotlinLib.getTasks().findByName("classes"));
   }
 }
