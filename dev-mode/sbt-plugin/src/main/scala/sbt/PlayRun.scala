@@ -31,6 +31,7 @@ import play.runsupport.DevServerSettings
 import play.runsupport.GeneratedSourceMapping
 import play.sbt.run.PlayReload
 import play.sbt.Colors
+import play.sbt.PlayConsoleInteractionMode
 import play.sbt.PlayImport.*
 import play.sbt.PlayImport.PlayKeys.*
 import play.sbt.PlayInteractionMode
@@ -82,6 +83,12 @@ object PlayRun {
     StandardMain.exchange
       .channelForName(channel)
       .exists(channel => ContinuousCommands.isInWatch(state, channel))
+
+  private def waitForCancel(interaction: PlayInteractionMode, terminal: Option[Terminal]): Unit =
+    (interaction, terminal) match {
+      case (PlayConsoleInteractionMode, Some(term)) => PlayConsoleInteractionMode.waitForCancel(term)
+      case _                                        => interaction.waitForCancel()
+    }
 
   private class ContinuousInteractionMode(project: ProjectRef, state: State, log: Logger) extends PlayInteractionMode {
     override def waitForCancel(): Unit           = ()
@@ -144,6 +151,7 @@ object PlayRun {
     val runKey      = resolvedScoped.value
     val scope       = runKey.scope
     val log         = streams.value.log
+    val term        = terminal.value
     val watching    = isWatching(state, channelName(state))
     val interaction = interactionMode.getOrElse {
       // Play installs its watch termination hook only for Compile / run (playWatchSettings). Other keys built with
@@ -234,7 +242,7 @@ object PlayRun {
 
         try {
           // run mode
-          interaction.waitForCancel()
+          waitForCancel(interaction, Some(term))
         } finally {
           devModeServer.close()
           println()
@@ -350,7 +358,7 @@ object PlayRun {
              | """.stripMargin
         println(Colors.green(msg))
 
-        interaction.waitForCancel()
+        waitForCancel(interaction, PluginCompat.runTask(terminal, state).flatMap(_._2.toEither.toOption))
         println()
 
         if (noExitSbt) state
