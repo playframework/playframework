@@ -87,6 +87,30 @@ This does not affect normal file uploads. Play file uploads use multipart form h
 
 If your application intentionally needs one of the removed bindings, register an explicit formatter or converter for that type in your application. See [[Register a custom DataBinder|JavaForms#Register-a-custom-DataBinder]] for the Java form formatter setup. If you think a removed binding should be supported by Play by default, please open an issue in the [Play issue tracker](https://github.com/playframework/playframework/issues).
 
+### Java forms resolve their locale from `play.i18n.langs`
+
+Java forms no longer pass the locale to formatters and validators through a thread-local. Instead, each form resolves one locale from `play.i18n.langs` and uses it for binding and formatting. With Play's default `ValidatorFactory`, validation messages use the same locale. A custom `ValidatorFactory` keeps selecting the locale for validation messages itself. This changes the locale in the following cases:
+
+* A form without a language, for example one created with `formFactory.form(...).fill(...)` or bound with a `null` `Lang`, formatted and parsed values with the JVM default locale. It now uses the application's default language, the first entry of `play.i18n.langs`.
+* Validation messages of such a form, and of validators obtained from Play's `ValidatorFactory` without a `ValidationPayload`, for example with `validatorFactory.getValidator()`, used the JVM default locale if it was one of the configured languages, and the application's default language otherwise. They now always use the application's default language.
+* Validators that application code obtains from Play's `ValidatorFactory` outside of a form, with a `ValidationPayload` that has a language, ignored that language for their messages and used the same fallback as validators without a payload. They now use the payload's language, resolved against `play.i18n.langs`. Form validation already used the form's language.
+* A form bound with a language that is not configured in `play.i18n.langs` formatted and parsed values with exactly that language. It now uses the best matching configured language, or the application's default language, as its validation messages already did.
+
+Forms bound with `bindFromRequest` are not affected, because their language already comes from `play.i18n.langs`. The deprecated `jakarta.validation.Validator` binding is unchanged and still uses the JVM default locale.
+
+### `Formatters.parse` and `Formatters.print` take a `Locale`
+
+Because Java forms no longer pass the locale through a thread-local, the public conversion methods of [`play.data.format.Formatters`](api/java/play/data/format/Formatters.html) take the locale as an additional argument:
+
+| Before | Now |
+| --- | --- |
+| `parse(String text, Class<T> clazz)` | `parse(String text, Class<T> clazz, Locale locale)` |
+| `parse(Field field, String text)` | `parse(Field field, String text, Locale locale)` |
+| `print(T t)` | `print(T t, Locale locale)` |
+| `print(Field field, T t)` | `print(Field field, T t, Locale locale)` |
+
+Inside a custom `SimpleFormatter` or `AnnotationFormatter`, pass on the `locale` that your `parse` or `print` method receives, which is the form's locale. Elsewhere, pass the locale the conversion should use, for example `lang.toLocale()` for a `Lang`. `Locale.getDefault()` keeps the previous behavior outside of a form. The `parse` and `print` methods of custom formatters already received a `Locale` and are unchanged.
+
 ### FluentLenium has been replaced by Selenide
 
 Play's test browser, [`play.test.TestBrowser`](api/java/play/test/TestBrowser.html) (used by `WithBrowser` and `Helpers.running(testServer, HTMLUNIT, browser -> ...)`) and [`play.api.test.TestBrowser`](api/scala/play/api/test/TestBrowser.html) (used by the specs2 `WithBrowser` and `running(TestServer(...), HTMLUNIT) { browser => ... }`), was built on [FluentLenium](https://github.com/FluentLenium/FluentLenium). FluentLenium is no longer maintained and its repository has been archived. It also prevented Play from upgrading Selenium beyond 4.14 and HtmlUnit beyond 2.70, which is affected by [CVE-2023-26119](https://nvd.nist.gov/vuln/detail/CVE-2023-26119).
