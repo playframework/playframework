@@ -90,23 +90,23 @@ public class Form<T> {
    */
   private static final Pattern REPLACE_COLLECTION_ELEMENT = Pattern.compile("\\.?<[^<]*>");
 
-  private static final class LocaleSpecificMessageInterpolator implements MessageInterpolator {
+  static final class LocaleSpecificMessageInterpolator implements MessageInterpolator {
     private final MessageInterpolator delegate;
-    private final Locale locale;
+    private final Locale defaultLocale;
 
-    private LocaleSpecificMessageInterpolator(MessageInterpolator delegate, Locale locale) {
+    LocaleSpecificMessageInterpolator(MessageInterpolator delegate, Locale defaultLocale) {
       this.delegate = delegate;
-      this.locale = locale;
+      this.defaultLocale = defaultLocale;
     }
 
     @Override
     public String interpolate(String messageTemplate, Context context) {
-      return delegate.interpolate(messageTemplate, context, locale);
+      return delegate.interpolate(messageTemplate, context, defaultLocale);
     }
 
     @Override
-    public String interpolate(String messageTemplate, Context context, Locale locale) {
-      return delegate.interpolate(messageTemplate, context, locale);
+    public String interpolate(String messageTemplate, Context context, Locale explicitLocale) {
+      return delegate.interpolate(messageTemplate, context, explicitLocale);
     }
   }
 
