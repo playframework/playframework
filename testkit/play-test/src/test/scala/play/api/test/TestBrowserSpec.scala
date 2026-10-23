@@ -166,6 +166,26 @@ class TestBrowserSpec extends Specification {
       browser.el("#result").text() must_== "email=coco@example.com&items[0]=first"
     }
 
+    "submit forms with named and spliced arguments" in withBrowser { browser =>
+      browser.goTo("/")
+      val fields = Seq("email" -> "coco@example.com", "items[0]" -> "first")
+      browser.submit(selector = "#form", fields = fields*)
+      browser.el("#result").text() must_== "email=coco@example.com&items[0]=first"
+    }
+
+    "submit forms through a method reference with a Scala sequence" in withBrowser { browser =>
+      browser.goTo("/")
+      val submit: (String, Seq[(String, String)]) => play.test.BrowserElements = browser.submit
+      submit("#form", Seq("email" -> "coco@example.com", "items[0]" -> "first"))
+      browser.el("#result").text() must_== "email=coco@example.com&items[0]=first"
+    }
+
+    "submit forms without field values" in withBrowser { browser =>
+      browser.goTo("/")
+      browser.submit("#form")
+      browser.el("#result").text() must_== "email=&items[0]="
+    }
+
     "execute scripts" in withBrowser { browser =>
       browser.goTo("/")
       browser.executeScript("return document.title") must_== "Index"
