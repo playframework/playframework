@@ -10,16 +10,14 @@ import jakarta.inject.Singleton;
 import jakarta.validation.ConstraintValidatorFactory;
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.hibernate.validator.messageinterpolation.HibernateMessageInterpolatorContext;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
-import org.hibernate.validator.spi.messageinterpolation.LocaleResolver;
-import org.hibernate.validator.spi.messageinterpolation.LocaleResolverContext;
-import play.data.internal.binding.context.i18n.LocaleContextHolder;
-import play.i18n.Lang;
+import play.data.internal.FormLocales;
+import play.data.validation.Constraints.ValidationPayload;
 import play.i18n.Langs;
 import play.inject.ApplicationLifecycle;
 
@@ -36,11 +34,23 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
 
     Set<Locale> supportedLocales =
         langs.availables().stream().map(l -> l.locale()).collect(Collectors.toSet());
-    Locale defaultLocale = langs.preferred(langs.availables()).toLocale();
+    Locale defaultLocale = FormLocales.resolve(langs, null);
 
     ParameterMessageInterpolator messageInterpolator =
-        new ParameterMessageInterpolator(
-            supportedLocales, defaultLocale, new RequestAwareLocaleResolver(langs), false);
+        new ParameterMessageInterpolator(supportedLocales, defaultLocale, false) {
+          @Override
+          public String interpolate(String message, Context context) {
+            // Hibernate Validator passes its own context; any other context carries no payload.
+            final ValidationPayload payload =
+                context instanceof HibernateMessageInterpolatorContext hibernateContext
+                    ? hibernateContext.getConstraintValidatorPayload(ValidationPayload.class)
+                    : null;
+            return interpolate(
+                message,
+                context,
+                FormLocales.resolve(langs, payload != null ? payload.getLang() : null));
+          }
+        };
 
     this.validatorFactory =
         Validation.byDefaultProvider()
@@ -58,26 +68,5 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
 
   public ValidatorFactory get() {
     return this.validatorFactory;
-  }
-
-  static class RequestAwareLocaleResolver implements LocaleResolver {
-
-    private Langs langs;
-
-    public RequestAwareLocaleResolver(Langs langs) {
-      this.langs = langs;
-    }
-
-    @Override
-    public Locale resolve(LocaleResolverContext context) {
-      Locale defaultLocale = context.getDefaultLocale();
-      Locale requestLocale = LocaleContextHolder.getLocale();
-
-      if (requestLocale == null) {
-        return defaultLocale;
-      }
-
-      return langs.preferred(Collections.singleton(new Lang(requestLocale))).toLocale();
-    }
   }
 }
