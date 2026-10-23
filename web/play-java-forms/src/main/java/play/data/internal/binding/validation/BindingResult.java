@@ -20,6 +20,8 @@
 
 package play.data.internal.binding.validation;
 
+import java.util.Locale;
+
 /**
  * General interface that represents binding results. Extends the
  * {@link Errors} interface for error registration capabilities
@@ -49,7 +51,7 @@ public interface BindingResult extends Errors {
 	 * @param field the field to resolve message codes for
 	 * @return the resolved message codes
 	 */
-	String[] resolveMessageCodes(String errorCode, String field);
+	String[] resolveMessageCodes(String errorCode, String field, Locale locale);
 
 	/**
 	 * Add a custom {@link ObjectError} or {@link FieldError} to the errors list.
