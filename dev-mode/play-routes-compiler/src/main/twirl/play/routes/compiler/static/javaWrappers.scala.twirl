@@ -1,6 +1,6 @@
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
-@(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: Option[String], controllers: Seq[String], jsReverseRouter: Boolean)
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: Option[String], controllers: Seq[String], jsReverseRouter: Boolean, lang: Language = Language.SCALA)
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 
@@ -10,11 +10,11 @@ import @(pkg.getOrElse("_routes_")).RoutesPrefix;
 
 public class routes @ob
   @for(controller <- controllers) {
-  public static final @{packageName.map(_ + ".").getOrElse("")}Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}Reverse@(controller)(RoutesPrefix.byNamePrefix());}
+  public static final @{packageName.map(_ + ".").getOrElse("")}@if(lang == Language.JAVA){ReverseRoutes.}Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}@if(lang == Language.JAVA){ReverseRoutes.}Reverse@(controller)(RoutesPrefix.byNamePrefix());}
 @if(jsReverseRouter) {
   public static class javascript @ob
     @for(controller <- controllers) {
-    public static final @{packageName.map(_ + ".").getOrElse("")}javascript.Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}javascript.Reverse@(controller)(RoutesPrefix.byNamePrefix());}
+    public static final @{packageName.map(_ + ".").getOrElse("")}javascript.@if(lang == Language.JAVA){JavaScriptReverseRoutes.}Reverse@controller @controller = new @{packageName.map(_ + ".").getOrElse("")}javascript.@if(lang == Language.JAVA){JavaScriptReverseRoutes.}Reverse@(controller)(RoutesPrefix.byNamePrefix());}
   @cb
 }
 @cb
