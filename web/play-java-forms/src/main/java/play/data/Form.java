@@ -94,24 +94,24 @@ public class Form<T> {
 
   private static final String INVALID_MSG_KEY = "error.invalid";
 
-  private static final class FixedLocaleMessageInterpolator implements MessageInterpolator {
+  static final class FixedLocaleMessageInterpolator implements MessageInterpolator {
 
     private final MessageInterpolator delegate;
-    private final Locale locale;
+    private final Locale defaultLocale;
 
-    FixedLocaleMessageInterpolator(MessageInterpolator delegate, Locale locale) {
+    FixedLocaleMessageInterpolator(MessageInterpolator delegate, Locale defaultLocale) {
       this.delegate = delegate;
-      this.locale = locale;
+      this.defaultLocale = defaultLocale;
     }
 
     @Override
     public String interpolate(String messageTemplate, Context context) {
-      return delegate.interpolate(messageTemplate, context, locale);
+      return delegate.interpolate(messageTemplate, context, defaultLocale);
     }
 
     @Override
-    public String interpolate(String messageTemplate, Context context, Locale ignored) {
-      return delegate.interpolate(messageTemplate, context, locale);
+    public String interpolate(String messageTemplate, Context context, Locale explicitLocale) {
+      return delegate.interpolate(messageTemplate, context, explicitLocale);
     }
   }
 
