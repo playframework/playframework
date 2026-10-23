@@ -45,6 +45,7 @@ public class ValidatorFactoryProvider implements Provider<ValidatorFactory> {
                 context instanceof HibernateMessageInterpolatorContext hibernateContext
                     ? hibernateContext.getConstraintValidatorPayload(ValidationPayload.class)
                     : null;
+            // Use the same locale that Form uses for binding.
             return interpolate(
                 message,
                 context,

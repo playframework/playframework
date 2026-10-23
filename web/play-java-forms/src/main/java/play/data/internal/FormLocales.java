@@ -10,7 +10,7 @@ import play.i18n.Lang;
 import play.i18n.Langs;
 
 /**
- * Resolves the locale that Java forms use for validation messages.
+ * Resolves the locale that Java forms use for binding, formatting and validation messages.
  *
  * <p>This is internal API and may change without notice.
  */

@@ -1725,6 +1725,27 @@ trait FormSpec extends CommonFormSpec {
         myForm.errors("note").get(0).message() must beEqualTo(defaultLanguageMessage)
       }
     }
+
+    "format and parse values in the default language when no language is given" in new WithApplication(
+      application("play.i18n.langs" -> List(defaultLanguage, jvmLanguage))
+    ) {
+      override def running() = {
+        val date  = Date.from(LocalDate.of(2026, 3, 15).atStartOfDay(ZoneId.systemDefault()).toInstant)
+        val text  = if (defaultLanguage == "de") "15 März 2026" else "15 March 2026"
+        val value = new LocalizedDate()
+        value.date = date
+
+        val filledForm = formFactory.form(classOf[LocalizedDate]).withDirectFieldAccess(true).fill(value)
+        filledForm("date").value().toScala must beSome(text)
+
+        val boundForm = formFactory
+          .form(classOf[LocalizedDate])
+          .withDirectFieldAccess(true)
+          .bind(null, TypedMap.empty(), Map("date" -> text).asJava)
+        boundForm.hasErrors must beFalse
+        boundForm.get().date must beEqualTo(date)
+      }
+    }
   }
 }
 
