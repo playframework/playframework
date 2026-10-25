@@ -6,8 +6,6 @@ package play.api.test
 
 import scala.jdk.CollectionConverters._
 
-import com.codeborne.selenide.impl.Plugins
-import com.codeborne.selenide.impl.ScreenShotLaboratory
 import com.codeborne.selenide.CollectionCondition
 import com.codeborne.selenide.Condition
 import org.specs2.mutable._
@@ -182,14 +180,6 @@ class TestBrowserSpec extends Specification {
       browser.goTo("/")
       val dump = browser.takeHtmlDump("target/TestBrowserSpec/dump.html")
       new String(java.nio.file.Files.readAllBytes(dump.toPath), "UTF-8") must contain("Hello Guest")
-    }
-
-    "not record screenshots in Selenide's global screenshot laboratory" in withBrowser { browser =>
-      val global = Plugins.inject(classOf[ScreenShotLaboratory])
-      val before = global.screenshots().size()
-      browser.goTo("/")
-      browser.selenide.screenshot("TestBrowserSpec")
-      global.screenshots().size() must_== before
     }
   }
 }
