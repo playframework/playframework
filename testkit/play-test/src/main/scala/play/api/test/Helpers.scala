@@ -46,11 +46,15 @@ import play.twirl.api.Content
  * Helper functions to run tests.
  */
 trait PlayRunners extends HttpVerbs {
-  val HTMLUNIT = classOf[HtmlUnitDriver]
-  val FIREFOX  = classOf[FirefoxDriver]
-  val CHROME   = classOf[ChromeDriver]
-  val EDGE     = classOf[EdgeDriver]
-  val SAFARI   = classOf[SafariDriver]
+  // The browsers need the test browser's dependencies (Selenide, Selenium, HtmlUnit), which play-test only declares as
+  // optional; applications add them with play-test-browser. play-test only depends on selenium-api, which contains
+  // WebDriver. These constants are lazy and only mention WebDriver in their type, so that Helpers and
+  // PlaySpecification compile and run without the optional dependencies.
+  lazy val HTMLUNIT: Class[? <: WebDriver] = classOf[HtmlUnitDriver]
+  lazy val FIREFOX: Class[? <: WebDriver]  = classOf[FirefoxDriver]
+  lazy val CHROME: Class[? <: WebDriver]   = classOf[ChromeDriver]
+  lazy val EDGE: Class[? <: WebDriver]     = classOf[EdgeDriver]
+  lazy val SAFARI: Class[? <: WebDriver]   = classOf[SafariDriver]
 
   /**
    * Tests using servers by default run on random test server ports so we default to false.
