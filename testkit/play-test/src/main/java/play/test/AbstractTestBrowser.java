@@ -33,8 +33,7 @@ import org.openqa.selenium.WebDriverException;
  * #selenide()} to access the complete Selenide API.
  *
  * <p>The Selenide instance is created without Selenide's static API, so neither the browser nor its
- * configuration is kept in {@link ThreadLocal}s, and the browser's own screenshot laboratory
- * doesn't use them either.
+ * configuration is kept in {@link ThreadLocal}s.
  */
 public abstract class AbstractTestBrowser {
 
@@ -67,8 +66,7 @@ public abstract class AbstractTestBrowser {
     if (SELENIDE_DEFAULT_DOWNLOADS_FOLDER.equals(config.downloadsFolder())) {
       config.downloadsFolder("target/selenide/downloads");
     }
-    this.selenide =
-        new SelenideDriver(config, webDriver, null, new NoThreadLocalScreenShotLaboratory());
+    this.selenide = new SelenideDriver(config, webDriver, null);
   }
 
   private static String browserName(WebDriver webDriver) {
