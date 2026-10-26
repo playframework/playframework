@@ -48,6 +48,12 @@ Short description: A plugin for sbt that uses sbt-web to compile Svelte componen
 * **Website:** <https://github.com/phelps-sg/play-hmac-signatures>
 * **Short description:** A Play Framework module to build actions that validate HMAC signatures
 
+### Play Auth SSO module (Scala)
+
+- **Website:** <https://github.com/dfurmans/play-auth-sso/>
+- **Documentation:** <https://github.com/dfurmans/play-auth-sso/blob/main/examples/quickstart/README.md>
+- **Short description:** A thin, pluggable module for PAM/SSO login and logout via OpenID Connect. It ships a ready-to-wire OidcController that runs the authorization-code flow against any OIDC-compliant IdP, delegating authentication to the battle-tested Nimbus oauth2-oidc-sdk.
+
 ## Datastore
 
 ### Flyway plugin
