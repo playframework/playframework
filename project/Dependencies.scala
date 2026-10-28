@@ -13,7 +13,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M10+90-e2ddbd4c-SNAPSHOT"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.5"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.6"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -244,7 +244,7 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val selenideVersion = "7.19.0"
+  val selenideVersion = "7.19.1"
   // HtmlUnitDriver is not part of Selenium/Selenide, but it is still the default browser of Play's TestBrowser.
   val htmlunitDriverVersion = "4.51.0"
 
