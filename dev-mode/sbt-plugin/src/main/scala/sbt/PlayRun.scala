@@ -55,26 +55,12 @@ object PlayRun {
       val previous = (Compile / run / watchOnTermination).?.value.getOrElse(NioWatch.defaultCommandOnTermination)
       (action, command, count, state) =>
         try previous(action, command, count, state)
-        finally PlayContinuousRun.stop(project, watchChannelName(state))
+        finally PlayContinuousRun.stop(project, channelName(state))
     }
   )
 
   private def channelName(state: State): String =
     state.source.map(_.channelName).getOrElse(ConsoleChannel.defaultName)
-
-  // This workaround can be removed once Play requires sbt 1.13.1+ and sbt 2.1.0+.
-  // See https://github.com/sbt/sbt/pull/9901 and https://github.com/sbt/sbt/pull/9902.
-  private def watchChannelName(state: State): String =
-    state.currentCommand
-      .flatMap { exec =>
-        // sbt's cancellation and disconnect commands omit CommandSource. The channel
-        // being stopped is their argument, even when another channel issued the command.
-        Seq(ContinuousCommands.stopWatch, ContinuousCommands.failWatch)
-          .map(_ + " ")
-          .find(prefix => exec.commandLine.startsWith(prefix))
-          .map(prefix => exec.commandLine.stripPrefix(prefix).trim)
-      }
-      .getOrElse(channelName(state))
 
   private def isCompileRun(key: ScopedKey[?]): Boolean =
     key.key == Keys.run.key && key.scope.config.toOption.exists(_.name == Compile.name)
