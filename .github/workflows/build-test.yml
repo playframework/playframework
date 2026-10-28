@@ -47,7 +47,7 @@ jobs:
           sbt +update                                             # Fetches dependencies for published 2.13/3.3 artifacts
           sbt "-Dscala.version=3.9.x" update                      # Fetches dependencies for the Scala 3 LTS test lane
           sbt "-Dscala.version=3.next" update                     # Fetches dependencies for the Scala 3 next test lane
-          # sbt --sbt-version 1.13.0 +update                      # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
+          # sbt --sbt-version 1.13.1 +update                      # If we run scripted tests with multiple sbt versions, we could init that sbt installs here
           sbt +mimaPreviousClassfiles                             # Fetches previous artifacts
           cd documentation
           sbt +update                                             # Fetches documentation dependencies for published artifacts
@@ -184,7 +184,7 @@ jobs:
       scala: 2.13.x, 3.3.x, 3.9.x, 3.next
       add-dimensions: >-
         {
-          "sbt": [ "1.13.0", "2.1.0-bin-20261019-4937ade-NIGHTLY" ],
+          "sbt": [ "1.13.1", "2.1.0-RC2" ],
           "sbt_steps": [ "*1of3", "*2of3", "*3of3" ]
         }
       exclude: >-
