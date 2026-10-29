@@ -9,12 +9,23 @@ libraryDependencies ++= Seq(
   "org.java-websocket" % "Java-WebSocket" % "1.5.7"  % Test,
 )
 
-scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
+scalaVersion := ScriptedTools.scalaVersionFromJavaProperties()
+crossPaths   := false
+
+// Keep the scripted source checks independent of sbt's default cross-target layout.
+Compile / play.sbt.routes.RoutesKeys.routes / target := baseDirectory.value / "target" / "routes" / "main"
+cleanFiles += (Compile / play.sbt.routes.RoutesKeys.routes / target).value
 
 // can't use test directory since scripted calls its script "test"
 Test / sourceDirectory := baseDirectory.value / "tests"
 
 Test / scalaSource := baseDirectory.value / "tests"
+
+Test / unmanagedSourceDirectories ++= {
+  if (play.sbt.routes.RoutesKeys.routesLang.value == play.routes.compiler.Language.SCALA)
+    Seq(baseDirectory.value / "scala-compat-tests")
+  else Nil
+}
 
 // Generate a js router so we can test it with mocha
 @transient val generateJsRouter = TaskKey[Seq[File]]("generate-js-router")

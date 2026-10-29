@@ -79,6 +79,7 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated router sources.
    */
   case class RoutesCompilerTask(
       file: File,
@@ -86,15 +87,33 @@ object RoutesCompiler {
       forwardsRouter: Boolean,
       reverseRouter: Boolean,
       jsReverseRouter: Boolean,
-      namespaceReverseRouter: Boolean
+      namespaceReverseRouter: Boolean,
+      lang: Language
   ) {
     def this(
         file: File,
         additionalImports: Seq[String],
         forwardsRouter: Boolean,
         reverseRouter: Boolean,
+        jsReverseRouter: Boolean,
         namespaceReverseRouter: Boolean
-    ) = this(file, additionalImports, forwardsRouter, reverseRouter, true, namespaceReverseRouter)
+    ) = this(
+      file,
+      additionalImports,
+      forwardsRouter,
+      reverseRouter,
+      jsReverseRouter,
+      namespaceReverseRouter,
+      Language.SCALA
+    )
+
+    def this(
+        file: File,
+        additionalImports: Seq[String],
+        forwardsRouter: Boolean,
+        reverseRouter: Boolean,
+        namespaceReverseRouter: Boolean
+    ) = this(file, additionalImports, forwardsRouter, reverseRouter, true, namespaceReverseRouter, Language.SCALA)
   }
 
   /**
@@ -141,6 +160,7 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated router sources.
    * @param generatedDir The directory to place the generated source code in
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
@@ -151,6 +171,7 @@ object RoutesCompiler {
       reverseRouter: Boolean,
       jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean,
+      lang: Language,
       generatedDir: File
   ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] = {
     compile(
@@ -160,7 +181,8 @@ object RoutesCompiler {
         forwardsRouter,
         reverseRouter,
         jsReverseRouter,
-        namespaceReverseRouter
+        namespaceReverseRouter,
+        lang
       ),
       InjectedRoutesGenerator,
       generatedDir

@@ -22,6 +22,20 @@ GET            /only-request                      controllers.Application.onlyRe
 GET            /not-first-request                 controllers.Application.notFirstRequestParam(a, r: play.mvc.Http.Request)
 GET            /same-escaped-java-identifier      controllers.Application.sameEscapedJavaIdentifier(`[]`, `%%`)
 GET            /root-prefixed-controller          _root_.controllers.Application.rootPrefixedController
+GET            /root-prefixed-provider            @_root_.controllers.Application.rootPrefixedProvider
+
+### Reverse routes sharing an action
+GET /reverse/renamed/fixed       controllers.Application.renamedParams(value = "fixed")
+GET /reverse/renamed/:alias      controllers.Application.renamedParams(alias)
+GET /reverse/query/fixed         controllers.Application.renamedQueryParam(value = "fixed")
+GET /reverse/query               controllers.Application.renamedQueryParam(alias: String ?= "default")
+GET /reverse/shared/one          controllers.Application.sharedFixedParams(first = "constant", second = "one")
+GET /reverse/shared/two          controllers.Application.sharedFixedParams(first = "constant", second = "two")
+GET /reverse/shared              controllers.Application.sharedFixedParams(first = "constant", second: String ?= "default")
+GET /reverse/fixed-only/one      controllers.Application.fixedOnlyParams(first = "constant", second = "one")
+GET /reverse/fixed-only/two      controllers.Application.fixedOnlyParams(first = "constant", second = "two")
+GET /reverse/unconstrained/:first controllers.Application.unconstrainedFirst(first)
+GET /reverse/unreachable/fixed   controllers.Application.unconstrainedFirst(first = "fixed")
 
 ### Boolean
 GET            /bool-p/:x                         controllers.BooleanController.path(x: java.lang.Boolean)
