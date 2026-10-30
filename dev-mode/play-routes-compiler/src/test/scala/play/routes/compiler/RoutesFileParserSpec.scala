@@ -37,6 +37,10 @@ class RoutesFileParserSpec extends Specification {
       parseRoute("GET /s p.c.m").verb must_== HttpVerb("GET")
     }
 
+    "parse the QUERY HTTP method" in {
+      parseRoute("QUERY /s p.c.m").verb must_== HttpVerb("QUERY")
+    }
+
     "parse the HTTP method with leading whitespace" in {
       parseRoute("  GET /s p.c.m").verb must_== HttpVerb("GET")
     }

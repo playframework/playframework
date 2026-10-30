@@ -11,6 +11,7 @@ import static play.mvc.Http.HttpVerbs.OPTIONS;
 import static play.mvc.Http.HttpVerbs.PATCH;
 import static play.mvc.Http.HttpVerbs.POST;
 import static play.mvc.Http.HttpVerbs.PUT;
+import static play.mvc.Http.HttpVerbs.QUERY;
 
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -43,5 +44,9 @@ public class MethodController extends Controller {
 
   public Result options() {
     return ok(OPTIONS);
+  }
+
+  public Result query() {
+    return ok(QUERY);
   }
 }

@@ -8,6 +8,7 @@ PATCH          /method/patch                      controllers.MethodController.p
 DELETE         /method/delete                     controllers.MethodController.delete
 HEAD           /method/head                       controllers.MethodController.head
 OPTIONS        /method/options                    controllers.MethodController.options
+QUERY          /method/query                      controllers.MethodController.query
 
 ### Results
 GET            /result/async                      controllers.Application.async(request: Request, x: Integer)
