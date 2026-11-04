@@ -5,7 +5,6 @@ spotless = "8.10.4"
 assertj = "3.27.7"
 commons-io = "2.22.0"
 freemarker = "2.3.35"
-twirl = "2.0.3"
 mockito = "5.24.0"
 kotlin-plugin = "2.4.21"
 

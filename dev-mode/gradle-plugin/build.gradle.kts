@@ -14,15 +14,24 @@ plugins {
     signing
 }
 
-val playVersionKey = "play.version"
-val playVersion: String = System.getProperty(playVersionKey) ?: Properties().apply {
-    val file = file("$projectDir/../../version.properties")
-    if (!file.exists()) throw GradleException("Generate Play version file by `sbt savePlayVersion` command")
-    file.inputStream().use { load(it) }
-    if (this.getProperty(playVersionKey).isNullOrEmpty()) {
-        throw GradleException("`$playVersionKey` key didn't find in ${file.absolutePath}")
+val versionFile = file("$projectDir/../../version.properties")
+val savedVersions: Properties by lazy {
+    Properties().apply {
+        if (!versionFile.exists()) throw GradleException("Generate Play version file by `sbt savePlayVersion` command")
+        versionFile.inputStream().use { load(it) }
     }
-}.getProperty(playVersionKey)
+}
+
+/** A version from a system property, or else from the version file of `sbt savePlayVersion`. */
+fun savedVersion(key: String): String = System.getProperty(key) ?: savedVersions.getProperty(key).also {
+    if (it.isNullOrEmpty()) {
+        throw GradleException("`$key` key didn't find in ${versionFile.absolutePath}, regenerate it by `sbt savePlayVersion`")
+    }
+}
+
+val playVersion: String = savedVersion("play.version")
+// The Twirl version that Play uses, so that the plugin integrates with the matching Twirl Gradle plugin
+val twirlVersion: String = savedVersion("twirl.version")
 
 val isRelease = !playVersion.endsWith("SNAPSHOT")
 
@@ -38,7 +47,7 @@ repositories {
 
 dependencies {
     compileOnly("org.playframework:play-routes-compiler_2.13:$playVersion")
-    compileOnly("org.playframework.twirl:gradle-twirl:${libs.versions.twirl.get()}")
+    compileOnly("org.playframework.twirl:gradle-twirl:$twirlVersion")
     implementation("org.playframework:play-run-support:$playVersion")
     testImplementation(libs.assertj)
     testImplementation(libs.commons.io)

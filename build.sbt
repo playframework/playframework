@@ -542,6 +542,8 @@ savePlayVersion := Def.uncached {
   val writer = new StringWriter()
   val file   = baseDirectory.value / "version.properties"
   props.setProperty("play.version", version.value)
+  // The Gradle plugin integrates with the Twirl Gradle plugin of the Twirl version that Play uses
+  props.setProperty("twirl.version", playbuildinfo.BuildInfo.sbtTwirlVersion)
   props.store(writer, "")
   IO.write(file, writer.getBuffer.toString)
 }
