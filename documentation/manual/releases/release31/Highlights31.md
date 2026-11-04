@@ -12,7 +12,7 @@ Play WS now supports the [HTTP QUERY method](https://www.rfc-editor.org/rfc/rfc1
 
 ### Generating the router as Java source code
 
-The sbt plugin can now generate the router, the reverse router and the JavaScript reverse router as Java source code instead of Scala, with `routesLang := play.routes.compiler.Language.JAVA` in `build.sbt`. The generated routes then only need the Java compiler, which helps builds that combine Java with other JVM languages such as Kotlin. Scala source code stays the default. Java generation requires Java types and expressions in the routes file and changes a few things for Scala callers of the reverse router; see [[Router source language|JavaRouting#Router-source-language]] for details.
+The sbt plugin can now generate the router, the reverse router and the JavaScript reverse router as Java source code instead of Scala, with `routesLang := play.routes.compiler.Language.JAVA` in `build.sbt`. The generated routes then only need the Java compiler, which helps builds that combine Java with other JVM languages such as Kotlin. Play itself still depends on the Scala library, and Twirl templates and other Scala sources still need the Scala compiler. Scala source code stays the default. Java generation requires Java types and expressions in the routes file and changes a few things for Scala callers of the reverse router; see [[Router source language|JavaRouting#Router-source-language]] for details.
 
 ### Selenide based test browser
 

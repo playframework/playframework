@@ -222,6 +222,8 @@ By default, the sbt plugin generates the router as Scala source code, also for J
 routesLang := play.routes.compiler.Language.JAVA
 ```
 
+The generated router then only needs the Java compiler, which helps builds that combine Java with other JVM languages, such as Kotlin. Play itself still depends on the Scala library, and Scala sources such as Twirl templates still need the Scala compiler.
+
 Applications that keep the default are not affected by the rest of this section. The Gradle plugin does not support this setting yet and always generates Scala source code.
 
 The routes file grammar stays the same, but the router copies parameter types, fixed values, default values and `routesImport` entries into Java source code, so they must be valid Java:
