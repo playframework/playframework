@@ -345,6 +345,16 @@ package object templates {
       }
 
   /**
+   * The route parameters that a reverse route passes in the query string, with their positions in the route parameters.
+   *
+   * These are the parameters that neither have a fixed value nor appear in the path.
+   */
+  def reverseQueryParameters(route: Route): Seq[(Parameter, Int)] = {
+    val pathNames = route.path.parts.collect { case DynamicPart(name, _, _) => name }
+    route.call.routeParams.zipWithIndex.filterNot { case (p, _) => p.fixed.isDefined || pathNames.contains(p.name) }
+  }
+
+  /**
    * Reverse parameters for matching
    */
   def reverseMatchParameters(params: Seq[(Parameter, Int)], annotateUnchecked: Boolean): String = {
@@ -517,14 +527,7 @@ package object templates {
       }
       .mkString(" + ")
 
-    val queryParams = route.call.routeParams.filterNot { p =>
-      p.fixed.isDefined ||
-      route.path.parts
-        .collect {
-          case DynamicPart(name, _, _) => name
-        }
-        .contains(p.name)
-    }
+    val queryParams = reverseQueryParameters(route).map(_._1)
 
     val callQueryString = if (queryParams.isEmpty) {
       ""
@@ -572,15 +575,7 @@ package object templates {
       }
       .mkString(" + ")
 
-    val queryParams = route.call.routeParams.zipWithIndex.filterNot {
-      case (p, _) =>
-        p.fixed.isDefined ||
-        route.path.parts
-          .collect {
-            case DynamicPart(name, _, _) => name
-          }
-          .contains(p.name)
-    }
+    val queryParams = reverseQueryParameters(route)
 
     val callQueryString = if (queryParams.isEmpty) {
       ""
@@ -647,27 +642,27 @@ package object templates {
    * This optimization not only saves on code generated, but since the body of the JavaScript router is a series of
    * very long String concatenation, this is hard work on the typer, which can easily stack overflow.
    */
-  def javascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, Map[String, String], String)] = {
-    routes
-      .map { route =>
-        val localNames  = reverseLocalNames(route, reverseParametersJavascript(routes))
-        val constraints = javascriptParameterConstraints(route, localNames)
-        (route, localNames, constraints)
-      }
-      .foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
-        case ((_routes, true), dead)                                    => (_routes, true)
-        case ((_routes, false), (route, localNames, None))              => (_routes :+ ((route, localNames, "true")), true)
-        case ((_routes, false), (route, localNames, Some(constraints))) =>
-          (_routes :+ ((route, localNames, constraints)), false)
-      }
-      ._1
-  }
+  def javascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, Map[String, String], String)] =
+    collectNonDeadRoutes(routes) { route =>
+      val localNames = reverseLocalNames(route, reverseParametersJavascript(routes))
+      localNames -> javascriptParameterConstraints(route, localNames)
+    }
 
-  def javaJavascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, Map[String, String], String)] = {
+  /**
+   * Collect all the routes that apply to a single action that are not dead, for the Java JavaScript reverse router.
+   */
+  def javaJavascriptCollectNonDeadRoutes(routes: Seq[Route]): Seq[(Route, Map[String, String], String)] =
+    collectNonDeadRoutes(routes) { route =>
+      val localNames = javaReverseLocalNames(route, reverseParameters(routes))
+      localNames -> javaJavascriptParameterConstraints(route, localNames)
+    }
+
+  private def collectNonDeadRoutes(routes: Seq[Route])(
+      localNamesAndConstraints: Route => (Map[String, String], Option[String])
+  ): Seq[(Route, Map[String, String], String)] = {
     routes
       .map { route =>
-        val localNames  = javaReverseLocalNames(route, reverseParameters(routes))
-        val constraints = javaJavascriptParameterConstraints(route, localNames)
+        val (localNames, constraints) = localNamesAndConstraints(route)
         (route, localNames, constraints)
       }
       .foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
@@ -704,14 +699,7 @@ package object templates {
           }
     }.mkString
 
-    val queryParams = route.call.routeParams.filterNot { p =>
-      p.fixed.isDefined ||
-      route.path.parts
-        .collect {
-          case DynamicPart(name, _, _) => name
-        }
-        .contains(p.name)
-    }
+    val queryParams = reverseQueryParameters(route).map(_._1)
 
     val queryString = if (queryParams.isEmpty) {
       ""
@@ -756,15 +744,7 @@ package object templates {
           }
     }.mkString
 
-    val queryParams = route.call.routeParams.zipWithIndex.filterNot {
-      case (p, _) =>
-        p.fixed.isDefined ||
-        route.path.parts
-          .collect {
-            case DynamicPart(name, _, _) => name
-          }
-          .contains(p.name)
-    }
+    val queryParams = reverseQueryParameters(route)
 
     val queryString = if (queryParams.isEmpty) {
       ""
