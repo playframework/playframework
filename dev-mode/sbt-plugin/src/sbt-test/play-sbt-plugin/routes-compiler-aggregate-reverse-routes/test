@@ -38,3 +38,47 @@ $ exists c/target/routes/main/c/Routes.scala
 
 # Now ensure that everything compiles
 > compile
+
+# Generate the routers as Java sources and check again
+> clean
+> set ThisBuild / play.sbt.routes.RoutesKeys.routesLang := play.routes.compiler.Language.JAVA
+> playRoutes
+
+$ exists common/target/routes/main/a/RoutesPrefix.java
+$ exists common/target/routes/main/controllers/a/ReverseA.java
+$ exists common/target/routes/main/controllers/a/javascript/ReverseA.java
+$ exists common/target/routes/main/controllers/a/routes.java
+$ exists common/target/routes/main/b/RoutesPrefix.java
+$ exists common/target/routes/main/controllers/b/ReverseB.java
+$ exists common/target/routes/main/controllers/b/javascript/ReverseB.java
+$ exists common/target/routes/main/controllers/b/routes.java
+$ exists common/target/routes/main/c/RoutesPrefix.java
+$ exists common/target/routes/main/controllers/c/ReverseC.java
+$ exists common/target/routes/main/controllers/c/javascript/ReverseC.java
+$ exists common/target/routes/main/controllers/c/routes.java
+-$ exists common/target/routes/main/a/Routes.java
+-$ exists common/target/routes/main/b/Routes.java
+-$ exists common/target/routes/main/c/Routes.java
+
+$ exists a/target/routes/main/a/RoutesPrefix.java
+-$ exists a/target/routes/main/controllers/a/ReverseA.java
+-$ exists a/target/routes/main/controllers/a/javascript/ReverseA.java
+-$ exists a/target/routes/main/controllers/a/routes.java
+$ exists a/target/routes/main/a/Routes.java
+-$ exists a/target/routes/main/a/Routes.scala
+
+$ exists b/target/routes/main/b/RoutesPrefix.java
+-$ exists b/target/routes/main/controllers/b/ReverseB.java
+-$ exists b/target/routes/main/controllers/b/javascript/ReverseB.java
+-$ exists b/target/routes/main/controllers/b/routes.java
+$ exists b/target/routes/main/b/Routes.java
+-$ exists b/target/routes/main/b/Routes.scala
+
+$ exists c/target/routes/main/c/RoutesPrefix.java
+-$ exists c/target/routes/main/controllers/c/ReverseC.java
+-$ exists c/target/routes/main/controllers/c/javascript/ReverseC.java
+-$ exists c/target/routes/main/controllers/c/routes.java
+$ exists c/target/routes/main/c/Routes.java
+-$ exists c/target/routes/main/c/Routes.scala
+
+> compile
