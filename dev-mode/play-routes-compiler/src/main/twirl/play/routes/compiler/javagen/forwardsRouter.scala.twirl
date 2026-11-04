@@ -1,0 +1,54 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@import play.routes.compiler.javagen.JavaTemplates._
+@import InjectedRoutesGenerator.Dependency
+
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String],
+  deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]])
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+
+@for(p <- pkg) {package @p;}
+@for(i <- imports) {
+import @javaImport(i);}
+
+@@SuppressWarnings({"unchecked", "this-escape"})
+public class Routes extends play.core.routing.JavaGeneratedRouter @ob
+@for(dep <- deps) {
+  @markLines(dep.rule)
+  private final @javaType(dep.clazz) @dep.ident;}
+
+  @@jakarta.inject.Inject
+  public Routes(
+    play.api.http.HttpErrorHandler errorHandler@for(dep <- deps) {,
+    @markLines(dep.rule)
+    @javaType(dep.clazz) @dep.ident}
+  ) @ob
+    this(errorHandler, @for(dep <- deps) {@dep.ident, }"/");
+  @cb
+
+  public Routes(
+    play.api.http.HttpErrorHandler errorHandler,@for(dep <- deps) {
+    @markLines(dep.rule)
+    @javaType(dep.clazz) @dep.ident,}
+    String prefix
+  ) @ob
+    super(errorHandler, prefix, "@for(p <- pkg) {@p}");@for(dep <- deps) {
+    this.@dep.ident = @dep.ident;}
+@for(dep <- rules) {@dep.rule match {
+case route: Route => {
+    @markLines(route)
+    @javaRoute(route, dep.ident, "    ")
+}
+case include: Include => {
+    @markLines(include)
+    include(@(dep.ident).withPrefix(prefixed(@javaString(include.prefix))));
+}}}  @cb
+
+  @@Override
+  public Routes withPrefix(String addPrefix) @ob
+    String prefix = play.api.routing.Router.concatPrefix(addPrefix, prefix());
+    @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix);
+    return new Routes(errorHandler(), @for(dep <- deps) {@dep.ident, }prefix);
+  @cb
+@cb

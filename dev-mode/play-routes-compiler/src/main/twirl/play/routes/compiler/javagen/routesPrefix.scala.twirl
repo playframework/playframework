@@ -1,0 +1,27 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String])
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+
+@* Can't put in the root package because Java can't refer to the root package *@
+package @pkg.getOrElse("_routes_");
+
+public final class RoutesPrefix @ob
+
+  private static String _prefix = "/";
+
+  private RoutesPrefix() @ob@cb
+
+  public static void setPrefix(String p) @ob
+    _prefix = p;
+  @cb
+
+  public static String prefix() @ob
+    return _prefix;
+  @cb
+
+  public static java.util.function.Supplier<String> byNamePrefix() @ob
+    return RoutesPrefix::prefix;
+  @cb
+@cb

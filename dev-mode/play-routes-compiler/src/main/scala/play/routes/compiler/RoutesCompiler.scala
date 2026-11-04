@@ -154,6 +154,40 @@ object RoutesCompiler {
       jsReverseRouter: Boolean,
       namespaceReverseRouter: Boolean,
       generatedDir: File
+  ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] =
+    compile(
+      file,
+      additionalImports,
+      forwardsRouter,
+      reverseRouter,
+      jsReverseRouter,
+      namespaceReverseRouter,
+      Language.SCALA,
+      generatedDir
+    )
+
+  /**
+   * Java friendly method to compile the given routes file into source code of the given language
+   *
+   * @param file         The routes file to compile
+   * @param additionalImports The additional imports.
+   * @param forwardsRouter Whether a forwards router should be generated.
+   * @param reverseRouter Whether a reverse router should be generated.
+   * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
+   * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated source code.
+   * @param generatedDir The directory to place the generated source code in
+   * @return Either the list of files that were generated (right) or the routes compilation errors (left)
+   */
+  def compile(
+      file: File,
+      additionalImports: util.Collection[String],
+      forwardsRouter: Boolean,
+      reverseRouter: Boolean,
+      jsReverseRouter: Boolean,
+      namespaceReverseRouter: Boolean,
+      lang: Language,
+      generatedDir: File
   ): Either[util.Collection[RoutesCompilationError], util.Collection[File]] = {
     compile(
       RoutesCompilerTask(
@@ -162,7 +196,8 @@ object RoutesCompiler {
         forwardsRouter,
         reverseRouter,
         jsReverseRouter,
-        namespaceReverseRouter
+        namespaceReverseRouter,
+        lang
       ),
       InjectedRoutesGenerator,
       generatedDir

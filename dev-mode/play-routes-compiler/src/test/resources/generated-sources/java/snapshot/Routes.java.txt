@@ -1,0 +1,259 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package snapshot;
+
+
+@SuppressWarnings({"unchecked", "this-escape"})
+public class Routes extends play.core.routing.JavaGeneratedRouter {
+
+  // @LINE:7
+  private final controllers.Application Application_1;
+  // @LINE:12
+  private final controllers.StringController StringController_4;
+  // @LINE:13
+  private final controllers.Assets Assets_3;
+  // @LINE:22
+  private final controllers.Application Application_5;
+  // @LINE:25
+  private final jakarta.inject.Provider<controllers.InstanceController> InstanceController_0;
+  // @LINE:26
+  private final controllers.module.ModuleController ModuleController_2;
+  // @LINE:46
+  private final module.Routes module_Routes_0;
+
+  @jakarta.inject.Inject
+  public Routes(
+    play.api.http.HttpErrorHandler errorHandler,
+    // @LINE:7
+    controllers.Application Application_1,
+    // @LINE:12
+    controllers.StringController StringController_4,
+    // @LINE:13
+    controllers.Assets Assets_3,
+    // @LINE:22
+    controllers.Application Application_5,
+    // @LINE:25
+    jakarta.inject.Provider<controllers.InstanceController> InstanceController_0,
+    // @LINE:26
+    controllers.module.ModuleController ModuleController_2,
+    // @LINE:46
+    module.Routes module_Routes_0
+  ) {
+    this(errorHandler, Application_1, StringController_4, Assets_3, Application_5, InstanceController_0, ModuleController_2, module_Routes_0, "/");
+  }
+
+  public Routes(
+    play.api.http.HttpErrorHandler errorHandler,
+    // @LINE:7
+    controllers.Application Application_1,
+    // @LINE:12
+    controllers.StringController StringController_4,
+    // @LINE:13
+    controllers.Assets Assets_3,
+    // @LINE:22
+    controllers.Application Application_5,
+    // @LINE:25
+    jakarta.inject.Provider<controllers.InstanceController> InstanceController_0,
+    // @LINE:26
+    controllers.module.ModuleController ModuleController_2,
+    // @LINE:46
+    module.Routes module_Routes_0,
+    String prefix
+  ) {
+    super(errorHandler, prefix, "snapshot");
+    this.Application_1 = Application_1;
+    this.StringController_4 = StringController_4;
+    this.Assets_3 = Assets_3;
+    this.Application_5 = Application_5;
+    this.InstanceController_0 = InstanceController_0;
+    this.ModuleController_2 = ModuleController_2;
+    this.module_Routes_0 = module_Routes_0;
+
+    // @LINE:7
+    route("GET", "")
+      .handler("controllers.Application", "index")
+      .documentation("controllers.Application.index")
+      .comments("## Comments\n The index page")
+      .to((Object[] p) -> Application_1.index());
+
+    // @LINE:10
+    route("GET", "pattern/$x<\\d+>", staticPart("pattern/"), dynamicPart("x", "\\d+", false))
+      .handler("controllers.Application", "uriPattern", String.class)
+      .documentation("controllers.Application.uriPattern(x:String)")
+      .comments("## Path and query parameters")
+      .params(pathParam("x", play.core.routing.JavaBinders.pathString()))
+      .to((Object[] p) -> Application_1.uriPattern((String) p[0]));
+
+    // @LINE:11
+    route("GET", "urlcoding/$d<[^/]+>/$s<.+>", staticPart("urlcoding/"), dynamicPart("d", "[^/]+", true), staticPart("/"), dynamicPart("s", ".+", false))
+      .handler("controllers.Application", "urlcoding", String.class, String.class, String.class)
+      .documentation("controllers.Application.urlcoding(d:String, s:String, q:String)")
+      .params(pathParam("d", play.core.routing.JavaBinders.pathString()), pathParam("s", play.core.routing.JavaBinders.pathString()), queryParam("q", play.core.routing.JavaBinders.queryString()))
+      .to((Object[] p) -> Application_1.urlcoding((String) p[0], (String) p[1], (String) p[2]));
+
+    // @LINE:12
+    route("GET", "str-list-opt-d", staticPart("str-list-opt-d"))
+      .handler("controllers.StringController", "queryListOptionalDefault", java.util.Optional.class)
+      .documentation("controllers.StringController.queryListOptionalDefault(`x[]?=`:java.util.Optional[java.util.List[String]] ?= java.util.Optional.of(java.util.List.of(\"abc\", \"def\")))")
+      .params(queryParam("x[]?=", play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryList(play.core.routing.JavaBinders.queryString())), java.util.Optional.of(java.util.List.of("abc", "def"))))
+      .to((Object[] p) -> StringController_4.queryListOptionalDefault((java.util.Optional<java.util.List<String>>) p[0]));
+
+    // @LINE:13
+    route("GET", "public/$file<.+>", staticPart("public/"), dynamicPart("file", ".+", false))
+      .handler("controllers.Assets", "versioned", String.class, controllers.Assets.Asset.class)
+      .documentation("controllers.Assets.versioned(path:String = \"/public\", file:controllers.Assets.Asset)")
+      .params(pathParam("file", play.core.routing.JavaBinders.pathAsset(play.core.routing.ReverseRouteContext.empty())))
+      .to((Object[] p) -> Assets_3.versioned("/public", (controllers.Assets.Asset) p[0]));
+
+    // @LINE:16
+    route("GET", "only-request", staticPart("only-request"))
+      .handler("controllers.Application", "onlyRequestParam", play.mvc.Http.Request.class)
+      .documentation("controllers.Application.onlyRequestParam(req:Request)")
+      .comments("## Request parameters")
+      .to((play.mvc.Http.Request req, Object[] p) -> Application_1.onlyRequestParam(req));
+
+    // @LINE:17
+    route("GET", "not-first-request", staticPart("not-first-request"))
+      .handler("controllers.Application", "notFirstRequestParam", String.class, play.mvc.Http.Request.class)
+      .documentation("controllers.Application.notFirstRequestParam(a:String, r:play.mvc.Http.Request)")
+      .params(queryParam("a", play.core.routing.JavaBinders.queryString()))
+      .to((play.mvc.Http.Request req, Object[] p) -> Application_1.notFirstRequestParam((String) p[0], req));
+
+    // @LINE:20
+    route("GET", "same-escaped-java-identifier", staticPart("same-escaped-java-identifier"))
+      .handler("controllers.Application", "sameEscapedJavaIdentifier", String.class, String.class)
+      .documentation("controllers.Application.sameEscapedJavaIdentifier(`[]`:String, `%%`:String)")
+      .comments("## Names")
+      .params(queryParam("[]", play.core.routing.JavaBinders.queryString()), queryParam("%%", play.core.routing.JavaBinders.queryString()))
+      .to((Object[] p) -> Application_1.sameEscapedJavaIdentifier((String) p[0], (String) p[1]));
+
+    // @LINE:21
+    route("GET", "keyword/class", staticPart("keyword/class"))
+      .handler("controllers.Application", "keyword", String.class)
+      .documentation("controllers.Application.keyword(class:String)")
+      .params(queryParam("class", play.core.routing.JavaBinders.queryString()))
+      .to((Object[] p) -> Application_1.keyword((String) p[0]));
+
+    // @LINE:22
+    route("GET", "root-prefixed-controller", staticPart("root-prefixed-controller"))
+      .handler("_root_.controllers.Application", "rootPrefixedController")
+      .documentation("_root_.controllers.Application.rootPrefixedController")
+      .to((Object[] p) -> Application_5.rootPrefixedController());
+
+    // @LINE:23
+    route("GET", "root-prefixed-param/fixed", staticPart("root-prefixed-param/fixed"))
+      .handler("controllers.Application", "rootPrefixedParam", java.lang.Integer.class, java.util.Optional.class)
+      .documentation("controllers.Application.rootPrefixedParam(x:_root_.java.lang.Integer = 3, y:java.util.Optional[_root_.java.lang.Integer])")
+      .params(queryParam("y", play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryInteger())))
+      .to((Object[] p) -> Application_1.rootPrefixedParam(3, (java.util.Optional<java.lang.Integer>) p[0]));
+
+    // @LINE:24
+    route("GET", "root-prefixed-param/$x<[^/]+>", staticPart("root-prefixed-param/"), dynamicPart("x", "[^/]+", true))
+      .handler("controllers.Application", "rootPrefixedParam", java.lang.Integer.class, java.util.Optional.class)
+      .documentation("controllers.Application.rootPrefixedParam(x:_root_.java.lang.Integer, y:java.util.Optional[_root_.java.lang.Integer])")
+      .params(pathParam("x", play.core.routing.JavaBinders.pathInteger()), queryParam("y", play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryInteger())))
+      .to((Object[] p) -> Application_1.rootPrefixedParam((java.lang.Integer) p[0], (java.util.Optional<java.lang.Integer>) p[1]));
+
+    // @LINE:25
+    route("GET", "instance", staticPart("instance"))
+      .handler("controllers.InstanceController", "index")
+      .documentation("@controllers.InstanceController@.index")
+      .to((Object[] p) -> InstanceController_0.get().index());
+
+    // @LINE:26
+    route("GET", "module/index", staticPart("module/index"))
+      .handler("controllers.module.ModuleController", "index")
+      .documentation("controllers.module.ModuleController.index")
+      .to((Object[] p) -> ModuleController_2.index());
+
+    // @LINE:30
+    route("GET", "modifiers", staticPart("modifiers"))
+      .handler("controllers.Application", "modifiers", play.mvc.Http.Request.class)
+      .documentation("controllers.Application.modifiers(request:Request)")
+      .comments("## Modifiers")
+      .modifiers("nocsrf", "quote\"and\\backslash")
+      .to((play.mvc.Http.Request req, Object[] p) -> Application_1.modifiers(req));
+
+    // @LINE:33
+    route("GET", "reverse/renamed/fixed", staticPart("reverse/renamed/fixed"))
+      .handler("controllers.Application", "renamedParams", String.class)
+      .documentation("controllers.Application.renamedParams(value:String = \"fixed\")")
+      .comments("## Reverse routes sharing an action")
+      .to((Object[] p) -> Application_1.renamedParams("fixed"));
+
+    // @LINE:34
+    route("GET", "reverse/renamed/$alias<[^/]+>", staticPart("reverse/renamed/"), dynamicPart("alias", "[^/]+", true))
+      .handler("controllers.Application", "renamedParams", String.class)
+      .documentation("controllers.Application.renamedParams(alias:String)")
+      .params(pathParam("alias", play.core.routing.JavaBinders.pathString()))
+      .to((Object[] p) -> Application_1.renamedParams((String) p[0]));
+
+    // @LINE:35
+    route("GET", "reverse/shared/one", staticPart("reverse/shared/one"))
+      .handler("controllers.Application", "sharedFixedParams", String.class, String.class)
+      .documentation("controllers.Application.sharedFixedParams(first:String = \"constant\", second:String = \"one\")")
+      .to((Object[] p) -> Application_1.sharedFixedParams("constant", "one"));
+
+    // @LINE:36
+    route("GET", "reverse/shared/two", staticPart("reverse/shared/two"))
+      .handler("controllers.Application", "sharedFixedParams", String.class, String.class)
+      .documentation("controllers.Application.sharedFixedParams(first:String = \"constant\", second:String = \"two\")")
+      .to((Object[] p) -> Application_1.sharedFixedParams("constant", "two"));
+
+    // @LINE:37
+    route("GET", "reverse/shared", staticPart("reverse/shared"))
+      .handler("controllers.Application", "sharedFixedParams", String.class, String.class)
+      .documentation("controllers.Application.sharedFixedParams(first:String = \"constant\", second:String ?= \"default\")")
+      .params(queryParam("second", play.core.routing.JavaBinders.queryString(), "default"))
+      .to((Object[] p) -> Application_1.sharedFixedParams("constant", (String) p[0]));
+
+    // @LINE:38
+    route("GET", "reverse/fixed-only/one", staticPart("reverse/fixed-only/one"))
+      .handler("controllers.Application", "fixedOnlyParams", String.class, String.class)
+      .documentation("controllers.Application.fixedOnlyParams(first:String = \"constant\", second:String = \"one\")")
+      .to((Object[] p) -> Application_1.fixedOnlyParams("constant", "one"));
+
+    // @LINE:39
+    route("GET", "reverse/fixed-only/two", staticPart("reverse/fixed-only/two"))
+      .handler("controllers.Application", "fixedOnlyParams", String.class, String.class)
+      .documentation("controllers.Application.fixedOnlyParams(first:String = \"constant\", second:String = \"two\")")
+      .to((Object[] p) -> Application_1.fixedOnlyParams("constant", "two"));
+
+    // @LINE:40
+    route("GET", "reverse/unconstrained/$first<[^/]+>", staticPart("reverse/unconstrained/"), dynamicPart("first", "[^/]+", true))
+      .handler("controllers.Application", "unconstrainedFirst", String.class)
+      .documentation("controllers.Application.unconstrainedFirst(first:String)")
+      .params(pathParam("first", play.core.routing.JavaBinders.pathString()))
+      .to((Object[] p) -> Application_1.unconstrainedFirst((String) p[0]));
+
+    // @LINE:41
+    route("GET", "reverse/unreachable/fixed", staticPart("reverse/unreachable/fixed"))
+      .handler("controllers.Application", "unconstrainedFirst", String.class)
+      .documentation("controllers.Application.unconstrainedFirst(first:String = \"fixed\")")
+      .to((Object[] p) -> Application_1.unconstrainedFirst("fixed"));
+
+    // @LINE:42
+    route("GET", "reverse/fixed", staticPart("reverse/fixed"))
+      .handler("controllers.Application", "reverse", java.lang.Boolean.class, java.lang.Character.class, java.lang.Integer.class, java.lang.Long.class, java.util.UUID.class, java.util.Optional.class)
+      .documentation("controllers.Application.reverse(b:java.lang.Boolean = true, c:java.lang.Character = 'a', i:java.lang.Integer = 123, l:java.lang.Long = 123L, uuid:java.util.UUID = java.util.UUID.fromString(\"a90e582b-3c5b-4d37-b5f4-7730d2c672dd\"), ostr:java.util.Optional[String] = java.util.Optional.of(\"a\"))")
+      .to((Object[] p) -> Application_1.reverse(true, 'a', 123, 123L, java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), java.util.Optional.of("a")));
+
+    // @LINE:43
+    route("GET", "reverse/non-fixed", staticPart("reverse/non-fixed"))
+      .handler("controllers.Application", "reverse", java.lang.Boolean.class, java.lang.Character.class, java.lang.Integer.class, java.lang.Long.class, java.util.UUID.class, java.util.Optional.class)
+      .documentation("controllers.Application.reverse(b:java.lang.Boolean, c:java.lang.Character, i:java.lang.Integer, l:java.lang.Long, uuid:java.util.UUID, ostr:java.util.Optional[String])")
+      .params(queryParam("b", play.core.routing.JavaBinders.queryBoolean()), queryParam("c", play.core.routing.JavaBinders.queryCharacter()), queryParam("i", play.core.routing.JavaBinders.queryInteger()), queryParam("l", play.core.routing.JavaBinders.queryLong()), queryParam("uuid", play.core.routing.JavaBinders.queryUUID()), queryParam("ostr", play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryString())))
+      .to((Object[] p) -> Application_1.reverse((java.lang.Boolean) p[0], (java.lang.Character) p[1], (java.lang.Integer) p[2], (java.lang.Long) p[3], (java.util.UUID) p[4], (java.util.Optional<String>) p[5]));
+
+    // @LINE:46
+    include(module_Routes_0.withPrefix(prefixed("module")));
+  }
+
+  @Override
+  public Routes withPrefix(String addPrefix) {
+    String prefix = play.api.routing.Router.concatPrefix(addPrefix, prefix());
+    snapshot.RoutesPrefix.setPrefix(prefix);
+    return new Routes(errorHandler(), Application_1, StringController_4, Assets_3, Application_5, InstanceController_0, ModuleController_2, module_Routes_0, prefix);
+  }
+}

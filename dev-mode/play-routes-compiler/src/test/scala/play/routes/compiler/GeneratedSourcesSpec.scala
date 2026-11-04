@@ -33,6 +33,7 @@ class GeneratedSourcesSpec(commandLine: CommandLine) extends Specification {
 
   "the routes compiler" should {
     "generate the expected Scala sources" in checkGeneratedSources(Language.SCALA, "scala")
+    "generate the expected Java sources" in checkGeneratedSources(Language.JAVA, "java")
   }
 
   private def checkGeneratedSources(lang: Language, dirName: String): Result =
