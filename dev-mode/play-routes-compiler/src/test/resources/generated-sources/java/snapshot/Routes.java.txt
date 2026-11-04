@@ -37,10 +37,11 @@ public class Routes extends JavaGeneratedRouter {
   // @LINE:44
   private final module.Routes module_Routes_0;
   private final String prefix;
+  // @LINE:44
+  private final Include prefixed_module_Routes_0_24;
 
   private final ConcurrentHashMap<String, ParamsExtractor> routes = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, HandlerInvoker> invokers = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, Include> includes = new ConcurrentHashMap<>();
 
   public Routes(
     play.api.http.HttpErrorHandler errorHandler,
@@ -69,6 +70,8 @@ public class Routes extends JavaGeneratedRouter {
     this.ModuleController_2 = ModuleController_2;
     this.module_Routes_0 = module_Routes_0;
     this.prefix = prefix;
+    // @LINE:44
+    this.prefixed_module_Routes_0_24 = Include.apply(module_Routes_0.withPrefix(this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "module"));
   }
 
   @Override
@@ -133,7 +136,7 @@ public class Routes extends JavaGeneratedRouter {
     docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/unreachable/fixed", "controllers.Application.unconstrainedFirst(first:String = \"fixed\")"));
     docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/fixed", "controllers.Application.reverse(b:java.lang.Boolean = true, c:java.lang.Character = \'a\', i:java.lang.Integer = 123, l:java.lang.Long = 123L, uuid:java.util.UUID = java.util.UUID.fromString(\"a90e582b-3c5b-4d37-b5f4-7730d2c672dd\"), ostr:java.util.Optional[String] = java.util.Optional.of(\"a\"))"));
     docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/non-fixed", "controllers.Application.reverse(b:java.lang.Boolean, c:java.lang.Character, i:java.lang.Integer, l:java.lang.Long, uuid:java.util.UUID, ostr:java.util.Optional[String])"));
-    docs.addAll(play.libs.Scala.asJava(this.prefixed_module_Routes_0_24().router().documentation()));
+    docs.addAll(play.libs.Scala.asJava(this.prefixed_module_Routes_0_24.router().documentation()));
     return play.libs.Scala.toSeq(docs);
   }
 
@@ -714,13 +717,6 @@ public class Routes extends JavaGeneratedRouter {
     );
   }
 
-  // @LINE:44
-  private Include prefixed_module_Routes_0_24() {
-    return includes.computeIfAbsent("prefixed_module_Routes_0_24", (key) ->
-      Include.apply(module_Routes_0.withPrefix(this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "module"))
-    );
-  }
-
 
   @Override
   public scala.PartialFunction<RequestHeader, Handler> routes() {
@@ -1188,7 +1184,7 @@ public class Routes extends JavaGeneratedRouter {
           }
 
           // @LINE:44
-          include = prefixed_module_Routes_0_24().unapply(_req);
+          include = prefixed_module_Routes_0_24.unapply(_req);
           if (include.isDefined()) {
             return include.get();
           }

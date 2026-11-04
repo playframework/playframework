@@ -31,11 +31,15 @@ public class Routes extends JavaGeneratedRouter @ob
   private final play.api.http.HttpErrorHandler errorHandler; @for(dep <- deps) {
   @markLines(dep.rule)
   private final @asJavaFQN(dep.clazz) @dep.ident;}
-  private final String prefix;
+  private final String prefix;@for((dep, index) <- rules.zipWithIndex) {@dep.rule match {
+    case include: Include => {
+  @markLines(include)
+  private final Include prefixed_@(dep.ident)_@(index);}
+    case _ => {}
+  }}
 
   private final ConcurrentHashMap<String, ParamsExtractor> routes = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, HandlerInvoker> invokers = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, Include> includes = new ConcurrentHashMap<>();
 
   public Routes(
     play.api.http.HttpErrorHandler errorHandler, @for(dep <- deps) {
@@ -45,7 +49,12 @@ public class Routes extends JavaGeneratedRouter @ob
   ) @ob
     this.errorHandler = errorHandler; @for(dep <- deps) {
     this.@dep.ident = @dep.ident;}
-    this.prefix = prefix;
+    this.prefix = prefix;@for((dep, index) <- rules.zipWithIndex) {@dep.rule match {
+      case include: Include => {
+    @markLines(include)
+    this.prefixed_@(dep.ident)_@(index) = Include.apply(@(dep.ident).withPrefix(this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "@include.prefix"));}
+      case _ => {}
+    }}
   @cb
 
   @@Override
@@ -77,7 +86,7 @@ public class Routes extends JavaGeneratedRouter @ob
     @dep.rule match {
       case Route(verb, path, call, _, _) if path.parts.isEmpty => {docs.add(scala.Tuple3.apply("@verb", this.prefix, "@encodeStringJavaConstant(call.toString)"));}
       case Route(verb, path, call, _, _) => {docs.add(scala.Tuple3.apply("@verb", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "@encodeStringJavaConstant(path.toString)", "@encodeStringJavaConstant(call.toString)"));}
-      case include: Include => {docs.addAll(play.libs.Scala.asJava(this.prefixed_@(dep.ident)_@(index)().router().documentation()));}
+      case include: Include => {docs.addAll(play.libs.Scala.asJava(this.prefixed_@(dep.ident)_@(index).router().documentation()));}
     }}
     return play.libs.Scala.toSeq(docs);
   @cb
@@ -109,14 +118,8 @@ case route @ Route(verb, path, call, comments, modifiers) => {
   @cb
 }
 
-case include @ Include(path, router) => {
-  @markLines(include)
-  private Include prefixed_@(dep.ident)_@(index)() @ob
-    return includes.computeIfAbsent("prefixed_@(dep.ident)_@(index)", (key) ->
-      Include.apply(@(dep.ident).withPrefix(this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "@include.prefix"))
-    );
-  @cb
-}}}
+case include: Include => {}
+}}
 
   @@Override
   public scala.PartialFunction<RequestHeader, Handler> routes() @ob
@@ -160,7 +163,7 @@ case include @ Include(path, router) => {
         @for((dep, index) <- rules.zipWithIndex){@dep.rule match {
           case include: Include => {
           @markLines(include)
-          include = prefixed_@(dep.ident)_@(index)().unapply(_req);
+          include = prefixed_@(dep.ident)_@(index).unapply(_req);
           if (include.isDefined()) @ob
             return include.get();
           @cb
