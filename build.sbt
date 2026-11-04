@@ -38,6 +38,9 @@ ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
 
 ThisBuild / resolvers += Resolver.ApacheMavenStagingRepo
 
+// play-ws is still built against a Pekko milestone
+ThisBuild / libraryDependencySchemes += "org.apache.pekko" %% "pekko-stream" % "always"
+
 lazy val PlayBuildLinkProject = PlayNonCrossBuiltProject("Play-Build-Link", "dev-mode/play-build-link")
   .dependsOn(PlayExceptionsProject)
 
