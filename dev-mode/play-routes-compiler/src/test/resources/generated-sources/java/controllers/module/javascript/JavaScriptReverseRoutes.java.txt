@@ -1,0 +1,44 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers.module.javascript;
+
+import play.api.mvc.JavascriptLiteral;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.api.routing.JavaScriptReverseRoute;
+import play.core.routing.*;
+import java.util.function.Supplier;
+
+import java.util.*;
+
+// @LINE:24
+@SuppressWarnings({"unchecked"})
+public class JavaScriptReverseRoutes {
+
+// @LINE:24
+
+  // @LINE:24
+  public static class ReverseModuleController {
+    private final Supplier<String> _prefix;
+    public ReverseModuleController(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:24
+    public JavaScriptReverseRoute index() {
+      return new JavaScriptReverseRoute(
+        "controllers.module.ModuleController.index",
+        "function () {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'module/index'})" +
+        "\n}\n"
+      );
+    }
+
+  }
+
+}

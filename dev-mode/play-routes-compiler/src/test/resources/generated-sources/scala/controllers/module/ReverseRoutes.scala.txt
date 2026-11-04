@@ -1,0 +1,27 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+import play.api.mvc.Call
+
+
+
+// @LINE:24
+package controllers.module {
+
+  // @LINE:24
+  class ReverseModuleController(_prefix: => String) {
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:24
+    def index: Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "module/index")
+    }
+
+  }
+
+
+}
