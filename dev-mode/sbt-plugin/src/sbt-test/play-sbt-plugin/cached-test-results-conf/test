@@ -1,0 +1,6 @@
+> test
+
+# sbt 2 reuses the results of tests whose classes didn't change, but a changed conf/application.conf must run the test
+# again (which then fails)
+$ copy-file changes/application.conf conf/application.conf
+-> test
