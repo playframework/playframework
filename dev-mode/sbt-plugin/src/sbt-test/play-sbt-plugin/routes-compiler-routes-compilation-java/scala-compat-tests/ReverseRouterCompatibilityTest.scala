@@ -5,6 +5,7 @@
 package test
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class ReverseRouterCompatibilityTest {
@@ -25,5 +26,10 @@ class ReverseRouterCompatibilityTest {
       "controllers.javascript.ReverseApplication",
       classOf[controllers.routes.javascript].getField("Application").getType.getName
     )
+  }
+
+  @Test
+  def rejectUnmatchedReverseRouteArgumentsWithMatchError(): Unit = {
+    assertThrows(classOf[MatchError], () => controllers.routes.Application.fixedOnlyParams("other"))
   }
 }

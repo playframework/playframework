@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class ApplicationTest extends AbstractRoutesTest {
@@ -114,7 +113,6 @@ public class ApplicationTest extends AbstractRoutesTest {
   public void checkFixedOnlyReverseParams() {
     assertThat(Application.fixedOnlyParams("one").url()).isEqualTo("/reverse/fixed-only/one");
     assertThat(Application.fixedOnlyParams("two").url()).isEqualTo("/reverse/fixed-only/two");
-    Assert.assertThrows(scala.MatchError.class, () -> Application.fixedOnlyParams("other"));
   }
 
   @Test

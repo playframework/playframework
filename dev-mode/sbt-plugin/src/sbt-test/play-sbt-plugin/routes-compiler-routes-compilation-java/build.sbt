@@ -21,10 +21,11 @@ Test / sourceDirectory := baseDirectory.value / "tests"
 
 Test / scalaSource := baseDirectory.value / "tests"
 
+// Tests for behavior that differs between the generated Scala and Java routers
 Test / unmanagedSourceDirectories ++= {
   if (play.sbt.routes.RoutesKeys.routesLang.value == play.routes.compiler.Language.SCALA)
     Seq(baseDirectory.value / "scala-compat-tests")
-  else Nil
+  else Seq(baseDirectory.value / "java-router-tests")
 }
 
 // Generate a js router so we can test it with mocha
