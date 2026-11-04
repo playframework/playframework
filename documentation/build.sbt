@@ -11,6 +11,9 @@ import sbtheader.LineCommentCreator
 // Makes sbt-java-formatter keep using google-java-format 1.28.0 to not require Java 21 for formatting (yet)
 ThisBuild / javafmtFormatterCompatibleJavaVersion := 17
 
+// play-ws is still built against a Pekko milestone
+ThisBuild / libraryDependencySchemes += "org.apache.pekko" %% "pekko-stream" % "always"
+
 val DocsApplication = config("docs").hide
 
 lazy val main = Project("Play-Documentation", file("."))
