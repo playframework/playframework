@@ -41,7 +41,8 @@ object ScriptedTools extends AutoPlugin {
     // the snapshot resolvers in `cron` builds.
     // If this is a scheduled GitHub Action
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
-    resolvers += Resolver.ApacheMavenSnapshotsRepo
+    resolvers += Resolver.ApacheMavenSnapshotsRepo,
+    resolvers += Resolver.ApacheMavenStagingRepo
   )
 
   def stableUniversalStagingDirectory: Seq[Def.Setting[?]] = Seq(
