@@ -20,6 +20,8 @@ GET     /not-first-request                   controllers.Application.notFirstReq
 GET     /same-escaped-java-identifier        controllers.Application.sameEscapedJavaIdentifier(`[]`, `%%`)
 GET     /keyword/class                       controllers.Application.keyword(class)
 GET     /root-prefixed-controller            _root_.controllers.Application.rootPrefixedController
+GET     /root-prefixed-param/fixed           controllers.Application.rootPrefixedParam(x: _root_.java.lang.Integer = 3, y: java.util.Optional[_root_.java.lang.Integer])
+GET     /root-prefixed-param/:x              controllers.Application.rootPrefixedParam(x: _root_.java.lang.Integer, y: java.util.Optional[_root_.java.lang.Integer])
 GET     /instance                            @controllers.InstanceController.index
 GET     /module/index                        controllers.module.ModuleController.index
 

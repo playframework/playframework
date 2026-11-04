@@ -55,7 +55,7 @@ public class ReverseRoutes {
 
   }
 
-  // @LINE:23
+  // @LINE:25
   public static class ReverseInstanceController {
     private final Supplier<String> _prefix;
     public ReverseInstanceController(Supplier<String> _prefix) {
@@ -66,7 +66,7 @@ public class ReverseRoutes {
     }
 
 
-    // @LINE:23
+    // @LINE:25
     public Call index() {
       var _rrc = play.core.routing.ReverseRouteContext.empty();
       return new Call("GET", _prefix.get() + _defaultPrefix() + "instance", null);
@@ -85,11 +85,11 @@ public class ReverseRoutes {
     }
 
 
-    // @LINE:31
+    // @LINE:33
     public Call renamedParams(String value0) {
 
 
-      // @LINE:31
+      // @LINE:33
 
       if (Objects.equals(value0, "fixed")) {
         var _params = new HashMap<String, Object>();
@@ -99,7 +99,7 @@ public class ReverseRoutes {
       }
 
 
-      // @LINE:32
+      // @LINE:34
 
       var _rrc = play.core.routing.ReverseRouteContext.empty();
       return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/renamed/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("alias", value0)), null);
@@ -115,11 +115,11 @@ public class ReverseRoutes {
       return new Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-controller", null);
     }
 
-    // @LINE:40
+    // @LINE:42
     public Call reverse(java.lang.Boolean b0, java.lang.Character c1, java.lang.Integer i2, java.lang.Long l3, java.util.UUID uuid4, java.util.Optional<String> ostr5) {
 
 
-      // @LINE:40
+      // @LINE:42
 
       if (Objects.equals(b0, true) && Objects.equals(c1, 'a') && Objects.equals(i2, 123) && Objects.equals(l3, 123L) && Objects.equals(uuid4, java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")) && Objects.equals(ostr5, java.util.Optional.of("a"))) {
         var _params = new HashMap<String, Object>();
@@ -134,10 +134,34 @@ public class ReverseRoutes {
       }
 
 
-      // @LINE:41
+      // @LINE:43
 
       var _rrc = play.core.routing.ReverseRouteContext.empty();
       return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/non-fixed" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<java.lang.Boolean>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Boolean.class)).unbind("b", b0)), scala.Option.apply(((QueryStringBindable<java.lang.Character>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Character.class)).unbind("c", c1)), scala.Option.apply(((QueryStringBindable<java.lang.Integer>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Integer.class)).unbind("i", i2)), scala.Option.apply(((QueryStringBindable<java.lang.Long>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Long.class)).unbind("l", l3)), scala.Option.apply(((QueryStringBindable<java.util.UUID>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.UUID.class)).unbind("uuid", uuid4)), scala.Option.apply(((QueryStringBindable<java.util.Optional<String>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, String.class)).unbind("ostr", ostr5)))).toList()), null);
+
+
+
+
+    }
+
+    // @LINE:23
+    public Call rootPrefixedParam(java.lang.Integer x0, java.util.Optional<java.lang.Integer> y1) {
+
+
+      // @LINE:23
+
+      if (Objects.equals(x0, 3)) {
+        var _params = new HashMap<String, Object>();
+        _params.put("x", 3);
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-param/fixed" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, java.lang.Integer.class)).unbind("y", y1)))).toList()), null);
+      }
+
+
+      // @LINE:24
+
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-param/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<java.lang.Integer>)JavaGeneratedRouter.pathBindableFor(_rrc, java.lang.Integer.class)).unbind("x", x0)) + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, java.lang.Integer.class)).unbind("y", y1)))).toList()), null);
 
 
 
@@ -174,11 +198,11 @@ public class ReverseRoutes {
       return new Call("GET", _prefix.get() + _defaultPrefix() + "keyword/class" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("class", _pf_escape_class0)))).toList()), null);
     }
 
-    // @LINE:38
+    // @LINE:40
     public Call unconstrainedFirst(String first0) {
 
 
-      // @LINE:38
+      // @LINE:40
 
       var _rrc = play.core.routing.ReverseRouteContext.empty();
       return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/unconstrained/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("first", first0)), null);
@@ -194,11 +218,11 @@ public class ReverseRoutes {
       return new Call("GET", _prefix.get() + _defaultPrefix() + "only-request", null);
     }
 
-    // @LINE:33
+    // @LINE:35
     public Call sharedFixedParams(String second1) {
 
 
-      // @LINE:33
+      // @LINE:35
 
       if (Objects.equals(second1, "one")) {
         var _params = new HashMap<String, Object>();
@@ -209,7 +233,7 @@ public class ReverseRoutes {
       }
 
 
-      // @LINE:34
+      // @LINE:36
 
       if (Objects.equals(second1, "two")) {
         var _params = new HashMap<String, Object>();
@@ -220,7 +244,7 @@ public class ReverseRoutes {
       }
 
 
-      // @LINE:35
+      // @LINE:37
 
       var _params = new HashMap<String, Object>();
         _params.put("first", "constant");
@@ -232,11 +256,11 @@ public class ReverseRoutes {
 
     }
 
-    // @LINE:36
+    // @LINE:38
     public Call fixedOnlyParams(String second1) {
 
 
-      // @LINE:36
+      // @LINE:38
 
       if (Objects.equals(second1, "one")) {
         var _params = new HashMap<String, Object>();
@@ -247,7 +271,7 @@ public class ReverseRoutes {
       }
 
 
-      // @LINE:37
+      // @LINE:39
 
       if (Objects.equals(second1, "two")) {
         var _params = new HashMap<String, Object>();
@@ -264,7 +288,7 @@ public class ReverseRoutes {
 
     }
 
-    // @LINE:28
+    // @LINE:30
     public Call modifiers() {
       var _rrc = play.core.routing.ReverseRouteContext.empty();
       return new Call("GET", _prefix.get() + _defaultPrefix() + "modifiers", null);

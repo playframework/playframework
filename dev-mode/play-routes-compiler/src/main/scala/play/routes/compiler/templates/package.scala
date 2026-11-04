@@ -137,9 +137,9 @@ package object templates {
                   .map("scala.Some.apply(" + _ + ")")
                   .getOrElse("scala.Option.empty()") + """,""" +
                 (if (route.path.has(paramName))
-                   s"(PathBindable<${asJavaFQN(p.typeNameReal)}>)pathBindableFor(${p.typeNameErasure}.class)"
+                   s"(PathBindable<${asJavaFQN(p.typeNameReal)}>)pathBindableFor(${javaClassLiteral(p.typeNameErasure)})"
                  else
-                   s"(QueryStringBindable<${asJavaFQN(p.typeNameReal)}>)queryStringBindableFor(${p.genericTypes.map(_ + ".class").mkString(", ")})") + """)"""
+                   s"(QueryStringBindable<${asJavaFQN(p.typeNameReal)}>)queryStringBindableFor(${p.genericTypes.map(javaClassLiteral).mkString(", ")})") + """)"""
             }
         }
         if (ps.size < 22) ps.mkString("", ",\n              ", ",")
@@ -565,7 +565,7 @@ package object templates {
               case (param, position) =>
                 val paramName: String = paramNameOnQueryString(param.name)
                 val unbound           =
-                  s"""((PathBindable<${asJavaFQN(param.typeNameReal)}>)JavaGeneratedRouter.pathBindableFor(_rrc, ${param.typeNameErasure}.class))""" +
+                  s"""((PathBindable<${asJavaFQN(param.typeNameReal)}>)JavaGeneratedRouter.pathBindableFor(_rrc, ${javaClassLiteral(param.typeNameErasure)}))""" +
                     s""".unbind("$paramName", ${localNames.getOrElse(param.name, javaLocalName(param, position))})"""
                 if (encode) "play.core.routing.package$.MODULE$.dynamicString(" + unbound + ")" else unbound
             }
@@ -586,7 +586,7 @@ package object templates {
             case (p, position) =>
               val localName = localNames.getOrElse(p.name, javaLocalName(p, position))
               (s"((QueryStringBindable<${asJavaFQN(p.typeNameReal)}>)JavaGeneratedRouter.queryStringBindableFor(_rrc, ${p.genericTypes
-                  .map(_ + ".class")
+                  .map(javaClassLiteral)
                   .mkString(", ")})" + """).unbind("""" +
                 paramNameOnQueryString(p.name) + """", """ + localName + """)""") -> (p -> localName)
           }
@@ -627,7 +627,7 @@ package object templates {
         .map { p =>
           localNames(p.name) + s""" == \" + ((JavascriptLiteral<${asJavaFQN(
               p.typeNameReal
-            )}>)JavaGeneratedRouter.javascriptLiteralFor(${p.genericTypes.map(_ + ".class").mkString(", ")})).to(""" + p.fixed.get + """) + """"
+            )}>)JavaGeneratedRouter.javascriptLiteralFor(${p.genericTypes.map(javaClassLiteral).mkString(", ")})).to(""" + p.fixed.get + """) + """"
         }
     ).filterNot(_.isEmpty).map(_.mkString(" && "))
   }
@@ -735,7 +735,7 @@ package object templates {
             case (param, position) =>
               val paramName: String = paramNameOnQueryString(param.name)
               val jsUnbound         =
-                s"""(\" + ((PathBindable<${asJavaFQN(param.typeNameReal)}>)JavaGeneratedRouter.pathBindableFor(${param.typeNameErasure}.class))""" +
+                s"""(\" + ((PathBindable<${asJavaFQN(param.typeNameReal)}>)JavaGeneratedRouter.pathBindableFor(${javaClassLiteral(param.typeNameErasure)}))""" +
                   s""".javascriptUnbind() + \")('$paramName', ${localNames.getOrElse(param.name, javaLocalName(param, position))})"""
               if (encode) s" + encodeURIComponent($jsUnbound)" else s" + $jsUnbound"
           }
@@ -757,7 +757,7 @@ package object templates {
               val localName         = localNames.getOrElse(p.name, javaLocalName(p, position))
               (s"""(\" + ((QueryStringBindable<${asJavaFQN(
                   p.typeNameReal
-                )}>)JavaGeneratedRouter.queryStringBindableFor(${p.genericTypes.map(_ + ".class").mkString(", ")})""" +
+                )}>)JavaGeneratedRouter.queryStringBindableFor(${p.genericTypes.map(javaClassLiteral).mkString(", ")})""" +
                 s""").javascriptUnbind() + \")('$paramName', $localName)""") -> (p -> localName)
           }
           .map {
@@ -825,6 +825,11 @@ package object templates {
    * @return Java FQN
    */
   def asJavaFQN(fqn: String) = fqn.replace("_root_.", "").replaceAll("\\[", "<").replaceAll("]", ">")
+
+  /**
+   * Generate the Java class literal for a type of the routes file without type arguments.
+   */
+  def javaClassLiteral(typeName: String): String = asJavaFQN(typeName) + ".class"
 
   def groupRoutesByPackage(routes: Seq[Route]): Map[Option[String], Seq[Route]]       = routes.groupBy(_.call.packageName)
   def groupRoutesByController(routes: Seq[Route]): Map[String, Seq[Route]]            = routes.groupBy(_.call.controller)

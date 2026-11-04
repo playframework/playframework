@@ -5,10 +5,10 @@ import play.api.routing.JavaScriptReverseRoute
 
 
 
-// @LINE:24
+// @LINE:26
 package controllers.module.javascript {
 
-  // @LINE:24
+  // @LINE:26
   class ReverseModuleController(_prefix: => String) {
 
     def _defaultPrefix: String = {
@@ -16,7 +16,7 @@ package controllers.module.javascript {
     }
 
 
-    // @LINE:24
+    // @LINE:26
     def index: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.module.ModuleController.index",
       """

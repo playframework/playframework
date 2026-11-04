@@ -64,7 +64,7 @@ public class JavaScriptReverseRoutes {
 
   }
 
-  // @LINE:23
+  // @LINE:25
   public static class ReverseInstanceController {
     private final Supplier<String> _prefix;
     public ReverseInstanceController(Supplier<String> _prefix) {
@@ -75,7 +75,7 @@ public class JavaScriptReverseRoutes {
     }
 
 
-    // @LINE:23
+    // @LINE:25
     public JavaScriptReverseRoute index() {
       return new JavaScriptReverseRoute(
         "controllers.InstanceController.index",
@@ -98,7 +98,7 @@ public class JavaScriptReverseRoutes {
     }
 
 
-    // @LINE:31
+    // @LINE:33
     public JavaScriptReverseRoute renamedParams() {
       return new JavaScriptReverseRoute(
       "controllers.Application.renamedParams",
@@ -126,7 +126,7 @@ public class JavaScriptReverseRoutes {
       );
     }
 
-    // @LINE:40
+    // @LINE:42
     public JavaScriptReverseRoute reverse() {
       return new JavaScriptReverseRoute(
       "controllers.Application.reverse",
@@ -138,6 +138,24 @@ public class JavaScriptReverseRoutes {
 
           "if (true) {\n" +
             "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/non-fixed' + _qS([(" + ((QueryStringBindable<java.lang.Boolean>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Boolean.class)).javascriptUnbind() + ")('b', b0), (" + ((QueryStringBindable<java.lang.Character>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Character.class)).javascriptUnbind() + ")('c', c1), (" + ((QueryStringBindable<java.lang.Integer>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Integer.class)).javascriptUnbind() + ")('i', i2), (" + ((QueryStringBindable<java.lang.Long>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Long.class)).javascriptUnbind() + ")('l', l3), (" + ((QueryStringBindable<java.util.UUID>)JavaGeneratedRouter.queryStringBindableFor(java.util.UUID.class)).javascriptUnbind() + ")('uuid', uuid4), (" + ((QueryStringBindable<java.util.Optional<String>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, String.class)).javascriptUnbind() + ")('ostr', ostr5)])})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:23
+    public JavaScriptReverseRoute rootPrefixedParam() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.rootPrefixedParam",
+      "function (x0, y1) {\n" +
+
+          "if (x0 == " + ((JavascriptLiteral<java.lang.Integer>)JavaGeneratedRouter.javascriptLiteralFor(java.lang.Integer.class)).to(3) + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'root-prefixed-param/fixed' + _qS([(" + ((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, java.lang.Integer.class)).javascriptUnbind() + ")('y', y1)])})" +
+          "\n}\n" +
+
+          "if (true) {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'root-prefixed-param/' + encodeURIComponent((" + ((PathBindable<java.lang.Integer>)JavaGeneratedRouter.pathBindableFor(java.lang.Integer.class)).javascriptUnbind() + ")('x', x0)) + _qS([(" + ((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, java.lang.Integer.class)).javascriptUnbind() + ")('y', y1)])})" +
           "\n}\n" +
 
       "\n}\n"
@@ -194,7 +212,7 @@ public class JavaScriptReverseRoutes {
       );
     }
 
-    // @LINE:38
+    // @LINE:40
     public JavaScriptReverseRoute unconstrainedFirst() {
       return new JavaScriptReverseRoute(
       "controllers.Application.unconstrainedFirst",
@@ -218,7 +236,7 @@ public class JavaScriptReverseRoutes {
       );
     }
 
-    // @LINE:33
+    // @LINE:35
     public JavaScriptReverseRoute sharedFixedParams() {
       return new JavaScriptReverseRoute(
       "controllers.Application.sharedFixedParams",
@@ -240,7 +258,7 @@ public class JavaScriptReverseRoutes {
       );
     }
 
-    // @LINE:36
+    // @LINE:38
     public JavaScriptReverseRoute fixedOnlyParams() {
       return new JavaScriptReverseRoute(
       "controllers.Application.fixedOnlyParams",
@@ -258,7 +276,7 @@ public class JavaScriptReverseRoutes {
       );
     }
 
-    // @LINE:28
+    // @LINE:30
     public JavaScriptReverseRoute modifiers() {
       return new JavaScriptReverseRoute(
         "controllers.Application.modifiers",

@@ -19,11 +19,11 @@ class Routes(
   Assets_3: controllers.Assets,
   // @LINE:22
   Application_5: _root_.controllers.Application,
-  // @LINE:23
+  // @LINE:25
   InstanceController_0: jakarta.inject.Provider[controllers.InstanceController],
-  // @LINE:24
+  // @LINE:26
   ModuleController_2: controllers.module.ModuleController,
-  // @LINE:44
+  // @LINE:46
   module_Routes_0: module.Routes,
   val prefix: String
 ) extends GeneratedRouter {
@@ -38,11 +38,11 @@ class Routes(
     Assets_3: controllers.Assets,
     // @LINE:22
     Application_5: _root_.controllers.Application,
-    // @LINE:23
+    // @LINE:25
     InstanceController_0: jakarta.inject.Provider[controllers.InstanceController],
-    // @LINE:24
+    // @LINE:26
     ModuleController_2: controllers.module.ModuleController,
-    // @LINE:44
+    // @LINE:46
     module_Routes_0: module.Routes
   ) = this(errorHandler, Application_1, StringController_4, Assets_3, Application_5, InstanceController_0, ModuleController_2, module_Routes_0, "/")
 
@@ -67,6 +67,8 @@ class Routes(
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """same-escaped-java-identifier""", """controllers.Application.sameEscapedJavaIdentifier(`[]`:String, `%%`:String)"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """keyword/class""", """controllers.Application.keyword(class:String)"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """root-prefixed-controller""", """_root_.controllers.Application.rootPrefixedController"""),
+    ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """root-prefixed-param/fixed""", """controllers.Application.rootPrefixedParam(x:_root_.java.lang.Integer = 3, y:java.util.Optional[_root_.java.lang.Integer])"""),
+    ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """root-prefixed-param/""" + "$" + """x<[^/]+>""", """controllers.Application.rootPrefixedParam(x:_root_.java.lang.Integer, y:java.util.Optional[_root_.java.lang.Integer])"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """instance""", """@controllers.InstanceController@.index"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """module/index""", """controllers.module.ModuleController.index"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """modifiers""", """controllers.Application.modifiers(request:Request)"""),
@@ -81,7 +83,7 @@ class Routes(
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """reverse/unreachable/fixed""", """controllers.Application.unconstrainedFirst(first:String = "fixed")"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """reverse/fixed""", """controllers.Application.reverse(b:java.lang.Boolean = true, c:java.lang.Character = 'a', i:java.lang.Integer = 123, l:java.lang.Long = 123L, uuid:java.util.UUID = java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), ostr:java.util.Optional[String] = java.util.Optional.of("a"))"""),
     ("""GET""", this.prefix + (if(this.prefix.endsWith("/")) "" else "/") + """reverse/non-fixed""", """controllers.Application.reverse(b:java.lang.Boolean, c:java.lang.Character, i:java.lang.Integer, l:java.lang.Long, uuid:java.util.UUID, ostr:java.util.Optional[String])"""),
-    prefixed_module_Routes_0_24.router.documentation,
+    prefixed_module_Routes_0_26.router.documentation,
     Nil
   ).foldLeft(Seq.empty[(String, String, String)]) { (s,e) => e.asInstanceOf[Any] match {
     case r @ (_,_,_) => s :+ r.asInstanceOf[(String, String, String)]
@@ -275,10 +277,46 @@ class Routes(
   )
 
   // @LINE:23
-  private lazy val controllers_InstanceController_index10_route = Route("GET",
+  private lazy val controllers_Application_rootPrefixedParam10_route = Route("GET",
+    PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("root-prefixed-param/fixed")))
+  )
+  private lazy val controllers_Application_rootPrefixedParam10_invoker = createInvoker(
+    Application_1.rootPrefixedParam(fakeValue[_root_.java.lang.Integer], fakeValue[java.util.Optional[_root_.java.lang.Integer]]),
+    play.api.routing.HandlerDef(this.getClass.getClassLoader,
+      "snapshot",
+      "controllers.Application",
+      "rootPrefixedParam",
+      Seq(classOf[_root_.java.lang.Integer], classOf[java.util.Optional[_root_.java.lang.Integer]]),
+      "GET",
+      this.prefix + """root-prefixed-param/fixed""",
+      """""",
+      Seq()
+    )
+  )
+
+  // @LINE:24
+  private lazy val controllers_Application_rootPrefixedParam11_route = Route("GET",
+    PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("root-prefixed-param/"), DynamicPart("x", """[^/]+""", encodeable=true)))
+  )
+  private lazy val controllers_Application_rootPrefixedParam11_invoker = createInvoker(
+    Application_1.rootPrefixedParam(fakeValue[_root_.java.lang.Integer], fakeValue[java.util.Optional[_root_.java.lang.Integer]]),
+    play.api.routing.HandlerDef(this.getClass.getClassLoader,
+      "snapshot",
+      "controllers.Application",
+      "rootPrefixedParam",
+      Seq(classOf[_root_.java.lang.Integer], classOf[java.util.Optional[_root_.java.lang.Integer]]),
+      "GET",
+      this.prefix + """root-prefixed-param/""" + "$" + """x<[^/]+>""",
+      """""",
+      Seq()
+    )
+  )
+
+  // @LINE:25
+  private lazy val controllers_InstanceController_index12_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("instance")))
   )
-  private lazy val controllers_InstanceController_index10_invoker = createInvoker(
+  private lazy val controllers_InstanceController_index12_invoker = createInvoker(
     InstanceController_0.get.index,
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -292,11 +330,11 @@ class Routes(
     )
   )
 
-  // @LINE:24
-  private lazy val controllers_module_ModuleController_index11_route = Route("GET",
+  // @LINE:26
+  private lazy val controllers_module_ModuleController_index13_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("module/index")))
   )
-  private lazy val controllers_module_ModuleController_index11_invoker = createInvoker(
+  private lazy val controllers_module_ModuleController_index13_invoker = createInvoker(
     ModuleController_2.index,
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -310,11 +348,11 @@ class Routes(
     )
   )
 
-  // @LINE:28
-  private lazy val controllers_Application_modifiers12_route = Route("GET",
+  // @LINE:30
+  private lazy val controllers_Application_modifiers14_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("modifiers")))
   )
-  private lazy val controllers_Application_modifiers12_invoker = createInvoker(
+  private lazy val controllers_Application_modifiers14_invoker = createInvoker(
 
     (req:play.mvc.Http.Request) =>
       Application_1.modifiers(fakeValue[play.mvc.Http.Request]),
@@ -330,11 +368,11 @@ class Routes(
     )
   )
 
-  // @LINE:31
-  private lazy val controllers_Application_renamedParams13_route = Route("GET",
+  // @LINE:33
+  private lazy val controllers_Application_renamedParams15_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/renamed/fixed")))
   )
-  private lazy val controllers_Application_renamedParams13_invoker = createInvoker(
+  private lazy val controllers_Application_renamedParams15_invoker = createInvoker(
     Application_1.renamedParams(fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -348,11 +386,11 @@ class Routes(
     )
   )
 
-  // @LINE:32
-  private lazy val controllers_Application_renamedParams14_route = Route("GET",
+  // @LINE:34
+  private lazy val controllers_Application_renamedParams16_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/renamed/"), DynamicPart("alias", """[^/]+""", encodeable=true)))
   )
-  private lazy val controllers_Application_renamedParams14_invoker = createInvoker(
+  private lazy val controllers_Application_renamedParams16_invoker = createInvoker(
     Application_1.renamedParams(fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -366,11 +404,11 @@ class Routes(
     )
   )
 
-  // @LINE:33
-  private lazy val controllers_Application_sharedFixedParams15_route = Route("GET",
+  // @LINE:35
+  private lazy val controllers_Application_sharedFixedParams17_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/shared/one")))
   )
-  private lazy val controllers_Application_sharedFixedParams15_invoker = createInvoker(
+  private lazy val controllers_Application_sharedFixedParams17_invoker = createInvoker(
     Application_1.sharedFixedParams(fakeValue[String], fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -384,11 +422,11 @@ class Routes(
     )
   )
 
-  // @LINE:34
-  private lazy val controllers_Application_sharedFixedParams16_route = Route("GET",
+  // @LINE:36
+  private lazy val controllers_Application_sharedFixedParams18_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/shared/two")))
   )
-  private lazy val controllers_Application_sharedFixedParams16_invoker = createInvoker(
+  private lazy val controllers_Application_sharedFixedParams18_invoker = createInvoker(
     Application_1.sharedFixedParams(fakeValue[String], fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -402,11 +440,11 @@ class Routes(
     )
   )
 
-  // @LINE:35
-  private lazy val controllers_Application_sharedFixedParams17_route = Route("GET",
+  // @LINE:37
+  private lazy val controllers_Application_sharedFixedParams19_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/shared")))
   )
-  private lazy val controllers_Application_sharedFixedParams17_invoker = createInvoker(
+  private lazy val controllers_Application_sharedFixedParams19_invoker = createInvoker(
     Application_1.sharedFixedParams(fakeValue[String], fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -420,11 +458,11 @@ class Routes(
     )
   )
 
-  // @LINE:36
-  private lazy val controllers_Application_fixedOnlyParams18_route = Route("GET",
+  // @LINE:38
+  private lazy val controllers_Application_fixedOnlyParams20_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/fixed-only/one")))
   )
-  private lazy val controllers_Application_fixedOnlyParams18_invoker = createInvoker(
+  private lazy val controllers_Application_fixedOnlyParams20_invoker = createInvoker(
     Application_1.fixedOnlyParams(fakeValue[String], fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -438,11 +476,11 @@ class Routes(
     )
   )
 
-  // @LINE:37
-  private lazy val controllers_Application_fixedOnlyParams19_route = Route("GET",
+  // @LINE:39
+  private lazy val controllers_Application_fixedOnlyParams21_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/fixed-only/two")))
   )
-  private lazy val controllers_Application_fixedOnlyParams19_invoker = createInvoker(
+  private lazy val controllers_Application_fixedOnlyParams21_invoker = createInvoker(
     Application_1.fixedOnlyParams(fakeValue[String], fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -456,11 +494,11 @@ class Routes(
     )
   )
 
-  // @LINE:38
-  private lazy val controllers_Application_unconstrainedFirst20_route = Route("GET",
+  // @LINE:40
+  private lazy val controllers_Application_unconstrainedFirst22_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/unconstrained/"), DynamicPart("first", """[^/]+""", encodeable=true)))
   )
-  private lazy val controllers_Application_unconstrainedFirst20_invoker = createInvoker(
+  private lazy val controllers_Application_unconstrainedFirst22_invoker = createInvoker(
     Application_1.unconstrainedFirst(fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -474,11 +512,11 @@ class Routes(
     )
   )
 
-  // @LINE:39
-  private lazy val controllers_Application_unconstrainedFirst21_route = Route("GET",
+  // @LINE:41
+  private lazy val controllers_Application_unconstrainedFirst23_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/unreachable/fixed")))
   )
-  private lazy val controllers_Application_unconstrainedFirst21_invoker = createInvoker(
+  private lazy val controllers_Application_unconstrainedFirst23_invoker = createInvoker(
     Application_1.unconstrainedFirst(fakeValue[String]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -492,11 +530,11 @@ class Routes(
     )
   )
 
-  // @LINE:40
-  private lazy val controllers_Application_reverse22_route = Route("GET",
+  // @LINE:42
+  private lazy val controllers_Application_reverse24_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/fixed")))
   )
-  private lazy val controllers_Application_reverse22_invoker = createInvoker(
+  private lazy val controllers_Application_reverse24_invoker = createInvoker(
     Application_1.reverse(fakeValue[java.lang.Boolean], fakeValue[java.lang.Character], fakeValue[java.lang.Integer], fakeValue[java.lang.Long], fakeValue[java.util.UUID], fakeValue[java.util.Optional[String]]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -510,11 +548,11 @@ class Routes(
     )
   )
 
-  // @LINE:41
-  private lazy val controllers_Application_reverse23_route = Route("GET",
+  // @LINE:43
+  private lazy val controllers_Application_reverse25_route = Route("GET",
     PathPattern(List(StaticPart(this.prefix), StaticPart(this.defaultPrefix), StaticPart("reverse/non-fixed")))
   )
-  private lazy val controllers_Application_reverse23_invoker = createInvoker(
+  private lazy val controllers_Application_reverse25_invoker = createInvoker(
     Application_1.reverse(fakeValue[java.lang.Boolean], fakeValue[java.lang.Character], fakeValue[java.lang.Integer], fakeValue[java.lang.Long], fakeValue[java.util.UUID], fakeValue[java.util.Optional[String]]),
     play.api.routing.HandlerDef(this.getClass.getClassLoader,
       "snapshot",
@@ -528,8 +566,8 @@ class Routes(
     )
   )
 
-  // @LINE:44
-  private val prefixed_module_Routes_0_24 = Include(module_Routes_0.withPrefix(this.prefix + (if (this.prefix.endsWith("/")) "" else "/") + "module"))
+  // @LINE:46
+  private val prefixed_module_Routes_0_26 = Include(module_Routes_0.withPrefix(this.prefix + (if (this.prefix.endsWith("/")) "" else "/") + "module"))
 
 
   def routes: PartialFunction[RequestHeader, Handler] = {
@@ -597,91 +635,103 @@ class Routes(
       }
 
     // @LINE:23
-    case controllers_InstanceController_index10_route(params@_) =>
-      call {
-        controllers_InstanceController_index10_invoker.call(InstanceController_0.get.index)
+    case controllers_Application_rootPrefixedParam10_route(params@_) =>
+      call(Param[_root_.java.lang.Integer]("x", Right(3)), params.fromQuery[java.util.Optional[_root_.java.lang.Integer]]("y", None)) { (x, y) =>
+        controllers_Application_rootPrefixedParam10_invoker.call(Application_1.rootPrefixedParam(x, y))
       }
 
     // @LINE:24
-    case controllers_module_ModuleController_index11_route(params@_) =>
-      call {
-        controllers_module_ModuleController_index11_invoker.call(ModuleController_2.index)
+    case controllers_Application_rootPrefixedParam11_route(params@_) =>
+      call(params.fromPath[_root_.java.lang.Integer]("x", None), params.fromQuery[java.util.Optional[_root_.java.lang.Integer]]("y", None)) { (x, y) =>
+        controllers_Application_rootPrefixedParam11_invoker.call(Application_1.rootPrefixedParam(x, y))
       }
 
-    // @LINE:28
-    case controllers_Application_modifiers12_route(params@_) =>
+    // @LINE:25
+    case controllers_InstanceController_index12_route(params@_) =>
       call {
-        controllers_Application_modifiers12_invoker.call(
+        controllers_InstanceController_index12_invoker.call(InstanceController_0.get.index)
+      }
+
+    // @LINE:26
+    case controllers_module_ModuleController_index13_route(params@_) =>
+      call {
+        controllers_module_ModuleController_index13_invoker.call(ModuleController_2.index)
+      }
+
+    // @LINE:30
+    case controllers_Application_modifiers14_route(params@_) =>
+      call {
+        controllers_Application_modifiers14_invoker.call(
           req => Application_1.modifiers(req))
       }
 
-    // @LINE:31
-    case controllers_Application_renamedParams13_route(params@_) =>
-      call(Param[String]("value", Right("fixed"))) { (value) =>
-        controllers_Application_renamedParams13_invoker.call(Application_1.renamedParams(value))
-      }
-
-    // @LINE:32
-    case controllers_Application_renamedParams14_route(params@_) =>
-      call(params.fromPath[String]("alias", None)) { (alias) =>
-        controllers_Application_renamedParams14_invoker.call(Application_1.renamedParams(alias))
-      }
-
     // @LINE:33
-    case controllers_Application_sharedFixedParams15_route(params@_) =>
-      call(Param[String]("first", Right("constant")), Param[String]("second", Right("one"))) { (first, second) =>
-        controllers_Application_sharedFixedParams15_invoker.call(Application_1.sharedFixedParams(first, second))
+    case controllers_Application_renamedParams15_route(params@_) =>
+      call(Param[String]("value", Right("fixed"))) { (value) =>
+        controllers_Application_renamedParams15_invoker.call(Application_1.renamedParams(value))
       }
 
     // @LINE:34
-    case controllers_Application_sharedFixedParams16_route(params@_) =>
-      call(Param[String]("first", Right("constant")), Param[String]("second", Right("two"))) { (first, second) =>
-        controllers_Application_sharedFixedParams16_invoker.call(Application_1.sharedFixedParams(first, second))
+    case controllers_Application_renamedParams16_route(params@_) =>
+      call(params.fromPath[String]("alias", None)) { (alias) =>
+        controllers_Application_renamedParams16_invoker.call(Application_1.renamedParams(alias))
       }
 
     // @LINE:35
     case controllers_Application_sharedFixedParams17_route(params@_) =>
-      call(Param[String]("first", Right("constant")), params.fromQuery[String]("second", Some("default"))) { (first, second) =>
+      call(Param[String]("first", Right("constant")), Param[String]("second", Right("one"))) { (first, second) =>
         controllers_Application_sharedFixedParams17_invoker.call(Application_1.sharedFixedParams(first, second))
       }
 
     // @LINE:36
-    case controllers_Application_fixedOnlyParams18_route(params@_) =>
-      call(Param[String]("first", Right("constant")), Param[String]("second", Right("one"))) { (first, second) =>
-        controllers_Application_fixedOnlyParams18_invoker.call(Application_1.fixedOnlyParams(first, second))
+    case controllers_Application_sharedFixedParams18_route(params@_) =>
+      call(Param[String]("first", Right("constant")), Param[String]("second", Right("two"))) { (first, second) =>
+        controllers_Application_sharedFixedParams18_invoker.call(Application_1.sharedFixedParams(first, second))
       }
 
     // @LINE:37
-    case controllers_Application_fixedOnlyParams19_route(params@_) =>
-      call(Param[String]("first", Right("constant")), Param[String]("second", Right("two"))) { (first, second) =>
-        controllers_Application_fixedOnlyParams19_invoker.call(Application_1.fixedOnlyParams(first, second))
+    case controllers_Application_sharedFixedParams19_route(params@_) =>
+      call(Param[String]("first", Right("constant")), params.fromQuery[String]("second", Some("default"))) { (first, second) =>
+        controllers_Application_sharedFixedParams19_invoker.call(Application_1.sharedFixedParams(first, second))
       }
 
     // @LINE:38
-    case controllers_Application_unconstrainedFirst20_route(params@_) =>
-      call(params.fromPath[String]("first", None)) { (first) =>
-        controllers_Application_unconstrainedFirst20_invoker.call(Application_1.unconstrainedFirst(first))
+    case controllers_Application_fixedOnlyParams20_route(params@_) =>
+      call(Param[String]("first", Right("constant")), Param[String]("second", Right("one"))) { (first, second) =>
+        controllers_Application_fixedOnlyParams20_invoker.call(Application_1.fixedOnlyParams(first, second))
       }
 
     // @LINE:39
-    case controllers_Application_unconstrainedFirst21_route(params@_) =>
-      call(Param[String]("first", Right("fixed"))) { (first) =>
-        controllers_Application_unconstrainedFirst21_invoker.call(Application_1.unconstrainedFirst(first))
+    case controllers_Application_fixedOnlyParams21_route(params@_) =>
+      call(Param[String]("first", Right("constant")), Param[String]("second", Right("two"))) { (first, second) =>
+        controllers_Application_fixedOnlyParams21_invoker.call(Application_1.fixedOnlyParams(first, second))
       }
 
     // @LINE:40
-    case controllers_Application_reverse22_route(params@_) =>
-      call(Param[java.lang.Boolean]("b", Right(true)), Param[java.lang.Character]("c", Right('a')), Param[java.lang.Integer]("i", Right(123)), Param[java.lang.Long]("l", Right(123L)), Param[java.util.UUID]("uuid", Right(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"))), Param[java.util.Optional[String]]("ostr", Right(java.util.Optional.of("a")))) { (b, c, i, l, uuid, ostr) =>
-        controllers_Application_reverse22_invoker.call(Application_1.reverse(b, c, i, l, uuid, ostr))
+    case controllers_Application_unconstrainedFirst22_route(params@_) =>
+      call(params.fromPath[String]("first", None)) { (first) =>
+        controllers_Application_unconstrainedFirst22_invoker.call(Application_1.unconstrainedFirst(first))
       }
 
     // @LINE:41
-    case controllers_Application_reverse23_route(params@_) =>
-      call(params.fromQuery[java.lang.Boolean]("b", None), params.fromQuery[java.lang.Character]("c", None), params.fromQuery[java.lang.Integer]("i", None), params.fromQuery[java.lang.Long]("l", None), params.fromQuery[java.util.UUID]("uuid", None), params.fromQuery[java.util.Optional[String]]("ostr", None)) { (b, c, i, l, uuid, ostr) =>
-        controllers_Application_reverse23_invoker.call(Application_1.reverse(b, c, i, l, uuid, ostr))
+    case controllers_Application_unconstrainedFirst23_route(params@_) =>
+      call(Param[String]("first", Right("fixed"))) { (first) =>
+        controllers_Application_unconstrainedFirst23_invoker.call(Application_1.unconstrainedFirst(first))
       }
 
-    // @LINE:44
-    case prefixed_module_Routes_0_24(handler) => handler
+    // @LINE:42
+    case controllers_Application_reverse24_route(params@_) =>
+      call(Param[java.lang.Boolean]("b", Right(true)), Param[java.lang.Character]("c", Right('a')), Param[java.lang.Integer]("i", Right(123)), Param[java.lang.Long]("l", Right(123L)), Param[java.util.UUID]("uuid", Right(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"))), Param[java.util.Optional[String]]("ostr", Right(java.util.Optional.of("a")))) { (b, c, i, l, uuid, ostr) =>
+        controllers_Application_reverse24_invoker.call(Application_1.reverse(b, c, i, l, uuid, ostr))
+      }
+
+    // @LINE:43
+    case controllers_Application_reverse25_route(params@_) =>
+      call(params.fromQuery[java.lang.Boolean]("b", None), params.fromQuery[java.lang.Character]("c", None), params.fromQuery[java.lang.Integer]("i", None), params.fromQuery[java.lang.Long]("l", None), params.fromQuery[java.util.UUID]("uuid", None), params.fromQuery[java.util.Optional[String]]("ostr", None)) { (b, c, i, l, uuid, ostr) =>
+        controllers_Application_reverse25_invoker.call(Application_1.reverse(b, c, i, l, uuid, ostr))
+      }
+
+    // @LINE:46
+    case prefixed_module_Routes_0_26(handler) => handler
   }
 }

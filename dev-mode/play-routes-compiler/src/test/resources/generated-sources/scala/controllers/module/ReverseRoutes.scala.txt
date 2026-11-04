@@ -5,17 +5,17 @@ import play.api.mvc.Call
 
 
 
-// @LINE:24
+// @LINE:26
 package controllers.module {
 
-  // @LINE:24
+  // @LINE:26
   class ReverseModuleController(_prefix: => String) {
     def _defaultPrefix: String = {
       if (_prefix.endsWith("/")) "" else "/"
     }
 
 
-    // @LINE:24
+    // @LINE:26
     def index: Call = {
 
       Call("GET", _prefix + { _defaultPrefix } + "module/index")

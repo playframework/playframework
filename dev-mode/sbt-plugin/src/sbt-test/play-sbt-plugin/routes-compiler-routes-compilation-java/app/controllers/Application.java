@@ -133,6 +133,10 @@ public class Application extends Controller {
     return ok();
   }
 
+  public Result rootPrefixedParam(Integer x, Optional<Integer> y) {
+    return ok(x + ":" + y.map(String::valueOf).orElse("none"));
+  }
+
   public Result modifiers(Request request) {
     return ok(String.join(",", request.attrs().get(Router.Attrs.HANDLER_DEF).getModifiers()));
   }

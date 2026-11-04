@@ -107,7 +107,7 @@ case route @ Route(verb, path, call, comments, modifiers) => {
           "@for(p <- pkg) {@p}",
           "@{call.packageName.map(_ + ".").getOrElse("")}@call.controller",
           "@call.method",
-          @call.parameters.filterNot(_.isEmpty).map(params => params.map(_.typeNameErasure + ".class").mkString(", ")).map("Scala.asScala(List.of(" + _ + "))").getOrElse("Scala.asScala(List.of())"),
+          @call.parameters.filterNot(_.isEmpty).map(params => params.map(p => javaClassLiteral(p.typeNameErasure)).mkString(", ")).map("Scala.asScala(List.of(" + _ + "))").getOrElse("Scala.asScala(List.of())"),
           "@verb",
           this.prefix + "@encodeStringJavaConstant(path.toString)",
           "@encodeStringJavaConstant(comments.map(_.comment).mkString("\n"))",

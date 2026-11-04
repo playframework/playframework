@@ -19,6 +19,7 @@ import static play.test.Helpers.testServer;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Test;
@@ -75,6 +76,15 @@ public class ApplicationTest extends AbstractRoutesTest {
     assertThat(url).isEqualTo("/root-prefixed-provider");
     var result = route(app, fakeRequest(GET, url));
     assertThat(result.status()).isEqualTo(OK);
+  }
+
+  @Test
+  public void checkRootPrefixedParamTypes() {
+    assertThat(Application.rootPrefixedParam(3, Optional.empty()).url())
+        .isEqualTo("/root-prefixed-param/fixed");
+    var url = Application.rootPrefixedParam(1, Optional.of(2)).url();
+    assertThat(url).isEqualTo("/root-prefixed-param/1?y=2");
+    checkResult(url, okContains("1:2"));
   }
 
   @Test

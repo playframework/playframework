@@ -48,7 +48,7 @@ package controllers.javascript {
 
   }
 
-  // @LINE:23
+  // @LINE:25
   class ReverseInstanceController(_prefix: => String) {
 
     def _defaultPrefix: String = {
@@ -56,7 +56,7 @@ package controllers.javascript {
     }
 
 
-    // @LINE:23
+    // @LINE:25
     def index: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.InstanceController.index",
       """
@@ -76,7 +76,7 @@ package controllers.javascript {
     }
 
 
-    // @LINE:31
+    // @LINE:33
     def renamedParams: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Application.renamedParams",
       """
@@ -104,7 +104,7 @@ package controllers.javascript {
       """
     )
 
-    // @LINE:40
+    // @LINE:42
     def reverse: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Application.reverse",
       """
@@ -116,6 +116,24 @@ package controllers.javascript {
 
           if (true) {
             return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/non-fixed" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Boolean]].javascriptUnbind + """)("b", b0), (""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Character]].javascriptUnbind + """)("c", c1), (""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Integer]].javascriptUnbind + """)("i", i2), (""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Long]].javascriptUnbind + """)("l", l3), (""" + implicitly[play.api.mvc.QueryStringBindable[java.util.UUID]].javascriptUnbind + """)("uuid", uuid4), (""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[String]]].javascriptUnbind + """)("ostr", ostr5)])})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:23
+    def rootPrefixedParam: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.rootPrefixedParam",
+      """
+        function(x0,y1) {
+
+          if (x0 == """ + implicitly[play.api.mvc.JavascriptLiteral[_root_.java.lang.Integer]].to(3) + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "root-prefixed-param/fixed" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[_root_.java.lang.Integer]]].javascriptUnbind + """)("y", y1)])})
+          }
+
+          if (true) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "root-prefixed-param/" + encodeURIComponent((""" + implicitly[play.api.mvc.PathBindable[_root_.java.lang.Integer]].javascriptUnbind + """)("x", x0)) + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[_root_.java.lang.Integer]]].javascriptUnbind + """)("y", y1)])})
           }
 
         }
@@ -172,7 +190,7 @@ package controllers.javascript {
       """
     )
 
-    // @LINE:38
+    // @LINE:40
     def unconstrainedFirst: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Application.unconstrainedFirst",
       """
@@ -196,7 +214,7 @@ package controllers.javascript {
       """
     )
 
-    // @LINE:33
+    // @LINE:35
     def sharedFixedParams: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Application.sharedFixedParams",
       """
@@ -218,7 +236,7 @@ package controllers.javascript {
       """
     )
 
-    // @LINE:36
+    // @LINE:38
     def fixedOnlyParams: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Application.fixedOnlyParams",
       """
@@ -236,7 +254,7 @@ package controllers.javascript {
       """
     )
 
-    // @LINE:28
+    // @LINE:30
     def modifiers: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "controllers.Application.modifiers",
       """

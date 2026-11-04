@@ -12,13 +12,13 @@ import java.util.function.Supplier;
 
 import java.util.*;
 
-// @LINE:24
+// @LINE:26
 @SuppressWarnings({"unchecked"})
 public class JavaScriptReverseRoutes {
 
-// @LINE:24
+// @LINE:26
 
-  // @LINE:24
+  // @LINE:26
   public static class ReverseModuleController {
     private final Supplier<String> _prefix;
     public ReverseModuleController(Supplier<String> _prefix) {
@@ -29,7 +29,7 @@ public class JavaScriptReverseRoutes {
     }
 
 
-    // @LINE:24
+    // @LINE:26
     public JavaScriptReverseRoute index() {
       return new JavaScriptReverseRoute(
         "controllers.module.ModuleController.index",
