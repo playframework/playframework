@@ -42,7 +42,9 @@ object ScriptedTools extends AutoPlugin {
     // If this is a scheduled GitHub Action
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     resolvers += Resolver.ApacheMavenSnapshotsRepo,
-    resolvers += Resolver.ApacheMavenStagingRepo
+    resolvers += Resolver.ApacheMavenStagingRepo,
+    // play-ws is still built against a Pekko milestone
+    libraryDependencySchemes += "org.apache.pekko" %% "pekko-stream" % "always"
   )
 
   def stableUniversalStagingDirectory: Seq[Def.Setting[?]] = Seq(
