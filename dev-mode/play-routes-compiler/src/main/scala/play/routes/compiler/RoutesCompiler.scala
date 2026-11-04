@@ -79,6 +79,7 @@ object RoutesCompiler {
    * @param reverseRouter Whether a reverse router should be generated.
    * @param jsReverseRouter Whether a JavaScript reverse router should be generated.
    * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param lang The language of the generated source code.
    */
   case class RoutesCompilerTask(
       file: File,
@@ -86,7 +87,8 @@ object RoutesCompiler {
       forwardsRouter: Boolean,
       reverseRouter: Boolean,
       jsReverseRouter: Boolean,
-      namespaceReverseRouter: Boolean
+      namespaceReverseRouter: Boolean,
+      lang: Language = Language.SCALA
   ) {
     def this(
         file: File,
