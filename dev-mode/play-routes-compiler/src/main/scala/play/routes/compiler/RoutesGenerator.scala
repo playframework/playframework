@@ -190,7 +190,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
     lang match {
       case Language.JAVA =>
         inject.twirl
-          .javaForwardsRouter(
+          .jForwardsRouter(
             sourceInfo,
             namespace,
             additionalImports,
@@ -201,7 +201,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           .body
       case _ =>
         inject.twirl
-          .forwardsRouter(
+          .sForwardsRouter(
             sourceInfo,
             namespace,
             additionalImports,
@@ -217,7 +217,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
     lang match {
       case Language.JAVA =>
         static.twirl
-          .javaRoutesPrefix(
+          .jRoutesPrefix(
             sourceInfo,
             namespace,
             _ => true
@@ -225,7 +225,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           .body
       case _ =>
         static.twirl
-          .routesPrefix(
+          .sRoutesPrefix(
             sourceInfo,
             namespace,
             _ => true
@@ -251,7 +251,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           lang match {
             case Language.JAVA =>
               static.twirl
-                .javaReverseRouter(
+                .jReverseRouter(
                   sourceInfo,
                   namespace,
                   additionalImports,
@@ -263,7 +263,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
                 .body
             case _ =>
               static.twirl
-                .reverseRouter(
+                .sReverseRouter(
                   sourceInfo,
                   namespace,
                   additionalImports,
@@ -298,7 +298,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           lang match {
             case Language.JAVA =>
               static.twirl
-                .javaJavascriptReverseRouter(
+                .jJavascriptReverseRouter(
                   sourceInfo,
                   namespace,
                   additionalImports,
@@ -310,7 +310,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
                 .body
             case _ =>
               static.twirl
-                .javascriptReverseRouter(
+                .sJavascriptReverseRouter(
                   sourceInfo,
                   namespace,
                   additionalImports,
@@ -342,7 +342,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         val controllers = routes.groupBy(_.call.controller).keys.toSeq
 
         (packageName.map(_.replace(".", "/") + "/").getOrElse("") + JavaWrapperFile) -> {
-          static.twirl.javaWrappers(sourceInfo, namespace, packageName, controllers, jsReverseRouter, lang).body
+          static.twirl.jWrappers(sourceInfo, namespace, packageName, controllers, jsReverseRouter, lang).body
         }
     }
   }
