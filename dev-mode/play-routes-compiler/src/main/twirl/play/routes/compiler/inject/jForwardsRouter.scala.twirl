@@ -87,7 +87,7 @@ case route @ Route(verb, path, call, comments, modifiers) => {
   @markLines(route)
   private ParamsExtractor @(routeIdentifier(route, index))() @ob
     return routes.computeIfAbsent("@routeIdentifier(route, index)", (key) ->
-      Route.apply("@verb.value", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix)@if(path.parts.nonEmpty) {, new StaticPart(this.defaultPrefix()), }@path.parts.map(_.toJavaString).mkString(", "))))
+      Route.apply("@verb.value", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix)@if(path.parts.nonEmpty) {, new StaticPart(this.defaultPrefix()), }@path.parts.map(javaPathPart).mkString(", "))))
     ));
   @cb
   private HandlerInvoker<@if(route.call.passJavaRequest){scala.Function1<play.mvc.Http.Request, Object>}else{Object}> @(invokerIdentifier(route, index))() @ob

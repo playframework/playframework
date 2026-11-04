@@ -54,7 +54,7 @@ public class ReverseRoutes @ob
         }
       }
       @if(routes.forall(route => javaReverseParameterConstraints(route, javaReverseLocalNames(route, params)).nonEmpty)) {
-      throw new IllegalArgumentException("No route for @{packageName.map(_ + ".").getOrElse("")}@(controller).@(method) matches the arguments " + Arrays.asList(@params.map(_._1.localName).mkString(", ")));
+      throw new IllegalArgumentException("No route for @{packageName.map(_ + ".").getOrElse("")}@(controller).@(method) matches the arguments " + Arrays.asList(@params.map(p => javaLocalName(p._1, p._2)).mkString(", ")));
       }
     }
     @cb
