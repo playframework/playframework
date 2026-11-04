@@ -28,6 +28,10 @@ Play modules can now override a scope annotation such as `@Singleton` when using
 
 Since sbt 1.3, `~run` didn't react to file changes, because Play's `run` blocked sbt's watch loop. Now `~run` works with sbt 1 and sbt 2: it starts the development server and compiles changed sources, templates, routes and configuration, including those of dependency projects, as soon as you save them. The application still loads or reloads on the next request. See [[Using sbt features|PlayConsole#Using-sbt-features]] for details.
 
+### Generating the router as Java source code
+
+The sbt plugin can now generate the router, the reverse router and the JavaScript reverse router as Java source code instead of Scala, with `routesLang := play.routes.compiler.Language.JAVA` in `build.sbt`. The generated routes then only need the Java compiler, which still checks the parameter types, values and action return types of the routes file. Play itself still depends on the Scala library, and Twirl templates and other Scala sources still need the Scala compiler. Scala source code stays the default. Java generation requires Java types and expressions in the routes file; see [[Router source language|JavaRouting#Router-source-language]] for details.
+
 ### Typed request and forwarded metadata
 
 Play now keeps the selected remote identity, direct transport connection, and effective request scheme and authority as separate typed values. The model supports RFC 7239 unknown and obfuscated identities, retained forwarding paths and `by` nodes, trusted forwarded hosts and schemes, endpoint ports, and identity-aware IP filtering.
