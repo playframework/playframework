@@ -1,0 +1,46 @@
+# Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+
+# Uses only Java types, so that both generation modes produce sources that compile.
+
+### Comments
+# The index page
+GET     /                                    controllers.Application.index
+
+### Path and query parameters
+GET     /pattern/$x<\d+>                     controllers.Application.uriPattern(x)
+GET     /urlcoding/:d/*s                     controllers.Application.urlcoding(d, s, q)
+GET     /str-list-opt-d                      controllers.StringController.queryListOptionalDefault(`x[]?=`: java.util.Optional[java.util.List[String]] ?= java.util.Optional.of(java.util.List.of("abc", "def")))
+GET     /public/*file                        controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
+
+### Request parameters
+GET     /only-request                        controllers.Application.onlyRequestParam(req: Request)
+GET     /not-first-request                   controllers.Application.notFirstRequestParam(a, r: play.mvc.Http.Request)
+
+### Names
+GET     /same-escaped-java-identifier        controllers.Application.sameEscapedJavaIdentifier(`[]`, `%%`)
+GET     /keyword/class                       controllers.Application.keyword(class)
+GET     /root-prefixed-controller            _root_.controllers.Application.rootPrefixedController
+GET     /root-prefixed-param/fixed           controllers.Application.rootPrefixedParam(x: _root_.java.lang.Integer = 3, y: java.util.Optional[_root_.java.lang.Integer])
+GET     /root-prefixed-param/:x              controllers.Application.rootPrefixedParam(x: _root_.java.lang.Integer, y: java.util.Optional[_root_.java.lang.Integer])
+GET     /instance                            @controllers.InstanceController.index
+GET     /module/index                        controllers.module.ModuleController.index
+
+### Modifiers
++ nocsrf quote"and\backslash
+GET     /modifiers                           controllers.Application.modifiers(request: Request)
+
+### Reverse routes sharing an action
+GET     /reverse/renamed/fixed               controllers.Application.renamedParams(value = "fixed")
+GET     /reverse/renamed/:alias              controllers.Application.renamedParams(alias)
+GET     /reverse/shared/one                  controllers.Application.sharedFixedParams(first = "constant", second = "one")
+GET     /reverse/shared/two                  controllers.Application.sharedFixedParams(first = "constant", second = "two")
+GET     /reverse/shared                      controllers.Application.sharedFixedParams(first = "constant", second: String ?= "default")
+GET     /reverse/fixed-only/one              controllers.Application.fixedOnlyParams(first = "constant", second = "one")
+GET     /reverse/fixed-only/two              controllers.Application.fixedOnlyParams(first = "constant", second = "two")
+GET     /reverse/unconstrained/:first        controllers.Application.unconstrainedFirst(first)
+GET     /reverse/unreachable/fixed           controllers.Application.unconstrainedFirst(first = "fixed")
+GET     /reverse/fixed                       controllers.Application.reverse(b: java.lang.Boolean = true, c: java.lang.Character = 'a', i: java.lang.Integer = 123, l: java.lang.Long = 123L, uuid: java.util.UUID = java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"), ostr: java.util.Optional[String] = java.util.Optional.of("a"))
+GET     /reverse/non-fixed                   controllers.Application.reverse(b: java.lang.Boolean, c: java.lang.Character, i: java.lang.Integer, l: java.lang.Long, uuid: java.util.UUID, ostr: java.util.Optional[String])
+
+### Include
+->      /module                              module.Routes

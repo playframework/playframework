@@ -1,0 +1,239 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+import play.api.mvc.Call
+
+
+
+// @LINE:7
+package controllers {
+
+  // @LINE:13
+  class ReverseAssets(_prefix: => String) {
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:13
+    def versioned(file:controllers.Assets.Asset): Call = {
+      implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("path", "/public"))); _rrc
+      Call("GET", _prefix + { _defaultPrefix } + "public/" + implicitly[play.api.mvc.PathBindable[controllers.Assets.Asset]].unbind("file", file))
+    }
+
+  }
+
+  // @LINE:12
+  class ReverseStringController(_prefix: => String) {
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:12
+    def queryListOptionalDefault(`x[]?=`:java.util.Optional[java.util.List[String]] = java.util.Optional.of(java.util.List.of("abc", "def"))): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "str-list-opt-d" + play.core.routing.queryString(List(if(`x[]?=` == java.util.Optional.of(java.util.List.of("abc", "def"))) None else Some(implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[java.util.List[String]]]].unbind("x[]?=", `x[]?=`)))))
+    }
+
+  }
+
+  // @LINE:25
+  class ReverseInstanceController(_prefix: => String) {
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:25
+    def index: Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "instance")
+    }
+
+  }
+
+  // @LINE:7
+  class ReverseApplication(_prefix: => String) {
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:33
+    def renamedParams(value:String): Call = {
+
+      ((value): @unchecked) match {
+
+        // @LINE:33
+        case (value) if value == "fixed" =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("value", "fixed"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/renamed/fixed")
+
+        // @LINE:34
+        case (value)  =>
+
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/renamed/" + play.core.routing.dynamicString(implicitly[play.api.mvc.PathBindable[String]].unbind("alias", value)))
+
+      }
+
+    }
+
+    // @LINE:22
+    def rootPrefixedController: Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "root-prefixed-controller")
+    }
+
+    // @LINE:42
+    def reverse(b:java.lang.Boolean, c:java.lang.Character, i:java.lang.Integer, l:java.lang.Long, uuid:java.util.UUID, ostr:java.util.Optional[String]): Call = {
+
+      ((b, c, i, l, uuid, ostr): @unchecked) match {
+
+        // @LINE:42
+        case (b, c, i, l, uuid, ostr) if b == true && c == 'a' && i == 123 && l == 123L && uuid == java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd") && ostr == java.util.Optional.of("a") =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("b", true), ("c", 'a'), ("i", 123), ("l", 123L), ("uuid", java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")), ("ostr", java.util.Optional.of("a")))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/fixed")
+
+        // @LINE:43
+        case (b, c, i, l, uuid, ostr)  =>
+
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/non-fixed" + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[java.lang.Boolean]].unbind("b", b)), Some(implicitly[play.api.mvc.QueryStringBindable[java.lang.Character]].unbind("c", c)), Some(implicitly[play.api.mvc.QueryStringBindable[java.lang.Integer]].unbind("i", i)), Some(implicitly[play.api.mvc.QueryStringBindable[java.lang.Long]].unbind("l", l)), Some(implicitly[play.api.mvc.QueryStringBindable[java.util.UUID]].unbind("uuid", uuid)), Some(implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[String]]].unbind("ostr", ostr)))))
+
+      }
+
+    }
+
+    // @LINE:23
+    def rootPrefixedParam(x:_root_.java.lang.Integer, y:java.util.Optional[_root_.java.lang.Integer]): Call = {
+
+      ((x, y): @unchecked) match {
+
+        // @LINE:23
+        case (x, y) if x == 3 =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("x", 3))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "root-prefixed-param/fixed" + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[_root_.java.lang.Integer]]].unbind("y", y)))))
+
+        // @LINE:24
+        case (x, y)  =>
+
+          Call("GET", _prefix + { _defaultPrefix } + "root-prefixed-param/" + play.core.routing.dynamicString(implicitly[play.api.mvc.PathBindable[_root_.java.lang.Integer]].unbind("x", x)) + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[_root_.java.lang.Integer]]].unbind("y", y)))))
+
+      }
+
+    }
+
+    // @LINE:20
+    def sameEscapedJavaIdentifier(`[]`:String, `%%`:String): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "same-escaped-java-identifier" + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[String]].unbind("[]", `[]`)), Some(implicitly[play.api.mvc.QueryStringBindable[String]].unbind("%%", `%%`)))))
+    }
+
+    // @LINE:7
+    def index: Call = {
+
+      Call("GET", _prefix)
+    }
+
+    // @LINE:11
+    def urlcoding(d:String, s:String, q:String): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "urlcoding/" + play.core.routing.dynamicString(implicitly[play.api.mvc.PathBindable[String]].unbind("d", d)) + "/" + implicitly[play.api.mvc.PathBindable[String]].unbind("s", s) + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[String]].unbind("q", q)))))
+    }
+
+    // @LINE:17
+    def notFirstRequestParam(a:String): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "not-first-request" + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[String]].unbind("a", a)))))
+    }
+
+    // @LINE:21
+    def keyword(_pf_escape_class:String): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "keyword/class" + play.core.routing.queryString(List(Some(implicitly[play.api.mvc.QueryStringBindable[String]].unbind("class", _pf_escape_class)))))
+    }
+
+    // @LINE:40
+    def unconstrainedFirst(first:String): Call = {
+
+      ((first): @unchecked) match {
+
+        // @LINE:40
+        case (first)  =>
+
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/unconstrained/" + play.core.routing.dynamicString(implicitly[play.api.mvc.PathBindable[String]].unbind("first", first)))
+
+        // @LINE:41
+        case (first) if first == "fixed" =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("first", "fixed"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/unreachable/fixed")
+
+      }
+
+    }
+
+    // @LINE:16
+    def onlyRequestParam(): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "only-request")
+    }
+
+    // @LINE:35
+    def sharedFixedParams(second:String): Call = {
+
+      ((second): @unchecked) match {
+
+        // @LINE:35
+        case (second) if second == "one" =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("first", "constant"), ("second", "one"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/shared/one")
+
+        // @LINE:36
+        case (second) if second == "two" =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("first", "constant"), ("second", "two"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/shared/two")
+
+        // @LINE:37
+        case (second)  =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("first", "constant"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/shared" + play.core.routing.queryString(List(if(second == "default") None else Some(implicitly[play.api.mvc.QueryStringBindable[String]].unbind("second", second)))))
+
+      }
+
+    }
+
+    // @LINE:38
+    def fixedOnlyParams(second:String): Call = {
+
+      ((second): @unchecked) match {
+
+        // @LINE:38
+        case (second) if second == "one" =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("first", "constant"), ("second", "one"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/fixed-only/one")
+
+        // @LINE:39
+        case (second) if second == "two" =>
+          implicit lazy val _rrc = new play.core.routing.ReverseRouteContext(Map(("first", "constant"), ("second", "two"))); _rrc
+          Call("GET", _prefix + { _defaultPrefix } + "reverse/fixed-only/two")
+
+      }
+
+    }
+
+    // @LINE:30
+    def modifiers(): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "modifiers")
+    }
+
+    // @LINE:10
+    def uriPattern(x:String): Call = {
+
+      Call("GET", _prefix + { _defaultPrefix } + "pattern/" + implicitly[play.api.mvc.PathBindable[String]].unbind("x", x))
+    }
+
+  }
+
+
+}

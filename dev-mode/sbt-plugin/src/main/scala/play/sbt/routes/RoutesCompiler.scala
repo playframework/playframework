@@ -14,6 +14,7 @@ import sbt.Keys.*
 import com.typesafe.sbt.web.incremental.*
 import play.api.PlayException
 import play.core.PlayVersion
+import play.routes.compiler.Language
 import play.routes.compiler.RoutesCompilationError
 import play.routes.compiler.RoutesCompiler.GeneratedSource
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
@@ -25,6 +26,7 @@ import xsbti.Position
 object RoutesKeys {
   val routesCompilerTasks   = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
   val routes                = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
+  val routesLang            = SettingKey[Language]("playRoutesLang", "Programming language of generated router")
   val routesImport          = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
   val routesGenerator       = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
   val generateReverseRouter = SettingKey[Boolean](
@@ -83,6 +85,7 @@ object RoutesCompiler extends AutoPlugin {
         val namespaceReverseRouterValue  = namespaceReverseRouter.value
         val sourcesInRoutes              = (routes / sources).value
         val routesImportValue            = routesImport.value
+        val routesLangValue              = routesLang.value
 
         // Aggregate all the routes file tasks that we want to compile the reverse routers for.
         aggregateReverseRoutes.value
@@ -102,7 +105,8 @@ object RoutesCompiler extends AutoPlugin {
                 forwardsRouter = true,
                 reverseRouter = generateReverseRouterValue,
                 jsReverseRouter = generateJsReverseRouterValue,
-                namespaceReverseRouter = namespaceReverseRouterValue
+                namespaceReverseRouter = namespaceReverseRouterValue,
+                routesLangValue
               )
             }
 
@@ -118,6 +122,7 @@ object RoutesCompiler extends AutoPlugin {
   )
 
   def defaultSettings = Seq(
+    routesLang             := Language.SCALA,
     routesImport           := Nil,
     aggregateReverseRoutes := Nil,
     // Generate reverse router defaults to true if this project is not aggregated by any of the projects it depends on

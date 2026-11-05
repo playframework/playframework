@@ -10,6 +10,10 @@ This section highlights the new features of Play 3.1. If you want to learn about
 
 Play WS now supports the [HTTP QUERY method](https://www.rfc-editor.org/rfc/rfc10008) for requests carrying a safe, idempotent query body. The new `query(...)` APIs are available to both Scala and Java users.
 
+### Generating the router as Java source code
+
+The sbt plugin can now generate the router, the reverse router and the JavaScript reverse router as Java source code instead of Scala, with `routesLang := play.routes.compiler.Language.JAVA` in `build.sbt`. The generated routes then only need the Java compiler, which helps builds that combine Java with other JVM languages such as Kotlin. Play itself still depends on the Scala library, and Twirl templates and other Scala sources still need the Scala compiler. Scala source code stays the default. Java generation requires Java types and expressions in the routes file and changes a few things for Scala callers of the reverse router; see [[Router source language|JavaRouting#Router-source-language]] for details.
+
 ### Selenide based test browser
 
 Play's test browser (`TestBrowser`, used by `WithBrowser`) is now backed by [Selenide](https://selenide.org) instead of the archived FluentLenium project. This brings current Selenium (4.51) and HtmlUnit (5.x) versions, and with them support for current browsers and a fix for [CVE-2023-26119](https://nvd.nist.gov/vuln/detail/CVE-2023-26119). The commonly used browser methods like `goTo`, `url`, `pageSource`, `el` and `$` (including `$(...).click()` and `$(...).fill().with(...)`) keep working, elements are now Selenide elements which wait until they are ready, and `browser.selenide()` gives access to the complete Selenide API. Next to `HTMLUNIT` and `FIREFOX`, there are now also `CHROME`, `EDGE` and `SAFARI` constants to select the browser, and Chrome, Edge and Firefox run headless with `-Dselenide.headless=true`. See the [[migration guide|Migration31#FluentLenium-has-been-replaced-by-Selenide]] for details.

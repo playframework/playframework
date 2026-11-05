@@ -53,4 +53,27 @@ describe("The JavaScript router", function () {
         var data = jsRoutes.controllers.Application.sameEscapedJavaIdentifier("a", "b");
         assert.equal("/same-escaped-java-identifier?" + encodeURI('[]') + "=a&" + encodeURI('%%') + "=b", data.url);
     });
+    it("should map differently named path parameters to the reverse signature", function() {
+        assert.equal("/reverse/renamed/fixed", jsRoutes.controllers.Application.renamedParams("fixed").url);
+        assert.equal("/reverse/renamed/other", jsRoutes.controllers.Application.renamedParams("other").url);
+    });
+    it("should map differently named query parameters and their defaults", function() {
+        assert.equal("/reverse/query/fixed", jsRoutes.controllers.Application.renamedQueryParam("fixed").url);
+        assert.equal("/reverse/query", jsRoutes.controllers.Application.renamedQueryParam(null).url);
+        assert.equal("/reverse/query?alias=other", jsRoutes.controllers.Application.renamedQueryParam("other").url);
+    });
+    it("should omit parameters fixed to the same value in every route", function() {
+        assert.equal("/reverse/shared/one", jsRoutes.controllers.Application.sharedFixedParams("one").url);
+        assert.equal("/reverse/shared/two", jsRoutes.controllers.Application.sharedFixedParams("two").url);
+        assert.equal("/reverse/shared", jsRoutes.controllers.Application.sharedFixedParams(null).url);
+        assert.equal("/reverse/shared?second=other", jsRoutes.controllers.Application.sharedFixedParams("other").url);
+    });
+    it("should handle actions with only constrained reverse routes", function() {
+        assert.equal("/reverse/fixed-only/one", jsRoutes.controllers.Application.fixedOnlyParams("one").url);
+        assert.equal("/reverse/fixed-only/two", jsRoutes.controllers.Application.fixedOnlyParams("two").url);
+        assert.equal(undefined, jsRoutes.controllers.Application.fixedOnlyParams("other"));
+    });
+    it("should ignore routes after an unconstrained reverse match", function() {
+        assert.equal("/reverse/unconstrained/fixed", jsRoutes.controllers.Application.unconstrainedFirst("fixed").url);
+    });
 });

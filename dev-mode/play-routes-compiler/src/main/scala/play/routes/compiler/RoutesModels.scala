@@ -86,20 +86,23 @@ case class Parameter(name: String, typeName: String, fixed: Option[String], defa
     extends Positional {
   import Parameter._
 
-  def isJavaRequest = typeName == requestClass || typeName == requestClassFQ
-  def typeNameReal  =
+  def isJavaRequest: Boolean = typeName == requestClass || typeName == requestClassFQ
+  def typeNameReal: String   =
     if (isJavaRequest) {
       requestClassFQ
     } else {
       typeName
     }
-  def nameClean =
+  def genericTypes: List[String] = typeNameReal.split('[').map(_.replaceAll("]", "")).toList
+  def typeNameErasure: String    = typeNameReal.takeWhile(_ != '[')
+  def nameClean: String          =
     if (isJavaRequest) {
       "req"
     } else {
       name
     }
-  override def toString =
+
+  override def toString: String =
     name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
 }
 

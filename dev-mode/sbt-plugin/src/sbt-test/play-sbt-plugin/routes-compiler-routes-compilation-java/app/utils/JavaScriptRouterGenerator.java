@@ -232,6 +232,14 @@ public class JavaScriptRouterGenerator {
   }
 
   private static List<JavaScriptReverseRoute> applicationControllerRoutes() {
-    return List.of(Application.async(), Application.reverse(), Application.sameEscapedJavaIdentifier());
+    return List.of(
+        Application.async(),
+        Application.reverse(),
+        Application.sameEscapedJavaIdentifier(),
+        Application.renamedParams(),
+        Application.renamedQueryParam(),
+        Application.sharedFixedParams(),
+        Application.fixedOnlyParams(),
+        Application.unconstrainedFirst());
   }
 }

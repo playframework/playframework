@@ -19,6 +19,7 @@ import static play.test.Helpers.testServer;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Test;
@@ -67,6 +68,68 @@ public class ApplicationTest extends AbstractRoutesTest {
     assertThat(url).isEqualTo("/root-prefixed-controller");
     var result = route(app, fakeRequest(GET, url));
     assertThat(result.status()).isEqualTo(OK);
+  }
+
+  @Test
+  public void checkRootPrefixedProvider() {
+    var url = Application.rootPrefixedProvider().url();
+    assertThat(url).isEqualTo("/root-prefixed-provider");
+    var result = route(app, fakeRequest(GET, url));
+    assertThat(result.status()).isEqualTo(OK);
+  }
+
+  @Test
+  public void checkRootPrefixedParamTypes() {
+    assertThat(Application.rootPrefixedParam(3, Optional.empty()).url())
+        .isEqualTo("/root-prefixed-param/fixed");
+    var url = Application.rootPrefixedParam(1, Optional.of(2)).url();
+    assertThat(url).isEqualTo("/root-prefixed-param/1?y=2");
+    checkResult(url, okContains("1:2"));
+  }
+
+  @Test
+  public void checkModifiers() {
+    checkResult("/modifiers", okContains("plain,quote\"and\\backslash"));
+  }
+
+  @Test
+  public void checkRenamedReversePathParam() {
+    assertThat(Application.renamedParams("fixed").url()).isEqualTo("/reverse/renamed/fixed");
+    var url = Application.renamedParams("other").url();
+    assertThat(url).isEqualTo("/reverse/renamed/other");
+    checkResult(url, okContains("other"));
+  }
+
+  @Test
+  public void checkRenamedReverseQueryParam() {
+    assertThat(Application.renamedQueryParam("fixed").url()).isEqualTo("/reverse/query/fixed");
+    assertThat(Application.renamedQueryParam("default").url()).isEqualTo("/reverse/query");
+    var url = Application.renamedQueryParam("other").url();
+    assertThat(url).isEqualTo("/reverse/query?alias=other");
+    checkResult(url, okContains("other"));
+  }
+
+  @Test
+  public void checkSharedFixedReverseParam() {
+    assertThat(Application.sharedFixedParams("one").url()).isEqualTo("/reverse/shared/one");
+    assertThat(Application.sharedFixedParams("two").url()).isEqualTo("/reverse/shared/two");
+    assertThat(Application.sharedFixedParams("default").url()).isEqualTo("/reverse/shared");
+    var url = Application.sharedFixedParams("other").url();
+    assertThat(url).isEqualTo("/reverse/shared?second=other");
+    checkResult(url, okContains("constant:other"));
+  }
+
+  @Test
+  public void checkFixedOnlyReverseParams() {
+    assertThat(Application.fixedOnlyParams("one").url()).isEqualTo("/reverse/fixed-only/one");
+    assertThat(Application.fixedOnlyParams("two").url()).isEqualTo("/reverse/fixed-only/two");
+  }
+
+  @Test
+  public void checkFirstUnconstrainedReverseRoute() {
+    var url = Application.unconstrainedFirst("fixed").url();
+    assertThat(url).isEqualTo("/reverse/unconstrained/fixed");
+    checkResult(url, okContains("fixed"));
   }
 
   @Test

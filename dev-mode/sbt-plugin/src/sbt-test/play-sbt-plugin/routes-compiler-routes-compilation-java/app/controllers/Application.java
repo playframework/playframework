@@ -22,6 +22,7 @@ import play.mvc.Controller;
 import play.mvc.Http.Request;
 import play.mvc.Result;
 import play.mvc.WebSocket;
+import play.routing.Router;
 
 public class Application extends Controller {
 
@@ -126,5 +127,37 @@ public class Application extends Controller {
 
   public Result rootPrefixedController() {
     return ok();
+  }
+
+  public Result rootPrefixedProvider() {
+    return ok();
+  }
+
+  public Result rootPrefixedParam(Integer x, Optional<Integer> y) {
+    return ok(x + ":" + y.map(String::valueOf).orElse("none"));
+  }
+
+  public Result modifiers(Request request) {
+    return ok(String.join(",", request.attrs().get(Router.Attrs.HANDLER_DEF).getModifiers()));
+  }
+
+  public Result renamedParams(String value) {
+    return ok(value);
+  }
+
+  public Result renamedQueryParam(String value) {
+    return ok(value);
+  }
+
+  public Result sharedFixedParams(String first, String second) {
+    return ok(first + ":" + second);
+  }
+
+  public Result fixedOnlyParams(String first, String second) {
+    return ok(first + ":" + second);
+  }
+
+  public Result unconstrainedFirst(String value) {
+    return ok(value);
   }
 }
