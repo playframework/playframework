@@ -4,7 +4,7 @@
 
 package scalaguide.tests.specs2
 
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.any
 // #import-mockito
 import org.mockito.Mockito._
 // #import-mockito
