@@ -9,6 +9,7 @@ import org.apache.pekko.util.ByteString
 import play.api.mvc.DefaultActionBuilder
 import play.api.mvc.Results.Ok
 import play.api.test._
+import play.filters.encoding.ContentEncodingFilter.Encoding
 
 class ContentEncodingFilterSpec extends PlaySpecification {
   "A ContentEncodingFilter" should {
@@ -16,8 +17,7 @@ class ContentEncodingFilterSpec extends PlaySpecification {
       implicit val mat = app.materializer
       val action       = app.injector.instanceOf[DefaultActionBuilder]
       val filter       = new ContentEncodingFilter(
-        encodingName = "test",
-        createFlow = () => Flow[ByteString].map(bytes => ByteString(bytes.utf8String.toUpperCase))
+        encodings = Seq(Encoding("test", () => Flow[ByteString].map(bytes => ByteString(bytes.utf8String.toUpperCase))))
       )
 
       val result = filter(action(Ok("hello")))(FakeRequest().withHeaders(ACCEPT_ENCODING -> "test")).run()
@@ -31,8 +31,7 @@ class ContentEncodingFilterSpec extends PlaySpecification {
       implicit val mat = app.materializer
       val action       = app.injector.instanceOf[DefaultActionBuilder]
       val filter       = new ContentEncodingFilter(
-        encodingName = "test",
-        createFlow = () => Flow[ByteString].map(_ => ByteString("encoded"))
+        encodings = Seq(Encoding("test", () => Flow[ByteString].map(_ => ByteString("encoded"))))
       )
 
       val result = filter(action(Ok("hello")))(FakeRequest()).run()
@@ -45,8 +44,7 @@ class ContentEncodingFilterSpec extends PlaySpecification {
       implicit val mat = app.materializer
       val action       = app.injector.instanceOf[DefaultActionBuilder]
       val filter       = new ContentEncodingFilter(
-        encodingName = "test",
-        createFlow = () => Flow[ByteString],
+        encodings = Seq(Encoding("test", () => Flow[ByteString])),
         shouldTranscode = (_, _) => false
       )
 
@@ -54,6 +52,40 @@ class ContentEncodingFilterSpec extends PlaySpecification {
 
       header(CONTENT_ENCODING, result) must beNone
       contentAsString(result) must_== "hello"
+    }
+
+    "use the encoding most preferred by the client" in running() { app =>
+      implicit val mat = app.materializer
+      val action       = app.injector.instanceOf[DefaultActionBuilder]
+      val filter       = new ContentEncodingFilter(
+        encodings = Seq(
+          Encoding("gzip", () => Flow[ByteString].map(_ => ByteString("gzip"))),
+          Encoding("zstd", () => Flow[ByteString].map(_ => ByteString("zstd")))
+        )
+      )
+
+      val result = filter(action(Ok("hello")))(
+        FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip;q=0.5, zstd;q=1")
+      ).run()
+
+      header(CONTENT_ENCODING, result) must beSome("zstd")
+      contentAsString(result) must_== "zstd"
+    }
+
+    "use server preference order when accepted encodings have equal quality" in running() { app =>
+      implicit val mat = app.materializer
+      val action       = app.injector.instanceOf[DefaultActionBuilder]
+      val filter       = new ContentEncodingFilter(
+        encodings = Seq(
+          Encoding("zstd", () => Flow[ByteString].map(_ => ByteString("zstd"))),
+          Encoding("gzip", () => Flow[ByteString].map(_ => ByteString("gzip")))
+        )
+      )
+
+      val result = filter(action(Ok("hello")))(FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip, zstd")).run()
+
+      header(CONTENT_ENCODING, result) must beSome("zstd")
+      contentAsString(result) must_== "zstd"
     }
   }
 }

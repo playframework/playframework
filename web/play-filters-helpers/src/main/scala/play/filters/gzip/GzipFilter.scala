@@ -21,6 +21,7 @@ import play.api.mvc._
 import play.api.Configuration
 import play.api.Logger
 import play.filters.encoding.ContentEncodingFilter
+import play.filters.encoding.ContentEncodingFilter.Encoding
 
 /**
  * A gzip filter.
@@ -44,8 +45,7 @@ import play.filters.encoding.ContentEncodingFilter
 @Singleton
 class GzipFilter @Inject() (config: GzipFilterConfig)(implicit mat: Materializer) extends EssentialFilter {
   private val contentEncodingFilter = new ContentEncodingFilter(
-    encodingName = "gzip",
-    createFlow = () => GzipFlow.gzip(config.bufferSize, config.compressionLevel),
+    encodings = Seq(Encoding("gzip", () => GzipFlow.gzip(config.bufferSize, config.compressionLevel))),
     shouldTranscode = config.shouldGzip,
     chunkedThreshold = config.chunkedThreshold,
     threshold = config.threshold

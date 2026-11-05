@@ -56,14 +56,15 @@ Java
 
 ## Supporting other content encodings
 
-The response handling used by `GzipFilter` is available separately as `ContentEncodingFilter`. You can supply an
-encoding name and a factory for a Pekko Streams `Flow`, allowing an application to add encodings such as Brotli or
-Zstandard using an encoder library of its choice:
+The response handling used by `GzipFilter` is available separately as `ContentEncodingFilter`. You can supply the
+supported encoding names and factories for Pekko Streams `Flow`s, allowing an application to add encodings such as
+Brotli and Zstandard using encoder libraries of its choice:
 
 Scala
 : @[custom-content-encoding](code/GzipEncoding.scala)
 
-The flow factory must return a new encoding flow for each response stream. The filter handles `Accept-Encoding`
-negotiation, sets `Content-Encoding` and `Vary`, preserves chunk trailers, and avoids encoding responses that must not
-contain a body. The optional `shouldTranscode`, `chunkedThreshold`, and `threshold` parameters provide the same
-selection and buffering controls used by the gzip filter.
+Each flow factory must return a new encoding flow for each response stream. The filter selects the supported encoding
+with the highest client quality value. The order of the configured encodings determines the server preference when
+quality values are equal. It also sets `Content-Encoding` and `Vary`, preserves chunk trailers, and avoids encoding
+responses that must not contain a body. The optional `shouldTranscode`, `chunkedThreshold`, and `threshold` parameters
+provide the same selection and buffering controls used by the gzip filter.

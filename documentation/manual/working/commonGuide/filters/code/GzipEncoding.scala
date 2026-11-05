@@ -17,11 +17,17 @@ class GzipEncoding extends PlaySpecification {
     import org.apache.pekko.stream.Materializer
     import org.apache.pekko.util.ByteString
     import play.filters.encoding.ContentEncodingFilter
+    import play.filters.encoding.ContentEncodingFilter.Encoding
 
-    class BrotliFilter(createBrotliFlow: () => Flow[ByteString, ByteString, ?])(implicit mat: Materializer)
+    class ModernEncodingFilter(
+        createBrotliFlow: () => Flow[ByteString, ByteString, ?],
+        createZstdFlow: () => Flow[ByteString, ByteString, ?]
+    )(implicit mat: Materializer)
         extends ContentEncodingFilter(
-          encodingName = "br",
-          createFlow = createBrotliFlow
+          encodings = Seq(
+            Encoding("br", createBrotliFlow),
+            Encoding("zstd", createZstdFlow)
+          )
         )
   }
   // #custom-content-encoding
