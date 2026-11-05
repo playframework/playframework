@@ -1,0 +1,17 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers.module;
+
+import snapshot.RoutesPrefix;
+
+public class routes {
+
+  public static final controllers.module.ReverseModuleController ModuleController = new controllers.module.ReverseModuleController(RoutesPrefix.byNamePrefix());
+
+  public static class javascript {
+
+    public static final controllers.module.javascript.ReverseModuleController ModuleController = new controllers.module.javascript.ReverseModuleController(RoutesPrefix.byNamePrefix());
+  }
+
+}

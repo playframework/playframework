@@ -214,6 +214,33 @@ Play includes a [`Default` controller](api/scala/controllers/Default.html) which
 
 In this example, `GET /` redirects to an external website, but it's also possible to redirect to another action (such as `/posts` in the above example).
 
+## Router source language
+
+By default, the sbt plugin generates the router as Scala source code, also for Java applications. To generate it as Java source code instead, add this setting to `build.sbt`:
+
+```scala
+routesLang := play.routes.compiler.Language.JAVA
+```
+
+The generated router then only needs the Java compiler. Play itself still depends on the Scala library, and Scala sources such as Twirl templates still need the Scala compiler.
+
+Applications that keep the default are not affected by the rest of this section. The Gradle plugin does not support this setting yet and always generates Scala source code. Combined with `namespaceReverseRouter := true`, Java generation needs Scala 2.13 or Scala 3.7 or newer, for example the Scala 3.9 LTS, if your project also has Scala sources such as Twirl templates, because older Scala 3 versions resolve package names in the generated Java sources wrongly. The sbt plugin warns about this.
+
+The routes file grammar stays the same, but the router copies parameter types, fixed values, default values and `routesImport` entries into Java source code, so they must be valid Java:
+
+- Use Java types. For example, write `page: Integer ?= 1` instead of `page: Int ?= 1`, and `java.util.Optional[String]` instead of `Option[String]`. Generic types still use `[]`.
+- Write fixed and default values as Java expressions of the parameter type. For example, a `java.lang.Long` parameter needs `?= 1L`, because Java does not convert the `int` literal `1` to a `Long`.
+- Only add Java imports to `routesImport`, such as `models.UserId` or `models.*`. Scala imports like `models._` do not compile.
+
+The Java compiler checks the generated router like the Scala compiler does: a parameter type that Play can't bind, a fixed or default value of the wrong type, and an action whose return type Play can't handle fail to compile. Parameters can use the Java types that Play binds out of the box, such as `String`, `Integer`, `Long`, `UUID`, `java.util.Optional` and `java.util.List`, and [[custom binders|RequestBinders]] that implement `play.mvc.PathBindable` or `play.mvc.QueryStringBindable`. Scala binders brought into scope with `routesImport` are not used.
+
+The reverse router keeps its classes and methods, so Java code and Twirl templates call it through `controllers.routes` as before. A few things differ:
+
+- Java methods don't have default values, so the reverse router has an overload for each trailing parameter with a default value in the routes file. Java code can now leave out these parameters too, but Scala code can no longer leave out a parameter in front of one that it passes by name.
+- If the arguments of a reverse route call match none of the routes of the action, which can happen when each route fixes a parameter to a value, the reverse router throws an `IllegalArgumentException` instead of a `scala.MatchError`.
+- Scala code that is compiled separately from the router, such as Scala tests or another project of the build, can only pass arguments by their names when the Java compiler keeps the parameter names, which `javacOptions += "-parameters"` does. With Scala 3 versions before 3.10, such code also can't pass a `String` where a reverse route expects an `Assets.Asset`; pass `Assets.Asset("...")` instead.
+- The constructors of the reverse controller classes take a `java.util.function.Supplier<String>` for the prefix, which only matters if your code creates them itself.
+
 ## Advanced Routing
 
 See [[Routing DSL|JavaRoutingDsl]].

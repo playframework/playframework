@@ -1,5 +1,6 @@
 plugins {
   id("org.playframework.play")
+  id("org.playframework.twirl")
 }
 
 repositories {
@@ -17,6 +18,10 @@ sourceSets {
   }
 }
 
+twirl {
+  scalaVersion.set("${scalaVersion}")
+}
+
 java {
   toolchain {
     languageVersion.set(JavaLanguageVersion.of(${javaVersion}))
@@ -26,6 +31,7 @@ java {
 dependencies {
   implementation("org.playframework:play-pekko-http-server_${scalaVersion}:${playVersion}")
   implementation("org.playframework:play-guice_${scalaVersion}:${playVersion}")
+  implementation("org.playframework:play-java_${scalaVersion}:${playVersion}")
 
   testImplementation("org.playframework:play-test_${scalaVersion}:${playVersion}")
   testImplementation("org.assertj:assertj-core:3.26.3")

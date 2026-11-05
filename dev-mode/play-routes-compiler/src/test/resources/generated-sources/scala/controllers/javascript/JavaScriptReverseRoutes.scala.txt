@@ -1,0 +1,280 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+import play.api.routing.JavaScriptReverseRoute
+
+
+
+// @LINE:7
+package controllers.javascript {
+
+  // @LINE:13
+  class ReverseAssets(_prefix: => String) {
+
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:13
+    def versioned: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Assets.versioned",
+      """
+        function(file1) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "public/" + (""" + implicitly[play.api.mvc.PathBindable[controllers.Assets.Asset]].javascriptUnbind + """)("file", file1)})
+        }
+      """
+    )
+
+  }
+
+  // @LINE:12
+  class ReverseStringController(_prefix: => String) {
+
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:12
+    def queryListOptionalDefault: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.StringController.queryListOptionalDefault",
+      """
+        function(_x_____0) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "str-list-opt-d" + _qS([(_x_____0 == null ? null : (""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[java.util.List[String]]]].javascriptUnbind + """)("x[]?=", _x_____0))])})
+        }
+      """
+    )
+
+  }
+
+  // @LINE:25
+  class ReverseInstanceController(_prefix: => String) {
+
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:25
+    def index: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.InstanceController.index",
+      """
+        function() {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "instance"})
+        }
+      """
+    )
+
+  }
+
+  // @LINE:7
+  class ReverseApplication(_prefix: => String) {
+
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:33
+    def renamedParams: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.renamedParams",
+      """
+        function(value0) {
+
+          if (value0 == """ + implicitly[play.api.mvc.JavascriptLiteral[String]].to("fixed") + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/renamed/fixed"})
+          }
+
+          if (true) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/renamed/" + encodeURIComponent((""" + implicitly[play.api.mvc.PathBindable[String]].javascriptUnbind + """)("alias", value0))})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:22
+    def rootPrefixedController: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.rootPrefixedController",
+      """
+        function() {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "root-prefixed-controller"})
+        }
+      """
+    )
+
+    // @LINE:42
+    def reverse: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.reverse",
+      """
+        function(b0,c1,i2,l3,uuid4,ostr5) {
+
+          if (b0 == """ + implicitly[play.api.mvc.JavascriptLiteral[java.lang.Boolean]].to(true) + """ && c1 == """ + implicitly[play.api.mvc.JavascriptLiteral[java.lang.Character]].to('a') + """ && i2 == """ + implicitly[play.api.mvc.JavascriptLiteral[java.lang.Integer]].to(123) + """ && l3 == """ + implicitly[play.api.mvc.JavascriptLiteral[java.lang.Long]].to(123L) + """ && uuid4 == """ + implicitly[play.api.mvc.JavascriptLiteral[java.util.UUID]].to(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")) + """ && ostr5 == """ + implicitly[play.api.mvc.JavascriptLiteral[java.util.Optional[String]]].to(java.util.Optional.of("a")) + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/fixed"})
+          }
+
+          if (true) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/non-fixed" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Boolean]].javascriptUnbind + """)("b", b0), (""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Character]].javascriptUnbind + """)("c", c1), (""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Integer]].javascriptUnbind + """)("i", i2), (""" + implicitly[play.api.mvc.QueryStringBindable[java.lang.Long]].javascriptUnbind + """)("l", l3), (""" + implicitly[play.api.mvc.QueryStringBindable[java.util.UUID]].javascriptUnbind + """)("uuid", uuid4), (""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[String]]].javascriptUnbind + """)("ostr", ostr5)])})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:23
+    def rootPrefixedParam: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.rootPrefixedParam",
+      """
+        function(x0,y1) {
+
+          if (x0 == """ + implicitly[play.api.mvc.JavascriptLiteral[_root_.java.lang.Integer]].to(3) + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "root-prefixed-param/fixed" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[_root_.java.lang.Integer]]].javascriptUnbind + """)("y", y1)])})
+          }
+
+          if (true) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "root-prefixed-param/" + encodeURIComponent((""" + implicitly[play.api.mvc.PathBindable[_root_.java.lang.Integer]].javascriptUnbind + """)("x", x0)) + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[java.util.Optional[_root_.java.lang.Integer]]].javascriptUnbind + """)("y", y1)])})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:20
+    def sameEscapedJavaIdentifier: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.sameEscapedJavaIdentifier",
+      """
+        function(____0,____1) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "same-escaped-java-identifier" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("[]", ____0), (""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("%%", ____1)])})
+        }
+      """
+    )
+
+    // @LINE:7
+    def index: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.index",
+      """
+        function() {
+          return _wA({method:"GET", url:"""" + _prefix + """"})
+        }
+      """
+    )
+
+    // @LINE:11
+    def urlcoding: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.urlcoding",
+      """
+        function(d0,s1,q2) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "urlcoding/" + encodeURIComponent((""" + implicitly[play.api.mvc.PathBindable[String]].javascriptUnbind + """)("d", d0)) + "/" + (""" + implicitly[play.api.mvc.PathBindable[String]].javascriptUnbind + """)("s", s1) + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("q", q2)])})
+        }
+      """
+    )
+
+    // @LINE:17
+    def notFirstRequestParam: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.notFirstRequestParam",
+      """
+        function(a0) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "not-first-request" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("a", a0)])})
+        }
+      """
+    )
+
+    // @LINE:21
+    def keyword: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.keyword",
+      """
+        function(class0) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "keyword/class" + _qS([(""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("class", class0)])})
+        }
+      """
+    )
+
+    // @LINE:40
+    def unconstrainedFirst: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.unconstrainedFirst",
+      """
+        function(first0) {
+
+          if (true) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/unconstrained/" + encodeURIComponent((""" + implicitly[play.api.mvc.PathBindable[String]].javascriptUnbind + """)("first", first0))})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:16
+    def onlyRequestParam: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.onlyRequestParam",
+      """
+        function() {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "only-request"})
+        }
+      """
+    )
+
+    // @LINE:35
+    def sharedFixedParams: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.sharedFixedParams",
+      """
+        function(second1) {
+
+          if (second1 == """ + implicitly[play.api.mvc.JavascriptLiteral[String]].to("one") + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/shared/one"})
+          }
+
+          if (second1 == """ + implicitly[play.api.mvc.JavascriptLiteral[String]].to("two") + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/shared/two"})
+          }
+
+          if (true) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/shared" + _qS([(second1 == null ? null : (""" + implicitly[play.api.mvc.QueryStringBindable[String]].javascriptUnbind + """)("second", second1))])})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:38
+    def fixedOnlyParams: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.fixedOnlyParams",
+      """
+        function(second1) {
+
+          if (second1 == """ + implicitly[play.api.mvc.JavascriptLiteral[String]].to("one") + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/fixed-only/one"})
+          }
+
+          if (second1 == """ + implicitly[play.api.mvc.JavascriptLiteral[String]].to("two") + """) {
+            return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "reverse/fixed-only/two"})
+          }
+
+        }
+      """
+    )
+
+    // @LINE:30
+    def modifiers: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.modifiers",
+      """
+        function() {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "modifiers"})
+        }
+      """
+    )
+
+    // @LINE:10
+    def uriPattern: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.Application.uriPattern",
+      """
+        function(x0) {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "pattern/" + (""" + implicitly[play.api.mvc.PathBindable[String]].javascriptUnbind + """)("x", x0)})
+        }
+      """
+    )
+
+  }
+
+
+}

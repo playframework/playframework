@@ -18,8 +18,10 @@ public class ReverseRoutesTest extends AbstractRoutesTest {
 
   @Test
   public void checkRoutingOfRoutesIncludes() {
-    // Force the router to bootstrap the prefix
-    app.injector().instanceOf(play.api.routing.Router.class);
+    // Undo what requests through the include in earlier tests did to the static prefix
+    module.RoutesPrefix.setPrefix("/");
+    // Creating the prefixed router must set the prefix of the included router, before any request
+    app.injector().instanceOf(play.api.routing.Router.class).withPrefix("/");
     assertThat(ModuleController.index().url()).isEqualTo("/module/index");
   }
 

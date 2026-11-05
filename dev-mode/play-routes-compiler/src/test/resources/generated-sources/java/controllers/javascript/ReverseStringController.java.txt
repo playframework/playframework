@@ -1,0 +1,32 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers.javascript;
+
+
+// @LINE:12
+@SuppressWarnings("cast")
+public class ReverseStringController {
+
+  private final java.util.function.Supplier<String> _prefix;
+
+  public ReverseStringController(java.util.function.Supplier<String> _prefix) {
+    this._prefix = _prefix;
+  }
+
+  private String _defaultPrefix() {
+    return _prefix.get().endsWith("/") ? "" : "/";
+  }
+
+  // @LINE:12
+  public play.api.routing.JavaScriptReverseRoute queryListOptionalDefault() {
+    return new play.api.routing.JavaScriptReverseRoute(
+      "controllers.StringController.queryListOptionalDefault",
+      "\n" +
+      "        function(_x_____0) {\n" +
+      "          return _wA({method:\"GET\", url:\"" + _prefix.get() + _defaultPrefix() + "\" + \"str-list-opt-d\" + _qS([(_x_____0 == null ? null : (" + play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryList(play.core.routing.JavaBinders.queryString())).javascriptUnbind() + ")(\"x[]?=\", _x_____0))])})\n" +
+      "        }\n" +
+      "      "
+    );
+  }
+}

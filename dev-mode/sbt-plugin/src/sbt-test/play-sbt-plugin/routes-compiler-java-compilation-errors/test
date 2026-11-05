@@ -1,0 +1,8 @@
+# Generate the router as Java source code and compile it
+> compileIgnoreErrors
+
+# The errors are reported at the lines of the routes file
+> checkCompilerProblem controllers.Application.text
+> checkCompilerProblem controllers.Application.item(id: models.Unbindable)
+> checkCompilerProblem controllers.Application.fixedValue(x: java.lang.Long = 1)
+> checkCompilerProblem controllers.Application.defaultValue(x: java.lang.Long ?= 1)

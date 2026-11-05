@@ -1,0 +1,25 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers.module;
+
+
+// @LINE:26
+@SuppressWarnings("cast")
+public class ReverseModuleController {
+
+  private final java.util.function.Supplier<String> _prefix;
+
+  public ReverseModuleController(java.util.function.Supplier<String> _prefix) {
+    this._prefix = _prefix;
+  }
+
+  private String _defaultPrefix() {
+    return _prefix.get().endsWith("/") ? "" : "/";
+  }
+
+  // @LINE:26
+  public play.api.mvc.Call index() {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "module/index", null);
+  }
+}
