@@ -98,6 +98,12 @@ To post url-form-encoded data you can set the proper header and formatted data w
 
 @[ws-post-form-data](code/javaguide/ws/JavaWS.java)
 
+### Submitting a QUERY request
+
+The [QUERY method](https://www.rfc-editor.org/rfc/rfc10008) is safe and idempotent like GET, but carries a request body.
+
+@[ws-query](code/javaguide/ws/JavaWS.java)
+
 ### Submitting multipart/form data
 
 The easiest way to post multipart/form data is to use a `Source<Http.MultipartFormData.Part<Source<ByteString>, ?>, ?>`:

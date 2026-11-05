@@ -3,16 +3,14 @@
 lazy val root = (project in file("."))
   // .enablePlugins(PlayScala)
   .settings(
-    name          := "evolutions-path-config",
-    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    name                         := "evolutions-path-config",
+    scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     libraryDependencies ++= Seq(
       guice,
       jdbc,
       evolutions,
-      "com.h2database" % "h2" % "2.4.240",
+      "com.h2database" % "h2" % "2.5.252",
     )
   )
 
@@ -20,10 +18,8 @@ lazy val itTests = (project in file("integration-tests"))
   .enablePlugins(PlayScala)
   .dependsOn(root)
   .settings(
-    name          := "evolutions-path-config-integration-tests",
-    scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
-    updateOptions := updateOptions.value.withLatestSnapshots(false),
-    update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false)),
+    name                         := "evolutions-path-config-integration-tests",
+    scalaVersion                 := ScriptedTools.scalaVersionFromJavaProperties(),
     PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode,
     publish / skip               := true,
     evictionErrorLevel           := Level.Warn,

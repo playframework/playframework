@@ -47,7 +47,11 @@ public class Application extends Controller {
   }
 
   public Result onlyRequestParam(Request request) {
-    return ok();
+    return ok(request.uri());
+  }
+
+  public Result notFirstRequestParam(String a, Request request) {
+    return ok(request.path() + "#" + a);
   }
 
   public Result multiParams(
@@ -114,5 +118,13 @@ public class Application extends Controller {
 
   public Result interpolatorWarning(String parameter) {
     return ok(parameter);
+  }
+
+  public Result sameEscapedJavaIdentifier(String brackets, String percent) {
+    return ok(brackets + percent);
+  }
+
+  public Result rootPrefixedController() {
+    return ok();
   }
 }

@@ -81,16 +81,18 @@ case class CORSConfig(
   def withServeForbiddenOrigins(serveForbiddenOrigins: Boolean): CORSConfig =
     copy(serveForbiddenOrigins = serveForbiddenOrigins)
 
-  import java.util.{ function => juf }
+  import java.util.function.Predicate
 
   import scala.jdk.CollectionConverters._
-  import scala.jdk.FunctionConverters._
 
-  def withOriginsAllowed(origins: juf.Function[String, Boolean]): CORSConfig = withOriginsAllowed(origins.asScala)
+  def withOriginsAllowed(origins: Predicate[String]): CORSConfig =
+    copy(allowedOrigins = Origins.Matching(origin => origins.test(origin)))
 
-  def withMethodsAllowed(methods: juf.Function[String, Boolean]): CORSConfig = withMethodsAllowed(methods.asScala)
+  def withMethodsAllowed(methods: Predicate[String]): CORSConfig =
+    copy(isHttpMethodAllowed = method => methods.test(method))
 
-  def withHeadersAllowed(headers: juf.Function[String, Boolean]): CORSConfig = withHeadersAllowed(headers.asScala)
+  def withHeadersAllowed(headers: Predicate[String]): CORSConfig =
+    copy(isHttpHeaderAllowed = header => headers.test(header))
 
   def withExposedHeaders(headers: java.util.List[String]): CORSConfig = withExposedHeaders(headers.asScala.toSeq)
 

@@ -11,6 +11,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.Future
+import scala.util.Failure
 
 import org.apache.pekko.stream.scaladsl._
 import org.apache.pekko.stream.stage._
@@ -183,19 +184,15 @@ object Multipart {
     case FileInfo(partName, filename, contentType, dispositionType) =>
       val tempFile = temporaryFileCreator.create("multipartBody", "asTemporaryFile")
       Accumulator(FileIO.toPath(tempFile.path)).mapFuture {
-        // Can't use unapply in Scala 3 here as long as we use the .cross(CrossVersion.for3Use2_13) workaround for pekko-http
-        // That's because Scala 3 changed the unapply signature/behaviour and here we try to call unapply of a Scala 2 artifacts
-        // from a Scala 3 artifact, which results in:
-        // [error] java.lang.NoSuchMethodError: 'org.apache.pekko.stream.IOResult org.apache.pekko.stream.IOResult$.unapply(org.apache.pekko.stream.IOResult)'
-        case r: IOResult if r.status.isFailure => Future.failed(r.status.failed.get)
-        case r: IOResult if r.status.isSuccess =>
+        case IOResult(_, Failure(error)) => Future.failed(error)
+        case IOResult(count, _)          =>
           Future.successful(
             FilePart(
               partName,
               filename,
               contentType,
               tempFile,
-              r.count,
+              count,
               dispositionType,
               tf => Some(ByteString.fromArray(java.nio.file.Files.readAllBytes(tf.path)))
             )

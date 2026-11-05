@@ -1,0 +1,15 @@
+# Compile before any HTTP request, watch changes, recover from errors, and stop with the watch.
+> ~run
+> verifyStopped
+
+# Exercise the same lifecycle with the Netty backend.
+> clean
+> resetScenario
+> set PlayKeys.devSettings += ("play.server.provider" -> "play.core.server.NettyServerProvider")
+> ~run
+> verifyStopped
+
+# A scoped run with arguments must also close on watch termination and clear its properties.
+> set Compile / run / watchOnIteration := { (_, _, _) => sbt.nio.Watch.CancelWatch }
+> runWithArguments
+> verifyArguments

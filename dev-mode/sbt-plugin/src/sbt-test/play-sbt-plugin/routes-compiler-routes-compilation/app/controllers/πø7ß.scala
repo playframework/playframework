@@ -11,4 +11,7 @@ class πø7ß @Inject() (c: ControllerComponents) extends AbstractController(c) 
   def ôü65t(i: Int) = Action {
     Ok
   }
+  def ôü65tJavaRequest(req: play.mvc.Http.Request, i: java.lang.Integer): play.mvc.Result = {
+    play.mvc.Results.ok(req.uri() + " " + i)
+  }
 }

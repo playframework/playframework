@@ -21,8 +21,11 @@ import org.apache.pekko.stream._
 import org.apache.pekko.stream.testkit.NoMaterializer
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.util.Timeout
+import org.openqa.selenium.chrome.ChromeDriver
+import org.openqa.selenium.edge.EdgeDriver
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
+import org.openqa.selenium.safari.SafariDriver
 import org.openqa.selenium.WebDriver
 import play.api._
 import play.api.http._
@@ -45,6 +48,9 @@ import play.twirl.api.Content
 trait PlayRunners extends HttpVerbs {
   val HTMLUNIT = classOf[HtmlUnitDriver]
   val FIREFOX  = classOf[FirefoxDriver]
+  val CHROME   = classOf[ChromeDriver]
+  val EDGE     = classOf[EdgeDriver]
+  val SAFARI   = classOf[SafariDriver]
 
   /**
    * Tests using servers by default run on random test server ports so we default to false.

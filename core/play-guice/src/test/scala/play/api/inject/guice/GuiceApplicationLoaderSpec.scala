@@ -4,12 +4,15 @@
 
 package play.api.inject.guice
 
+import java.util.concurrent.atomic.AtomicReference
+
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.Future
 
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
+import jakarta.inject.Inject
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.actor.ClassicActorSystemProvider
 import org.specs2.mutable.Specification
@@ -81,6 +84,18 @@ class GuiceApplicationLoaderSpec extends Specification {
       Await.ready(app.stop(), 5.minutes)
       hooksCalled must_== true
     }
+
+    "terminate the actor system if the application fails to start once the lifecycle stops" in {
+      val lifecycle = new DefaultApplicationLifecycle
+      val loader    = new GuiceApplicationLoader()
+      loader.load(fakeContextWithModule(classOf[FailingModule]).copy(lifecycle = lifecycle)) must throwA[Exception]
+      val actorSystem = FailingComponent.actorSystem.get
+
+      // Like the dev server does when the application failed to start
+      Await.result(lifecycle.stop(), 10.seconds)
+
+      Await.result(actorSystem.whenTerminated, 10.seconds) must not(throwA[Throwable])
+    }
   }
 
   def fakeContext: ApplicationLoader.Context                                               = ApplicationLoader.Context.create(Environment.simple())
@@ -115,6 +130,22 @@ class JavaConfiguredModule(environment: JavaEnvironment, config: Config) extends
   override def configure(): Unit = {
     bind(classOf[Foo]) to classOf[JavaConfiguredFoo]
   }
+}
+
+class FailingModule extends AbstractModule {
+  override def configure(): Unit = {
+    bind(classOf[FailingComponent]).asEagerSingleton()
+  }
+}
+
+object FailingComponent {
+  val actorSystem = new AtomicReference[ActorSystem]()
+}
+
+// Fails to start after the actor system got created
+class FailingComponent @Inject() (actorSystem: ActorSystem) {
+  FailingComponent.actorSystem.set(actorSystem)
+  throw new RuntimeException("Failing on purpose")
 }
 
 trait Bar

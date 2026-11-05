@@ -5,6 +5,7 @@
 package play.api.libs.concurrent
 
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -19,8 +20,10 @@ import org.apache.pekko.actor.CoordinatedShutdown
 import org.apache.pekko.actor.CoordinatedShutdown._
 import org.apache.pekko.Done
 import org.specs2.mutable.Specification
+import play.api.inject.ApplicationLifecycle
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.internal.libs.concurrent.CoordinatedShutdownSupport
+import play.api.ApplicationStoppedReason
 import play.api.Configuration
 import play.api.Environment
 import play.api.PlayException
@@ -110,6 +113,73 @@ class ActorSystemProviderSpec extends Specification {
       phaseActorSystemTerminateExecuted.get() must equalTo(true)
       phaseCustomDefinedPhaseExecuted.get() must equalTo(true)
     }
+
+    "terminate the actor system when the application lifecycle stops" in {
+      // Like when the application fails to start before the CoordinatedShutdownProvider got created
+      val lifecycle   = new DefaultApplicationLifecycle()
+      val actorSystem = new ActorSystemProvider(Environment.simple(), defaultConfiguration, lifecycle).get
+
+      Await.result(lifecycle.stop(), 10.seconds)
+
+      Await.result(actorSystem.whenTerminated, 10.seconds) must not(throwA[Throwable])
+      CoordinatedShutdown(actorSystem).shutdownReason() must_== Some(ApplicationStoppedReason)
+    }
+
+    "terminate the actor system when the application lifecycle stops, running the stop hooks once" in {
+      // Like when the application fails to start after the CoordinatedShutdownProvider got created
+      val lifecycle   = new DefaultApplicationLifecycle()
+      val actorSystem = new ActorSystemProvider(Environment.simple(), defaultConfiguration, lifecycle).get
+      new CoordinatedShutdownProvider(actorSystem, lifecycle).get
+      val stops = countStops(lifecycle)
+
+      Await.result(lifecycle.stop(), 10.seconds)
+
+      Await.result(actorSystem.whenTerminated, 10.seconds) must not(throwA[Throwable])
+      stops.get must_== 1
+    }
+
+    "not delay stopping the application" in {
+      // If the stop hook waited for the coordinated shutdown, which runs the stop hooks, it would wait until the
+      // service-stop phase times out
+      val configuration = Configuration("pekko.coordinated-shutdown.phases.service-stop.timeout" -> "1 minute")
+        .withFallback(defaultConfiguration)
+      val lifecycle   = new DefaultApplicationLifecycle()
+      val actorSystem = new ActorSystemProvider(Environment.simple(), configuration, lifecycle).get
+      new CoordinatedShutdownProvider(actorSystem, lifecycle).get
+      val stops = countStops(lifecycle)
+
+      // Like Application.stop()
+      Await.result(CoordinatedShutdownSupport.asyncShutdown(actorSystem, ApplicationStoppedReason), 10.seconds) must
+        not(throwA[Throwable])
+
+      actorSystem.whenTerminated.isCompleted must beTrue
+      stops.get must_== 1
+    }
+
+    "terminate the actor system of the Pekko components when the application lifecycle stops" in {
+      val lifecycle  = new DefaultApplicationLifecycle()
+      val components = new PekkoComponents {
+        def environment: Environment                   = Environment.simple()
+        def configuration: Configuration               = defaultConfiguration
+        def applicationLifecycle: ApplicationLifecycle = lifecycle
+      }
+      val actorSystem = components.actorSystem
+
+      Await.result(lifecycle.stop(), 10.seconds)
+
+      Await.result(actorSystem.whenTerminated, 10.seconds) must not(throwA[Throwable])
+    }
+  }
+
+  private def defaultConfiguration: Configuration = Configuration.load(Environment.simple())
+
+  private def countStops(lifecycle: ApplicationLifecycle): AtomicInteger = {
+    val stops = new AtomicInteger()
+    lifecycle.addStopHook { () =>
+      stops.incrementAndGet()
+      Future.unit
+    }
+    stops
   }
 
   private def withConfiguration[T](reconfigure: Config => Config)(block: ActorSystem => T): T = {

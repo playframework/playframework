@@ -5,6 +5,7 @@
 package play.filters.gzip
 
 import java.io.InputStreamReader
+import java.util.function.BiPredicate
 import java.util.zip.Deflater
 import java.util.zip.GZIPInputStream
 
@@ -354,6 +355,20 @@ class GzipFilterSpec extends PlaySpecification with DataTables {
                 .toLowerCase(java.util.Locale.ENGLISH)
             ) == 1
         )
+      }
+    }
+
+    "GzipFilterConfig.withShouldGzip" should {
+      "adapt a Java BiPredicate" in {
+        val predicate = new BiPredicate[play.mvc.Http.RequestHeader, play.mvc.Result] {
+          override def test(request: play.mvc.Http.RequestHeader, result: play.mvc.Result): Boolean =
+            request.path() == "/gzip" && result.status() == OK
+        }
+        val config = new GzipFilterConfig().withShouldGzip(predicate)
+
+        config.shouldGzip(FakeRequest("GET", "/gzip"), Ok) must beTrue
+        config.shouldGzip(FakeRequest("GET", "/other"), Ok) must beFalse
+        config.shouldGzip(FakeRequest("GET", "/gzip"), NotFound) must beFalse
       }
     }
 

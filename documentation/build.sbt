@@ -38,8 +38,8 @@ lazy val main = Project("Play-Documentation", file("."))
     version     := PlayVersion.current,
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.4"   % Test,
-      "com.h2database" % "h2"           % "2.4.240" % Test,
-      "org.mockito"    % "mockito-core" % "5.23.0"  % Test,
+      "com.h2database" % "h2"           % "2.5.252" % Test,
+      "org.mockito"    % "mockito-core" % "5.24.0"  % Test,
       "org.assertj"    % "assertj-core" % "3.27.7"  % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       ("net.logstash.logback" % "logstash-logback-encoder" % "9.0" % Test)
@@ -80,8 +80,8 @@ lazy val main = Project("Play-Documentation", file("."))
     Test / unmanagedResourceDirectories ++= (baseDirectory.value / "manual" / "detailedTopics" ** "code").get(),
     // Don't include sbt files in the resources
     Test / unmanagedResources / excludeFilter := (Test / unmanagedResources / excludeFilter).value || "*.sbt",
-    crossScalaVersions                        := Seq("2.13.18", "3.9.0-RC4"),
-    scalaVersion                              := "2.13.18",
+    crossScalaVersions                        := (playProject("Play") / crossScalaVersions).value,
+    scalaVersion                              := (playProject("Play") / scalaVersion).value,
     // Documentation samples are both test sources and resources and cannot be packaged into one JAR without
     // duplicate entry names. Keep test products as a class directory, matching sbt 1 behavior.
     Test / exportJars := false,
@@ -111,7 +111,7 @@ lazy val main = Project("Play-Documentation", file("."))
         (baseDirectory.value / "project" ** "*.scala" --- (baseDirectory.value ** "target" ** "*")).get()
     },
     Test / headerSources ++= Def.uncached {
-      (baseDirectory.value ** "*.md").get()
+      ((baseDirectory.value ** "*.md") --- (baseDirectory.value ** "target" ** "*")).get()
     },
     javafmtSortImports := false,
     Test / javafmt / sourceDirectories ++= (Test / unmanagedSourceDirectories).value,

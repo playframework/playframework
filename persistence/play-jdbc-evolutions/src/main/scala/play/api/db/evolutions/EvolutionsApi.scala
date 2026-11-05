@@ -406,23 +406,34 @@ class DatabaseEvolutions(
     }
 
     checkEvolutionsState()
+
+    // Split all scripts before recording any of them, so an invalid script doesn't leave an inconsistent state behind
+    val scriptStatements = scripts.map { script =>
+      try script.statements
+      catch {
+        case e: IllegalArgumentException =>
+          throw new IllegalArgumentException(s"Evolution ${script.evolution.revision}: ${e.getMessage}", e)
+      }
+    }
+
     implicit val connection = database.getConnection(autocommit = autocommit)
     var applying            = -1
     var lastScript: Script  = null
 
     try {
-      scripts.foreach { script =>
-        lastScript = script
-        applying = script.evolution.revision
-        logBefore(script)
-        // Execute script
-        script.statements.foreach { statement =>
-          logger.debug(s"Execute: $statement")
-          val start = System.currentTimeMillis()
-          execute(statement, false)
-          logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
-        }
-        logAfter(script)
+      scripts.zip(scriptStatements).foreach {
+        case (script, statements) =>
+          lastScript = script
+          applying = script.evolution.revision
+          logBefore(script)
+          // Execute script
+          statements.foreach { statement =>
+            logger.debug(s"Execute: $statement")
+            val start = System.currentTimeMillis()
+            execute(statement, false)
+            logger.debug(s"Finished in ${System.currentTimeMillis() - start}ms")
+          }
+          logAfter(script)
       }
 
       if (!autocommit) {
@@ -875,6 +886,20 @@ object SimpleEvolutionsReader {
 }
 
 /**
+ * JavaScript snippets for the evolutions pages.
+ */
+private[evolutions] object EvolutionsJavascript {
+
+  /**
+   * The URL to return to after applying or resolving evolutions. If the current page is the result of that itself, e.g.
+   * because applying the evolutions failed, it's the URL that page returns to. So that one doesn't get nested again,
+   * which would let the URL grow with each attempt.
+   */
+  val ReturnUrl: String =
+    """((/\/@evolutions\//.test(window.location.pathname) && new URLSearchParams(window.location.search).get('redirect')) || window.location.href)"""
+}
+
+/**
  * Exception thrown when the database is in an inconsistent state.
  *
  * @param db the database name
@@ -893,7 +918,7 @@ case class InconsistentDatabase(db: String, script: String, error: String, rev: 
   def content  = script
 
   private val resolvePathJavascript =
-    if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(window.location)"
+    if (autocommit) s"'/@evolutions/resolve/$db/$rev?redirect=' + encodeURIComponent(${EvolutionsJavascript.ReturnUrl})"
     else "'/@evolutions'"
   private val redirectJavascript =
     s"""window.location = window.location.href.split(/[?#]/)[0].replace(/\\/@evolutions.*$$|\\/$$/, '') + $resolvePathJavascript"""

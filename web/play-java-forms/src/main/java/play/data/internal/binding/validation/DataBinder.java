@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.validation;
 
+import java.util.Locale;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import play.data.internal.binding.beans.ConfigurablePropertyAccessor;
@@ -337,10 +338,10 @@ public class DataBinder {
 	 * @param pvs property values to bind
 	 * @see #doBind(play.data.internal.binding.beans.MutablePropertyValues)
 	 */
-	public void bind(PropertyValues pvs) {
+	public void bind(PropertyValues pvs, Locale locale) {
 		MutablePropertyValues mpvs = (pvs instanceof MutablePropertyValues mutablePropertyValues ?
 				mutablePropertyValues : new MutablePropertyValues(pvs));
-		doBind(mpvs);
+		doBind(mpvs, locale);
 	}
 
 	/**
@@ -351,9 +352,9 @@ public class DataBinder {
 	 * @see #checkAllowedFields
 	 * @see #applyPropertyValues
 	 */
-	protected void doBind(MutablePropertyValues mpvs) {
+	protected void doBind(MutablePropertyValues mpvs, Locale locale) {
 		checkAllowedFields(mpvs);
-		applyPropertyValues(mpvs);
+		applyPropertyValues(mpvs, locale);
 	}
 
 	/**
@@ -410,15 +411,15 @@ public class DataBinder {
 	 * @see #getPropertyAccessor
 	 * @see DefaultBindingErrorProcessor#processPropertyAccessException
 	 */
-	protected void applyPropertyValues(MutablePropertyValues mpvs) {
+	protected void applyPropertyValues(MutablePropertyValues mpvs, Locale locale) {
 		try {
 			// Bind request parameters onto target object.
-			getPropertyAccessor().setPropertyValues(mpvs);
+			getPropertyAccessor().setPropertyValues(mpvs, locale);
 		}
 		catch (PropertyBatchUpdateException ex) {
 			// Use bind error processor to create FieldErrors.
 			for (PropertyAccessException pae : ex.getPropertyAccessExceptions()) {
-				getBindingErrorProcessor().processPropertyAccessException(pae, getInternalBindingResult());
+				getBindingErrorProcessor().processPropertyAccessException(pae, getInternalBindingResult(), locale);
 			}
 		}
 	}

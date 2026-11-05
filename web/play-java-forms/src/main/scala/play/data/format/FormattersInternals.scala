@@ -4,6 +4,8 @@
 
 package play.data.format
 
+import java.util.Locale
+
 import play.data.internal.binding.core.convert.TypeDescriptor
 import play.data.internal.binding.validation.DataBinder
 
@@ -13,7 +15,7 @@ private[data] object FormattersInternals {
     dataBinder.setConversionService(formatters.conversion)
   }
 
-  def print(formatters: Formatters, descriptor: TypeDescriptor, value: AnyRef): String = {
-    formatters.print(descriptor, value)
+  def print(formatters: Formatters, descriptor: TypeDescriptor, value: AnyRef, locale: Locale): String = {
+    formatters.print(descriptor, value, locale)
   }
 }

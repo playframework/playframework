@@ -222,7 +222,9 @@ public abstract class ContextBasedBuiltInComponents implements BuiltInComponents
   }
 
   private ActorSystem createActorSystem() {
-    return new ActorSystemProvider(environment().asScala(), configuration()).get();
+    return new ActorSystemProvider(
+            environment().asScala(), configuration(), applicationLifecycle().asScala())
+        .get();
   }
 
   @Override

@@ -14,7 +14,15 @@ TBD
 
 ### sbt upgrade
 
-TBD
+Play 3.1 supports sbt 1.13.1 or newer in the sbt 1.x family, and sbt 2.1.0 or newer. To update, change your `project/build.properties` so that it reads:
+
+```properties
+sbt.version=2.1.0
+```
+
+To stay on sbt 1, use `sbt.version=1.13.1` instead. Check the release notes for sbt's [releases](https://github.com/sbt/sbt/releases) for details.
+
+With older sbt versions, `~run` started from an sbt client (`sbt --client`, the default in sbt 2) does not stop the development server when the watch ends.
 
 ### Minimum required Java and sbt version
 
@@ -32,13 +40,19 @@ Play replaces the legacy combined connection APIs with typed `remote`, `transpor
 
 Forwarded-header parsing, Host and absolute-target validation, scheme retention, CORS origin checks, and Redirect HTTPS behavior have also changed. See [[Request metadata and forwarded-header migration|RequestMetadataMigration31]] for the complete migration instructions and [[Typed request and forwarded metadata|RequestMetadataHighlights31]] for a conceptual overview.
 
-### HEAD responses no longer include generated Content-Length headers
+### Java gzip predicate callback uses `BiPredicate`
 
-Play no longer renders generated `Content-Length` headers for `HEAD` responses. `HEAD` responses still do not include a response body, but applications and tests should not rely on `Content-Length` being present on a `HEAD` response, even when the equivalent `GET` response has a known length.
+The Java overload of `GzipFilterConfig.withShouldGzip` now accepts a `java.util.function.BiPredicate<Http.RequestHeader, Result>` instead of a `java.util.function.BiFunction<Http.RequestHeader, Result, Boolean>`. Java callers must recompile and can remove any cast that was needed for the old callback type; the body of a boolean-returning lambda does not otherwise need to change.
 
-This behavior follows Pekko HTTP 2, which changed generated `Content-Length` rendering in [apache/pekko-http#962](https://github.com/apache/pekko-http/pull/962), ported from [akka/akka-http#4214](https://github.com/akka/akka-http/pull/4214). The original upstream change fixed response framing for statuses such as `205 Reset Content` and made `Content-Length` rendering depend on the request method and response status.
+### Java CORS predicate callbacks use `Predicate`
 
-If your tests compare `HEAD` and `GET` response headers, exclude `Content-Length` from that comparison. If your application needs to expose resource size metadata for `HEAD` requests, use an application-specific header.
+The Java overloads of `CORSConfig.withOriginsAllowed`, `withMethodsAllowed`, and `withHeadersAllowed` now accept `java.util.function.Predicate<String>` instead of `java.util.function.Function<String, Boolean>`. Java callers must recompile and replace any explicit `Function` declaration or cast with `Predicate`; the body of a boolean-returning lambda does not otherwise need to change.
+
+### HEAD and Pekko HTTP/2 response framing changes
+
+For HTTP/1.x, a `HEAD` response backed by an empty entity no longer includes `Content-Length: 0`. For statuses that allow an entity, declared positive lengths continue to be rendered, while chunked, close-delimited, and streamed entities without a known length continue to omit `Content-Length`. Matching the Pekko HTTP backend, Netty now also ignores a manually supplied `Content-Length` for a `HEAD` response when the entity does not declare a positive length; declare the length on the response entity instead. Applications are generally unaffected, but tests that explicitly expect `Content-Length: 0` on an empty HTTP/1.x `HEAD` response should be updated. These changes follow [apache/pekko-http#962](https://github.com/apache/pekko-http/pull/962) and [apache/pekko-http#1237](https://github.com/apache/pekko-http/pull/1237).
+
+With the Pekko HTTP backend over HTTP/2, `HEAD` responses no longer send their response entities as DATA frames. This corrects the Play 3.0.x behavior so that `HEAD` responses do not include a response body. Pekko HTTP/2 responses with status `204 No Content` or `304 Not Modified` also no longer receive an automatically generated `content-length: 0`. These changes come from [apache/pekko-http#1239](https://github.com/apache/pekko-http/pull/1239).
 
 ### Clustered Pekko applications may require additional JVM add-opens
 
@@ -80,6 +94,95 @@ Plain `URI` values are still parsed as URI values. For example, a `classpath:` U
 This does not affect normal file uploads. Play file uploads use multipart form handling and `Http.MultipartFormData.FilePart`, not string-to-`File` form binding. See [[Handling file upload|JavaFileUpload]] for the Java file upload API.
 
 If your application intentionally needs one of the removed bindings, register an explicit formatter or converter for that type in your application. See [[Register a custom DataBinder|JavaForms#Register-a-custom-DataBinder]] for the Java form formatter setup. If you think a removed binding should be supported by Play by default, please open an issue in the [Play issue tracker](https://github.com/playframework/playframework/issues).
+
+### Java forms resolve their locale from `play.i18n.langs`
+
+Java forms no longer pass the locale to formatters and validators through a thread-local. Instead, each form resolves one locale from `play.i18n.langs` and uses it for binding and formatting. With Play's default `ValidatorFactory`, validation messages use the same locale. A custom `ValidatorFactory` keeps selecting the locale for validation messages itself. This changes the locale in the following cases:
+
+* A form without a language, for example one created with `formFactory.form(...).fill(...)` or bound with a `null` `Lang`, formatted and parsed values with the JVM default locale. It now uses the application's default language, the first entry of `play.i18n.langs`.
+* Validation messages of such a form, and of validators obtained from Play's `ValidatorFactory` without a `ValidationPayload`, for example with `validatorFactory.getValidator()`, used the JVM default locale if it was one of the configured languages, and the application's default language otherwise. They now always use the application's default language.
+* Validators that application code obtains from Play's `ValidatorFactory` outside of a form, with a `ValidationPayload` that has a language, ignored that language for their messages and used the same fallback as validators without a payload. They now use the payload's language, resolved against `play.i18n.langs`. Form validation already used the form's language.
+* A form bound with a language that is not configured in `play.i18n.langs` formatted and parsed values with exactly that language. It now uses the best matching configured language, or the application's default language, as its validation messages already did.
+
+Forms bound with `bindFromRequest` are not affected, because their language already comes from `play.i18n.langs`. The deprecated `jakarta.validation.Validator` binding is unchanged and still uses the JVM default locale.
+
+### `Formatters.parse` and `Formatters.print` take a `Locale`
+
+Because Java forms no longer pass the locale through a thread-local, the public conversion methods of [`play.data.format.Formatters`](api/java/play/data/format/Formatters.html) take the locale as an additional argument:
+
+| Before | Now |
+| --- | --- |
+| `parse(String text, Class<T> clazz)` | `parse(String text, Class<T> clazz, Locale locale)` |
+| `parse(Field field, String text)` | `parse(Field field, String text, Locale locale)` |
+| `print(T t)` | `print(T t, Locale locale)` |
+| `print(Field field, T t)` | `print(Field field, T t, Locale locale)` |
+
+Inside a custom `SimpleFormatter` or `AnnotationFormatter`, pass on the `locale` that your `parse` or `print` method receives, which is the form's locale. Elsewhere, pass the locale the conversion should use, for example `lang.toLocale()` for a `Lang`. `Locale.getDefault()` keeps the previous behavior outside of a form. The `parse` and `print` methods of custom formatters already received a `Locale` and are unchanged.
+
+### FluentLenium has been replaced by Selenide
+
+Play's test browser, [`play.test.TestBrowser`](api/java/play/test/TestBrowser.html) (used by `WithBrowser` and `Helpers.running(testServer, HTMLUNIT, browser -> ...)`) and [`play.api.test.TestBrowser`](api/scala/play/api/test/TestBrowser.html) (used by the specs2 `WithBrowser` and `running(TestServer(...), HTMLUNIT) { browser => ... }`), was built on [FluentLenium](https://github.com/FluentLenium/FluentLenium). FluentLenium is no longer maintained and its repository has been archived. It also prevented Play from upgrading Selenium beyond 4.14 and HtmlUnit beyond 2.70, which is affected by [CVE-2023-26119](https://nvd.nist.gov/vuln/detail/CVE-2023-26119).
+
+Both test browsers are now backed by [Selenide](https://selenide.org), which is actively maintained and also built on Selenium WebDriver. Play uses Selenide's instance based API only (the `selenide-core` artifact, without Selenide's static `Selenide`/`WebDriverRunner` API): every test browser has its own Selenide driver and configuration.
+
+#### Dependency changes
+
+`play-test` now depends on `com.codeborne:selenide-core` (which brings Selenium 4.51 via `selenium-java`) and on `org.seleniumhq.selenium:htmlunit3-driver`, which uses HtmlUnit 5 (group id `org.htmlunit`). The `io.fluentlenium`, `org.seleniumhq.selenium:htmlunit-driver` and `net.sourceforge.htmlunit` dependencies have been removed.
+
+* If your build adds FluentLenium itself, remove it: FluentLenium 6.0.0 does not work with Selenium 4.17 or newer.
+* If your build pins Selenium or `htmlunit-driver` versions (for example for older [ScalaTest + Play](https://github.com/playframework/scalatestplus-play) versions), remove those pins or upgrade them. Do not mix `htmlunit-driver` and `htmlunit3-driver`: both contain the class `org.openqa.selenium.htmlunit.HtmlUnitDriver`.
+* If you use HtmlUnit classes directly, change the package `com.gargoylesoftware.htmlunit` to `org.htmlunit`.
+
+`HtmlUnitDriver` (`HTMLUNIT`) remains Play's default browser, and `FIREFOX` and all other Selenium drivers work as before. The new `CHROME`, `EDGE` and `SAFARI` constants in `play.test.Helpers` and `play.api.test.Helpers` make it easier to test with these browsers, and any other Selenium driver, e.g. a `RemoteWebDriver` for a Selenium Grid, works as well. If no matching driver binary (like `chromedriver` or `geckodriver`) is installed, Selenium Manager tries to download it automatically. Safari requires macOS with `safaridriver` enabled (`safaridriver --enable`). Browsers created from the `CHROME`, `EDGE` and `FIREFOX` constants have WebDriver BiDi enabled, so Selenide collects their console logs (available through `browser.selenide().getWebDriverLogs()`), run headless if the system property `selenide.headless` is `true`, and use the browser executable set by `selenide.browserBinary`. If you create a Chrome, Edge or Firefox driver yourself, enable BiDi as well, e.g. `new ChromeOptions().enableBiDi()`; otherwise Selenide logs a warning that it can not collect the browser's console logs.
+
+#### Test browser API changes
+
+`TestBrowser` no longer extends FluentLenium's `FluentAdapter`. Both test browsers now extend [`play.test.AbstractTestBrowser`](api/java/play/test/AbstractTestBrowser.html), which provides the most commonly used methods with the same names as before. Most of them also behave as before; the notes below describe where their behaviour changed:
+
+| Method | Notes |
+|--------|-------|
+| `goTo(url)` | Relative urls are resolved against the base url, with or without a leading `/`, as before. Without a base url, a relative url now fails with an `IllegalArgumentException`. |
+| `url()` | Returns the url relative to the base url (e.g. `"login"`), or the absolute url if it does not start with the base url, as before. |
+| `pageSource()`, `getDriver()`, `getBaseUrl()`, `getCookies()`, `getCookie(name)` | Unchanged. |
+| `takeScreenshot()`, `takeScreenshot(fileName)`, `takeHtmlDump()`, `takeHtmlDump(fileName)` | Unchanged, but `takeHtmlDump` now returns the written file. |
+| `executeScript(script, args...)` | Returns the script result directly instead of a `FluentJavascript`, e.g. `(String) browser.executeScript("return document.title")`. |
+| `el(selector)`, `el(by)` | Return the first matching [`SelenideElement`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideElement.html) instead of a `FluentWebElement`. |
+| `$(selector)`, `$(by)`, `find(selector)`, `find(by)` | Return all matching elements as [`BrowserElements`](api/java/play/test/BrowserElements.html) instead of a `FluentList`. `BrowserElements` is a Selenide [`ElementsCollection`](https://selenide.org/javadoc/current/com/codeborne/selenide/ElementsCollection.html) (`first()`, `last()`, `get(i)`, `size()`, `isEmpty()`, `texts()`, `attributes(name)` and iteration work as before) that, like `FluentList`, can also act on all of its elements: `click()`, `submit()`, `fill().with(values...)` and `write(values...)`. Note that, unlike Selenide's own `$`, Play's `$` still returns a collection. |
+| `fluentWait()`, `waitUntil(...)`, `manage()`, Scala `submit(selector, fields*)` | Unchanged (`submit` returns `BrowserElements`). |
+
+In addition, `browser.selenide()` gives access to the complete Selenide API of the browser (a [`SelenideDriver`](https://selenide.org/javadoc/current/com/codeborne/selenide/SelenideDriver.html)), and `browser.selenideConfig()` to its configuration, e.g. `browser.selenideConfig().timeout(10000)`. Selenide's `selenide.*` system properties and a `selenide.properties` file on the test classpath are supported as well. When an element can not be found or a Selenide assertion fails, Selenide saves the page source (and a screenshot, if the browser supports it) to `target/selenide/reports` (relative to the working directory, configurable via `selenideConfig().reportsFolder(...)` or the `selenide.reportsFolder` system property) and mentions the files in the error message.
+
+Selenide elements are looked up lazily and wait until they are ready (by default for up to 4 seconds), so most explicit waits can be removed. If an element can not be found within that time, Selenide throws an `ElementNotFound` error (an `AssertionError`) instead of Selenium's `NoSuchElementException`; use `element.exists()` to check for an element without waiting. Most element methods keep their names (`text()`, `click()`, `clear()`, `submit()`, `getAttribute(name)`, `isDisplayed()`, `isEnabled()`, `isSelected()`). The following FluentLenium methods need to be migrated:
+
+| FluentLenium | Selenide |
+|--------------|----------|
+| `element.value()` | `element.getValue()` or `element.val()` |
+| `element.attribute(name)` | `element.getAttribute(name)` or `element.attr(name)` |
+| `element.id()`, `element.name()` | `element.getAttribute("id")`, `element.name()` |
+| `element.tagName()` | `element.getTagName()` |
+| `element.html()` | `element.innerHtml()` |
+| `element.displayed()`, `element.enabled()`, `element.selected()` | `element.isDisplayed()`, `element.isEnabled()`, `element.isSelected()` |
+| `element.present()` | `element.exists()` |
+| `element.fill().with(value)`, `element.write(value)` | `element.setValue(value)` |
+| `element.fillSelect().withText(text)` | `element.selectOption(text)` |
+| `element.find(selector)`, `element.$(selector)` | `element.$$(selector)` (all children) or `element.$(selector)` (first child) |
+| `element.el(selector)` | `element.$(selector)` |
+| `element.clickable()` | `element.is(clickable)` |
+| `list.index(i)`, `list.count()` | `list.get(i)`, `list.size()` |
+| `list.values()` | `list.stream().map(SelenideElement::getValue).toList()` |
+| `browser.$("a", withText("x"))` and other `FilterConstructor` filters | `browser.$("a").findBy(exactText("x"))` (first match) or `browser.$("a").filterBy(exactText("x"))` (all matches) |
+| `browser.await().atMost(5, SECONDS).until(browser.el("#id")).displayed()` | `browser.el("#id").shouldBe(visible, Duration.ofSeconds(5))` |
+| `browser.await().until(browser.el("#id")).text().contains("x")` | `browser.el("#id").shouldHave(text("x"))` |
+| `browser.window().title()` | `browser.selenide().title()` |
+| `browser.window().maximize()` and other window actions | `browser.getDriver().manage().window().maximize()` |
+| `browser.alert().accept()` | `browser.selenide().switchTo().alert().accept()` |
+| `browser.switchTo(frameElement)`, `browser.switchToDefault()` | `browser.selenide().switchTo().frame(frameElement)`, `browser.selenide().switchTo().defaultContent()` |
+| `browser.goToInNewTab(url)` | `browser.selenide().switchTo().newWindow(WindowType.TAB)` followed by `browser.goTo(url)` |
+| `browser.executeAsyncScript(script, args...)` | `browser.selenide().executeAsyncJavaScript(script, args...)` |
+| `browser.keyboard()`, `browser.mouse()` | `browser.selenide().driver().actions()` (Selenium `Actions`) |
+| `browser.getConfiguration()`, `browser.setXyz(...)` | `browser.selenideConfig()` |
+
+Conditions like `visible` and `text(...)` are in [`com.codeborne.selenide.Condition`](https://selenide.org/javadoc/current/com/codeborne/selenide/Condition.html), collection conditions like `size(...)` in [`com.codeborne.selenide.CollectionCondition`](https://selenide.org/javadoc/current/com/codeborne/selenide/CollectionCondition.html). FluentLenium page objects (`FluentPage`, `@Page`, `goTo(page)`), components, events and its JUnit/TestNG/AssertJ integrations have no Play replacement; use plain page object classes or Selenide's [page objects](https://selenide.org/documentation/page-objects.html) (`browser.selenide().page(...)`) instead.
 
 ### Raw WebSocket handlers now receive status 1006 for abnormal connection loss
 
@@ -166,3 +269,16 @@ When Play can send an error Close in response to a malformed peer Close frame, i
 sending the error and does not wait for another Close acknowledgement.
 
 Applications that create raw `CloseMessage` values should avoid sending reserved status codes such as `1005`, `1006`, and `1015`, and should keep Close reasons short enough to fit in 123 UTF-8 bytes.
+
+### Play Ebean 9 writes generated evolution scripts differently
+
+Upgrading Play alone doesn't change any evolution script: Play splits scripts without `!split-semicolon` comments exactly as before (see [[Evolutions scripts|Evolutions#Evolutions-scripts]]).
+
+[Play Ebean](https://github.com/playframework/play-ebean) 9, the version for Play 3.1, however uses these comments in the evolution script `conf/evolutions/<server>/1.sql`, which it generates from the models in dev and test mode, as long as the script starts with the `-- Created by Ebean DDL` comment. So that Play runs Ebean's statements with semicolons as a whole, like the stored procedures on MySQL, MariaDB and SQL Server, the triggers for `@History`, or Oracle's PL/SQL blocks for sequences, Play Ebean 9 writes the script differently where Ebean's DDL contains such statements.
+
+If a production database already uses such a generated script, stop Play Ebean from regenerating it before you upgrade Play Ebean, or run the application in dev mode or its tests again:
+
+* Remove the `-- Created by Ebean DDL` comment (both lines) from the script. This doesn't change the evolution itself.
+* Or turn off generating the script of that Ebean server with `play.ebean.db.<server>.generateEvolutionsScripts = false` (available since Play Ebean 8.6.0 and 7.6.0), or of all Ebean servers with `play.ebean.generateEvolutionsScripts = false`.
+
+Then write further changes as new evolution scripts (`2.sql` and so on). Otherwise, the next dev mode start or test run can rewrite `1.sql`, and Play then sees a changed evolution, which it can only apply by first reverting the applied one with its down script, which drops Ebean's tables. In production, Play then refuses to start, unless it's allowed to apply downs automatically (`autoApplyDowns`), in which case it drops the tables. See [[Generating evolution scripts|JavaEbean#Generating-evolution-scripts]] in the Play Ebean documentation.

@@ -11,4 +11,7 @@ class ModuleController @Inject() (c: ControllerComponents) extends AbstractContr
   def index = Action {
     Ok
   }
+  def javaRequest(req: play.mvc.Http.Request): play.mvc.Result = {
+    play.mvc.Results.ok(req.uri())
+  }
 }

@@ -1707,6 +1707,45 @@ trait FormSpec extends CommonFormSpec {
         myFormFr.errors("note").get(0).message() must beEqualTo("Größe muss zwischen 10 und 100 sein")
       }
     }
+
+    // Support the JVM's language but make another language the application default, so falling back to the JVM
+    // default locale would give a different message on any machine.
+    val jvmLanguage                               = Locale.getDefault.getLanguage
+    val (defaultLanguage, defaultLanguageMessage) =
+      if (jvmLanguage == "de") ("en", "size must be between 10 and 100")
+      else ("de", "Größe muss zwischen 10 und 100 sein")
+
+    "have the validator use the default language when no language is given" in new WithApplication(
+      application("play.i18n.langs" -> List(defaultLanguage, jvmLanguage))
+    ) {
+      override def running() = {
+        val myForm = formFactory
+          .form(classOf[JavaI18NValidatorForm])
+          .bind(null, TypedMap.empty(), Map("note" -> "foo").asJava)
+        myForm.errors("note").get(0).message() must beEqualTo(defaultLanguageMessage)
+      }
+    }
+
+    "format and parse values in the default language when no language is given" in new WithApplication(
+      application("play.i18n.langs" -> List(defaultLanguage, jvmLanguage))
+    ) {
+      override def running() = {
+        val date  = Date.from(LocalDate.of(2026, 3, 15).atStartOfDay(ZoneId.systemDefault()).toInstant)
+        val text  = if (defaultLanguage == "de") "15 März 2026" else "15 March 2026"
+        val value = new LocalizedDate()
+        value.date = date
+
+        val filledForm = formFactory.form(classOf[LocalizedDate]).withDirectFieldAccess(true).fill(value)
+        filledForm("date").value().toScala must beSome(text)
+
+        val boundForm = formFactory
+          .form(classOf[LocalizedDate])
+          .withDirectFieldAccess(true)
+          .bind(null, TypedMap.empty(), Map("date" -> text).asJava)
+        boundForm.hasErrors must beFalse
+        boundForm.get().date must beEqualTo(date)
+      }
+    }
   }
 }
 

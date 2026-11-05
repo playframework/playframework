@@ -164,6 +164,28 @@ In order to maximize cross framework compatibility, keep in mind the following t
 * Not all DI frameworks support just in time bindings. Make sure all components that your library provides are explicitly bound.
 * Try to keep binding keys simple - different runtime DI frameworks have very different views on what a key is and how it should be unique or not.
 
+### Unscoped Guice bindings
+
+When using Guice, import `play.inject.guice.NoScope` to override a scope annotation such as `@Singleton` in a Play binding. `NoScope` is used in `.in[NoScope]`; it cannot be applied to a class or method.
+
+To construct a new `EnglishHello` each time Guice supplies `Hello`, even when `EnglishHello` is annotated with `@Singleton`, use:
+
+@[no-scope-construction](code/RuntimeDependencyInjection.scala)
+
+Play uses a Guice constructor binding for this form. Direct lookups of `EnglishHello` keep that key's own scope. The constructor binding does not consult bindings or overrides for the `EnglishHello` key; to replace the implementation in a test, override the `Hello` key instead.
+
+The implementation must have an injectable constructor: either one annotated with `@Inject`, or a non-private no-argument constructor. Play's `requireAtInjectOnConstructors()` option requires the annotation. If the implementation cannot be constructed directly, use a provider binding.
+
+To suppress the implementation type's scope annotation for all bindings that delegate to its key, bind the implementation itself:
+
+@[no-scope-self](code/RuntimeDependencyInjection.scala)
+
+This also suppresses the type's scope annotation when the type uses Guice's `@ProvidedBy`. A provider can still return a cached instance, and separately singleton-scoped aliases still cache their own instances.
+
+For explicit provider and binding-key targets, `NoScope` has the same instance-provisioning behavior as leaving the scope unspecified. It does not change a provider's behavior or the target key's scope.
+
+If a library already binds `Hello` to `EnglishHello`, replace that interface binding using the builder's `overrides(...)` method. See [extending the application loader](#Advanced:-Extending-the-GuiceApplicationLoader) for application startup and [[testing with Guice|ScalaTestingWithGuice]] for tests. Adding a constructor binding alongside the existing linked binding produces a duplicate-binding error. Alternatively, add an unscoped self binding for `EnglishHello`, using `overrides(...)` if the library also binds that implementation key explicitly.
+
 ### Excluding modules
 
 If there is a module that you don't want to be loaded, you can exclude it by appending it to the `play.modules.disabled` property in `application.conf`:

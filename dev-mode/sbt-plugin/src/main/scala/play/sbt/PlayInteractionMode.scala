@@ -97,7 +97,9 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
           case 4 | 13 => // STOP on Ctrl-D or Enter
           case 11     => consoleReader.clearScreen(); waitEOF()
           case 10     => println(); waitEOF()
-          case _      => waitEOF()
+          // EOF, e.g. with redirected input: wait instead of spinning
+          case -1 => Thread.sleep(50); waitEOF()
+          case _  => waitEOF()
         }
       }
       doWithoutEcho(waitEOF())
@@ -114,6 +116,34 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
   }
 
   override def waitForCancel(): Unit = waitForKey()
+
+  /**
+   * Like waitForCancel(), but reads the keys from the given sbt terminal, which belongs to the
+   * sbt console or thin client that runs the task. The terminal is put into raw mode, so that
+   * Enter (13) and Ctrl-D (4) stop and Ctrl-J (10) prints a new line, whichever terminal started
+   * the sbt server.
+   */
+  def waitForCancel(terminal: sbt.Terminal): Unit = terminal.withRawInput(waitForKey(terminal))
+
+  private def waitForKey(terminal: sbt.Terminal): Unit = {
+    val out                      = terminal.printStream
+    @tailrec def waitEOF(): Unit = {
+      terminal.inputStream.read() match {
+        case 4 | 13 => // STOP on Ctrl-D or Enter
+        case 11     =>
+          // Clear the screen, then move the cursor to the top left with relative moves, because sbt
+          // removes those for clients without ANSI support, but not absolute cursor positions
+          out.print("\u001b[2J\u001b[999A\u001b[999D")
+          out.flush()
+          waitEOF()
+        case 10 => out.println(); waitEOF()
+        // EOF, e.g. with redirected input: wait instead of spinning
+        case -1 => Thread.sleep(50); waitEOF()
+        case _  => waitEOF()
+      }
+    }
+    waitEOF()
+  }
 
   override def toString = "Console Interaction Mode"
 }

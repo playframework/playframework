@@ -44,6 +44,100 @@ class ScriptSpec extends Specification {
 
       scriptStatements.toList must beEqualTo(List(statement))
     }
+
+    "not split on semicolons between !split-semicolon never and always" in {
+      val scriptStatements = ScriptSansEvolution(
+        Seq(
+          "DROP PROCEDURE IF EXISTS answer;",
+          "CREATE PROCEDURE answer()",
+          "-- !split-semicolon: never",
+          "BEGIN",
+          "  DECLARE x INT;",
+          "  SET x = 42;",
+          "-- !split-semicolon: always",
+          "END;",
+          "SELECT 1; SELECT 2;"
+        ).mkString("\n")
+      ).statements
+
+      scriptStatements.toList must beEqualTo(
+        List(
+          "DROP PROCEDURE IF EXISTS answer",
+          "CREATE PROCEDURE answer()\nBEGIN\n  DECLARE x INT;\n  SET x = 42;\nEND",
+          "SELECT 1",
+          "SELECT 2"
+        )
+      )
+    }
+
+    "not split on any semicolon until the end of the script with !split-semicolon never" in {
+      val scriptStatements =
+        ScriptSansEvolution("SELECT 1;\n-- !split-semicolon: never\nSELECT ';'; SELECT 2;").statements
+
+      scriptStatements.toList must beEqualTo(List("SELECT 1", "SELECT ';'; SELECT 2;"))
+    }
+
+    "only split on semicolons that end a line with !split-semicolon last" in {
+      val scriptStatements = ScriptSansEvolution(
+        Seq(
+          "-- !split-semicolon: last",
+          "INSERT INTO foo VALUES ('abc; def', 'ghi; jkl');",
+          "INSERT INTO foo",
+          "  VALUES ('mno; pqr');  ",
+          "INSERT INTO foo VALUES (';;'); INSERT INTO foo VALUES (';;');",
+          "-- !split-semicolon: always",
+          "SELECT 1; SELECT 2;"
+        ).mkString("\n")
+      ).statements
+
+      scriptStatements.toList must beEqualTo(
+        List(
+          "INSERT INTO foo VALUES ('abc; def', 'ghi; jkl')",
+          "INSERT INTO foo\n  VALUES ('mno; pqr')",
+          "INSERT INTO foo VALUES (';;'); INSERT INTO foo VALUES (';;')",
+          "SELECT 1",
+          "SELECT 2"
+        )
+      )
+    }
+
+    "keep double-semicolons with !split-semicolon never and last" in {
+      val scriptStatements = ScriptSansEvolution(
+        Seq(
+          "-- !split-semicolon: never",
+          "SELECT ';;'",
+          "-- !split-semicolon: last",
+          ";",
+          "SELECT ';;';",
+          "-- !split-semicolon: always",
+          "SELECT ';;';"
+        ).mkString("\n")
+      ).statements
+
+      scriptStatements.toList must beEqualTo(List("SELECT ';;'", "SELECT ';;'", "SELECT ';'"))
+    }
+
+    "accept !split-semicolon in # comments, in any case and with whitespace, also with Windows line endings" in {
+      val scriptStatements =
+        ScriptSansEvolution("SELECT 1;\r\n  #  !SPLIT-SEMICOLON :  Never  \r\nSELECT ';';\r\n").statements
+
+      scriptStatements.toList must beEqualTo(List("SELECT 1", "SELECT ';';"))
+    }
+
+    "not make the !split-semicolon comment lines part of the statements" in {
+      val scriptStatements =
+        ScriptSansEvolution("-- !split-semicolon: never\nSELECT 1\n-- !split-semicolon: always\n;").statements
+
+      scriptStatements.toList must beEqualTo(List("SELECT 1"))
+    }
+
+    "fail on an unknown !split-semicolon mode" in {
+      ScriptSansEvolution("-- !split-semicolon: sometimes\nSELECT 1;").statements must throwAn[
+        IllegalArgumentException
+      ](
+        "Unknown mode 'sometimes' of !split-semicolon"
+      )
+    }
   }
 
   private case class ScriptSansEvolution(sql: String) extends Script {

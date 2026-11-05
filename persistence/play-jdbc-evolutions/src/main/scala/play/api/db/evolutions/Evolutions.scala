@@ -8,8 +8,6 @@ import java.io.File
 import java.nio.charset.Charset
 import java.nio.file._
 
-import scala.collection.immutable.ArraySeq
-
 import play.api.db.DBApi
 import play.api.db.Database
 import play.api.inject.ApplicationLifecycle
@@ -59,11 +57,63 @@ trait Script {
   /**
    * The sql string separated into constituent ";"-delimited statements.
    *
-   * Any ";;" found in the sql are escaped to ";".
+   * A comment line like `-- !split-semicolon: never` changes on which semicolons the following lines get split, until
+   * the next such line:
+   *
+   *  - `always`, the default: on every semicolon, except on ";;", which is escaped to ";"
+   *  - `never`: on none, e.g. for the body of a stored procedure
+   *  - `last`: only on a semicolon that ends a line, e.g. for statements with semicolons in their strings
+   *
+   * With `never` and `last`, the lines are taken as they are, so ";;" stays ";;". These comment lines don't become part
+   * of the statements, and they are recognized anywhere in the script, also within a multi-line string.
+   *
+   * @throws IllegalArgumentException if such a comment line has an unknown mode
    */
-  def statements: Seq[String] = {
-    // Regex matches on semicolons that neither precede nor follow other semicolons
-    ArraySeq.unsafeWrapArray(sql.split("(?<!;);(?!;)")).map(_.trim.replace(";;", ";")).filter(_ != "")
+  def statements: Seq[String] = Script.statements(sql)
+}
+
+private[evolutions] object Script {
+
+  private val SplitSemicolon = """(?i)^\s*(?:#|--)\s*!split-semicolon\s*:(.*?)\s*$""".r
+
+  // Matches on semicolons that neither precede nor follow other semicolons
+  private val Semicolon = "(?<!;);(?!;)"
+
+  def statements(sql: String): Seq[String] = {
+    val statements           = Seq.newBuilder[String]
+    val statement            = new StringBuilder
+    def endStatement(): Unit = {
+      statements += statement.toString
+      statement.clear()
+    }
+    var mode = "always"
+    sql.split("\n", -1).foreach {
+      case SplitSemicolon(splitMode) =>
+        mode = splitMode.trim.toLowerCase(java.util.Locale.ROOT)
+        if (!Set("always", "never", "last").contains(mode)) {
+          throw new IllegalArgumentException(
+            s"Unknown mode '${splitMode.trim}' of !split-semicolon, expected always, never or last"
+          )
+        }
+      case line =>
+        mode match {
+          case "always" =>
+            val parts = line.split(Semicolon, -1).map(_.replace(";;", ";"))
+            parts.init.foreach { part =>
+              statement ++= part
+              endStatement()
+            }
+            statement ++= parts.last
+          case "last" if line.trim.endsWith(";") =>
+            statement ++= line.substring(0, line.lastIndexOf(';'))
+            endStatement()
+          case _ =>
+            statement ++= line
+        }
+        statement += '\n'
+    }
+    endStatement()
+    statements.result().map(_.trim).filter(_ != "")
   }
 }
 
@@ -147,8 +197,8 @@ object Evolutions {
       ups: String,
       downs: String
   )(implicit environment: Environment): Unit = {
-    val evolutions = environment.getFile(fileName(db, revision, path))
-    Files.createDirectory(environment.getFile(directoryName(db, path)).toPath)
+    val evolutions = file(fileName(db, revision, path))
+    Files.createDirectories(file(directoryName(db, path)).toPath)
     writeFileIfChanged(
       evolutions,
       """|-- %s
@@ -163,8 +213,17 @@ object Evolutions {
     )
   }
 
+  /**
+   * Resolves the location of an evolution script like the evolutions reader does: an absolute path as it is, any other
+   * path relative to the application's root folder.
+   */
+  private def file(path: String)(implicit environment: Environment): File = {
+    val p = Path.of(path)
+    if (p.isAbsolute) p.toFile else environment.getFile(path)
+  }
+
   private def writeFileIfChanged(path: File, content: String): Unit = {
-    if (content != PlayIO.readFileAsString(path.toPath)) {
+    if (!path.exists() || content != PlayIO.readFileAsString(path.toPath)) {
       writeFile(path, content)
     }
   }

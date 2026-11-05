@@ -208,7 +208,7 @@ object HttpBinApplication {
     case GET(p"/stream/$param<[0-9]+>") =>
       Action {
         val contentLength = param.toInt
-        val content       = (0 to contentLength).map(ByteString(_))
+        val content       = (0 until contentLength).map(ByteString(_))
         Ok.sendEntity(HttpEntity.Streamed(Source(content), Option(contentLength), Option("application/json")))
       }
   }

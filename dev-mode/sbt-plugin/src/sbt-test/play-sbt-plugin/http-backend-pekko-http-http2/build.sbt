@@ -11,8 +11,6 @@ lazy val root = (project in file("."))
   .disablePlugins(PlayLayoutPlugin)
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
-updateOptions := updateOptions.value.withLatestSnapshots(false)
-update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 libraryDependencies += guice
 libraryDependencies += specs2

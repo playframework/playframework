@@ -18,8 +18,11 @@ import java.util.function.Function;
 import org.apache.pekko.stream.Materializer;
 import org.apache.pekko.util.ByteString;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.safari.SafariDriver;
 import play.Application;
 import play.api.i18n.DefaultLangs;
 import play.api.test.Helpers$;
@@ -56,6 +59,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
   public static String HEAD = "HEAD";
   public static Class<? extends WebDriver> HTMLUNIT = HtmlUnitDriver.class;
   public static Class<? extends WebDriver> FIREFOX = FirefoxDriver.class;
+  public static Class<? extends WebDriver> CHROME = ChromeDriver.class;
+  public static Class<? extends WebDriver> EDGE = EdgeDriver.class;
+  public static Class<? extends WebDriver> SAFARI = SafariDriver.class;
 
   // --
   @SuppressWarnings(value = "unchecked")

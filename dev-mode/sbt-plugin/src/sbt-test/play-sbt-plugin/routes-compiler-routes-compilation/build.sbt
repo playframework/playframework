@@ -6,8 +6,6 @@ lazy val root = (project in file("."))
 libraryDependencies ++= Seq(guice, specs2 % Test)
 
 scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties()
-updateOptions := updateOptions.value.withLatestSnapshots(false)
-update / evictionWarningOptions ~= (_.withWarnTransitiveEvictions(false).withWarnDirectEvictions(false))
 
 // can't use test directory since scripted calls its script "test"
 Test / sourceDirectory := baseDirectory.value / "tests"
@@ -15,14 +13,24 @@ Test / sourceDirectory := baseDirectory.value / "tests"
 Test / scalaSource := baseDirectory.value / "tests"
 
 // Generate a js router so we can test it with mocha
-@transient val generateJsRouter = TaskKey[Seq[File]]("generate-js-router")
+@transient val generateJsRouter        = TaskKey[Seq[File]]("generate-js-router")
+@transient val generateJsRouterBadHost = TaskKey[Seq[File]]("generate-js-router-bad-host")
 
 generateJsRouter := {
   (Compile / runMain).toTask(" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutes.js").value
   Seq(baseDirectory.value / "target" / "web" / "jsrouter" / "jsRoutes.js")
 }
 
-TestAssets / resourceGenerators += Def.task(generateJsRouter.value).taskValue
+generateJsRouterBadHost := {
+  (Compile / runMain)
+    .toTask(""" utils.JavaScriptRouterGenerator target/web/jsrouter/jsRoutesBadHost.js "'}}};alert(1);a={a:{a:{a:'" """)
+    .value
+  Seq(baseDirectory.value / "target" / "web" / "jsrouter" / "jsRoutesBadHost.js")
+}
+
+TestAssets / resourceGenerators += generateJsRouter.taskValue
+TestAssets / resourceGenerators += generateJsRouterBadHost.taskValue
+
 TestAssets / managedResourceDirectories += baseDirectory.value / "target" / "web" / "jsrouter"
 
 // We don't want source position mappers is this will make it very hard to debug

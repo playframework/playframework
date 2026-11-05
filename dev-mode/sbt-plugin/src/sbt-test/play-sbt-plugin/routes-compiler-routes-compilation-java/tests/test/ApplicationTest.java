@@ -4,6 +4,7 @@
 
 package test;
 
+import static controllers.routes.Application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static play.mvc.Http.HttpVerbs.GET;
 import static play.mvc.Http.Status.INTERNAL_SERVER_ERROR;
@@ -33,10 +34,39 @@ public class ApplicationTest extends AbstractRoutesTest {
   }
 
   @Test
+  public void checkOnlyRequestParam() {
+    var result = route(app, fakeRequest(GET, "/only-request"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("/only-request");
+  }
+
+  @Test
+  public void checkNotFirstRequestParam() {
+    var result = route(app, fakeRequest(GET, "/not-first-request?a=a"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("/not-first-request#a");
+  }
+
+  @Test
   public void checkAsyncResult() {
     var result = route(app, fakeRequest(GET, "/result/async?x=10"));
     assertThat(result.status()).isEqualTo(OK);
     assertThat(contentAsString(result)).isEqualTo("Answer: 20");
+  }
+
+  @Test
+  public void checkSameEscapedJavaIdentifier() {
+    var result = route(app, fakeRequest(GET, "/same-escaped-java-identifier?%5B%5D=a&%25%25=b"));
+    assertThat(result.status()).isEqualTo(OK);
+    assertThat(contentAsString(result)).isEqualTo("ab");
+  }
+
+  @Test
+  public void checkRootPrefixedController() {
+    var url = Application.rootPrefixedController().url();
+    assertThat(url).isEqualTo("/root-prefixed-controller");
+    var result = route(app, fakeRequest(GET, url));
+    assertThat(result.status()).isEqualTo(OK);
   }
 
   @Test

@@ -244,6 +244,15 @@ case class AhcWSRequest(underlying: StandaloneAhcWSRequest) extends WSRequest wi
     put[Source[MultipartFormData.Part[Source[ByteString, ?]], ?]](body)
   }
 
+  // -------------------------------------------------
+  // QUERY
+  // -------------------------------------------------
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   */
+  override def query[T: BodyWritable](body: T): Future[Response] = withBody(body).execute("QUERY")
+
   override def delete(): Future[Response] = execute("DELETE")
 
   override def get(): Future[Response] = execute("GET")

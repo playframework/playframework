@@ -1,5 +1,0 @@
-# Stage it, so it's easier to debug
-> playRoutes
-> compile
-> Test/compile
-> test

@@ -242,7 +242,7 @@ public final class Files {
     @Override
     public boolean delete(TemporaryFile temporaryFile) {
       play.api.libs.Files.TemporaryFile scalaFile = asScala().create(temporaryFile.path());
-      Try<Object> tryValue = asScala().delete(scalaFile);
+      Try<?> tryValue = asScala().delete(scalaFile);
       return (Boolean) tryValue.get();
     }
 
@@ -330,7 +330,7 @@ public final class Files {
     @Override
     public boolean delete(TemporaryFile temporaryFile) {
       play.api.libs.Files.TemporaryFile scalaFile = asScala().create(temporaryFile.path());
-      Try<Object> tryValue = asScala().delete(scalaFile);
+      Try<?> tryValue = asScala().delete(scalaFile);
       return (Boolean) tryValue.get();
     }
 

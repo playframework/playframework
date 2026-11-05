@@ -170,7 +170,7 @@ public class MessagesApi {
 
   /** An optional max age in seconds for the language Cookie. */
   public OptionalInt langCookieMaxAge() {
-    Option<Object> langCookieMaxAge = messages.langCookieMaxAge();
+    Option<?> langCookieMaxAge = messages.langCookieMaxAge();
     return langCookieMaxAge.isEmpty()
         ? OptionalInt.empty()
         : OptionalInt.of((Integer) langCookieMaxAge.get());

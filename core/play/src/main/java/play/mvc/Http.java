@@ -213,10 +213,9 @@ public class Http {
       }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public play.api.mvc.request.PeerEndpoint asScala() {
-      scala.Option<Object> scalaPort =
-          (scala.Option<Object>) (scala.Option<?>) OptionConverters.toScala(port);
+      scala.Option scalaPort = OptionConverters.toScala(port);
       return play.api.mvc.request.PeerEndpoint$.MODULE$.create(address, scalaPort);
     }
   }

@@ -295,11 +295,31 @@ public class Scala {
    * @return a Scala PartialFunction.
    */
   public static <A, B> scala.PartialFunction<A, B> partialFunction(Function<A, B> f) {
-    return new JavaPartialFunction<A, B>() {
+    return new scala.PartialFunction<A, B>() {
       @Override
-      public B apply(A a, boolean isCheck) {
-        if (isCheck) return null;
-        else return f.apply(a);
+      public boolean isDefinedAt(A a) {
+        // Preserve the previous adapter behavior without evaluating f during a definedness check.
+        // Undefined inputs are detected by applyOrElse when f throws Scala.noMatch().
+        return true;
+      }
+
+      @Override
+      public B apply(A a) {
+        try {
+          return f.apply(a);
+        } catch (JavaPartialFunction.NoMatchException e) {
+          throw new scala.MatchError(a);
+        }
+      }
+
+      @Override
+      @SuppressWarnings("unchecked")
+      public <A1 extends A, B1> B1 applyOrElse(A1 a, scala.Function1<A1, B1> defaultFunction) {
+        try {
+          return (B1) f.apply(a);
+        } catch (JavaPartialFunction.NoMatchException e) {
+          return defaultFunction.apply(a);
+        }
       }
     };
   }

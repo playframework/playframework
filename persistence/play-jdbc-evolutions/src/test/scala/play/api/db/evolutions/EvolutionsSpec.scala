@@ -43,6 +43,32 @@ class EvolutionsSpec extends Specification {
       }
     }
 
+    trait SplitSemicolonScripts { this: WithEvolutions =>
+      evolutions.evolve(evolutions.scripts(Seq(d1)), autocommit = true)
+
+      executeQuery("select name from test order by id") { resultSet =>
+        resultSet.next must beTrue
+        resultSet.getString(1) must_== "a; b"
+        resultSet.next must beTrue
+        resultSet.getString(1) must_== "c;; d"
+        resultSet.next must beTrue
+        resultSet.getString(1) must_== "e; f"
+        resultSet.next must beFalse
+      }
+    }
+
+    trait InvalidSplitSemicolonScripts { this: WithEvolutions =>
+      val recorded = evolutions.databaseEvolutions()
+
+      evolutions.evolve(evolutions.scripts(Seq(d2)), autocommit = true) must throwAn[IllegalArgumentException](
+        "Evolution 1: Unknown mode 'typo' of !split-semicolon"
+      )
+
+      // Nothing got recorded, so the fixed script applies without resolving
+      evolutions.databaseEvolutions() must_== recorded
+      evolutions.evolve(evolutions.scripts(Seq(d1)), autocommit = true)
+    }
+
     trait DownScripts { this: WithEvolutions =>
       val original = evolutions.scripts(Seq(a1, a2, a3))
       evolutions.evolve(original, autocommit = true)
@@ -150,6 +176,9 @@ class EvolutionsSpec extends Specification {
     "apply up scripts" in new UpScripts with WithEvolutions
     "apply up scripts derby" in new UpScripts with WithDerbyEvolutions
 
+    "apply up scripts with !split-semicolon" in new SplitSemicolonScripts with WithEvolutions
+    "not record anything if a !split-semicolon mode is unknown" in new InvalidSplitSemicolonScripts with WithEvolutions
+
     "apply down scripts" in new DownScripts with WithEvolutions
     "apply down scripts derby" in new DownScripts with WithDerbyEvolutions
 
@@ -231,6 +260,27 @@ class EvolutionsSpec extends Specification {
   }
 
   object TestEvolutions {
+    val d1 = Evolution(
+      1,
+      """create table test (id bigint not null, name varchar(255));
+        |-- !split-semicolon: last
+        |insert into test values (1, 'a; b');
+        |insert into test values (2, 'c;; d');
+        |-- !split-semicolon: never
+        |insert into test values (3, 'e; f')
+        |-- !split-semicolon: always
+        |;""".stripMargin,
+      "drop table test;"
+    )
+
+    val d2 = Evolution(
+      1,
+      """create table test (id bigint not null, name varchar(255));
+        |-- !split-semicolon: typo
+        |insert into test values (1, 'a');""".stripMargin,
+      "drop table test;"
+    )
+
     val a1 = Evolution(
       1,
       "create table ${table} (id bigint not null, name varchar(255));",

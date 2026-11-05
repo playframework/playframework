@@ -32,13 +32,13 @@ public class FormattersTest {
 
     @Test
     public void testFormattersParseUsingField() throws NoSuchFieldException {
-        int integerFromPlainField = formatters.parse(Bean.class.getDeclaredField("plainIntegerField"), "10");
+        int integerFromPlainField = formatters.parse(Bean.class.getDeclaredField("plainIntegerField"), "10", Locale.getDefault());
         assertEquals(10, integerFromPlainField);
     }
 
     @Test
     public void testFormattersParseUsingAnnotatedField() throws NoSuchFieldException {
-        int integerFromAnnotatedField = formatters.parse(Bean.class.getDeclaredField("annotatedIntegerField"), "10");
+        int integerFromAnnotatedField = formatters.parse(Bean.class.getDeclaredField("annotatedIntegerField"), "10", Locale.getDefault());
         assertEquals(15, integerFromAnnotatedField);
     }
 
@@ -47,18 +47,18 @@ public class FormattersTest {
         formatters.register(Value.class, new ValueFormatter());
         Value value = new Value("10");
 
-        assertEquals(new Value("10"), formatters.parse(Bean.class.getDeclaredField("valueField"), "10"));
-        assertEquals("formatted-10", formatters.print(Bean.class.getDeclaredField("valueField"), value));
+        assertEquals(new Value("10"), formatters.parse(Bean.class.getDeclaredField("valueField"), "10", Locale.getDefault()));
+        assertEquals("formatted-10", formatters.print(Bean.class.getDeclaredField("valueField"), value, Locale.getDefault()));
 
         assertEquals(formatters, formatters.unregisterAll(Value.class));
 
         try {
-            formatters.parse(Bean.class.getDeclaredField("valueField"), "10");
+            formatters.parse(Bean.class.getDeclaredField("valueField"), "10", Locale.getDefault());
             fail("Expected parsing converter to be removed");
         } catch (ConverterNotFoundException expected) {
         }
 
-        assertEquals("value-10", formatters.print(Bean.class.getDeclaredField("valueField"), value));
+        assertEquals("value-10", formatters.print(Bean.class.getDeclaredField("valueField"), value, Locale.getDefault()));
     }
 
     @SuppressWarnings("unused")

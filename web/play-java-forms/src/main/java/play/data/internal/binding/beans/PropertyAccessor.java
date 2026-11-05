@@ -20,6 +20,7 @@
 
 package play.data.internal.binding.beans;
 
+import java.util.Locale;
 import play.data.internal.binding.core.convert.TypeDescriptor;
 
 /**
@@ -74,7 +75,7 @@ public interface PropertyAccessor {
 	 * (may be a nested path and/or an indexed/mapped property)
 	 * @return whether the property is readable
 	 */
-	boolean isReadableProperty(String propertyName);
+	boolean isReadableProperty(String propertyName, Locale locale);
 
 	/**
 	 * Determine the property type for the specified property,
@@ -87,7 +88,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed
 	 */
-	Class<?> getPropertyType(String propertyName) throws BeansException;
+	Class<?> getPropertyType(String propertyName, Locale locale) throws BeansException;
 
 	/**
 	 * Return a type descriptor for the specified property:
@@ -99,7 +100,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed
 	 */
-	TypeDescriptor getPropertyTypeDescriptor(String propertyName) throws BeansException;
+	TypeDescriptor getPropertyTypeDescriptor(String propertyName, Locale locale) throws BeansException;
 
 	/**
 	 * Get the current value of the specified property.
@@ -111,7 +112,7 @@ public interface PropertyAccessor {
 	 * @throws PropertyAccessException if the property was valid but the
 	 * accessor method failed
 	 */
-	Object getPropertyValue(String propertyName) throws BeansException;
+	Object getPropertyValue(String propertyName, Locale locale) throws BeansException;
 
 	/**
 	 * Perform a batch update, ignoring unknown properties while collecting recoverable
@@ -122,6 +123,6 @@ public interface PropertyAccessor {
 	 * all individual PropertyAccessExceptions. All other properties will have been
 	 * successfully updated.
 	 */
-	void setPropertyValues(PropertyValues pvs) throws BeansException;
+	void setPropertyValues(PropertyValues pvs, Locale locale) throws BeansException;
 
 }

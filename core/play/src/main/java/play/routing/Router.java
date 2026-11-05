@@ -6,7 +6,6 @@ package play.routing;
 
 import java.util.List;
 import java.util.Optional;
-import org.apache.pekko.japi.JavaPartialFunction;
 import play.api.mvc.Handler;
 import play.api.routing.HandlerDef;
 import play.api.routing.SimpleRouter$;
@@ -27,20 +26,29 @@ public interface Router {
   }
 
   default play.api.routing.Router asScala() {
-    return SimpleRouter$.MODULE$.apply(
-        new JavaPartialFunction<play.api.mvc.RequestHeader, Handler>() {
+    scala.PartialFunction<play.api.mvc.RequestHeader, Handler> routes =
+        new scala.PartialFunction<>() {
           @Override
-          public Handler apply(play.api.mvc.RequestHeader req, boolean isCheck) throws Exception {
-            Optional<Handler> handler = route(req.asJava());
-            if (handler.isPresent()) {
-              return handler.get();
-            } else if (isCheck) {
-              return null;
-            } else {
-              throw noMatch();
-            }
+          public boolean isDefinedAt(play.api.mvc.RequestHeader request) {
+            return Router.this.route(request.asJava()).isPresent();
           }
-        });
+
+          @Override
+          public Handler apply(play.api.mvc.RequestHeader request) {
+            return Router.this
+                .route(request.asJava())
+                .orElseThrow(() -> new scala.MatchError(request));
+          }
+
+          @Override
+          @SuppressWarnings("unchecked")
+          public <A1 extends play.api.mvc.RequestHeader, B1> B1 applyOrElse(
+              A1 request, scala.Function1<A1, B1> defaultFunction) {
+            Optional<Handler> handler = Router.this.route(request.asJava());
+            return handler.isPresent() ? (B1) handler.get() : defaultFunction.apply(request);
+          }
+        };
+    return SimpleRouter$.MODULE$.apply(routes);
   }
 
   static Router empty() {

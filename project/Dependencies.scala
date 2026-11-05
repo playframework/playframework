@@ -4,16 +4,16 @@
 
 import sbt._
 
-import buildinfo.BuildInfo
+import playbuildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M3")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M1+225-0d5b254b-SNAPSHOT")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M4")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M2+47-c525ae28-SNAPSHOT")
 
-  val playJsonVersion = "3.1.0-M10"
+  val playJsonVersion = "3.1.0-M10+90-e2ddbd4c-SNAPSHOT"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.2"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.6"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -26,10 +26,10 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specs2Version % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.19.0"      % Test
+    "org.scalacheck" %% "scalacheck"        % "1.20.0"      % Test
   )
 
-  val jacksonVersion  = "2.21.5"
+  val jacksonVersion  = "2.22.4"
   val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
   val jacksons        = Seq(
     "com.fasterxml.jackson.core"     % "jackson-core",
@@ -46,17 +46,17 @@ object Dependencies {
 
   val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
-  val slf4jVersion = "2.0.18"
+  val slf4jVersion = "2.0.20"
   val slf4j        = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % slf4jVersion)
   val slf4jApi     = "org.slf4j" % "slf4j-api"    % slf4jVersion
   val slf4jSimple  = "org.slf4j" % "slf4j-simple" % slf4jVersion
 
-  val guava      = "com.google.guava" % "guava"        % "33.6.0-jre"
-  val mockitoAll = "org.mockito"      % "mockito-core" % "5.23.0"
+  val guava      = "com.google.guava" % "guava"        % "33.8.0-jre"
+  val mockitoAll = "org.mockito"      % "mockito-core" % "5.24.0"
 
   val jakartaInject = "jakarta.inject" % "jakarta.inject-api" % "2.0.1"
 
-  val h2database = "com.h2database" % "h2" % "2.4.240"
+  val h2database = "com.h2database" % "h2" % "2.5.252"
 
   val derbyVersion  = "10.16.1.1"
   val derbyDatabase = Seq(
@@ -86,8 +86,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.5.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.5.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.4.14.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.14.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -104,16 +104,16 @@ object Dependencies {
 
   val javaDeps = Seq(
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.6.3"
+    "net.jodah" % "typetools" % "0.7.0"
   ) ++ specs2Deps.map(_ % Test)
 
   val joda = Seq(
-    "joda-time" % "joda-time"    % "2.14.3",
+    "joda-time" % "joda-time"    % "2.15.1",
     "org.joda"  % "joda-convert" % "3.0.1"
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "9.1.3.Final"
+    "org.hibernate.validator" % "hibernate-validator" % "9.2.0.Beta1"
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
@@ -130,11 +130,11 @@ object Dependencies {
   ).map(_ % Test)
 
   val guiceVersion = "7.0.0"
-  val asmVersion   = "9.10.1"
+  val asmVersion   = "9.11.1"
   val guiceDeps    = Seq(
     ("com.google.inject" % "guice" % guiceVersion).classifier("classes"),
     // Keep assistedinject from pulling the default shaded Guice jar alongside the unshaded classes classifier.
-    ("com.google.inject.extensions" % "guice-assistedinject" % guiceVersion).exclude("com.google.inject", "guice"),
+    ("com.google.inject.extensions" % "guice-assistedinject" % guiceVersion).exclude("com.google.inject" % "guice"),
     "org.ow2.asm"                   % "asm"                  % asmVersion
   )
 
@@ -154,7 +154,7 @@ object Dependencies {
       ) ++ scalaParserCombinators(scalaVersion) ++ specs2Deps.map(_ % Test) ++ javaTestDeps ++
       scalaReflect(scalaVersion)
 
-  val nettyVersion = "4.2.17.Final"
+  val nettyVersion = "4.2.20.Final"
 
   val netty = Seq(
     "org.playframework.netty" % "netty-reactive-streams-http" % "3.1.0-M1",
@@ -177,9 +177,9 @@ object Dependencies {
 
   val cookieEncodingDependencies = slf4j
 
-  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.1"
+  val jimfs = "com.google.jimfs" % "jimfs" % "1.3.2"
 
-  val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.4.0"
+  val okHttp = "com.squareup.okhttp3" % "okhttp-jvm" % "5.5.1"
 
   def routesCompilerDependencies(scalaVersion: String) = {
     specs2Deps.map(_ % Test) ++ Seq(specsMatcherExtra % Test) ++ scalaParserCombinators(
@@ -221,7 +221,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion       = "3.1.0-M1"
+  val playDocVersion       = "3.1.0-M1+56-edd838f4-SNAPSHOT"
   val playDocsDependencies = Seq(
     "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -231,7 +231,7 @@ object Dependencies {
     "org.apache.pekko"   %% "pekko-stream"     % pekkoVersion,
   ) ++ specs2Deps.map(_ % Test) ++ javaTestDeps
 
-  val bouncyCastleVersion    = "1.85"
+  val bouncyCastleVersion    = "1.86"
   val playServerDependencies = specs2Deps.map(_ % Test) ++ Seq(
     "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion,
     "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion,
@@ -244,31 +244,15 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val fluentleniumVersion = "6.0.0"
-  // This is the selenium version compatible with the FluentLenium version declared above.
-  // See https://repo1.maven.org/maven2/io/fluentlenium/fluentlenium-parent/6.0.0/fluentlenium-parent-6.0.0.pom
-  val seleniumVersion = "4.14.1"
-  val htmlunitVersion = "4.13.0"
+  val selenideVersion = "7.19.1"
+  // HtmlUnitDriver is not part of Selenium/Selenide, but it is still the default browser of Play's TestBrowser.
+  val htmlunitDriverVersion = "4.52.0"
 
   val testDependencies = Seq(junit, junitInterface, guava, logback) ++ Seq(
-    ("io.fluentlenium" % "fluentlenium-core" % fluentleniumVersion)
-      .exclude("org.jboss.netty", "netty")
-      .excludeAll(ExclusionRule("commons-beanutils", "commons-beanutils")) // comes with CVE-2025-48734
-      .excludeAll(ExclusionRule("commons-io", "commons-io")),              // comes with outdated commons-io
-    // htmlunit-driver uses an open range to selenium dependencies. This is slightly
-    // slowing down the build. So the open range deps were removed and we can re-add
-    // them using a specific version. Using an open range is also not good for the
-    // local cache.
-    ("org.seleniumhq.selenium" % "htmlunit-driver" % htmlunitVersion).excludeAll(
-      ExclusionRule("org.seleniumhq.selenium", "selenium-api"),
-      ExclusionRule("org.seleniumhq.selenium", "selenium-support"),
-      ExclusionRule("commons-io", "commons-io") // comes with outdated commons-io
-    ),
-    "commons-beanutils"       % "commons-beanutils"       % "1.11.0", // explicitly bump for fluentlenium and htmlunit to fix CVE-2025-48734
-    "commons-io"              % "commons-io"              % "2.22.0", // explicitly bump commons-io to newer version for fluentlenium and htmlunit
-    "org.seleniumhq.selenium" % "selenium-api"            % seleniumVersion,
-    "org.seleniumhq.selenium" % "selenium-support"        % seleniumVersion,
-    "org.seleniumhq.selenium" % "selenium-firefox-driver" % seleniumVersion
+    // selenide-core contains only the instance based API (SelenideDriver), without the static Selenide/WebDriverRunner
+    // facade which keeps browsers in ThreadLocals. It brings selenium-java.
+    "com.codeborne"           % "selenide-core"    % selenideVersion,
+    "org.seleniumhq.selenium" % "htmlunit3-driver" % htmlunitDriverVersion,
   ) ++ guiceDeps ++ specs2Deps.map(_ % Test) :+ mockitoAll % Test
 
   val playCacheDeps = specs2Deps.map(_ % Test) :+ logback % Test
@@ -283,13 +267,13 @@ object Dependencies {
     "org.ehcache"    % "jcache"  % "1.0.1"
   ) ++ jcacheApi
 
-  val caffeineVersion  = "3.2.4"
+  val caffeineVersion  = "3.3.1"
   val playCaffeineDeps = Seq(
     "com.github.ben-manes.caffeine" % "caffeine" % caffeineVersion,
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M13"
+  val playWsStandaloneVersion = "3.1.0-M14+18-e10c553c-SNAPSHOT"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

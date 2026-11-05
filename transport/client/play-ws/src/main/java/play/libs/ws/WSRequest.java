@@ -230,6 +230,70 @@ public interface WSRequest extends StandaloneWSRequest {
       Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
 
   // -------------------------------------------------------------------------
+  // "QUERY"
+  // -------------------------------------------------------------------------
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as BodyWritable
+   * @return a promise to the response
+   */
+  @Override
+  CompletionStage<WSResponse> query(BodyWritable body);
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as String
+   * @return a promise to the response
+   */
+  CompletionStage<WSResponse> query(String body);
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as JSON
+   * @return a promise to the response
+   */
+  CompletionStage<WSResponse> query(JsonNode body);
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as a Document
+   * @return a promise to the response
+   */
+  CompletionStage<WSResponse> query(Document body);
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as an InputStream
+   * @return a promise to the response
+   * @deprecated Use {@link #query(BodyWritable)} instead.
+   */
+  @Deprecated
+  CompletionStage<WSResponse> query(InputStream body);
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as a File
+   * @return a promise to the response
+   */
+  CompletionStage<WSResponse> query(File body);
+
+  /**
+   * Perform a QUERY on the request asynchronously.
+   *
+   * @param body represented as a MultipartFormData.Part
+   * @return a promise to the response
+   */
+  CompletionStage<WSResponse> query(
+      Source<? super Http.MultipartFormData.Part<Source<ByteString, ?>>, ?> body);
+
+  // -------------------------------------------------------------------------
   // Miscellaneous execution methods
   // -------------------------------------------------------------------------
 

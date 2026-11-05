@@ -138,7 +138,9 @@ abstract class WithApplication(val app: Application = GuiceApplicationBuilder().
  * Used to run specs within the context of a running server.
  *
  * @param app The fake application
- * @param port The port to run the server on
+ * @param port The port to run the server on, `0` for a random port. While the example runs, `port`
+ * contains the port the server actually uses. Afterwards, also if the example fails, it contains
+ * the given port again.
  * @param serverProvider *Experimental API; subject to change* The type of
  * server to use. Defaults to providing a Netty server.
  */
@@ -154,13 +156,16 @@ abstract class WithServer(
 
   override def wrap[T: AsResult](t: => T): Result = {
     val currentPort = port
-    val result      = Helpers.runningWithPort(TestServer(port = port, application = app, serverProvider = serverProvider)) {
-      assignedPort =>
-        port = assignedPort // if port was 0, the OS assigns a random port
-        AsResult.effectively(t)
+    try {
+      Helpers.runningWithPort(TestServer(port = port, application = app, serverProvider = serverProvider)) {
+        assignedPort =>
+          port = assignedPort // if port was 0, the OS assigns a random port
+          AsResult.effectively(t)
+      }
+    } finally {
+      // AsResult.effectively throws if the example fails, so the port must be reset in finally
+      port = currentPort
     }
-    port = currentPort
-    result
   }
 }
 
@@ -182,7 +187,9 @@ abstract class WithServer(
  *
  * @param webDriver The driver for the web browser to use
  * @param app The fake application
- * @param port The port to run the server on
+ * @param port The port to run the server on, `0` for a random port. While the example runs, `port`
+ * contains the port the server actually uses. Afterwards, also if the example fails, it contains
+ * the given port again.
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
@@ -198,15 +205,15 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
   lazy val browser: TestBrowser = TestBrowser(webDriver, Some("http://localhost:" + port))
 
   override def wrap[T: AsResult](t: => T): Result = {
+    val currentPort = port
     try {
-      val currentPort = port
-      val result      = Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
+      Helpers.runningWithPort(TestServer(port, app)) { assignedPort =>
         port = assignedPort // if port was 0, the OS assigns a random port
         AsResult.effectively(t)
       }
-      port = currentPort
-      result
     } finally {
+      // AsResult.effectively throws if the example fails, so the port must be reset in finally
+      port = currentPort
       browser.quit()
     }
   }

@@ -318,6 +318,12 @@ object BuildSettings {
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.copy"),
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.filters.https.RedirectHttpsConfiguration.this"),
       ProblemFilters.exclude[MissingTypesProblem]("play.filters.https.RedirectHttpsConfiguration$"),
+      // Use the Java BiPredicate type for the gzip decision callback
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.gzip.GzipFilterConfig.withShouldGzip"),
+      // Use Java Predicate types for the CORS decision callbacks
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.cors.CORSConfig.withOriginsAllowed"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.cors.CORSConfig.withMethodsAllowed"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.cors.CORSConfig.withHeadersAllowed"),
       // Switch to Jakarta DI
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpErrorHandler.this"),
       ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.api.http.DefaultHttpRequestHandler.this"),
@@ -495,6 +501,8 @@ object BuildSettings {
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingList$"),
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap"),
       ProblemFilters.exclude[MissingClassProblem]("play.utils.ReadingMap$"),
+      // Add QUERY request support to the Java WS API
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.libs.ws.WSRequest.query"),
       // Remove unused, package-private method
       ProblemFilters.exclude[DirectMissingMethodProblem]("play.api.libs.ws.ahc.AhcWSClient.loggerFactory"),
       // Actually following classes / traits / objects still exists, but were moved from play-java to play
@@ -683,6 +691,25 @@ object BuildSettings {
       ),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.clientCertificate"),
       ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.mvc.RequestHeader.xForwardedClientCertificates"),
+      // Replace FluentLenium with Selenide
+      ProblemFilters.exclude[MissingTypesProblem]("play.api.test.TestBrowser"),
+      ProblemFilters.exclude[MissingTypesProblem]("play.test.TestBrowser"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.api.test.TestBrowser.submit"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.PlayRunners.CHROME"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.PlayRunners.EDGE"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.test.PlayRunners.SAFARI"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$CHROME_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$EDGE_="
+      ),
+      ProblemFilters.exclude[ReversedMissingMethodProblem](
+        "play.api.test.PlayRunners.play$api$test$PlayRunners$_setter_$SAFARI_="
+      ),
+      // Formatters.parse/print now need a Locale passed because we removed the LocaleContextHolder ThreadLocal
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.parse"),
+      ProblemFilters.exclude[DirectMissingMethodProblem]("play.data.format.Formatters.print"),
     ),
     (Compile / unmanagedSourceDirectories) += {
       val suffix = CrossVersion.partialVersion(scalaVersion.value) match {
