@@ -9,7 +9,8 @@ import scala.concurrent.Future
 
 import jakarta.inject.Inject
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.slf4j._
