@@ -7,7 +7,6 @@ repositories {
   mavenLocal()
   maven("https://central.sonatype.com/repository/maven-snapshots/")
   maven("https://repository.apache.org/snapshots/")
-  maven("https://repository.apache.org/content/groups/staging/")
 }
 
 sourceSets {
