@@ -260,17 +260,20 @@ lazy val SbtPluginProject = PlaySbtPluginProject("Sbt-Plugin", "dev-mode/sbt-plu
         (Compile / sourceManaged).value
       )
     }.taskValue,
-    InputKey[Unit]("disableIncompatibleScriptedTests") := {
-      /*
-      // Example how you can disable a scripted test:
-      if (scala.util.Properties.isJavaAtLeast("21")) {
-        val disabledTests = Seq("generated-keystore")
-        disabledTests.foreach(t => {
-          streams.value.log.info(s"Disabling $t scripted test because it is not compatible with Java 21 or newer")
-          IO.touch(new File(s"./dev-mode/sbt-plugin/src/sbt-test/play-sbt-plugin/${t}/disabled"))
-        })
+    InputKey[Unit]("disableIncompatibleScriptedTests") := Def.uncached {
+      val log          = streams.value.log
+      val testDir      = sbtTestDirectory.value / "play-sbt-plugin"
+      val scalaVersion = scriptedLaunchOpts.value.collectFirst {
+        case opt if opt.startsWith("-Dscala.version=") => opt.stripPrefix("-Dscala.version=")
       }
-       */
+      // Scala 3 before 3.7 resolves qualified names in Java sources relative to the current package. It can't compile
+      // the Java router of a routes file whose reverse routers are namespaced into a package like router.controllers.
+      val beforeScala37 = scalaVersion.filter(v => CrossVersion.partialVersion(v).exists(p => p._1 == 3 && p._2 < 7))
+      beforeScala37.foreach { v =>
+        val t = "routes-compiler-namespace-reverse-router-java"
+        log.info(s"Disabling $t scripted test because it is not compatible with Scala $v")
+        IO.touch(testDir / t / "disabled")
+      }
     },
     (Compile / headerSources) ++= Def.uncached {
       (sbtTestDirectory.value ** ("*.scala" || "*.java" || "*.sbt")).get()

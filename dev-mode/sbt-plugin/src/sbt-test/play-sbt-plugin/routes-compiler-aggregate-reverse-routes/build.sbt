@@ -6,12 +6,17 @@ lazy val root = (project in file("."))
   .dependsOn(a, c)
   .aggregate(common, a, b, c, nonplay)
 
+// The test script switches every project to Java routes with this setting
+ThisBuild / routesLang := play.routes.compiler.Language.SCALA
+
 def commonSettings: Seq[Setting[?]] = Seq(
   scalaVersion  := ScriptedTools.scalaVersionFromJavaProperties(),
+  routesLang    := (ThisBuild / routesLang).value,
   libraryDependencies += guice,
   routesGenerator := play.routes.compiler.InjectedRoutesGenerator,
   // Keep the output stable so scripted can inspect it with filesystem assertions.
   Compile / routes / target := baseDirectory.value / "target" / "routes" / "main",
+  cleanFiles += (Compile / routes / target).value,
   crossPaths                := false
 )
 

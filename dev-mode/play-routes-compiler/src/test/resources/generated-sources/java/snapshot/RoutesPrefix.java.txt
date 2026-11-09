@@ -1,0 +1,21 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+
+package snapshot;
+
+import java.util.function.Supplier;
+
+public final class RoutesPrefix {
+  private static String _prefix = "/";
+  public static void setPrefix(String p) {
+    _prefix = p;
+  }
+  public static String prefix() {
+    return _prefix;
+  }
+
+  public static final Supplier<String> byNamePrefix() {
+    return RoutesPrefix::prefix;
+  }
+}

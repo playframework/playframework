@@ -1,0 +1,301 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers.javascript;
+
+import play.api.mvc.JavascriptLiteral;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.api.routing.JavaScriptReverseRoute;
+import play.core.routing.*;
+import java.util.function.Supplier;
+
+import java.util.*;
+
+// @LINE:7
+@SuppressWarnings({"unchecked"})
+public class JavaScriptReverseRoutes {
+
+// @LINE:7
+
+  // @LINE:13
+  public static class ReverseAssets {
+    private final Supplier<String> _prefix;
+    public ReverseAssets(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:13
+    public JavaScriptReverseRoute versioned() {
+      return new JavaScriptReverseRoute(
+        "controllers.Assets.versioned",
+        "function (file1) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'public/' + (" + ((PathBindable<controllers.Assets.Asset>)JavaGeneratedRouter.pathBindableFor(controllers.Assets.Asset.class)).javascriptUnbind() + ")('file', file1)})" +
+        "\n}\n"
+      );
+    }
+
+  }
+
+  // @LINE:12
+  public static class ReverseStringController {
+    private final Supplier<String> _prefix;
+    public ReverseStringController(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:12
+    public JavaScriptReverseRoute queryListOptionalDefault() {
+      return new JavaScriptReverseRoute(
+        "controllers.StringController.queryListOptionalDefault",
+        "function (_x_____0) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'str-list-opt-d' + _qS([(_x_____0 == null ? null : (" + ((QueryStringBindable<java.util.Optional<java.util.List<String>>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, java.util.List.class, String.class)).javascriptUnbind() + ")('x[]?=', _x_____0))])})" +
+        "\n}\n"
+      );
+    }
+
+  }
+
+  // @LINE:25
+  public static class ReverseInstanceController {
+    private final Supplier<String> _prefix;
+    public ReverseInstanceController(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:25
+    public JavaScriptReverseRoute index() {
+      return new JavaScriptReverseRoute(
+        "controllers.InstanceController.index",
+        "function () {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'instance'})" +
+        "\n}\n"
+      );
+    }
+
+  }
+
+  // @LINE:7
+  public static class ReverseApplication {
+    private final Supplier<String> _prefix;
+    public ReverseApplication(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:33
+    public JavaScriptReverseRoute renamedParams() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.renamedParams",
+      "function (value0) {\n" +
+
+          "if (value0 == " + ((JavascriptLiteral<String>)JavaGeneratedRouter.javascriptLiteralFor(String.class)).to("fixed") + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/renamed/fixed'})" +
+          "\n}\n" +
+
+          "if (true) {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/renamed/' + encodeURIComponent((" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(String.class)).javascriptUnbind() + ")('alias', value0))})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:22
+    public JavaScriptReverseRoute rootPrefixedController() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.rootPrefixedController",
+        "function () {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'root-prefixed-controller'})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:42
+    public JavaScriptReverseRoute reverse() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.reverse",
+      "function (b0, c1, i2, l3, uuid4, ostr5) {\n" +
+
+          "if (b0 == " + ((JavascriptLiteral<java.lang.Boolean>)JavaGeneratedRouter.javascriptLiteralFor(java.lang.Boolean.class)).to(true) + " && c1 == " + ((JavascriptLiteral<java.lang.Character>)JavaGeneratedRouter.javascriptLiteralFor(java.lang.Character.class)).to('a') + " && i2 == " + ((JavascriptLiteral<java.lang.Integer>)JavaGeneratedRouter.javascriptLiteralFor(java.lang.Integer.class)).to(123) + " && l3 == " + ((JavascriptLiteral<java.lang.Long>)JavaGeneratedRouter.javascriptLiteralFor(java.lang.Long.class)).to(123L) + " && uuid4 == " + ((JavascriptLiteral<java.util.UUID>)JavaGeneratedRouter.javascriptLiteralFor(java.util.UUID.class)).to(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")) + " && ostr5 == " + ((JavascriptLiteral<java.util.Optional<String>>)JavaGeneratedRouter.javascriptLiteralFor(java.util.Optional.class, String.class)).to(java.util.Optional.of("a")) + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/fixed'})" +
+          "\n}\n" +
+
+          "if (true) {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/non-fixed' + _qS([(" + ((QueryStringBindable<java.lang.Boolean>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Boolean.class)).javascriptUnbind() + ")('b', b0), (" + ((QueryStringBindable<java.lang.Character>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Character.class)).javascriptUnbind() + ")('c', c1), (" + ((QueryStringBindable<java.lang.Integer>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Integer.class)).javascriptUnbind() + ")('i', i2), (" + ((QueryStringBindable<java.lang.Long>)JavaGeneratedRouter.queryStringBindableFor(java.lang.Long.class)).javascriptUnbind() + ")('l', l3), (" + ((QueryStringBindable<java.util.UUID>)JavaGeneratedRouter.queryStringBindableFor(java.util.UUID.class)).javascriptUnbind() + ")('uuid', uuid4), (" + ((QueryStringBindable<java.util.Optional<String>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, String.class)).javascriptUnbind() + ")('ostr', ostr5)])})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:23
+    public JavaScriptReverseRoute rootPrefixedParam() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.rootPrefixedParam",
+      "function (x0, y1) {\n" +
+
+          "if (x0 == " + ((JavascriptLiteral<java.lang.Integer>)JavaGeneratedRouter.javascriptLiteralFor(java.lang.Integer.class)).to(3) + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'root-prefixed-param/fixed' + _qS([(" + ((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, java.lang.Integer.class)).javascriptUnbind() + ")('y', y1)])})" +
+          "\n}\n" +
+
+          "if (true) {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'root-prefixed-param/' + encodeURIComponent((" + ((PathBindable<java.lang.Integer>)JavaGeneratedRouter.pathBindableFor(java.lang.Integer.class)).javascriptUnbind() + ")('x', x0)) + _qS([(" + ((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(java.util.Optional.class, java.lang.Integer.class)).javascriptUnbind() + ")('y', y1)])})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:20
+    public JavaScriptReverseRoute sameEscapedJavaIdentifier() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.sameEscapedJavaIdentifier",
+        "function (____0, ____1) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'same-escaped-java-identifier' + _qS([(" + ((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(String.class)).javascriptUnbind() + ")('[]', ____0), (" + ((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(String.class)).javascriptUnbind() + ")('%%', ____1)])})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:7
+    public JavaScriptReverseRoute index() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.index",
+        "function () {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + "})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:11
+    public JavaScriptReverseRoute urlcoding() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.urlcoding",
+        "function (d0, s1, q2) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'urlcoding/' + encodeURIComponent((" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(String.class)).javascriptUnbind() + ")('d', d0))' + '/' + (" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(String.class)).javascriptUnbind() + ")('s', s1) + _qS([(" + ((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(String.class)).javascriptUnbind() + ")('q', q2)])})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:17
+    public JavaScriptReverseRoute notFirstRequestParam() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.notFirstRequestParam",
+        "function (a0) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'not-first-request' + _qS([(" + ((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(String.class)).javascriptUnbind() + ")('a', a0)])})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:21
+    public JavaScriptReverseRoute keyword() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.keyword",
+        "function (_pf_escape_class0) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'keyword/class' + _qS([(" + ((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(String.class)).javascriptUnbind() + ")('class', _pf_escape_class0)])})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:40
+    public JavaScriptReverseRoute unconstrainedFirst() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.unconstrainedFirst",
+      "function (first0) {\n" +
+
+          "if (true) {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/unconstrained/' + encodeURIComponent((" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(String.class)).javascriptUnbind() + ")('first', first0))})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:16
+    public JavaScriptReverseRoute onlyRequestParam() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.onlyRequestParam",
+        "function () {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'only-request'})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:35
+    public JavaScriptReverseRoute sharedFixedParams() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.sharedFixedParams",
+      "function (second1) {\n" +
+
+          "if (second1 == " + ((JavascriptLiteral<String>)JavaGeneratedRouter.javascriptLiteralFor(String.class)).to("one") + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/shared/one'})" +
+          "\n}\n" +
+
+          "if (second1 == " + ((JavascriptLiteral<String>)JavaGeneratedRouter.javascriptLiteralFor(String.class)).to("two") + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/shared/two'})" +
+          "\n}\n" +
+
+          "if (true) {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/shared' + _qS([(second1 == null ? null : (" + ((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(String.class)).javascriptUnbind() + ")('second', second1))])})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:38
+    public JavaScriptReverseRoute fixedOnlyParams() {
+      return new JavaScriptReverseRoute(
+      "controllers.Application.fixedOnlyParams",
+      "function (second1) {\n" +
+
+          "if (second1 == " + ((JavascriptLiteral<String>)JavaGeneratedRouter.javascriptLiteralFor(String.class)).to("one") + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/fixed-only/one'})" +
+          "\n}\n" +
+
+          "if (second1 == " + ((JavascriptLiteral<String>)JavaGeneratedRouter.javascriptLiteralFor(String.class)).to("two") + ") {\n" +
+            "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'reverse/fixed-only/two'})" +
+          "\n}\n" +
+
+      "\n}\n"
+      );
+    }
+
+    // @LINE:30
+    public JavaScriptReverseRoute modifiers() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.modifiers",
+        "function () {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'modifiers'})" +
+        "\n}\n"
+      );
+    }
+
+    // @LINE:10
+    public JavaScriptReverseRoute uriPattern() {
+      return new JavaScriptReverseRoute(
+        "controllers.Application.uriPattern",
+        "function (x0) {\n" +
+        "  return _wA({method:'GET', url:'" + _prefix.get() + _defaultPrefix() + "' + 'pattern/' + (" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(String.class)).javascriptUnbind() + ")('x', x0)})" +
+        "\n}\n"
+      );
+    }
+
+  }
+
+}
