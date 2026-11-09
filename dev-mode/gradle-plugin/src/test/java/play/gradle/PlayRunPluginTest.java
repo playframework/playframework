@@ -51,6 +51,35 @@ class PlayRunPluginTest {
   }
 
   @Test
+  @DisplayName("Check assets directories with submodules")
+  void checkAssetsDirectoriesWithSubmodules() {
+    Project playLib = ProjectBuilder.builder().withParent(project).withName("play-lib").build();
+    playLib.getPluginManager().apply("org.playframework.play");
+
+    Project javaLib = ProjectBuilder.builder().withParent(project).withName("java-lib").build();
+    javaLib.getPluginManager().apply("java");
+
+    project.getRepositories().add(project.getRepositories().mavenCentral());
+    project.getDependencies().add("implementation", playLib);
+    project.getDependencies().add("implementation", javaLib);
+
+    ((DefaultProject) playLib).evaluate();
+    ((DefaultProject) javaLib).evaluate();
+    ((DefaultProject) project).evaluate();
+
+    assertThat(((PlayRun) project.getTasks().findByName("playRun")).getAssetsDirs())
+        .contains(
+            project.getLayout().getBuildDirectory().file("web/public/main").get().getAsFile(),
+            project.getLayout().getBuildDirectory().file("web/assets/main").get().getAsFile(),
+            playLib.getLayout().getBuildDirectory().file("web/public/main").get().getAsFile(),
+            playLib.getLayout().getBuildDirectory().file("web/assets/main").get().getAsFile())
+        .doesNotContain(
+            javaLib.getLayout().getBuildDirectory().file("web/public/main").get().getAsFile(),
+            javaLib.file("src/main/java"),
+            javaLib.file("src/main/resources"));
+  }
+
+  @Test
   @DisplayName("Check classpath with submodules")
   void checkClasspathWithSubmodules() {
     Project javaLib = ProjectBuilder.builder().withParent(project).withName("java-lib").build();
