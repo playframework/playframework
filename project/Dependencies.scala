@@ -8,7 +8,7 @@ import playbuildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M4")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0")
   val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M2+47-c525ae28-SNAPSHOT")
 
   val playJsonVersion = "3.1.0-M10+90-e2ddbd4c-SNAPSHOT"
