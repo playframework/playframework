@@ -14,6 +14,7 @@ import sbt.Keys.*
 import com.typesafe.sbt.web.incremental.*
 import play.api.PlayException
 import play.core.PlayVersion
+import play.routes.compiler.Language
 import play.routes.compiler.RoutesCompilationError
 import play.routes.compiler.RoutesCompiler.GeneratedSource
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
@@ -23,10 +24,14 @@ import play.sbt.PluginCompat.uncached
 import xsbti.Position
 
 object RoutesKeys {
-  val routesCompilerTasks   = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
-  val routes                = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
-  val routesImport          = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
-  val routesGenerator       = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
+  val routesCompilerTasks = TaskKey[Seq[RoutesCompilerTask]]("playRoutesTasks", "The routes files to compile")
+  val routes              = TaskKey[Seq[File]]("playRoutes", "Compile the routes files")
+  val routesImport        = SettingKey[Seq[String]]("playRoutesImports", "Imports for the router")
+  val routesGenerator     = SettingKey[RoutesGenerator]("playRoutesGenerator", "The routes generator")
+  val routesLang          = SettingKey[Language](
+    "playRoutesLang",
+    "The language of the generated router source code, Language.SCALA (the default) or Language.JAVA."
+  )
   val generateReverseRouter = SettingKey[Boolean](
     "playGenerateReverseRouter",
     "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed."
@@ -81,6 +86,7 @@ object RoutesCompiler extends AutoPlugin {
         val generateReverseRouterValue   = generateReverseRouter.value
         val generateJsReverseRouterValue = generateJsReverseRouter.value
         val namespaceReverseRouterValue  = namespaceReverseRouter.value
+        val routesLangValue              = routesLang.value
         val sourcesInRoutes              = (routes / sources).value
         val routesImportValue            = routesImport.value
 
@@ -102,7 +108,8 @@ object RoutesCompiler extends AutoPlugin {
                 forwardsRouter = true,
                 reverseRouter = generateReverseRouterValue,
                 jsReverseRouter = generateJsReverseRouterValue,
-                namespaceReverseRouter = namespaceReverseRouterValue
+                namespaceReverseRouter = namespaceReverseRouterValue,
+                lang = routesLangValue
               )
             }
 
@@ -142,6 +149,7 @@ object RoutesCompiler extends AutoPlugin {
     }.value,
     generateJsReverseRouter := true,
     namespaceReverseRouter  := uncached { false },
+    routesLang              := Language.SCALA,
     routesGenerator         := uncached { InjectedRoutesGenerator },
     sourcePositionMappers += uncached { routesPositionMapper }
   )
@@ -175,15 +183,33 @@ object RoutesCompiler extends AutoPlugin {
   }
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
-    val log = state.value.log
+    val log   = state.value.log
+    val tasks = routesCompilerTasks.value
+    if (scalaCantCompileJavaRouters(tasks, scalaVersion.value)) {
+      log.warn(
+        s"Scala ${scalaVersion.value} can't compile the generated Java routers together with Scala sources, such as " +
+          "Twirl templates, when the reverse routers are namespaced. Use Scala 3.7 or newer, for example the Scala " +
+          "3.9 LTS, or set namespaceReverseRouter := false."
+      )
+    }
     compileRoutes(
-      routesCompilerTasks.value,
+      tasks,
       routesGenerator.value,
       (routes / target).value,
       streams.value.cacheDirectory / scalaVersion.value,
       log
     )
   }
+
+  /**
+   * Scala 3 before 3.7 resolves a qualified type name in a Java source relative to the package of the source if the
+   * first part of the name is a subpackage of that package. A Java router in package `router` refers to
+   * `controllers.Assets`, which these versions resolve as `router.controllers.Assets` once a namespaced reverse
+   * router creates the package `router.controllers`.
+   */
+  private[routes] def scalaCantCompileJavaRouters(tasks: Seq[RoutesCompilerTask], scalaVersion: String): Boolean =
+    tasks.exists(task => task.lang == Language.JAVA && task.namespaceReverseRouter) &&
+      CrossVersion.partialVersion(scalaVersion).exists { case (major, minor) => major == 3 && minor < 7 }
 
   def compileRoutes(
       tasks: Seq[RoutesCompilerTask],

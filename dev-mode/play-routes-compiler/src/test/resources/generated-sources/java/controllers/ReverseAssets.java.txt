@@ -1,0 +1,25 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers;
+
+
+// @LINE:13
+@SuppressWarnings("cast")
+public class ReverseAssets {
+
+  private final java.util.function.Supplier<String> _prefix;
+
+  public ReverseAssets(java.util.function.Supplier<String> _prefix) {
+    this._prefix = _prefix;
+  }
+
+  private String _defaultPrefix() {
+    return _prefix.get().endsWith("/") ? "" : "/";
+  }
+
+  // @LINE:13
+  public play.api.mvc.Call versioned(controllers.Assets.Asset file) {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "public/" + play.core.routing.JavaBinders.pathAsset(play.core.routing.JavaReverseRouting.context("path", "/public")).unbind("file", file), null);
+  }
+}

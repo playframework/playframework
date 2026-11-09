@@ -45,6 +45,9 @@ repositories {
     gradlePluginPortal()
 }
 
+// The Twirl plugin for the functional tests, which the Play plugin only uses when a build applies it
+val testTwirlPlugin: Configuration by configurations.creating
+
 dependencies {
     compileOnly("org.playframework:play-routes-compiler_2.13:$playVersion")
     compileOnly("org.playframework.twirl:gradle-twirl:$twirlVersion")
@@ -54,6 +57,11 @@ dependencies {
     testImplementation(libs.freemarker)
     testImplementation(libs.mockito)
     testImplementation(libs.kotlin.plugin)
+    testTwirlPlugin("org.playframework.twirl:gradle-twirl:$twirlVersion")
+}
+
+tasks.pluginUnderTestMetadata {
+    pluginClasspath.from(testTwirlPlugin)
 }
 
 tasks.jar {
