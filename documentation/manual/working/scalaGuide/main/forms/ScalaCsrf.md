@@ -8,7 +8,7 @@ It is recommended that you familiarize yourself with CSRF, what the attack vecto
 
 There is no simple answer to what requests are safe and what are vulnerable to CSRF requests; the reason for this is that there is no clear specification as to what is allowable from plugins and future extensions to specifications.  Historically, browser plugins and extensions have relaxed the rules that frameworks previously thought could be trusted, introducing CSRF vulnerabilities to many applications, and the onus has been on the frameworks to fix them.  For this reason, Play takes a conservative approach in its defaults, but allows you to configure exactly when a check is done.  By default, Play will require a CSRF check when all of the following are true:
 
-* The request method is not `GET`, `HEAD` or `OPTIONS`.
+* The request method is not `GET`, `HEAD`, `OPTIONS` or `QUERY`.
 * The request has one or more `Cookie` or `Authorization` headers.
 * The CORS filter is not configured to trust the request's origin.
 
