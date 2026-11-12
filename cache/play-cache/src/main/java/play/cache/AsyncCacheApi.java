@@ -6,7 +6,9 @@ package play.cache;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.ToIntFunction;
 import org.apache.pekko.Done;
 
 /** The Cache API. */
@@ -47,11 +49,44 @@ public interface AsyncCacheApi {
    * @param <T> the type of the value
    * @param key Item key.
    * @param block block returning value to set if key does not exist
-   * @param expiration expiration period in seconds.
+   * @param expiration expiration period in seconds. A negative value returns the computed value
+   *     without retaining it; zero means no expiration.
    * @return a CompletionStage containing the value
    */
   <T> CompletionStage<T> getOrElseUpdate(
       String key, Callable<CompletionStage<T>> block, int expiration);
+
+  /**
+   * Retrieve a value from the cache, or set it from a default Callable function.
+   *
+   * @param <T> the type of the value
+   * @param key Item key.
+   * @param block block returning value to set if key does not exist
+   * @param expiration function invoked with the newly computed value to determine its expiration
+   *     period in seconds. It is not invoked for a cache hit. A negative result does not retain the
+   *     computed value; zero means no expiration.
+   * @return a CompletionStage containing the value
+   */
+  default <T> CompletionStage<T> getOrElseUpdate(
+      String key, Callable<CompletionStage<T>> block, ToIntFunction<T> expiration) {
+    return this.<T>get(key)
+        .thenCompose(
+            cached -> {
+              if (cached.isPresent()) {
+                return CompletableFuture.completedFuture(cached.get());
+              }
+              try {
+                return block
+                    .call()
+                    .thenCompose(
+                        value ->
+                            set(key, value, expiration.applyAsInt(value))
+                                .thenApply(ignored -> value));
+              } catch (Exception e) {
+                return CompletableFuture.<T>failedFuture(e);
+              }
+            });
+  }
 
   /**
    * Retrieve a value from the cache, or set it from a default Callable function.
@@ -70,7 +105,8 @@ public interface AsyncCacheApi {
    *
    * @param key Item key.
    * @param value The value to set.
-   * @param expiration expiration in seconds
+   * @param expiration expiration in seconds. A negative value removes any existing value for the
+   *     key and does not retain the new value; zero means no expiration.
    * @return a CompletionStage containing the value
    */
   CompletionStage<Done> set(String key, Object value, int expiration);
