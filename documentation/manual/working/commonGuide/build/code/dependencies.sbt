@@ -11,7 +11,7 @@ libraryDependencies += "org.apache.derby" % "derby" % "10.16.1.1" % "test"
 //#multi-deps
 libraryDependencies ++= Seq(
   "org.apache.derby"  % "derby"          % "10.16.1.1",
-  "org.hibernate.orm" % "hibernate-core" % "7.4.15.Final"
+  "org.hibernate.orm" % "hibernate-core" % "8.0.0.CR1"
 )
 //#multi-deps
 
