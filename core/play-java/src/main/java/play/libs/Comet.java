@@ -4,7 +4,6 @@
 
 package play.libs;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Arrays;
 import org.apache.pekko.NotUsed;
 import org.apache.pekko.stream.javadsl.Flow;
@@ -12,6 +11,7 @@ import org.apache.pekko.stream.javadsl.Source;
 import org.apache.pekko.util.ByteString;
 import org.apache.pekko.util.ByteStringBuilder;
 import play.twirl.api.utils.StringEscapeUtils;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Provides an easy way to use a Comet formatted output with <a

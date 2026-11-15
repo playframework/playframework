@@ -9,13 +9,13 @@ import java.util.Optional
 
 import scala.jdk.OptionConverters._
 
-import com.fasterxml.jackson.core.JsonEncoding
 import org.apache.pekko.util.ByteString
 import org.specs2.mutable._
 import play.api.http.HttpEntity.Strict
 import play.api.mvc.{ Results => ScalaResults }
 import play.api.mvc.Cookie
 import play.mvc.Http.HeaderNames
+import tools.jackson.core.JsonEncoding
 
 class ResultSpec extends Specification {
   "Result" should {

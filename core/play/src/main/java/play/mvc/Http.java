@@ -6,7 +6,6 @@ package play.mvc;
 
 import static play.core.formatters.Multipart.escapeParamWithHTML5Strategy;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.net.InetAddresses;
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +52,7 @@ import play.mvc.Http.Cookie.SameSite;
 import scala.Option;
 import scala.collection.immutable.Map$;
 import scala.jdk.javaapi.OptionConverters;
+import tools.jackson.databind.JsonNode;
 
 /** Defines HTTP standard objects. */
 public class Http {

@@ -4,7 +4,6 @@
 
 package play.libs.ws.ahc;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.InputStream;
 import java.time.Duration;
@@ -19,6 +18,7 @@ import org.apache.pekko.util.ByteString;
 import org.w3c.dom.Document;
 import play.libs.ws.*;
 import play.mvc.Http;
+import tools.jackson.databind.JsonNode;
 
 /** A Play WS request backed by AsyncHTTPClient implementation. */
 public class AhcWSRequest implements WSRequest {

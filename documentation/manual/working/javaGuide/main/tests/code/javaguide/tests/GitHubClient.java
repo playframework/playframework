@@ -5,8 +5,8 @@
 package javaguide.tests;
 
 // #client
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.inject.Inject;
+import tools.jackson.databind.JsonNode;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;

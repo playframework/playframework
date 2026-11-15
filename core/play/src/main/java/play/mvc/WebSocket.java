@@ -4,7 +4,6 @@
 
 package play.mvc;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +29,7 @@ import play.libs.Scala;
 import play.libs.streams.PekkoStreams;
 import scala.Option;
 import scala.PartialFunction;
+import tools.jackson.databind.JsonNode;
 
 /** A WebSocket handler. */
 public abstract class WebSocket {

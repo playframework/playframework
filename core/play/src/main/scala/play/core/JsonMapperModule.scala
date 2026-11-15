@@ -7,11 +7,11 @@ package play.core
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters._
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.inject._
 import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.serialization.jackson.JacksonObjectMapperProvider
+import org.apache.pekko.serialization.jackson3.JacksonObjectMapperProvider
 import play.api.inject._
 import play.api.libs.json.jackson.JacksonJson
 import play.api.libs.json.jackson.PlayJsonMapperModule
@@ -20,43 +20,50 @@ import play.api.libs.json.BigDecimalSerializerConfig
 import play.api.libs.json.JsonConfig
 import play.api.Configuration
 import play.libs.Json
+import tools.jackson.databind.json.JsonMapper
 
 /**
- * Module that injects an object mapper to the JSON library on start and on stop.
+ * Module that injects a Jackson JsonMapper to the JSON library on start and on stop.
  *
- * This solves the issue of the ObjectMapper cache from holding references to the application class loader between
+ * This solves the issue of the JsonMapper cache from holding references to the application class loader between
  * reloads.
  */
-class ObjectMapperModule
+class JsonMapperModule
     extends SimpleModule(
-      bind[ObjectMapper].toProvider[ObjectMapperProvider].eagerly()
+      bind[JsonMapper].toProvider[JsonMapperProvider].eagerly()
     )
 
-object ObjectMapperProvider {
+object JsonMapperProvider {
   val BINDING_NAME = "play"
 }
 @Singleton
-class ObjectMapperProvider @Inject() (
+class JsonMapperProvider @Inject() (
     lifecycle: ApplicationLifecycle,
     actorSystem: ActorSystem,
     configuration: Configuration
-) extends Provider[ObjectMapper] {
+) extends Provider[JsonMapper] {
 
-  private val staticObjectMapperInitialized = new AtomicBoolean(false)
+  private val staticJsonMapperInitialized = new AtomicBoolean(false)
 
-  lazy val get: ObjectMapper = {
+  lazy val get: JsonMapper = {
     val mapper = {
+      // Pekko's API is typed as ObjectMapper, but it always creates a JsonMapper (unless a CBOR mapper is requested)
       val om = JacksonObjectMapperProvider
         .get(actorSystem)
-        .getOrCreate(ObjectMapperProvider.BINDING_NAME, Option.empty)
-      if (om.getRegisteredModuleIds().contains("PlayJson")) {
+        .getOrCreate(JsonMapperProvider.BINDING_NAME, Option.empty) match {
+        case jsonMapper: JsonMapper => jsonMapper
+        case other                  => throw new IllegalStateException(s"Expected a JsonMapper but got ${other.getClass.getName}")
+      }
+      if (om.registeredModules().asScala.exists(_.getModuleName == "PlayJson")) {
         om
       } else {
         val jsonConfig = JsonConfig(
           BigDecimalParseConfig(
             JsonConfig.parseMathContextValue(configuration.getOptional[String](JsonConfig.mathContextProperty)),
             configuration.getOptional[Int](JsonConfig.scaleLimitProperty).getOrElse(JsonConfig.defaultScaleLimit),
-            om.getFactory().streamReadConstraints().getMaxNumberLength() // we can override play-json's limit with ours
+            om.tokenStreamFactory()
+              .streamReadConstraints()
+              .getMaxNumberLength() // we can override play-json's limit with ours
           ),
           BigDecimalSerializerConfig(
             configuration
@@ -71,18 +78,18 @@ class ObjectMapperProvider @Inject() (
               .getOptional[Boolean](JsonConfig.preserveZeroDecimalProperty)
               .getOrElse(JsonConfig.defaultPreserveZeroDecimal)
           ),
-          om.getFactory().streamReadConstraints(),
-          om.getFactory().streamWriteConstraints()
+          om.tokenStreamFactory().streamReadConstraints(),
+          om.tokenStreamFactory().streamWriteConstraints()
         )
-        if (!staticObjectMapperInitialized.get()) {
+        if (!staticJsonMapperInitialized.get()) {
           // Here we rely on compareAndSet(...) being called below... (a bit dirty, yes)
           JacksonJson.setConfig(jsonConfig)
         }
-        // Modifies the ObjectMapper, so we should not come back in this "else" again
-        om.registerModule(new PlayJsonMapperModule(jsonConfig))
+        // Jackson 3 mappers are immutable: build a new one that also has the PlayJson module registered
+        om.rebuild[JsonMapper, JsonMapper.Builder]().addModule(new PlayJsonMapperModule(jsonConfig)).build()
       }
     }
-    if (staticObjectMapperInitialized.compareAndSet(false, true)) {
+    if (staticJsonMapperInitialized.compareAndSet(false, true)) {
       Json.setObjectMapper(mapper)
 
       lifecycle.addStopHook { () => Future.successful(Json.setObjectMapper(null)) }
@@ -92,12 +99,12 @@ class ObjectMapperProvider @Inject() (
 }
 
 /**
- * Components for Jackson ObjectMapper and Play's Json.
+ * Components for Jackson JsonMapper and Play's Json.
  */
-trait ObjectMapperComponents {
+trait JsonMapperComponents {
   def actorSystem: ActorSystem
   def applicationLifecycle: ApplicationLifecycle
   def configuration: Configuration
 
-  lazy val objectMapper: ObjectMapper = new ObjectMapperProvider(applicationLifecycle, actorSystem, configuration).get
+  lazy val jsonMapper: JsonMapper = new JsonMapperProvider(applicationLifecycle, actorSystem, configuration).get
 }

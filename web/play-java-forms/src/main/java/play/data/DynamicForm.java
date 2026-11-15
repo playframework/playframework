@@ -4,7 +4,6 @@
 
 package play.data;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 import jakarta.validation.ValidatorFactory;
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ import play.i18n.Langs;
 import play.i18n.MessagesApi;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http;
+import tools.jackson.databind.JsonNode;
 
 /** A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String&gt;</code> */
 public class DynamicForm extends Form<DynamicForm.Dynamic> {

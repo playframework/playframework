@@ -8,8 +8,8 @@ import static javaguide.testhelpers.MockJavaActionHelper.call;
 import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

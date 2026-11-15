@@ -4,9 +4,12 @@
 
 package play.api.data
 
-import com.fasterxml.jackson.core.StreamReadConstraints
+import tools.jackson.core.json.JsonFactory
+import tools.jackson.core.StreamReadConstraints
+import tools.jackson.databind.json.JsonMapper
 import org.specs2.mutable.Specification
 import play.api.libs.json.jackson.JacksonJson
+import play.api.libs.json.jackson.PlayJsonMapperModule
 import play.api.libs.json.JsNull
 import play.api.libs.json.Json
 
@@ -61,11 +64,12 @@ class FormUtilsSpec extends Specification {
 
     "not stack overflow when converting heavily nested arrays" in {
       def setMaxNestingDepth(maxNestingDepth: Int) = {
-        val rc = JacksonJson.get.mapper().getFactory.streamReadConstraints()
-        JacksonJson.get
-          .mapper()
-          .getFactory
-          .setStreamReadConstraints(
+        val jacksonJson = JacksonJson.get
+        val rc          = jacksonJson.mapper().tokenStreamFactory().streamReadConstraints()
+        // Jackson 3 mappers (and their factories) are immutable, so we replace the mapper
+        val factory = JsonFactory
+          .builder()
+          .streamReadConstraints(
             StreamReadConstraints
               .builder()
               .maxNestingDepth(maxNestingDepth)
@@ -76,8 +80,14 @@ class FormUtilsSpec extends Specification {
               .maxTokenCount(rc.getMaxTokenCount)
               .build()
           )
+          .build()
+        jacksonJson.setObjectMapper(
+          JsonMapper
+            .builder(factory)
+            .addModule(new PlayJsonMapperModule(jacksonJson.defaultMapperJsonConfig))
+            .build()
+        )
       }
-      val maxNestingDepthOrig = JacksonJson.get.mapper().getFactory.streamReadConstraints().getMaxNestingDepth
       try {
         setMaxNestingDepth(10001)
         FormUtils.fromJson(Json.parse("{\"arr\":" + ("[" * 10000) + "1" + ("]" * 10000) + "}"), 1000000, 30000)
@@ -85,7 +95,8 @@ class FormUtilsSpec extends Specification {
         case e: StackOverflowError =>
           ko("StackOverflowError thrown")
       } finally {
-        setMaxNestingDepth(maxNestingDepthOrig)
+        // Reset to the default mapper
+        JacksonJson.get.setObjectMapper(null)
       }
       ok
     }

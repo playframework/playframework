@@ -4,6 +4,7 @@
 
 package javaguide.ws;
 
+import java.time.Duration;
 import java.util.Optional;
 // #ws-standalone-imports
 import org.apache.pekko.actor.ActorSystem;
@@ -30,8 +31,8 @@ public class Standalone {
     AsyncHttpClientConfig asyncHttpClientConfig =
         new DefaultAsyncHttpClientConfig.Builder()
             .setMaxRequestRetry(0)
-            .setShutdownQuietPeriod(0)
-            .setShutdownTimeout(0)
+            .setShutdownQuietPeriod(Duration.ZERO)
+            .setShutdownTimeout(Duration.ZERO)
             .build();
     AsyncHttpClient asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig);
 

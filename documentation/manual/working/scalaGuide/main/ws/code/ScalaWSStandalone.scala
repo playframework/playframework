@@ -24,8 +24,8 @@ object Main {
 
     val asyncHttpClientConfig = new DefaultAsyncHttpClientConfig.Builder()
       .setMaxRequestRetry(0)
-      .setShutdownQuietPeriod(0)
-      .setShutdownTimeout(0)
+      .setShutdownQuietPeriod(java.time.Duration.ZERO)
+      .setShutdownTimeout(java.time.Duration.ZERO)
       .build
     val asyncHttpClient = new DefaultAsyncHttpClient(asyncHttpClientConfig)
 

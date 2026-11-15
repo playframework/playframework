@@ -23,7 +23,7 @@ The request body can be accessed through the `body()` method on [`Request`](api/
 The following is a mapping of types supported by the default body parser:
 
 - **`text/plain`**: `String`, accessible via `asText()`.
-- **`application/json`**: `com.fasterxml.jackson.databind.JsonNode`, accessible via `asJson()`.
+- **`application/json`**: `tools.jackson.databind.JsonNode`, accessible via `asJson()`.
 - **`application/xml`**, **`text/xml`** or **`application/XXX+xml`**: `org.w3c.Document`, accessible via `asXml()`.
 - **`application/x-www-form-urlencoded`**: `Map<String, String[]>`, accessible via `asFormUrlEncoded()`.
 - **`multipart/form-data`**: [`MultipartFormData`](api/java/play/mvc/Http.MultipartFormData.html), accessible via `asMultipartFormData()`.

@@ -9,7 +9,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static play.api.templates.PlayMagic.translate;
 import static play.libs.F.Tuple;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.typesafe.config.Config;
 import jakarta.validation.ConstraintViolation;
@@ -74,6 +73,7 @@ import play.libs.AnnotationUtils;
 import play.libs.typedmap.TypedMap;
 import play.mvc.Http;
 import play.mvc.Http.HttpVerbs;
+import tools.jackson.databind.JsonNode;
 
 /** Helper to manage HTML form description, submission and validation. */
 public class Form<T> {

@@ -11,10 +11,6 @@ import java.util.OptionalInt
 
 import com.fasterxml.jackson.annotation.JsonRawValue
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAfterAll
 import org.specs2.specification.Scope
@@ -24,23 +20,28 @@ import play.core.test.FakeRequest
 import play.libs.Json
 import play.mvc.Http
 import play.mvc.Http.RequestBody
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.SerializationFeature
 
-// Use an `ObjectMapper` which overrides some defaults
+// Use a `JsonMapper` which overrides some defaults
 class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
   lazy val app = GuiceApplicationBuilder()
     // should be able to use `.play.` namespace to override configurations
-    // for this `ObjectMapper`.
-    .configure("pekko.serialization.jackson.play.serialization-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
+    // for this `JsonMapper`.
+    .configure("pekko.serialization.jackson3.play.datetime-features.WRITE_DURATIONS_AS_TIMESTAMPS" -> true)
     .build()
-  override val createObjectMapper: ObjectMapper = app.injector
-    .instanceOf[ObjectMapper]
+  override val createJsonMapper: JsonMapper = app.injector
+    .instanceOf[JsonMapper]
 
-  "ObjectMapper" should {
+  "JsonMapper" should {
     "respect the custom configuration" in new JsonScope {
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beTrue
+      Json.mapper().isEnabled(DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beTrue
     }
     "respect defaults" in new JsonScope {
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
       Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
       Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
     }
@@ -51,14 +52,14 @@ class PlayBindingNameJavaJsonSpec extends JavaJsonSpec {
   }
 }
 
-// The dependency injected `ObjectMapper`
+// The dependency injected `JsonMapper`
 class ApplicationJavaJsonSpec extends JavaJsonSpec {
-  override val createObjectMapper: ObjectMapper = GuiceApplicationBuilder().build().injector.instanceOf[ObjectMapper]
+  override val createJsonMapper: JsonMapper = GuiceApplicationBuilder().build().injector.instanceOf[JsonMapper]
 
-  "ObjectMapper" should {
+  "JsonMapper" should {
     "not render date types as timestamps by default" in new JsonScope {
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
     }
     "respect defaults" in new JsonScope {
       Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
@@ -67,19 +68,19 @@ class ApplicationJavaJsonSpec extends JavaJsonSpec {
   }
 }
 
-// Classic static `ObjectMapper` from play.libs.Json
+// Classic static `JsonMapper` from play.libs.Json
 class StaticJavaJsonSpec extends JavaJsonSpec {
-  override val createObjectMapper: ObjectMapper = Json.mapper()
+  override val createJsonMapper: JsonMapper = Json.mapper()
 
-  "ObjectMapper" should {
+  "JsonMapper" should {
     "respect defaults" in new JsonScope {
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
-      Json.mapper().isEnabled(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS) must beFalse
+      Json.mapper().isEnabled(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) must beFalse
       Json.mapper().isEnabled(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) must beFalse
       Json.mapper().isEnabled(SerializationFeature.FAIL_ON_EMPTY_BEANS) must beFalse
     }
   }
-  "Play JSON's ObjectMapper" should {
+  "Play JSON's JsonMapper" should {
     "have an exact list of registered modules" in {
       import scala.jdk.CollectionConverters._
 
@@ -88,17 +89,20 @@ class StaticJavaJsonSpec extends JavaJsonSpec {
 
       // --------------------------------------------------------------------------------------------------------
       // BE AWARE: If this test fails and the list of registered modules of the play-json defaultMapper changed,
-      //           you likely need to register the new modules in our play.core.ObjectMapperProvider.get method
+      //           you likely need to register the new modules in our play.core.JsonMapperProvider.get method
       //           (like we do with the PlayJsonMapperModule) - or ofc remove a dropped module as well.
       // --------------------------------------------------------------------------------------------------------
+      // The jdk8, java.time and parameter names modules are built into Jackson 3
       val expectedModules: Seq[String] = List(
-        "jackson-module-parameter-names",
-        "com.fasterxml.jackson.datatype.jdk8.Jdk8Module",
-        "jackson-datatype-jsr310",
-        "com.fasterxml.jackson.module.scala.DefaultScalaModule",
+        "DefaultScalaModule",
         "PlayJson"
       )
-      play.api.libs.json.jackson.JacksonJson.get.mapper().getRegisteredModuleIds.asScala must containTheSameElementsAs(
+      play.api.libs.json.jackson.JacksonJson.get
+        .mapper()
+        .registeredModules()
+        .asScala
+        .map(_.getModuleName)
+        .toSeq must containTheSameElementsAs(
         expectedModules
       )
     }
@@ -112,9 +116,9 @@ trait JavaJsonSpec extends Specification with BeforeAfterAll {
 
   override def afterAll(): Unit = ()
 
-  def createObjectMapper: ObjectMapper
+  def createJsonMapper: JsonMapper
 
-  private[json] class JsonScope(val mapper: ObjectMapper = createObjectMapper) extends Scope {
+  private[json] class JsonScope(val mapper: JsonMapper = createJsonMapper) extends Scope {
     val testJsonString =
       """{
         |  "foo" : "bar",
@@ -250,7 +254,7 @@ trait JavaJsonSpec extends Specification with BeforeAfterAll {
     }
 
     "when deserializing to a POJO" should {
-      "deserialize from request body" in new JsonScope(createObjectMapper) {
+      "deserialize from request body" in new JsonScope(createJsonMapper) {
         val validRequest: Request[Http.RequestBody] =
           Request[Http.RequestBody](FakeRequest(), new RequestBody(testJson))
         val javaPOJO = validRequest.body.parseJson(classOf[JavaPOJO]).get()
@@ -262,19 +266,19 @@ trait JavaJsonSpec extends Specification with BeforeAfterAll {
         javaPOJO.getOptionalInt must_== OptionalInt.of(12345)
       }
 
-      "deserialize even if there are missing fields" in new JsonScope(createObjectMapper) {
+      "deserialize even if there are missing fields" in new JsonScope(createJsonMapper) {
         val testJsonMissingFields: Request[Http.RequestBody] =
           Request[Http.RequestBody](FakeRequest(), new RequestBody(mapper.createObjectNode()))
         testJsonMissingFields.body.parseJson(classOf[JavaPOJO]).get().getBar must_== null
       }
 
-      "return empty when request body is not a JSON" in new JsonScope(createObjectMapper) {
+      "return empty when request body is not a JSON" in new JsonScope(createJsonMapper) {
         val testNotJsonBody: Request[Http.RequestBody] =
           Request[Http.RequestBody](FakeRequest(), new RequestBody("foo"))
         testNotJsonBody.body.parseJson(classOf[JavaPOJO]) must_== Optional.empty()
       }
 
-      "ignore unknown fields" in new JsonScope(createObjectMapper) {
+      "ignore unknown fields" in new JsonScope(createJsonMapper) {
         val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
         javaPOJO.getBar must_== "baz"
         javaPOJO.getFoo must_== "bar"
@@ -284,7 +288,7 @@ trait JavaJsonSpec extends Specification with BeforeAfterAll {
     }
 
     "when serializing from a POJO" should {
-      "serialize to a response body" in new JsonScope(createObjectMapper) {
+      "serialize to a response body" in new JsonScope(createJsonMapper) {
         val pojo = new JavaPOJO(
           "Foo String",
           "Bar String",
@@ -306,7 +310,7 @@ trait JavaJsonSpec extends Specification with BeforeAfterAll {
         jsonNode.get("instant").asText() must_== "2015-03-04T02:24:21Z"
       }
 
-      "include null fields" in new JsonScope(createObjectMapper) {
+      "include null fields" in new JsonScope(createJsonMapper) {
         val pojo = new JavaPOJO(
           null,         // foo
           "Bar String", // bar

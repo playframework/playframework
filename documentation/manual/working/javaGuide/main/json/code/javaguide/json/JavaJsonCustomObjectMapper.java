@@ -4,21 +4,22 @@
 
 package javaguide.json;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Provider;
 import play.libs.Json;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 // #custom-java-object-mapper
-public class JavaJsonCustomObjectMapper implements Provider<ObjectMapper> {
+public class JavaJsonCustomObjectMapper implements Provider<JsonMapper> {
 
   @Override
-  public ObjectMapper get() {
-    ObjectMapper mapper =
-        new ObjectMapper()
+  public JsonMapper get() {
+    JsonMapper mapper =
+        JsonMapper.builder()
             // enable features and customize the object mapper here ...
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     // Needs to set to Json helper
     Json.setObjectMapper(mapper);

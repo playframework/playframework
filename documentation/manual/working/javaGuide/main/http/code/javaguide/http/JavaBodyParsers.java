@@ -4,12 +4,12 @@
 
 package javaguide.http;
 
+import jakarta.inject.Inject;
 import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static play.test.Helpers.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.inject.Inject;
+import tools.jackson.databind.JsonNode;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;

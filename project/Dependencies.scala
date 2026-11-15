@@ -8,11 +8,10 @@ import playbuildinfo.BuildInfo
 import Keys._
 
 object Dependencies {
-  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0-M4")
-  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0-M2+47-c525ae28-SNAPSHOT")
+  val pekkoVersion: String = sys.props.getOrElse("pekko.version", "2.0.0")
+  val pekkoHttpVersion     = sys.props.getOrElse("pekko.http.version", "2.0.0")
 
-  val playJsonVersion = "3.1.0-M10+90-e2ddbd4c-SNAPSHOT"
-
+  val playJsonVersion = "3.1.0-M10+121-7c4242ca-SNAPSHOT"
   val logback = "ch.qos.logback" % "logback-classic" % "1.6.6"
 
   val specs2Version = "4.23.0"
@@ -29,20 +28,21 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck"        % "1.20.0"      % Test
   )
 
-  val jacksonVersion  = "2.23.0"
-  val jacksonDatabind = Seq("com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion)
-  val jacksons        = Seq(
-    "com.fasterxml.jackson.core"     % "jackson-core",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
-  ).map(_ % jacksonVersion) ++ jacksonDatabind
-  // Overrides additional jackson deps pulled in by pekko-serialization-jackson
-  // Play uses a newer version of Jackson than Pekko
-  val pekkoSerializationJacksonOverrides = Seq(
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor",
-    "com.fasterxml.jackson.module"     % "jackson-module-parameter-names",
-    "com.fasterxml.jackson.module"    %% "jackson-module-scala",
-  ).map(_ % jacksonVersion)
+  // Jackson 3 (tools.jackson), must match the version play-json depends on
+  val jacksonVersion  = "3.2.4"
+  val jacksonDatabind = Seq("tools.jackson.core" % "jackson-databind" % jacksonVersion)
+  val jacksons = Seq(
+    "tools.jackson.core" % "jackson-core"
+  ).map(_ % jacksonVersion) ++ jacksonDatabind ++ Seq(
+    "tools.jackson.module" %% "jackson-module-scala" % jacksonVersion
+  )
+  // Jackson 2 is still needed by jjwt-jackson (no Jackson 3 support yet)
+  val jackson2Version = "2.23.0"
+  val jackson2s = Seq(
+    "com.fasterxml.jackson.core" % "jackson-core",
+    "com.fasterxml.jackson.core" % "jackson-databind"
+  ).map(_ % jackson2Version)
+  val pekkoSerializationJackson3 = "org.apache.pekko" %% "pekko-serialization-jackson3" % pekkoVersion
 
   val playJson = "org.playframework" %% "play-json" % playJsonVersion
 
@@ -73,7 +73,7 @@ object Dependencies {
     "io.jsonwebtoken" % "jjwt-impl"
   ).map(_ % jjwtVersion) ++ Seq(
     ("io.jsonwebtoken" % "jjwt-jackson" % jjwtVersion).excludeAll(ExclusionRule("com.fasterxml.jackson.core"))
-  )
+  ) // Jackson 2 deps are provided explicitly, see `jackson2s`
 
   val jdbcDeps = Seq(
     "com.zaxxer"         % "HikariCP"  % "7.1.0",
@@ -140,12 +140,13 @@ object Dependencies {
 
   def runtime(scalaVersion: String) =
     slf4j ++
-      Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j", "pekko-serialization-jackson")
+      Seq("pekko-actor", "pekko-actor-typed", "pekko-slf4j")
         .map("org.apache.pekko" %% _ % pekkoVersion) ++
       Seq("pekko-testkit", "pekko-actor-testkit-typed")
         .map("org.apache.pekko" %% _ % pekkoVersion % Test) ++
       jacksons ++
-      pekkoSerializationJacksonOverrides ++
+      jackson2s ++
+      Seq(pekkoSerializationJackson3) ++
       jjwts ++
       Seq(
         playJson,
@@ -273,8 +274,8 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M14+18-e10c553c-SNAPSHOT"
-  val playWsDeps              = Seq(
+  val playWsStandaloneVersion = "3.1.0-M14+66-83687b03-SNAPSHOT"
+  val playWsDeps = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-json" % playWsStandaloneVersion,
