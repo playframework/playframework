@@ -7,8 +7,6 @@ package play.data
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 
-import com.fasterxml.jackson.databind.node.TextNode
-import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.config.ConfigFactory
 import play.api.data.FormJsonExpansionTooLarge
 import play.api.i18n.DefaultMessagesApi
@@ -17,6 +15,8 @@ import play.core.j.PlayFormsMagicForJava.javaFieldtoScalaField
 import play.data.format.Formatters
 import play.libs.Files.SingletonTemporaryFileCreator
 import play.mvc.Http.RequestBuilder
+import tools.jackson.databind.node.StringNode
+import tools.jackson.databind.JsonNode
 import views.html.helper.inputText
 import views.html.helper.FieldConstructor.defaultField
 
@@ -272,7 +272,7 @@ class DynamicFormSpec extends CommonFormSpec {
       val form       = new DynamicForm(jMessagesApi, jLangs, new Formatters(jMessagesApi), validatorFactory, cfg)
       val longString =
         "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
-      val textNode: JsonNode = new TextNode(longString)
+      val textNode: JsonNode = new StringNode(longString)
       val req                = new RequestBuilder()
         .method("POST")
         .uri("http://localhost/test")

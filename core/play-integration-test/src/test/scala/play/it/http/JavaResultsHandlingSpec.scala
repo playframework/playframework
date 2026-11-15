@@ -12,7 +12,6 @@ import java.util.Optional
 
 import scala.jdk.CollectionConverters._
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.apache.pekko.stream.javadsl.Source
 import org.apache.pekko.util.ByteString
 import org.apache.pekko.NotUsed
@@ -24,7 +23,9 @@ import play.api.Application
 import play.http.HttpEntity
 import play.i18n.Lang
 import play.i18n.MessagesApi
-import play.it._
+import play.it.NettyIntegrationSpecification
+import play.it.PekkoHttpIntegrationSpecification
+import play.it.ServerIntegrationSpecification
 import play.libs.Comet
 import play.libs.EventSource
 import play.libs.Json
@@ -32,6 +33,7 @@ import play.mvc._
 import play.mvc.Http.Cookie
 import play.mvc.Http.Flash
 import play.mvc.Http.Session
+import tools.jackson.databind.JsonNode
 
 class NettyJavaResultsHandlingSpec     extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 class PekkoHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with PekkoHttpIntegrationSpecification

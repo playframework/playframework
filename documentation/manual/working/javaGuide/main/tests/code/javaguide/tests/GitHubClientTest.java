@@ -8,7 +8,7 @@ package javaguide.tests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static play.mvc.Results.*;
 
-import com.fasterxml.jackson.databind.node.*;
+import tools.jackson.databind.node.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;

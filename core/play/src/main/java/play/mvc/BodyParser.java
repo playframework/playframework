@@ -6,7 +6,6 @@ package play.mvc;
 
 import static java.nio.charset.StandardCharsets.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.inject.Inject;
 import java.io.File;
 import java.lang.annotation.ElementType;
@@ -51,6 +50,7 @@ import scala.concurrent.Future;
 import scala.jdk.javaapi.CollectionConverters;
 import scala.jdk.javaapi.FutureConverters;
 import scala.runtime.AbstractFunction1;
+import tools.jackson.databind.JsonNode;
 
 /** A body parser parses the HTTP request body content. */
 public interface BodyParser<A> {

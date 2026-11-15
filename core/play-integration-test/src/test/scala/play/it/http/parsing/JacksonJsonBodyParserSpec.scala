@@ -6,7 +6,6 @@ package play.it.http.parsing
 
 import java.util.concurrent.TimeUnit
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
@@ -20,6 +19,8 @@ import play.mvc.BodyParser
 import play.mvc.Http
 import play.mvc.Result
 import play.test.Helpers
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.JsonNode
 
 class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
 
@@ -45,14 +46,14 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
 
     "parse a simple JSON body with custom Jackson json-read-features" in new WithApplication(guiceBuilder =>
       guiceBuilder.configure(
-        "pekko.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
+        "pekko.serialization.jackson3.play.json-read-features.ALLOW_SINGLE_QUOTES" -> "true"
       )
     ) {
       override def running() = {
 
         val configuration: Configuration = implicitly[Application].configuration
         configuration.get[Boolean](
-          "pekko.serialization.jackson.play.json-read-features.ALLOW_SINGLE_QUOTES"
+          "pekko.serialization.jackson3.play.json-read-features.ALLOW_SINGLE_QUOTES"
         ) must beTrue
 
         val either: F.Either[Result, JsonNode] = parse("""{ 'field1':'value1' }""")
@@ -63,7 +64,7 @@ class JacksonJsonBodyParserSpec extends PlaySpecification with Matchers {
 
     "parse very deep JSON bodies" in new WithApplication(guiceBuilder =>
       guiceBuilder.configure(
-        "pekko.serialization.jackson.play.read.max-nesting-depth" -> "50001"
+        "pekko.serialization.jackson3.play.read.max-nesting-depth" -> "50001"
       )
     ) {
       override def running() = {

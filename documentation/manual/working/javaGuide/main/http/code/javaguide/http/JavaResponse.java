@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static play.mvc.Controller.*;
 import static play.test.Helpers.fakeRequest;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.time.Duration;

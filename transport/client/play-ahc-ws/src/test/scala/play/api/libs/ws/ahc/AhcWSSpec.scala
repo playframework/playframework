@@ -271,7 +271,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .asInstanceOf[AhcWSRequest]
       .underlying
       .buildRequest()
-    (req.getRequestTimeout must be).equalTo(1000)
+    (req.getRequestTimeout must be).equalTo(java.time.Duration.ofMillis(1000))
   }
 
   "support infinite timeout" in {
@@ -280,7 +280,7 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
       .asInstanceOf[AhcWSRequest]
       .underlying
       .buildRequest()
-    (req.getRequestTimeout must be).equalTo(-1)
+    (req.getRequestTimeout must be).equalTo(java.time.Duration.ofMillis(-1))
   }
 
   "not support negative timeout" in {
@@ -631,9 +631,9 @@ class AhcWSSpec(implicit ee: ExecutionEnv)
         .build()
       ahcConfig.isCompressionEnforced must beFalse
       ahcConfig.isFollowRedirect must beFalse
-      ahcConfig.getConnectTimeout must_== 120000
-      ahcConfig.getRequestTimeout must_== 120000
-      ahcConfig.getReadTimeout must_== 120000
+      ahcConfig.getConnectTimeout must_== java.time.Duration.ofMillis(120000)
+      ahcConfig.getRequestTimeout must_== java.time.Duration.ofMillis(120000)
+      ahcConfig.getReadTimeout must_== java.time.Duration.ofMillis(120000)
     }
   }
 }

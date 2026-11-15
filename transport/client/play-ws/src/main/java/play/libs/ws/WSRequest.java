@@ -4,7 +4,6 @@
 
 package play.libs.ws;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.InputStream;
 import java.time.Duration;
@@ -15,6 +14,7 @@ import org.apache.pekko.stream.javadsl.Source;
 import org.apache.pekko.util.ByteString;
 import org.w3c.dom.Document;
 import play.mvc.Http;
+import tools.jackson.databind.JsonNode;
 
 /**
  * This is the main interface to building a WS request in Java.

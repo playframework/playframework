@@ -4,7 +4,7 @@
 
 package javaguide.ws;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
@@ -24,7 +24,7 @@ import java.util.concurrent.*;
 // #ws-imports
 
 // #json-imports
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import play.libs.Json;
 // #json-imports
 

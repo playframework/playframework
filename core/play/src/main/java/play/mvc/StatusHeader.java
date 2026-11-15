@@ -4,10 +4,6 @@
 
 package play.mvc;
 
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +22,10 @@ import org.apache.pekko.util.ByteStringBuilder;
 import play.http.HttpEntity;
 import play.libs.Json;
 import play.mvc.Http.MimeTypes;
+import tools.jackson.core.JsonEncoding;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /** A status with no body */
 public class StatusHeader extends Result {
@@ -1887,18 +1887,14 @@ public class StatusHeader extends Result {
     ObjectMapper mapper = Json.mapper();
     ByteStringBuilder builder = ByteString$.MODULE$.newBuilder();
 
-    try {
-      JsonGenerator jgen = mapper.getFactory().createGenerator(builder.asOutputStream(), encoding);
+    JsonGenerator jgen = mapper.createGenerator(builder.asOutputStream(), encoding);
 
-      mapper.writeValue(jgen, json);
-      String contentType = MimeTypes.JSON;
-      return new Result(
-          status(),
-          Results.contentDispositionHeader(inline, fileName),
-          new HttpEntity.Strict(builder.result(), Optional.of(contentType)));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    mapper.writeValue(jgen, json);
+    String contentType = MimeTypes.JSON;
+    return new Result(
+        status(),
+        Results.contentDispositionHeader(inline, fileName),
+        new HttpEntity.Strict(builder.result(), Optional.of(contentType)));
   }
 
   /**

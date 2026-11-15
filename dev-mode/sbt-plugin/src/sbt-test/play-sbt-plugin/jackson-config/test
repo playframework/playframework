@@ -113,7 +113,7 @@ $ delete play-scala_jsonconfig.json
 $ delete play-java/conf/application.conf
 $ delete play-scala/conf/application.conf
 ##############################################################
-######## Now we test with disabled ObjectMapperModule ########
+######## Now we test with disabled JsonMapperModule ########
 ##############################################################
 -$ exists play-java/conf/application.conf
 -$ exists play-scala/conf/application.conf

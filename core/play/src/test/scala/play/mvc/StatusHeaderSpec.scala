@@ -10,9 +10,6 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
-import com.fasterxml.jackson.core.io.CharacterEscapes
-import com.fasterxml.jackson.core.io.SerializedString
-import com.fasterxml.jackson.core.JsonEncoding
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.Materializer
@@ -22,20 +19,25 @@ import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.BeforeAfterAll
 import play.libs.Json
 import play.mvc.Http.HeaderNames
+import tools.jackson.core.io.CharacterEscapes
+import tools.jackson.core.io.SerializedString
+import tools.jackson.core.json.JsonFactory
+import tools.jackson.core.JsonEncoding
+import tools.jackson.databind.json.JsonMapper
 
 class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with SpecificationLike with BeforeAfterAll {
   override def beforeAll(): Unit = {}
 
   override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
-    Json.mapper.getFactory.setCharacterEscapes(null)
+    Json.setObjectMapper(null)
   }
 
   "StatusHeader" should {
     "use factory attached to Json.mapper() when serializing Json" in {
       val materializer = Materializer.matFromSystem
 
-      Json.mapper.getFactory.setCharacterEscapes(new CharacterEscapes {
+      val characterEscapes = new CharacterEscapes {
         override def getEscapeSequence(ch: Int): SerializedString = new SerializedString(f"\\u$ch%04x")
 
         override def getEscapeCodesForAscii: Array[Int] =
@@ -44,7 +46,8 @@ class StatusHeaderSpec extends TestKit(ActorSystem("StatusHeaderSpec")) with Spe
               CharacterEscapes.ESCAPE_CUSTOM
             case (escape, _) => escape
           }
-      })
+      }
+      Json.setObjectMapper(JsonMapper.builder(JsonFactory.builder().characterEscapes(characterEscapes).build()).build())
 
       val jsonNode = Json.mapper.createObjectNode
       jsonNode.put("field", "value&")

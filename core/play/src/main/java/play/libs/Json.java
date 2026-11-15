@@ -4,42 +4,37 @@
 
 package play.libs;
 
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.IOException;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Helper functions to handle JsonNode values. */
 public class Json {
 
   /**
-   * Gets the ObjectMapper used to serialize and deserialize objects to and from JSON values.
+   * Gets the JsonMapper used to serialize and deserialize objects to and from JSON values.
    *
    * <p>This can be set to a custom implementation using Json.setObjectMapper.
    *
-   * @return the ObjectMapper currently being used
+   * @return the JsonMapper currently being used
    */
-  public static ObjectMapper mapper() {
+  public static JsonMapper mapper() {
     return play.api.libs.json.jackson.JacksonJson$.MODULE$.get().mapper();
   }
 
   private static String generateJson(Object o, boolean prettyPrint, boolean escapeNonASCII) {
-    try {
-      ObjectWriter writer = mapper().writer();
-      if (prettyPrint) {
-        writer = writer.with(SerializationFeature.INDENT_OUTPUT);
-      }
-      if (escapeNonASCII) {
-        writer = writer.with(JsonWriteFeature.ESCAPE_NON_ASCII);
-      }
-      return writer.writeValueAsString(o);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    ObjectWriter writer = mapper().writer();
+    if (prettyPrint) {
+      writer = writer.with(SerializationFeature.INDENT_OUTPUT);
     }
+    if (escapeNonASCII) {
+      writer = writer.with(JsonWriteFeature.ESCAPE_NON_ASCII);
+    }
+    return writer.writeValueAsString(o);
   }
 
   /**
@@ -168,9 +163,9 @@ public class Json {
    * <p>This is intended to be used when Play starts up. By default, Play will inject its own object
    * mapper here, but this mapper can be overridden either by a custom module.
    *
-   * @param mapper the object mapper.
+   * @param mapper the json mapper (or null to reset to the default).
    */
-  public static void setObjectMapper(ObjectMapper mapper) {
+  public static void setObjectMapper(JsonMapper mapper) {
     play.api.libs.json.jackson.JacksonJson$.MODULE$.get().setObjectMapper(mapper);
   }
 }

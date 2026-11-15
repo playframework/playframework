@@ -88,28 +88,28 @@ Because Play uses Pekko Jackson serialization support, you can configure the `Ob
 If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you need to add the custom configurations in your `application.conf`. For example, if you want to add a new [module for Joda types](https://github.com/FasterXML/jackson-datatype-joda)
 
 ```HOCON
-pekko.serialization.jackson.play.jackson-modules += "com.fasterxml.jackson.datatype.joda.JodaModule"
+pekko.serialization.jackson3.play.jackson-modules += "tools.jackson.datatype.joda.JodaModule"
 ```
 
 Or to add set a serialization configuration:
 
 ```HOCON
-pekko.serialization.jackson.play.serialization-features.WRITE_NUMBERS_AS_STRINGS=true
+pekko.serialization.jackson3.play.serialization-features.WRITE_NUMBERS_AS_STRINGS=true
 ```
 
-### Custom binding for `ObjectMapper`
+### Custom binding for `JsonMapper`
 
-If you still want to take completely over the `ObjectMapper` creation, this is possible by overriding its binding configuration. You first need to disable the default `ObjectMapper` module in your `application.conf`
+If you still want to take completely over the `JsonMapper` creation, this is possible by overriding its binding configuration. You first need to disable the default `ObjectMapper` module in your `application.conf`
 
 ```HOCON
-play.modules.disabled += "play.core.ObjectMapperModule"
+play.modules.disabled += "play.core.JsonMapperModule"
 ```
 
-Then you can create a provider for your `ObjectMapper`:
+Then you can create a provider for your `JsonMapper`:
 
 @[custom-java-object-mapper](code/javaguide/json/JavaJsonCustomObjectMapper.java)
 
-And bind it via Guice as an eager singleton so that the `ObjectMapper` will be set into the `Json` helper:
+And bind it via Guice as an eager singleton so that the `JsonMapper` will be set into the `Json` helper:
 
 @[custom-java-object-mapper2](code/javaguide/json/JavaJsonCustomObjectMapperModule.java)
 

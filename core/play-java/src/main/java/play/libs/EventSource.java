@@ -4,11 +4,11 @@
 
 package play.libs;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.time.Duration;
 import org.apache.pekko.NotUsed;
 import org.apache.pekko.stream.javadsl.Flow;
 import org.apache.pekko.util.ByteString;
+import tools.jackson.databind.JsonNode;
 
 /**
  * This class provides an easy way to use Server Sent Events (SSE) as a chunked encoding, using an

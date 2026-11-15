@@ -44,8 +44,8 @@ public class WSTestClient {
     AsyncHttpClientConfig config =
         new DefaultAsyncHttpClientConfig.Builder()
             .setMaxRequestRetry(0)
-            .setShutdownQuietPeriod(0)
-            .setShutdownTimeout(0)
+            .setShutdownQuietPeriod(java.time.Duration.ZERO)
+            .setShutdownTimeout(java.time.Duration.ZERO)
             .build();
 
     String name = "ws-test-client-" + instanceNumber.getAndIncrement();
