@@ -25,5 +25,5 @@ object ScalaVersions {
 
 object SbtVersions {
   val sbt1 = "1.13.1"
-  val sbt2 = "2.1.0-RC3"
+  val sbt2 = "2.1.0"
 }
