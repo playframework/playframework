@@ -19,7 +19,7 @@ addSbtPlugin("org.scalameta"  % "sbt-scalafmt"       % "2.6.2")
 
 // Required for Tutorial
 addSbtPlugin(
-  "org.playframework.twirl" % "sbt-twirl" % "2.1.0-M9+166-35397d5a-SNAPSHOT" // sync with project/plugins.sbt
+  "org.playframework.twirl" % "sbt-twirl" % "2.1.0-M9+168-53e6024d-SNAPSHOT" // sync with project/plugins.sbt
 )
 
 // Required for IDE docs
