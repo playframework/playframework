@@ -1,0 +1,32 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+import play.api.routing.JavaScriptReverseRoute
+
+
+
+// @LINE:26
+package controllers.module.javascript {
+
+  // @LINE:26
+  class ReverseModuleController(_prefix: => String) {
+
+    def _defaultPrefix: String = {
+      if (_prefix.endsWith("/")) "" else "/"
+    }
+
+
+    // @LINE:26
+    def index: JavaScriptReverseRoute = JavaScriptReverseRoute(
+      "controllers.module.ModuleController.index",
+      """
+        function() {
+          return _wA({method:"GET", url:"""" + _prefix + { _defaultPrefix } + """" + "module/index"})
+        }
+      """
+    )
+
+  }
+
+
+}

@@ -1,0 +1,23 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers;
+
+import snapshot.RoutesPrefix;
+
+public class routes {
+
+  public static final controllers.ReverseRoutes.ReverseAssets Assets = new controllers.ReverseRoutes.ReverseAssets(RoutesPrefix.byNamePrefix());
+  public static final controllers.ReverseRoutes.ReverseStringController StringController = new controllers.ReverseRoutes.ReverseStringController(RoutesPrefix.byNamePrefix());
+  public static final controllers.ReverseRoutes.ReverseInstanceController InstanceController = new controllers.ReverseRoutes.ReverseInstanceController(RoutesPrefix.byNamePrefix());
+  public static final controllers.ReverseRoutes.ReverseApplication Application = new controllers.ReverseRoutes.ReverseApplication(RoutesPrefix.byNamePrefix());
+
+  public static class javascript {
+
+    public static final controllers.javascript.JavaScriptReverseRoutes.ReverseAssets Assets = new controllers.javascript.JavaScriptReverseRoutes.ReverseAssets(RoutesPrefix.byNamePrefix());
+    public static final controllers.javascript.JavaScriptReverseRoutes.ReverseStringController StringController = new controllers.javascript.JavaScriptReverseRoutes.ReverseStringController(RoutesPrefix.byNamePrefix());
+    public static final controllers.javascript.JavaScriptReverseRoutes.ReverseInstanceController InstanceController = new controllers.javascript.JavaScriptReverseRoutes.ReverseInstanceController(RoutesPrefix.byNamePrefix());
+    public static final controllers.javascript.JavaScriptReverseRoutes.ReverseApplication Application = new controllers.javascript.JavaScriptReverseRoutes.ReverseApplication(RoutesPrefix.byNamePrefix());
+  }
+
+}
