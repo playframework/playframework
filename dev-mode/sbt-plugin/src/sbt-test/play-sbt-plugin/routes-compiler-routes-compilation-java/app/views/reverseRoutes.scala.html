@@ -1,0 +1,9 @@
+@*
+ * Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+ *@
+
+@* Calls the reverse router like Scala code does, which must work whether it is generated as Scala or Java source code *@
+@()
+@routes.Application.async(x = 10)
+@routes.BooleanController.queryDefault()
+@routes.Assets.versioned("css/main.css")

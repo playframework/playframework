@@ -44,7 +44,11 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
 
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = copyResource("generating.routes", tmp)
-      RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, true, false), InjectedRoutesGenerator, tmp)
+      RoutesCompiler.compile(
+        RoutesCompilerTask(file, Seq.empty, true, true, true, false, Language.SCALA),
+        InjectedRoutesGenerator,
+        tmp
+      )
 
       new File(tmp, "generating/Routes.scala") must exist
       new File(tmp, "generating/RoutesPrefix.scala") must exist
@@ -53,10 +57,51 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
       new File(tmp, "controllers/routes.java") must exist
     }
 
+    "generate Scala routes classes unless another language is requested" in {
+      val file = new File("routes")
+      RoutesCompilerTask(file, Seq.empty, true, true, true, false).lang must_== Language.SCALA
+      new RoutesCompilerTask(file, Seq.empty, true, true, true, false).lang must_== Language.SCALA
+      new RoutesCompilerTask(file, Seq.empty, true, true, false).lang must_== Language.SCALA
+    }
+
+    "generate Java routes classes when requested" in withTempDir { tmp =>
+      val file = copyResource("generating.routes", tmp)
+      RoutesCompiler.compile(
+        RoutesCompilerTask(file, Seq.empty, true, true, true, false, Language.JAVA),
+        InjectedRoutesGenerator,
+        tmp
+      ) must beRight
+
+      new File(tmp, "generating/Routes.java") must exist
+      new File(tmp, "generating/RoutesPrefix.java") must exist
+      new File(tmp, "controllers/ReverseFooController.java") must exist
+      new File(tmp, "controllers/javascript/ReverseFooController.java") must exist
+      new File(tmp, "controllers/routes.java") must exist
+      new File(tmp, "generating/Routes.scala") must not be exist
+      new File(tmp, "controllers/ReverseRoutes.scala") must not be exist
+    }
+
+    "generate Java routes classes when Java code requests them" in withTempDir { tmp =>
+      val file = copyResource("generating.routes", tmp)
+      RoutesCompiler.compile(
+        file,
+        java.util.List.of[String](),
+        true,
+        true,
+        true,
+        false,
+        Language.JAVA,
+        tmp
+      ) must beRight
+
+      new File(tmp, "generating/Routes.java") must exist
+      new File(tmp, "generating/Routes.scala") must not be exist
+    }
+
     "do not generate JavaScript routes when disabled in task" in withTempDir { tmp =>
       val file = copyResource("generating.routes", tmp)
       RoutesCompiler.compile(
-        RoutesCompilerTask(file, Seq.empty, true, true, false, false),
+        RoutesCompilerTask(file, Seq.empty, true, true, false, false, Language.SCALA),
         InjectedRoutesGenerator,
         tmp
       )
@@ -66,7 +111,7 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = copyResource("duplicateHandlers.routes", tmp)
       RoutesCompiler.compile(
-        RoutesCompilerTask(file, Seq.empty, true, true, true, false),
+        RoutesCompilerTask(file, Seq.empty, true, true, true, false, Language.SCALA),
         InjectedRoutesGenerator,
         tmp
       ) must beLeft
@@ -75,7 +120,7 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
     "check if routes with type projection are compiled" in withTempDir { tmp =>
       val file = copyResource("complexTypes.routes", tmp)
       RoutesCompiler.compile(
-        RoutesCompilerTask(file, Seq.empty, true, true, true, false),
+        RoutesCompilerTask(file, Seq.empty, true, true, true, false, Language.SCALA),
         InjectedRoutesGenerator,
         tmp
       ) must beRight
@@ -84,7 +129,7 @@ class RoutesCompilerSpec extends Specification with FileMatchers {
     "check if routes with complex names are compiled" in withTempDir { tmp =>
       val file = copyResource("complexNames.routes", tmp)
       RoutesCompiler.compile(
-        RoutesCompilerTask(file, Seq.empty, true, true, true, false),
+        RoutesCompilerTask(file, Seq.empty, true, true, true, false, Language.SCALA),
         InjectedRoutesGenerator,
         tmp
       ) must beRight

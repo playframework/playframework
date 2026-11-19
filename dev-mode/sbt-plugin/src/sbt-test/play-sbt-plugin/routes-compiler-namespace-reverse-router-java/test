@@ -1,0 +1,23 @@
+# The namespaced reverse routers as Java sources. Scala 3 before 3.7 resolves the package names in them wrongly,
+# so disableIncompatibleScriptedTests disables this test for those versions.
+
+# Generate Scala sources first
+> playRoutes
+$ exists target/routes/main/router/Routes.scala
+$ exists target/routes/main/router/controllers/ReverseRoutes.scala
+> compile
+> Test/compile
+> test
+
+# Switch to Java routes without cleaning, which must remove the Scala sources
+> set play.sbt.routes.RoutesKeys.routesLang := play.routes.compiler.Language.JAVA
+> playRoutes
+$ exists target/routes/main/router/Routes.java
+$ exists target/routes/main/router/controllers/ReverseAssets.java
+$ exists target/routes/main/router/controllers/javascript/ReverseAssets.java
+-$ exists target/routes/main/router/Routes.scala
+-$ exists target/routes/main/router/controllers/ReverseRoutes.scala
+-$ exists target/routes/main/router/controllers/javascript/JavaScriptReverseRoutes.scala
+> compile
+> Test/compile
+> test
