@@ -114,9 +114,11 @@ val userRepository = mock(classOf[UserRepository])
 when(userRepository.roles(any[User])).thenReturn(Set(Role("ADMIN")))
 ```
 
-## Potential runtime error due to Scala 3 guice regression
+## Potential runtime error with `InjectedController` before Scala 3.8.0
 
-Due to an issue in the Scala 3 compiler (see [Play issue #12272](https://github.com/playframework/playframework/issues/12272)), controller classes extending the `InjectedController` fail to load at runtime, leading to an exception with a trace similar to:
+When controllers are compiled with Scala versions before 3.8.0, including Scala 3.3 LTS, a compiler issue causes Guice to skip the method that injects `ControllerComponents` into `InjectedController`. Requests to these controllers can then fail at runtime with an exception like the following (see [Play issue #12272](https://github.com/playframework/playframework/issues/12272)).
+
+This issue was [fixed in Scala 3.8.0](https://github.com/scala/scala3/pull/23942), so Scala 3.9 LTS and newer include the fix. Projects using Scala 3.3 LTS still need the constructor-injection workaround below.
 
 ```
 play.api.http.HttpErrorHandlerExceptions$$anon$1: Execution exception[[NoSuchElementException: ControllerComponents not set! Call setControllerComponents or create the instance with dependency injection.]]
@@ -129,7 +131,7 @@ Caused by: java.util.NoSuchElementException: ControllerComponents not set! Call 
         ...
 ```
 
-A possible workaround is extendending from `BaseController` instead and overriding the `controllerComponents` manually:
+A possible workaround is extending from `BaseController` instead and overriding the `controllerComponents` manually:
 
 Instead of
 
