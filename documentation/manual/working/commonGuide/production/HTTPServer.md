@@ -79,10 +79,18 @@ LoadModule proxy_module modules/mod_proxy.so
   ProxyPreserveHost On
   ServerName www.loadbalancedapp.com
   ProxyPass  /excluded !
-  ProxyPass / http://127.0.0.1:9000/
+  ProxyPass / http://127.0.0.1:9000/ nocanon
   ProxyPassReverse / http://127.0.0.1:9000/
+  AllowEncodedSlashes NoDecode
 </VirtualHost>
 ```
+
+The `nocanon` keyword and the `AllowEncodedSlashes NoDecode` directive make Apache pass the request path to Play as it was sent, so that Play decodes it, as it would without a proxy in front:
+
+* By default, Apache refuses any URL whose path contains an encoded slash (`%2F`) with a `404 Not Found`, so such requests never reach Play. [`AllowEncodedSlashes NoDecode`](https://httpd.apache.org/docs/2.4/mod/core.html#allowencodedslashes) lets them through and leaves `%2F` encoded. It is [not inherited by virtual hosts](https://bz.apache.org/bugzilla/show_bug.cgi?id=46830) from the main server configuration, so put it inside each `<VirtualHost>` block.
+* By default, `mod_proxy` canonicalises the path before forwarding it, which decodes some characters, for example `%2B` becomes `+`. The [`nocanon`](https://httpd.apache.org/docs/2.4/mod/mod_proxy.html#proxypass) keyword passes the path to Play unchanged. Note that it also removes the limited protection against URL-based attacks that the canonicalisation gives.
+
+Both are needed: with only one of them, either `%2F` is still refused or the path is still changed on the way. The load balancer example below uses them for the same reason.
 
 ## Advanced proxy settings
 
@@ -136,8 +144,9 @@ Now, let’s configure our Apache web server to have a load balancer. In Apache,
   </Proxy>
   ProxyPreserveHost On
   ProxyPass /balancer-manager !
-  ProxyPass / balancer://mycluster/
+  ProxyPass / balancer://mycluster/ nocanon
   ProxyPassReverse / balancer://mycluster/
+  AllowEncodedSlashes NoDecode
 </VirtualHost>
 ```
 
