@@ -226,3 +226,8 @@ GET         /java-request/routesdefault     controllers.JavaRequestController.ro
 
 # Separated by tabs on purpose, to cover tabs as separators in routes files
 GET					/java-request/intwarn/:routes   controllers.JavaRequestController.interpolatorWarning(req: Request, routes)
+
+# 22 is the first number of parameters that does not get a function with one argument per parameter, see #14366
+GET         /params-21                      controllers.Application.params21(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21)
+GET         /params-22                      controllers.Application.params22(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22)
+GET         /params-22-nullable             controllers.Application.params22Nullable(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22 ?= null)
