@@ -6,10 +6,7 @@ package play.gradle.internal;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.plugins.ExtensionAware;
@@ -38,10 +35,6 @@ public class Utils {
     return extensionOf(project, PlayExtension.class);
   }
 
-  public static boolean isPlayProject(final Project project) {
-    return findExtensionOf(project, PlayExtension.class) != null;
-  }
-
   public static JavaPluginExtension javaPluginExtension(final Project project) {
     return extensionOf(project, JavaPluginExtension.class);
   }
@@ -66,10 +59,6 @@ public class Utils {
     return extensionAware.getExtensions().getByType(type);
   }
 
-  public static <T> T findExtensionOf(ExtensionAware extensionAware, Class<T> type) {
-    return extensionAware.getExtensions().findByType(type);
-  }
-
   public static boolean isPlayJava(final Project project) {
     return playExtension(project).getLang().get() == Language.JAVA;
   }
@@ -80,20 +69,6 @@ public class Utils {
 
   public static boolean isProjectComponent(ComponentIdentifier component) {
     return component instanceof ProjectComponentIdentifier;
-  }
-
-  public static List<String> filterProjectComponents(Configuration configuration) {
-    var projects = new ArrayList<String>();
-    configuration
-        .getIncoming()
-        .artifactView(view -> view.componentFilter(Utils::isProjectComponent))
-        .getArtifacts()
-        .forEach(
-            artifact ->
-                projects.add(
-                    ((ProjectComponentIdentifier) artifact.getVariant().getOwner())
-                        .getProjectPath()));
-    return projects;
   }
 
   private Utils() {}
