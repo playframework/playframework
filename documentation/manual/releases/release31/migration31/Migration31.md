@@ -34,6 +34,39 @@ Play now uses Pekko 2 and Pekko HTTP 2. If your build overrides Play's Pekko dep
 
 The deprecated low-level `org.apache.pekko.http.play.WebSocketHandler.handleWebSocket` overloads that accepted Pekko HTTP's old `UpgradeToWebSocket` API have been removed. Code using this internal Pekko HTTP bridge should use the maintained `WebSocketUpgrade` overload instead.
 
+### JPA upgraded to Jakarta Persistence 4.0
+
+Play's `javaJpa` module now compiles against Jakarta Persistence `4.0.0-M8`, matching Hibernate ORM `8.0.0.CR1`. Upgrade your persistence provider to a version compatible with Jakarta Persistence 4.0 and remove dependency overrides that pin `jakarta.persistence-api` to 3.x. Hibernate ORM 7 targets Jakarta Persistence 3.2 and cannot be used with this version of `javaJpa`.
+
+Recompile application code and libraries that use Jakarta Persistence APIs. Some methods remain source-compatible but have different binary signatures: for example, `EntityManagerFactory.createEntityManager()` now accepts `EntityManager.CreationOption...`. Mixing code compiled against the 3.2 signature with the 4.0 runtime can cause `NoSuchMethodError`.
+
+Update persistence descriptors to the 4.0 schema when adopting its features. The namespace and Hibernate provider class remain unchanged:
+
+```xml
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_4_0.xsd"
+             version="4.0">
+    <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <non-jta-data-source>DefaultDS</non-jta-data-source>
+        <class>models.MyEntity</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <validation-mode>NONE</validation-mode>
+    </persistence-unit>
+</persistence>
+```
+
+Hibernate ORM 8 continues to read older persistence descriptors. For the 4.0 schema, keep `<class>` entries before `<exclude-unlisted-classes>` and `<validation-mode>`. List package and module annotations with `<package-descriptor>` and `<module-descriptor>` instead of `<class>com.example.package-info</class>` or `<class>module-info</class>`.
+
+Prefer explicit entity registration as above. If you use automatic discovery, add `org.hibernate.orm:hibernate-scan-jandex` at the same version as Hibernate and set `<exclude-unlisted-classes>false</exclude-unlisted-classes>` to include the persistence-unit root in scanning.
+
+Jakarta Persistence 4.0 separates selection queries from statements that modify data. Use `TypedQuery<T>` for selections and `Statement` for mutations. Replace mutation definitions using `@NamedQuery` or `@NamedNativeQuery` with `@NamedStatement` or `@NamedNativeStatement`. For native SQL updates, use `EntityManager.createNativeStatement(...).execute()` instead of the deprecated raw `Query.executeUpdate()` API.
+
+If you enable JPA bean validation, review its lifecycle groups. Insert-time validation now uses `jakarta.persistence.validation.group.pre-insert`; `pre-persist` has a different lifecycle meaning and is empty by default. The default validation groups apply to `pre-insert`, `pre-update`, and `pre-upsert`. Keep `<validation-mode>NONE</validation-mode>` if you do not use JPA bean validation.
+
+See [[Using JPA|JavaJPA]] for the complete Play configuration and the [Hibernate ORM 8 migration guide](https://docs.hibernate.org/orm/8.0/migration-guide/) for provider-specific API, mapping, and behavior changes.
+
 ### Request metadata and forwarded-header changes
 
 Play replaces the legacy combined connection APIs with typed `remote`, `transport`, `scheme`, and `authority` metadata. Applications may need to update request accessors and test builders, IP filter entries, custom request implementations, and proxy configuration.

@@ -41,8 +41,9 @@ class JPARepositoryMethods {
           // lambda is an instance of Function<EntityManager, Long>
           return jpaApi.withTransaction(
               entityManager -> {
-                Query query = entityManager.createNativeQuery("select max(age) from people");
-                return (Long) query.getSingleResult();
+                TypedQuery<Long> query =
+                    entityManager.createNativeQuery("select max(age) from people", Long.class);
+                return query.getSingleResult();
               });
         },
         executionContext);
@@ -57,9 +58,10 @@ class JPARepositoryMethods {
         () -> {
           jpaApi.withTransaction(
               entityManager -> {
-                Query query =
-                    entityManager.createNativeQuery("update people set active = 1 where age > 18");
-                query.executeUpdate();
+                Statement statement =
+                    entityManager.createNativeStatement(
+                        "update people set active = 1 where age > 18");
+                statement.execute();
               });
         },
         executionContext);

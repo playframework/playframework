@@ -3,7 +3,8 @@
 //#jpa-sbt-dependencies
 libraryDependencies ++= Seq(
   // With Hibernate ORM 7+, list your entities explicitly in persistence.xml.
-  // If you prefer automatic entity discovery, add org.hibernate.orm:hibernate-scan-jandex.
+  // For automatic discovery, add org.hibernate.orm:hibernate-scan-jandex and, with ORM 8,
+  // set <exclude-unlisted-classes>false</exclude-unlisted-classes> in persistence.xml.
   javaJpa,
   "org.hibernate.orm" % "hibernate-core" % "8.0.0.CR1" // replace by your jpa implementation
   // If you enable Hibernate Validator, also add a Jakarta EL implementation.
