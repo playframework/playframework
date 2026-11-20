@@ -90,6 +90,7 @@ trait HttpVerbs {
   val DELETE  = "DELETE"
   val HEAD    = "HEAD"
   val OPTIONS = "OPTIONS"
+  val QUERY   = "QUERY"
 }
 
 /** Common HTTP MIME types */
@@ -238,6 +239,7 @@ trait HeaderNames {
   val ACCEPT_CHARSET  = "Accept-Charset"
   val ACCEPT_ENCODING = "Accept-Encoding"
   val ACCEPT_LANGUAGE = "Accept-Language"
+  val ACCEPT_QUERY    = "Accept-Query"
   val ACCEPT_RANGES   = "Accept-Ranges"
   val AGE             = "Age"
   val ALLOW           = "Allow"
