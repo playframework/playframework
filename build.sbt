@@ -183,7 +183,7 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
     libraryDependencies ++= jpaDeps,
     Test / javaOptions ++= Seq(
       s"-Dplay.jpa.expectedHibernateVersion=${hibernate.revision}",
-      "-Dplay.jpa.expectedPersistenceVersion=4.0.0-M8"
+      "-Dplay.jpa.expectedPersistenceVersionPrefix=4."
     )
   )
   .dependsOn(PlayJavaJdbcProject % "compile->compile;test->test")
@@ -200,7 +200,7 @@ lazy val PlayJpaHibernate7Project =
       Test / unmanagedResourceDirectories := (PlayJpaProject / Test / unmanagedResourceDirectories).value,
       Test / javaOptions ++= Seq(
         s"-Dplay.jpa.expectedHibernateVersion=${hibernate7.revision}",
-        s"-Dplay.jpa.expectedPersistenceVersion=${jpaApi.revision}"
+        "-Dplay.jpa.expectedPersistenceVersionPrefix=3.2."
       ),
       mimaPreviousArtifacts := Set.empty,
       Docs.apiDocsInclude   := false

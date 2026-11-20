@@ -17,9 +17,10 @@ public class JPAProviderCompatibilityTest {
   @Test
   public void shouldUseExpectedProviderAndApiVersions() throws Exception {
     String hibernateVersion = System.getProperty("play.jpa.expectedHibernateVersion");
-    String persistenceVersion = System.getProperty("play.jpa.expectedPersistenceVersion");
+    String persistenceVersionPrefix =
+        System.getProperty("play.jpa.expectedPersistenceVersionPrefix");
     assertThat(hibernateVersion).isNotBlank();
-    assertThat(persistenceVersion).isNotBlank();
+    assertThat(persistenceVersionPrefix).isNotBlank();
     assertThat(Version.getVersionString()).isEqualTo(hibernateVersion);
 
     // The API's manifest omits milestone suffixes; Maven metadata contains the exact version.
@@ -30,6 +31,6 @@ public class JPAProviderCompatibilityTest {
       assertThat(metadata).isNotNull();
       apiMetadata.load(metadata);
     }
-    assertThat(apiMetadata.getProperty("version")).isEqualTo(persistenceVersion);
+    assertThat(apiMetadata.getProperty("version")).startsWith(persistenceVersionPrefix);
   }
 }

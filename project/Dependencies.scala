@@ -87,8 +87,8 @@ object Dependencies {
   // Keep Play's minimum API at 3.2; Hibernate ORM 8 supplies API 4.0 to its consumers and our tests.
   val jpaApi    = "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0"
   val hibernate = "org.hibernate.orm"   % "hibernate-core"          % "8.0.0.CR1"
-  // This dependency deliberately stays on Hibernate ORM 7 to check compatibility with API 3.2.
-  val hibernate7 = "org.hibernate.orm" % "hibernate-core" % "7.4.17.Final"
+  // Keep this compatibility fixture on Hibernate ORM 7; update its 7.x version manually.
+  val hibernate7 = "org.hibernate.orm" % "hibernate-core" % "7.4.17.Final" // scala-steward:off
 
   val jpaDeps = Seq(jpaApi, hibernate % Test)
 
