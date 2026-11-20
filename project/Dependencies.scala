@@ -85,7 +85,8 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
+    // Keep the compile-time API aligned with Hibernate ORM 8's Jakarta Persistence requirement.
+    "jakarta.persistence" % "jakarta.persistence-api" % "4.0.0-M8",
     "org.hibernate.orm"   % "hibernate-core"          % "8.0.0.CR1" % "test",
     "org.hibernate.orm"   % "hibernate-scan-jandex"   % "8.0.0.CR1" % "test"
   )

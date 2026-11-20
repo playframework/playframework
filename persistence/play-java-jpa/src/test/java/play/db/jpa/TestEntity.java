@@ -29,8 +29,8 @@ public class TestEntity {
   }
 
   public static List<String> allNames(EntityManager em) {
-    @SuppressWarnings("unchecked")
-    List<TestEntity> results = em.createQuery("from TestEntity order by name").getResultList();
+    List<TestEntity> results =
+        em.createQuery("from TestEntity order by name", TestEntity.class).getResultList();
     return results.stream().map(entity -> entity.name).collect(toList());
   }
 }
