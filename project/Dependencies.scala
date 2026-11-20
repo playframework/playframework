@@ -13,7 +13,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M10+90-e2ddbd4c-SNAPSHOT"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.8"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -85,9 +85,10 @@ object Dependencies {
   ) ++ specs2Deps.map(_ % Test)
 
   val jpaDeps = Seq(
-    "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.16.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.16.Final" % "test"
+    // Keep the compile-time API aligned with Hibernate ORM 8's Jakarta Persistence requirement.
+    "jakarta.persistence" % "jakarta.persistence-api" % "4.0.0-M8",
+    "org.hibernate.orm"   % "hibernate-core"          % "8.0.0.CR1" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "8.0.0.CR1" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -273,7 +274,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M14+81-d2d3ccd9-SNAPSHOT"
+  val playWsStandaloneVersion = "3.1.0-M14+88-0b31a50a-SNAPSHOT"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,

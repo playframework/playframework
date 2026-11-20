@@ -4,7 +4,7 @@
 
 ## Adding dependencies to your project
 
-First you need to tell Play that your project depends on `javaJpa` which will provide JDBC and JPA api dependencies.
+First you need to tell Play that your project depends on `javaJpa` which provides JDBC and Jakarta Persistence API dependencies. Play 3.1 uses Jakarta Persistence 4.0 (`4.0.0-M8`), so choose a provider compatible with that API and remove overrides that force an older Jakarta Persistence API version.
 
 There is no built-in JPA implementation in Play; you can choose any available implementation. For example, to use [Hibernate](http://hibernate.org/), just add the following dependency to your project:
 
@@ -12,7 +12,7 @@ There is no built-in JPA implementation in Play; you can choose any available im
 
 When using Hibernate ORM 7 or newer, keep these changes in mind:
 
-- Prefer listing your entities explicitly with `<class>...</class>` entries in `persistence.xml`. Automatic classpath scanning is no longer the old default. If you prefer automatic discovery, add Hibernate's `hibernate-scan-jandex` module. See the Hibernate ORM 7 migration guide section on [Jandex scanning](https://docs.hibernate.org/orm/7.0/migration-guide/#jandex-scanning).
+- Prefer listing your entities explicitly with `<class>...</class>` entries in `persistence.xml`. Automatic classpath scanning is no longer the old default. If you prefer automatic discovery, add Hibernate's `hibernate-scan-jandex` module. With Hibernate ORM 8, also set `<exclude-unlisted-classes>false</exclude-unlisted-classes>` to scan the persistence-unit root. See the Hibernate ORM 7 migration guide section on [Jandex scanning](https://docs.hibernate.org/orm/7.0/migration-guide/#jandex-scanning) and the [Hibernate ORM 8 migration guide](https://docs.hibernate.org/orm/8.0/migration-guide/).
 - If you are not intentionally using JPA bean validation, set `<validation-mode>NONE</validation-mode>` in `persistence.xml`. Hibernate ORM 7 now propagates validator bootstrap failures that older versions often ignored. See the Hibernate ORM 7 migration guide section on [validator integration with `AUTO`](https://docs.hibernate.org/orm/7.0/migration-guide/#validator-integration-auto).
 
 ## Exposing the datasource through JNDI
@@ -35,14 +35,15 @@ Here is a sample configuration file to use with Hibernate:
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence xmlns="https://jakarta.ee/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_2.xsd"
-             version="3.2">
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_4_0.xsd"
+             version="4.0">
 
     <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <non-jta-data-source>DefaultDS</non-jta-data-source>
-        <validation-mode>NONE</validation-mode>
         <class>models.MyEntity</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <validation-mode>NONE</validation-mode>
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
         </properties>
@@ -51,7 +52,11 @@ Here is a sample configuration file to use with Hibernate:
 </persistence>
 ```
 
+The Jakarta Persistence namespace and the Hibernate provider class are unchanged. The example uses the 4.0 schema and lists its entities explicitly, before `<exclude-unlisted-classes>` and `<validation-mode>` as required by the schema. Hibernate ORM 8 can also read older persistence descriptors. If you register package or module annotations, use `<package-descriptor>com.example</package-descriptor>` or `<module-descriptor>com.example.module</module-descriptor>` instead of listing `package-info` or `module-info` as a `<class>`.
+
 If you do want Hibernate Validator integration, add a Jakarta Expression Language implementation to your classpath as well, or configure Hibernate Validator to use a non-EL message interpolator.
+
+For applications upgrading from an earlier Play version, see the [[JPA migration notes|Migration31#JPA-upgraded-to-Jakarta-Persistence-4.0]].
 
 Finally you have to tell Play, which persistent unit should be used by your JPA provider. This is done by setting the `jpa.default` property in your `conf/application.conf`.
 
@@ -67,11 +72,11 @@ Running Play in development mode while using JPA will work fine, but in order to
 
 > **Note:** More information on how to configure externalized resources can be found [[here|sbtCookbook#Configure-externalized-resources]].
 The above settings makes sure the `persistence.xml` file will always stay *inside* the generated application `jar` file.
-This is a requirement by the [JPA specification](https://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf). According to it the `persistence.xml` file has to be in the *same* `jar` file where its persistence-units' entities live, otherwise these entities won't be available for the persistence-units. (You could, however, explicitly add a `jar` file containing entities via `<jar-file>xxx.jar</jar-file>` to a persistence-unit - but that doesn't work well with Play as it would fail with a `FileNotFoundException` in development mode because there is no `jar` file that will be generated in that mode. Further that wouldn't work well in production mode too because when deploying an application, the name of the generated application `jar` file changes with each new release as the current version of the application gets appended to it.)
+This is a requirement by the [Jakarta Persistence specification](https://jakarta.ee/specifications/persistence/4.0/). According to it the `persistence.xml` file has to be in the *same* `jar` file where its persistence-units' entities live, otherwise these entities won't be available for the persistence-units. (You could, however, explicitly add a `jar` file containing entities via `<jar-file>xxx.jar</jar-file>` to a persistence-unit - but that doesn't work well with Play as it would fail with a `FileNotFoundException` in development mode because there is no `jar` file that will be generated in that mode. Further that wouldn't work well in production mode too because when deploying an application, the name of the generated application `jar` file changes with each new release as the current version of the application gets appended to it.)
 
 ## Using `play.db.jpa.JPAApi`
 
-Play offers you a convenient API to work with [Entity Manager](https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/entitymanager) and Transactions. This API is defined by [`play.db.jpa.JPAApi`](api/java/play/db/jpa/JPAApi.html), which can be injected at other objects like the code below:
+Play offers you a convenient API to work with [Entity Manager](https://jakarta.ee/specifications/persistence/4.0/apidocs/jakarta.persistence/jakarta/persistence/EntityManager.html) and Transactions. This API is defined by [`play.db.jpa.JPAApi`](api/java/play/db/jpa/JPAApi.html), which can be injected at other objects like the code below:
 
 @[jpa-repository-api-inject](code/JPARepository.java)
 
