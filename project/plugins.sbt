@@ -9,7 +9,7 @@ addDependencyTreePlugin
 val sbtNativePackager  = "1.13.0"
 val mima               = "1.2.1"
 val sbtJavaFormatter   = "0.12.0"
-val sbtJmh             = "0.4.8"
+val sbtJmh             = "0.4.9"
 val webjarsLocatorCore = "0.59"
 val sbtHeader          = "5.11.0"
 val scalafmt           = "2.4.6"
@@ -24,14 +24,14 @@ logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.play"  % "sbt-twirl"             % sbtTwirl)
-addSbtPlugin("com.typesafe"       % "sbt-mima-plugin"       % mima)
-addSbtPlugin("com.lightbend.sbt"  % "sbt-bill-of-materials" % "1.1.1")
-addSbtPlugin("com.github.sbt"     % "sbt-java-formatter"    % sbtJavaFormatter)
-addSbtPlugin("pl.project13.scala" % "sbt-jmh"               % sbtJmh)
-addSbtPlugin("com.github.sbt"     % "sbt-header"            % sbtHeader)
-addSbtPlugin("org.scalameta"      % "sbt-scalafmt"          % scalafmt)
-addSbtPlugin("com.github.sbt"     % "sbt-ci-release"        % "1.12.1")
+addSbtPlugin("com.typesafe.play" % "sbt-twirl"             % sbtTwirl)
+addSbtPlugin("com.typesafe"      % "sbt-mima-plugin"       % mima)
+addSbtPlugin("com.lightbend.sbt" % "sbt-bill-of-materials" % "1.1.1")
+addSbtPlugin("com.github.sbt"    % "sbt-java-formatter"    % sbtJavaFormatter)
+addSbtPlugin("com.github.sbt"    % "sbt-jmh"               % sbtJmh)
+addSbtPlugin("com.github.sbt"    % "sbt-header"            % sbtHeader)
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"          % scalafmt)
+addSbtPlugin("com.github.sbt"    % "sbt-ci-release"        % "1.12.1")
 
 addSbtPlugin("com.markatta" % "sbt-akka-version-check" % "0.4")
 
