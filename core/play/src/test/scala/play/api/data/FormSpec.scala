@@ -323,6 +323,29 @@ class FormSpec extends Specification {
       .get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
   }
 
+  "include repeated mapping prefixes in sub-mapping metadata" in {
+    val form = Form(
+      tuple(
+        "a1" -> single("a2" -> nonEmptyText),
+        "a3" -> list(text),
+        "a4" -> number
+      )
+    )
+
+    form.mapping.mappings.map(_.key) must equalTo(Seq("", "a1", "a1.a2", "a3", "a4"))
+  }
+
+  "include repeated mapping prefixes in field constraints and formats" in {
+    Form("emails" -> list(nonEmptyText)).constraints.keys must contain(exactly("emails"))
+    Form("numbers" -> list(number)).formats.keys must contain(exactly("numbers"))
+  }
+
+  "include repeated mapping prefixes in nested sub-mapping metadata" in {
+    val form = Form("items" -> list(tuple("count" -> number, "label" -> nonEmptyText)))
+
+    form.mapping.mappings.map(_.key) must equalTo(Seq("items", "items.count", "items.label"))
+  }
+
   "support repeated values with set" in {
     ScalaForms.repeatedFormWithSet.bindFromRequest(Map("name" -> Seq("Kiki"))).get must equalTo(("Kiki", Set()))
     ScalaForms.repeatedFormWithSet
