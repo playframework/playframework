@@ -179,10 +179,33 @@ lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "persiste
   .dependsOn(PlaySpecs2Project % "test", PlayGuiceProject % "test")
 
 lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/play-java-jpa")
-  .settings(libraryDependencies ++= jpaDeps)
+  .settings(
+    libraryDependencies ++= jpaDeps,
+    Test / javaOptions ++= Seq(
+      s"-Dplay.jpa.expectedHibernateVersion=${hibernate.revision}",
+      "-Dplay.jpa.expectedPersistenceVersion=4.0.0-M8"
+    )
+  )
   .dependsOn(PlayJavaJdbcProject % "compile->compile;test->test")
   .dependsOn(PlayJdbcEvolutionsProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
+
+// Run the same JPA tests against the same compiled Play classes, without inheriting Hibernate 8's test classpath.
+lazy val PlayJpaHibernate7Project =
+  PlayCrossBuiltProject("Play-Java-JPA-Hibernate7", "persistence/play-java-jpa-hibernate7")
+    .settings(disablePublishing)
+    .settings(
+      libraryDependencies ++= Seq(hibernate7 % Test, h2database % Test) ++ javaTestDeps,
+      Test / unmanagedSourceDirectories   := (PlayJpaProject / Test / unmanagedSourceDirectories).value,
+      Test / unmanagedResourceDirectories := (PlayJpaProject / Test / unmanagedResourceDirectories).value,
+      Test / javaOptions ++= Seq(
+        s"-Dplay.jpa.expectedHibernateVersion=${hibernate7.revision}",
+        s"-Dplay.jpa.expectedPersistenceVersion=${jpaApi.revision}"
+      ),
+      mimaPreviousArtifacts := Set.empty,
+      Docs.apiDocsInclude   := false
+    )
+    .dependsOn(PlayJpaProject)
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")
   .settings(
@@ -494,6 +517,7 @@ lazy val userProjects = Seq[ProjectReference](
   PlayJavaClusterSharding
 )
 lazy val nonUserProjects = Seq[ProjectReference](
+  PlayJpaHibernate7Project,
   PlayMicrobenchmarkProject,
   PlayDocsProject,
   PlayIntegrationTestProject,

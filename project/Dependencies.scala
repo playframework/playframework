@@ -84,12 +84,13 @@ object Dependencies {
     "tyrex"              % "tyrex"     % "1.0.1"
   ) ++ specs2Deps.map(_ % Test)
 
-  val jpaDeps = Seq(
-    // Keep the compile-time API aligned with Hibernate ORM 8's Jakarta Persistence requirement.
-    "jakarta.persistence" % "jakarta.persistence-api" % "4.0.0-M8",
-    "org.hibernate.orm"   % "hibernate-core"          % "8.0.0.CR1" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "8.0.0.CR1" % "test"
-  )
+  // Keep Play's minimum API at 3.2; Hibernate ORM 8 supplies API 4.0 to its consumers and our tests.
+  val jpaApi    = "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0"
+  val hibernate = "org.hibernate.orm"   % "hibernate-core"          % "8.0.0.CR1"
+  // This dependency deliberately stays on Hibernate ORM 7 to check compatibility with API 3.2.
+  val hibernate7 = "org.hibernate.orm" % "hibernate-core" % "7.4.17.Final"
+
+  val jpaDeps = Seq(jpaApi, hibernate % Test)
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
     case Some((3, _)) => Seq()

@@ -4,16 +4,24 @@
 
 ## Adding dependencies to your project
 
-First you need to tell Play that your project depends on `javaJpa` which provides JDBC and Jakarta Persistence API dependencies. Play 3.1 uses Jakarta Persistence 4.0 (`4.0.0-M8`), so choose a provider compatible with that API and remove overrides that force an older Jakarta Persistence API version.
+First you need to tell Play that your project depends on `javaJpa` which provides JDBC and Jakarta Persistence API dependencies. Play keeps Jakarta Persistence 3.2 as its minimum API dependency and supports Hibernate ORM 7 with API 3.2 and Hibernate ORM 8 with API 4.0. Hibernate ORM 8 is the recommended provider.
 
 There is no built-in JPA implementation in Play; you can choose any available implementation. For example, to use [Hibernate](http://hibernate.org/), just add the following dependency to your project:
 
 @[jpa-sbt-dependencies](code/jpa.sbt)
 
+Hibernate ORM 8 requires Jakarta Persistence 4.0 on both the compile and runtime classpaths. The dependency above brings in that API transitively in ordinary sbt and Gradle builds. If you declare Hibernate only at runtime, or consume `javaJpa` using Maven, add the Jakarta Persistence API version required by Hibernate explicitly as a compile dependency.
+
 When using Hibernate ORM 7 or newer, keep these changes in mind:
 
 - Prefer listing your entities explicitly with `<class>...</class>` entries in `persistence.xml`. Automatic classpath scanning is no longer the old default. If you prefer automatic discovery, add Hibernate's `hibernate-scan-jandex` module. With Hibernate ORM 8, also set `<exclude-unlisted-classes>false</exclude-unlisted-classes>` to scan the persistence-unit root. See the Hibernate ORM 7 migration guide section on [Jandex scanning](https://docs.hibernate.org/orm/7.0/migration-guide/#jandex-scanning) and the [Hibernate ORM 8 migration guide](https://docs.hibernate.org/orm/8.0/migration-guide/).
 - If you are not intentionally using JPA bean validation, set `<validation-mode>NONE</validation-mode>` in `persistence.xml`. Hibernate ORM 7 now propagates validator bootstrap failures that older versions often ignored. See the Hibernate ORM 7 migration guide section on [validator integration with `AUTO`](https://docs.hibernate.org/orm/7.0/migration-guide/#validator-integration-auto).
+
+## Using Hibernate ORM 7
+
+To use Hibernate ORM 7, replace the Hibernate dependency above with a 7.x version and keep Jakarta Persistence API 3.2. No override of Play's API dependency is needed. Use `version="3.2"` and `persistence_3_2.xsd` in `persistence.xml`; the Jakarta Persistence namespace and explicit entity registration shown below are unchanged.
+
+The transaction examples in this guide use Jakarta Persistence 4.0 APIs with Hibernate ORM 8. With Hibernate ORM 7, keep application code compatible with API 3.2: use `Query.executeUpdate()` for native updates instead of `createNativeStatement(...).execute()`, and do not use `Statement`, `@NamedStatement`, or `@NamedNativeStatement`. Play's integration supports both providers, but application code and libraries using changed API signatures must be compiled against the appropriate API version.
 
 ## Exposing the datasource through JNDI
 
@@ -29,7 +37,7 @@ See the [[Database docs|AccessingAnSQLDatabase]] for more information about how 
 
 Next you have to create a proper `persistence.xml` JPA configuration file. Put it into the `conf/META-INF` directory, so it will be properly added to your classpath.
 
-Here is a sample configuration file to use with Hibernate:
+Here is a sample configuration file to use with Hibernate ORM 8:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -56,7 +64,7 @@ The Jakarta Persistence namespace and the Hibernate provider class are unchanged
 
 If you do want Hibernate Validator integration, add a Jakarta Expression Language implementation to your classpath as well, or configure Hibernate Validator to use a non-EL message interpolator.
 
-For applications upgrading from an earlier Play version, see the [[JPA migration notes|Migration31#JPA-upgraded-to-Jakarta-Persistence-4.0]].
+For applications upgrading from an earlier Play version, see the [[JPA migration notes|Migration31#JPA-supports-Hibernate-ORM-8-and-7]].
 
 Finally you have to tell Play, which persistent unit should be used by your JPA provider. This is done by setting the `jpa.default` property in your `conf/application.conf`.
 
@@ -114,6 +122,8 @@ database.dispatcher {
 The `JPAApi` provides you various `withTransaction(...)` methods to execute arbitrary code inside a JPA transaction. These methods however do not include a custom execution context and therefore must be wrapped inside a `CompletableFuture` with an IO bound execution context.
 
 ### Examples
+
+These examples target Hibernate ORM 8 and Jakarta Persistence 4.0. See [[Using Hibernate ORM 7|JavaJPA#Using-Hibernate-ORM-7]] if you use the older provider.
 
 Using [`JPAApi.withTransaction(Function<EntityManager, T>)`](api/java/play/db/jpa/JPAApi.html#withTransaction\(java.util.function.Function\)):
 

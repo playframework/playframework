@@ -85,7 +85,8 @@ public class DefaultJPAApi implements JPAApi {
     if (emf == null) {
       return null;
     }
-    return emf.createEntityManager();
+    // The Map overload has the same binary signature in Jakarta Persistence 3.2 and 4.0.
+    return emf.createEntityManager(Map.of());
   }
 
   /**
