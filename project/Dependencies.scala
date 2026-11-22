@@ -31,7 +31,7 @@ object Dependencies {
 
   val playJsonVersion = "2.10.8"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.6"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.8"
 
   val bytebuddyVersion = "1.17.8"
   val bytebuddy        = "net.bytebuddy" % "byte-buddy"       % bytebuddyVersion
@@ -245,7 +245,7 @@ object Dependencies {
     Seq(playFileWatch, logback % Test) ++ specs2Deps.map(_ % Test)
   }
 
-  val typesafeConfig = "com.typesafe" % "config" % "1.4.9"
+  val typesafeConfig = "com.typesafe" % "config" % "1.4.10"
 
   def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
     def sbtDep(moduleId: ModuleID) = sbtPluginDep(moduleId, sbtVersion, scalaVersion)
