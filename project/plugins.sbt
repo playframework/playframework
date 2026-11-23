@@ -9,12 +9,12 @@ resolvers += Resolver.sonatypeCentralSnapshots
 val sbtNativePackager  = "1.13.0"
 val mima               = "1.2.1"
 val sbtJavaFormatter   = "0.14.0"
-val sbtJmh             = "0.4.8"
+val sbtJmh             = "0.4.9"
 val webjarsLocatorCore = "0.59"
 val sbtHeader          = "5.11.0"
 val scalafmt           = "2.5.6"
 val sbtTwirl: String   =
-  sys.props.getOrElse("twirl.version", "2.1.0-M9+168-53e6024d-SNAPSHOT") // sync with documentation/project/plugins.sbt
+  sys.props.getOrElse("twirl.version", "2.1.0-M9+181-7ef06d30-SNAPSHOT") // sync with documentation/project/plugins.sbt
 
 buildInfoPackage := "playbuildinfo"
 buildInfoKeys    := Seq[BuildInfoKey](
@@ -29,7 +29,7 @@ scalacOptions += "-deprecation"
 addSbtPlugin("org.playframework.twirl" % "sbt-twirl"          % sbtTwirl)
 addSbtPlugin("com.typesafe"            % "sbt-mima-plugin"    % mima)
 addSbtPlugin("com.github.sbt"          % "sbt-java-formatter" % sbtJavaFormatter)
-addSbtPlugin("pl.project13.scala"      % "sbt-jmh"            % sbtJmh)
+addSbtPlugin("com.github.sbt"          % "sbt-jmh"            % sbtJmh)
 addSbtPlugin("com.github.sbt"          % "sbt-header"         % sbtHeader)
 addSbtPlugin("org.scalameta"           % "sbt-scalafmt"       % scalafmt)
 addSbtPlugin("com.github.sbt"          % "sbt-ci-release"     % "1.12.1")

@@ -13,7 +13,7 @@ object Dependencies {
 
   val playJsonVersion = "3.1.0-M10+90-e2ddbd4c-SNAPSHOT"
 
-  val logback = "ch.qos.logback" % "logback-classic" % "1.6.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.6.8"
 
   val specs2Version = "4.23.0"
   val specs2Deps    = Seq(
@@ -86,8 +86,8 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.16.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.16.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "7.4.17.Final" % "test",
+    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.17.Final" % "test"
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
@@ -113,7 +113,7 @@ object Dependencies {
   )
 
   val javaFormsDeps = Seq(
-    "org.hibernate.validator" % "hibernate-validator" % "9.2.0.CR2"
+    "org.hibernate.validator" % "hibernate-validator" % "9.2.0.Final"
   ) ++ specs2Deps.map(_ % Test)
 
   val junitInterface = "com.github.sbt" % "junit-interface" % "0.13.3"
@@ -221,7 +221,7 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013-1" % "webjars"
   )
 
-  val playDocVersion       = "3.1.0-M1+69-ebabbf32-SNAPSHOT"
+  val playDocVersion       = "3.1.0-M1+76-87aaa5f8-SNAPSHOT"
   val playDocsDependencies = Seq(
     "org.playframework" %% "play-doc" % playDocVersion
   ) ++ playdocWebjarDependencies
@@ -244,7 +244,7 @@ object Dependencies {
     "org.apache.pekko" %% "pekko-cluster-sharding-typed" % pekkoVersion
   )
 
-  val selenideVersion = "7.19.1"
+  val selenideVersion = "7.19.2"
   // HtmlUnitDriver is not part of Selenium/Selenide, but it is still the default browser of Play's TestBrowser.
   val htmlunitDriverVersion = "4.52.0"
 
@@ -273,7 +273,7 @@ object Dependencies {
     "com.github.ben-manes.caffeine" % "jcache"   % caffeineVersion
   ) ++ jcacheApi ++ Seq(assertj % Test)
 
-  val playWsStandaloneVersion = "3.1.0-M14+81-d2d3ccd9-SNAPSHOT"
+  val playWsStandaloneVersion = "3.1.0-M14+94-6b2a707c-SNAPSHOT"
   val playWsDeps              = Seq(
     "org.playframework" %% "play-ws-standalone"      % playWsStandaloneVersion,
     "org.playframework" %% "play-ws-standalone-xml"  % playWsStandaloneVersion,
