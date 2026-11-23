@@ -25,6 +25,6 @@ lazy val itTests = (project in file("integration-tests"))
     evictionErrorLevel           := Level.Warn,
     // test dependencies
     libraryDependencies ++= Seq(
-      "org.scalatestplus.play" %% "scalatestplus-play" % "8.0.0-M1" % Test
+      "org.scalatestplus.play" %% "scalatestplus-play" % "8.0.0-M2+95-3cde726d-SNAPSHOT" % Test
     )
   )
