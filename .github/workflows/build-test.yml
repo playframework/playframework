@@ -72,6 +72,7 @@ jobs:
       - "gradle-validation"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: code-style
       cmd: |
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "savePlayVersion; validateCode"
         cd dev-mode/gradle-plugin
@@ -82,12 +83,15 @@ jobs:
     name: Binary Compatibility
     needs: "prefetch-for-caching"
     uses: playframework/.github/.github/workflows/binary-check.yml@v4
+    with:
+      sbt-cache-namespace: binary-compatibility
 
   check-code-style-docs:
     name: Code Style Docs
     needs: "prefetch-for-caching"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: code-style-docs
       cmd: |
         cd documentation
         sbt validateCode
@@ -101,6 +105,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: api-docs-package-tree
       cmd: >-
         sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" +Play-Docs/checkApiDocsPackageTree
 
@@ -113,6 +118,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: publish-local
       java: 25, 21, 17
       exclude: >-
         [
@@ -136,6 +142,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: tests
       java: 25, 21, 17
       # Symbolic lanes resolve to exact versions in project/Versions.scala.
       scala: 2.13.x, 3.3.x, 3.9.x, 3.next
@@ -161,6 +168,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: docs-tests
       java: 25, 21, 17
       # Symbolic lanes resolve to exact versions in project/Versions.scala.
       scala: 2.13.x, 3.3.x, 3.9.x, 3.next
