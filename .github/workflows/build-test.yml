@@ -125,8 +125,12 @@ jobs:
           { "java": "${{ github.event_name == 'schedule' || '21' }}" }
         ]
       cmd: |
-        rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
-        sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "crossScalaVersions; crossSbtVersions; +publishLocal; +publishM2"
+        if [ "$GITHUB_EVENT_NAME" != "schedule" ] && [ "$CACHE_HIT_CUSTOM" = "true" ]; then
+          echo "Using cached local publications."
+        else
+          rm -rf ~/.ivy2/local ~/.m2/repository/org/playframework
+          sbt "${{needs.extra-vars.outputs.pekko_version_opts}}" "${{needs.extra-vars.outputs.pekko_http_version_opts}}" "crossScalaVersions; crossSbtVersions; +publishLocal; +publishM2"
+        fi
       cache-path: |
         ~/.ivy2/local/org.playframework
         ~/.m2/repository/org/playframework
