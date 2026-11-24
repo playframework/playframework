@@ -191,6 +191,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      sbt-cache-namespace: scripted-tests
       java: 25, 21, 17
       # Scripted tests consume locally published 2.13/3.3 artifacts with each supported compiler line.
       scala: 2.13.x, 3.3.x, 3.9.x, 3.next
@@ -216,6 +217,7 @@ jobs:
           set scriptedSbt := \"$MATRIX_SBT\";
           set scriptedLaunchOpts += \"-Dscala.version=\" + ScalaVersions.resolveScalaVersion(\"$MATRIX_SCALA\");
           set scriptedLaunchOpts += \"-Dscala.crossversions=\" + ScalaVersions.testedScalaVersions.mkString(\" \");
+          set scriptedLaunchOpts += \"-Dsbt.global.localcache=\" + sys.props(\"user.home\") + \"/.cache/sbt\";
           show scriptedSbt;
           show scriptedLaunchOpts;
           disableIncompatibleScriptedTests;
