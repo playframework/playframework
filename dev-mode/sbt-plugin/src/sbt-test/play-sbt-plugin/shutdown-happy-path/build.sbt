@@ -23,6 +23,10 @@ lazy val root = (project in file("."))
     test / fork                                     := false,
     PlayKeys.playInteractionMode                    := play.sbt.StaticPlayNonBlockingInteractionMode,
     commands += ScriptedTools.assertProcessIsStopped,
+    commands += {
+      val testCommand = if (sbtVersion.value.startsWith("2.")) "test --cache_test_result=false" else "test"
+      Command.command("testShutdown") { state => testCommand :: state }
+    },
     InputKey[Unit]("awaitPidfileDeletion") := {
       val pidFile = (Universal / universalStagingDirectory).value / "RUNNING_PID"
       // Use a polling loop of at most 30sec. Without it, the `scripted-test` moves on

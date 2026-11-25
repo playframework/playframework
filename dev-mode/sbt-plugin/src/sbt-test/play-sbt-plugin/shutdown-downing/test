@@ -58,7 +58,7 @@ $ delete target/proofs/application-actorsystem-name.txt
 
 
 ## Run user forked tests (See build.sbt)
-> test
+> testShutdown
 
 # Mode.Test doesn't create a PID_FILE but runs CoordinatedShutdown
 -$ exists target/universal/stage/RUNNING_PID
