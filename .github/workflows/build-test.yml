@@ -146,6 +146,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      fail-fast: false
       sbt-cache-namespace: tests
       java: 25, 21, 17
       # Symbolic lanes resolve to exact versions in project/Versions.scala.
@@ -172,6 +173,7 @@ jobs:
       - "check-code-style-docs"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      fail-fast: false
       sbt-cache-namespace: docs-tests
       java: 25, 21, 17
       # Symbolic lanes resolve to exact versions in project/Versions.scala.
@@ -191,6 +193,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      fail-fast: false
       sbt-cache-namespace: scripted-tests
       java: 25, 21, 17
       # Scripted tests consume locally published 2.13/3.3 artifacts with each supported compiler line.
@@ -235,6 +238,7 @@ jobs:
       - "publish-local"
     uses: playframework/.github/.github/workflows/cmd.yml@v4
     with:
+      fail-fast: false
       java: 25, 21, 17
       # Gradle only consumes the locally published artifacts by binary suffix, so one lane per suffix is enough.
       scala: 2.13.x, 3.3.x
