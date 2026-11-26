@@ -164,6 +164,8 @@ curl \
   'https://www.playframework.com'
 ```
 
+> **Warning**: `AhcCurlRequestLogger` logs the request at `INFO` level without redaction. The output can contain passwords, `Authorization` and `Proxy-Authorization` headers, session cookies, credentials and other secrets in the URL, and in-memory request bodies. Use it only for controlled debugging, and do not enable it for traffic that carries secrets.
+
 ## Processing the Response
 
 Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done by applying transformations such as `thenApply` and `thenCompose` to the `CompletionStage`.

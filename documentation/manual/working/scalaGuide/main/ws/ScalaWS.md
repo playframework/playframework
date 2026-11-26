@@ -166,6 +166,8 @@ curl \
  http://localhost:19001/
 ```
 
+> **Warning**: `AhcCurlRequestLogger` logs the request at `INFO` level without redaction. The output can contain passwords, `Authorization` and `Proxy-Authorization` headers, session cookies, credentials and other secrets in the URL, and in-memory request bodies. Use it only for controlled debugging, and do not enable it for traffic that carries secrets.
+
 ## Processing the Response
 
 Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](https://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
