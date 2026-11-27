@@ -14,6 +14,9 @@
         <class>play.db.jpa.TestEntity</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <validation-mode>NONE</validation-mode>
+        <properties>
+            <property name="hibernate.tooling.schema.apply_validation_constraints" value="DISABLED"/>
+        </properties>
     </persistence-unit>
 
 </persistence>

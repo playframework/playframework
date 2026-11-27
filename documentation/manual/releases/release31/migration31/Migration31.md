@@ -44,7 +44,9 @@ Both providers can use a 3.2 `persistence.xml`. Adopt the 4.0 schema only when u
 
 When migrating to Hibernate ORM 8, replace mutation definitions using `@NamedQuery` or `@NamedNativeQuery` with `@NamedStatement` or `@NamedNativeStatement`. For native SQL updates, use `EntityManager.createNativeStatement(...).execute()` instead of the deprecated raw `Query.executeUpdate()` API. These statement APIs and annotations are not available with Hibernate ORM 7 and API 3.2.
 
-If you enable JPA bean validation with Hibernate ORM 8, review the changed [validation lifecycle](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-lifecycle), including the move from `pre-persist` to `pre-insert` for insert-time validation groups. Keep `<validation-mode>NONE</validation-mode>` if you do not use JPA bean validation.
+If you enable JPA bean validation with Hibernate ORM 8, review the changed [validation lifecycle](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-lifecycle), including the move from `pre-persist` to `pre-insert` for insert-time validation groups.
+
+If you do not use Bean Validation for JPA, set `<validation-mode>NONE</validation-mode>` and add `hibernate.tooling.schema.apply_validation_constraints` with the value `DISABLED` under `<properties>` in `persistence.xml`. The DDL setting defaults to `AUTO`, so disabling lifecycle callbacks alone can still bootstrap Hibernate Validator and fail if its Jakarta Expression Language implementation is missing. See Hibernate's [validation-derived DDL constraints](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-ddl-influence) and the [[JPA configuration example|JavaJPA#Creating-a-Persistence-Unit]].
 
 Hibernate ORM 8 now validates `orm.xml` and `hbm.xml` against their schemas by default. Review the [XML mapping validation changes](https://docs.hibernate.org/orm/8.0/migration-guide/#xml-validation) when migrating.
 
