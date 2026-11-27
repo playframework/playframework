@@ -182,6 +182,8 @@ lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "persistence/pl
   .settings(libraryDependencies ++= jpaDeps)
   .dependsOn(PlayJavaJdbcProject % "compile->compile;test->test")
   .dependsOn(PlayJdbcEvolutionsProject % "test")
+  // Match PlayJava applications, which include Hibernate Validator through javaForms.
+  .dependsOn(PlayJavaFormsProject % "test")
   .dependsOn(PlaySpecs2Project % "test")
 
 lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "testkit/play-test")

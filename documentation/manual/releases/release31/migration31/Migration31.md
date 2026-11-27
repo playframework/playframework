@@ -46,7 +46,9 @@ When migrating to Hibernate ORM 8, replace mutation definitions using `@NamedQue
 
 If you enable JPA bean validation with Hibernate ORM 8, review the changed [validation lifecycle](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-lifecycle), including the move from `pre-persist` to `pre-insert` for insert-time validation groups.
 
-If you do not use Bean Validation for JPA, set `<validation-mode>NONE</validation-mode>` and add `hibernate.tooling.schema.apply_validation_constraints` with the value `DISABLED` under `<properties>` in `persistence.xml`. The DDL setting defaults to `AUTO`, so disabling lifecycle callbacks alone can still bootstrap Hibernate Validator and fail if its Jakarta Expression Language implementation is missing. See Hibernate's [validation-derived DDL constraints](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-ddl-influence) and the [[JPA configuration example|JavaJPA#Creating-a-Persistence-Unit]].
+With Hibernate ORM 7, `<validation-mode>NONE</validation-mode>` alone skipped Bean Validation integration. Hibernate ORM 8 independently enables validation-derived DDL constraints by default, so `NONE` no longer prevents validator bootstrap. The `PlayJava` sbt plugin includes Hibernate Validator through `javaForms`, without a Jakarta Expression Language implementation by default. With those dependencies, applications that keep only `NONE` fail during JPA startup after upgrading to Hibernate ORM 8.
+
+To keep Bean Validation disabled as before, set `<validation-mode>NONE</validation-mode>` and add `hibernate.tooling.schema.apply_validation_constraints` with the value `DISABLED` under `<properties>` in `persistence.xml`. See Hibernate's [validation-derived DDL constraints](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-ddl-influence) and the [[JPA configuration example|JavaJPA#Creating-a-Persistence-Unit]].
 
 Hibernate ORM 8 now validates `orm.xml` and `hbm.xml` against their schemas by default. Review the [XML mapping validation changes](https://docs.hibernate.org/orm/8.0/migration-guide/#xml-validation) when migrating.
 
