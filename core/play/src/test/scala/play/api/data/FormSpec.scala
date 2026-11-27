@@ -281,6 +281,31 @@ class FormSpec extends Specification {
       )
       failingValidatorForm.fill("foo").errors must beEmpty
     }
+
+    "validate object mapping constraints when unbinding" in {
+      val passwordMapping = tuple(
+        "password"      -> nonEmptyText,
+        "passwordAgain" -> text
+      ).verifying("passwords must match", t => t._1 == t._2)
+      val passwords = ("", "not-same-value")
+
+      val (data, errors) = passwordMapping.unbindAndValidate(passwords)
+      data must_=== Map("password" -> "", "passwordAgain" -> "not-same-value")
+      errors must_=== Seq(
+        FormError("password", "error.required"),
+        FormError("", "passwords must match")
+      )
+
+      val filledAndValidated = Form(passwordMapping).fillAndValidate(passwords)
+      filledAndValidated.hasGlobalErrors must beTrue
+      filledAndValidated.errors must_=== errors
+
+      passwordMapping.withPrefix("account").unbindAndValidate(passwords)._2 must_=== Seq(
+        FormError("account.password", "error.required"),
+        FormError("account", "passwords must match")
+      )
+      passwordMapping.unbindAndValidate(("same-value", "same-value"))._2 must beEmpty
+    }
   }
 
   "render form using field[Type] syntax" in {
