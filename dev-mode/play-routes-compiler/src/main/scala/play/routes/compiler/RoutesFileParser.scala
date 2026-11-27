@@ -220,7 +220,7 @@ private[routes] class RoutesFileParser extends JavaTokenParsers {
   }
 
   def httpVerb: Parser[HttpVerb] =
-    namedError("GET" | "POST" | "PUT" | "PATCH" | "HEAD" | "DELETE" | "OPTIONS", "HTTP Verb expected") ^^ {
+    namedError("GET" | "POST" | "PUT" | "PATCH" | "HEAD" | "DELETE" | "OPTIONS" | "QUERY", "HTTP Verb expected") ^^ {
       case v => HttpVerb(v)
     }
 

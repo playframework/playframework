@@ -53,4 +53,9 @@ trait RequestMethodExtractors {
    * Extracts a HEAD request.
    */
   val HEAD = new RequestMethodExtractor("HEAD")
+
+  /**
+   * Extracts a QUERY request.
+   */
+  val QUERY = new RequestMethodExtractor("QUERY")
 }
