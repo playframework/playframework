@@ -44,7 +44,11 @@ Both providers can use a 3.2 `persistence.xml`. Adopt the 4.0 schema only when u
 
 When migrating to Hibernate ORM 8, replace mutation definitions using `@NamedQuery` or `@NamedNativeQuery` with `@NamedStatement` or `@NamedNativeStatement`. For native SQL updates, use `EntityManager.createNativeStatement(...).execute()` instead of the deprecated raw `Query.executeUpdate()` API. These statement APIs and annotations are not available with Hibernate ORM 7 and API 3.2.
 
-If you enable JPA bean validation with Hibernate ORM 8, review the changed [validation lifecycle](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-lifecycle), including the move from `pre-persist` to `pre-insert` for insert-time validation groups. Keep `<validation-mode>NONE</validation-mode>` if you do not use JPA bean validation.
+If you enable JPA bean validation with Hibernate ORM 8, review the changed [validation lifecycle](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-lifecycle), including the move from `pre-persist` to `pre-insert` for insert-time validation groups.
+
+With Hibernate ORM 7, `<validation-mode>NONE</validation-mode>` alone skipped Bean Validation integration. Hibernate ORM 8 independently enables validation-derived DDL constraints by default, so `NONE` no longer prevents validator bootstrap. The `PlayJava` sbt plugin includes Hibernate Validator through `javaForms`, without a Jakarta Expression Language implementation by default. With those dependencies, applications that keep only `NONE` fail during JPA startup after upgrading to Hibernate ORM 8.
+
+To keep Bean Validation disabled as before, set `<validation-mode>NONE</validation-mode>` and add `hibernate.tooling.schema.apply_validation_constraints` with the value `DISABLED` under `<properties>` in `persistence.xml`. See Hibernate's [validation-derived DDL constraints](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-ddl-influence) and the [[JPA configuration example|JavaJPA#Creating-a-Persistence-Unit]].
 
 Hibernate ORM 8 now validates `orm.xml` and `hbm.xml` against their schemas by default. Review the [XML mapping validation changes](https://docs.hibernate.org/orm/8.0/migration-guide/#xml-validation) when migrating.
 

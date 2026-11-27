@@ -15,11 +15,13 @@ Hibernate ORM 8 requires Jakarta Persistence 4.0 on both the compile and runtime
 When using Hibernate ORM 7 or newer, keep these changes in mind:
 
 - Prefer listing your entities explicitly with `<class>...</class>` entries in `persistence.xml`. Automatic classpath scanning is no longer the old default. If you prefer automatic discovery, add Hibernate's `hibernate-scan-jandex` module. With Hibernate ORM 8, also set `<exclude-unlisted-classes>false</exclude-unlisted-classes>` to scan the persistence-unit root. See the Hibernate ORM 7 migration guide section on [Jandex scanning](https://docs.hibernate.org/orm/7.0/migration-guide/#jandex-scanning) and the [Hibernate ORM 8 migration guide](https://docs.hibernate.org/orm/8.0/migration-guide/).
-- If you are not intentionally using JPA bean validation, set `<validation-mode>NONE</validation-mode>` in `persistence.xml`. Hibernate ORM 7 now propagates validator bootstrap failures that older versions often ignored. See the Hibernate ORM 7 migration guide section on [validator integration with `AUTO`](https://docs.hibernate.org/orm/7.0/migration-guide/#validator-integration-auto).
+- If you do not use Bean Validation for JPA, set `<validation-mode>NONE</validation-mode>` in `persistence.xml`. With Hibernate ORM 8, also set `hibernate.tooling.schema.apply_validation_constraints` to `DISABLED` under `<properties>`, as shown below. The two settings control lifecycle validation and [validation-derived DDL constraints](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-ddl-influence) separately.
 
 ## Using Hibernate ORM 7
 
 To use Hibernate ORM 7, replace the Hibernate dependency above with a 7.x version and keep Jakarta Persistence API 3.2. No override of Play's API dependency is needed. Use `version="3.2"` and `persistence_3_2.xsd` in `persistence.xml`; the Jakarta Persistence namespace and explicit entity registration shown below are unchanged.
+
+Hibernate ORM 7 propagates validator bootstrap failures in `AUTO` validation mode. If you do not use Bean Validation for JPA, `<validation-mode>NONE</validation-mode>` alone is sufficient to skip that integration with Hibernate ORM 7. See the [Hibernate ORM 7 migration notes on validator integration](https://docs.hibernate.org/orm/7.0/migration-guide/#validator-integration-auto).
 
 The transaction examples in this guide use Jakarta Persistence 4.0 APIs with Hibernate ORM 8. With Hibernate ORM 7, keep application code compatible with API 3.2: use `Query.executeUpdate()` for native updates instead of `createNativeStatement(...).execute()`, and do not use `Statement`, `@NamedStatement`, or `@NamedNativeStatement`. Play's integration supports both providers, but application code and libraries using changed API signatures must be compiled against the appropriate API version.
 
@@ -53,6 +55,7 @@ Here is a sample configuration file to use with Hibernate ORM 8:
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <validation-mode>NONE</validation-mode>
         <properties>
+            <property name="hibernate.tooling.schema.apply_validation_constraints" value="DISABLED"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
         </properties>
     </persistence-unit>
@@ -62,7 +65,9 @@ Here is a sample configuration file to use with Hibernate ORM 8:
 
 The Jakarta Persistence namespace and the Hibernate provider class are unchanged. The example uses the 4.0 schema and lists its entities explicitly, before `<exclude-unlisted-classes>` and `<validation-mode>` as required by the schema. Hibernate ORM 8 can also read older persistence descriptors. If you register package or module annotations, use `<package-descriptor>com.example</package-descriptor>` or `<module-descriptor>com.example.module</module-descriptor>` instead of listing `package-info` or `module-info` as a `<class>`.
 
-If you do want Hibernate Validator integration, add a Jakarta Expression Language implementation to your classpath as well, or configure Hibernate Validator to use a non-EL message interpolator.
+These validation settings disable both lifecycle callbacks and validation-derived DDL constraints. In Hibernate ORM 8, the DDL setting defaults to `AUTO`, so `<validation-mode>NONE</validation-mode>` alone can still bootstrap Hibernate Validator. The `PlayJava` sbt plugin includes Hibernate Validator through `javaForms`, without a Jakarta Expression Language implementation by default, so JPA startup fails with those dependencies unless the DDL opt-out is also set.
+
+To enable lifecycle validation, use `AUTO` or `CALLBACK` for `<validation-mode>`. To apply validation constraints to DDL, use `AUTO` or `REQUIRED` for `hibernate.tooling.schema.apply_validation_constraints`. When using Hibernate Validator, also add a Jakarta Expression Language implementation to your classpath, or configure a non-EL message interpolator.
 
 For applications upgrading from an earlier Play version, see the [[JPA migration notes|Migration31#JPA-supports-Hibernate-ORM-8-and-7]].
 
