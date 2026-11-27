@@ -1,0 +1,1283 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package snapshot;
+
+import org.apache.pekko.japi.JavaPartialFunction;
+import play.api.mvc.Handler;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.api.mvc.RequestHeader;
+import play.core.routing.*;
+import play.core.routing.Route.*;
+import play.core.routing.HandlerInvokerFactory.*;
+import play.libs.Scala;
+
+import java.lang.*;
+import java.util.*;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
+
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
+public class Routes extends JavaGeneratedRouter {
+
+  private final play.api.http.HttpErrorHandler errorHandler;
+  // @LINE:7
+  private final controllers.Application Application_1;
+  // @LINE:12
+  private final controllers.StringController StringController_4;
+  // @LINE:13
+  private final controllers.Assets Assets_3;
+  // @LINE:22
+  private final controllers.Application Application_5;
+  // @LINE:25
+  private final jakarta.inject.Provider<controllers.InstanceController> InstanceController_0;
+  // @LINE:26
+  private final controllers.module.ModuleController ModuleController_2;
+  // @LINE:46
+  private final module.Routes module_Routes_0;
+  private final String prefix;
+  // @LINE:46
+  private final Include prefixed_module_Routes_0_26;
+
+  private final ConcurrentHashMap<String, ParamsExtractor> routes = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, HandlerInvoker> invokers = new ConcurrentHashMap<>();
+
+  public Routes(
+    play.api.http.HttpErrorHandler errorHandler,
+    // @LINE:7
+    controllers.Application Application_1,
+    // @LINE:12
+    controllers.StringController StringController_4,
+    // @LINE:13
+    controllers.Assets Assets_3,
+    // @LINE:22
+    controllers.Application Application_5,
+    // @LINE:25
+    jakarta.inject.Provider<controllers.InstanceController> InstanceController_0,
+    // @LINE:26
+    controllers.module.ModuleController ModuleController_2,
+    // @LINE:46
+    module.Routes module_Routes_0,
+    String prefix
+  ) {
+    this.errorHandler = errorHandler;
+    this.Application_1 = Application_1;
+    this.StringController_4 = StringController_4;
+    this.Assets_3 = Assets_3;
+    this.Application_5 = Application_5;
+    this.InstanceController_0 = InstanceController_0;
+    this.ModuleController_2 = ModuleController_2;
+    this.module_Routes_0 = module_Routes_0;
+    this.prefix = prefix;
+    // @LINE:46
+    this.prefixed_module_Routes_0_26 = Include.apply(module_Routes_0.withPrefix(this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "module"));
+  }
+
+  @Override
+  public play.api.http.HttpErrorHandler errorHandler() {
+    return errorHandler;
+  }
+
+  @jakarta.inject.Inject
+  public Routes(play.api.http.HttpErrorHandler errorHandler,
+    // @LINE:7
+    controllers.Application Application_1,
+    // @LINE:12
+    controllers.StringController StringController_4,
+    // @LINE:13
+    controllers.Assets Assets_3,
+    // @LINE:22
+    controllers.Application Application_5,
+    // @LINE:25
+    jakarta.inject.Provider<controllers.InstanceController> InstanceController_0,
+    // @LINE:26
+    controllers.module.ModuleController ModuleController_2,
+    // @LINE:46
+    module.Routes module_Routes_0
+  ) {
+    this(errorHandler, Application_1, StringController_4, Assets_3, Application_5, InstanceController_0, ModuleController_2, module_Routes_0, "/");
+  }
+
+  public Routes withPrefix(String addPrefix) {
+    var prefix = play.api.routing.Router.concatPrefix(addPrefix, this.prefix);
+    snapshot.RoutesPrefix.setPrefix(prefix);
+    return new Routes(errorHandler, Application_1, StringController_4, Assets_3, Application_5, InstanceController_0, ModuleController_2, module_Routes_0, prefix);
+  }
+
+  private String defaultPrefix() {
+    return this.prefix.endsWith("/") ? "" : "/";
+  }
+
+  @Override
+  public scala.collection.immutable.Seq<scala.Tuple3<String, String, String>> documentation() {
+    List<scala.Tuple3<String, String, String>> docs = new ArrayList<>();
+    docs.add(scala.Tuple3.apply("GET", this.prefix, "controllers.Application.index"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "pattern/$x<\\d+>", "controllers.Application.uriPattern(x:String)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "urlcoding/$d<[^/]+>/$s<.+>", "controllers.Application.urlcoding(d:String, s:String, q:String)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "str-list-opt-d", "controllers.StringController.queryListOptionalDefault(`x[]?=`:java.util.Optional[java.util.List[String]] ?= java.util.Optional.of(java.util.List.of(\"abc\", \"def\")))"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "public/$file<.+>", "controllers.Assets.versioned(path:String = \"/public\", file:controllers.Assets.Asset)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "only-request", "controllers.Application.onlyRequestParam(req:Request)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "not-first-request", "controllers.Application.notFirstRequestParam(a:String, r:play.mvc.Http.Request)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "same-escaped-java-identifier", "controllers.Application.sameEscapedJavaIdentifier(`[]`:String, `%%`:String)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "keyword/class", "controllers.Application.keyword(class:String)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "root-prefixed-controller", "_root_.controllers.Application.rootPrefixedController"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "root-prefixed-param/fixed", "controllers.Application.rootPrefixedParam(x:_root_.java.lang.Integer = 3, y:java.util.Optional[_root_.java.lang.Integer])"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "root-prefixed-param/$x<[^/]+>", "controllers.Application.rootPrefixedParam(x:_root_.java.lang.Integer, y:java.util.Optional[_root_.java.lang.Integer])"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "instance", "@controllers.InstanceController@.index"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "module/index", "controllers.module.ModuleController.index"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "modifiers", "controllers.Application.modifiers(request:Request)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/renamed/fixed", "controllers.Application.renamedParams(value:String = \"fixed\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/renamed/$alias<[^/]+>", "controllers.Application.renamedParams(alias:String)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/shared/one", "controllers.Application.sharedFixedParams(first:String = \"constant\", second:String = \"one\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/shared/two", "controllers.Application.sharedFixedParams(first:String = \"constant\", second:String = \"two\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/shared", "controllers.Application.sharedFixedParams(first:String = \"constant\", second:String ?= \"default\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/fixed-only/one", "controllers.Application.fixedOnlyParams(first:String = \"constant\", second:String = \"one\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/fixed-only/two", "controllers.Application.fixedOnlyParams(first:String = \"constant\", second:String = \"two\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/unconstrained/$first<[^/]+>", "controllers.Application.unconstrainedFirst(first:String)"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/unreachable/fixed", "controllers.Application.unconstrainedFirst(first:String = \"fixed\")"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/fixed", "controllers.Application.reverse(b:java.lang.Boolean = true, c:java.lang.Character = \'a\', i:java.lang.Integer = 123, l:java.lang.Long = 123L, uuid:java.util.UUID = java.util.UUID.fromString(\"a90e582b-3c5b-4d37-b5f4-7730d2c672dd\"), ostr:java.util.Optional[String] = java.util.Optional.of(\"a\"))"));
+    docs.add(scala.Tuple3.apply("GET", this.prefix + (this.prefix.endsWith("/") ? "" : "/") + "reverse/non-fixed", "controllers.Application.reverse(b:java.lang.Boolean, c:java.lang.Character, i:java.lang.Integer, l:java.lang.Long, uuid:java.util.UUID, ostr:java.util.Optional[String])"));
+    docs.addAll(play.libs.Scala.asJava(this.prefixed_module_Routes_0_26.router().documentation()));
+    return play.libs.Scala.toSeq(docs);
+  }
+
+
+  // @LINE:7
+  private ParamsExtractor controllers_Application_index0_route() {
+    return routes.computeIfAbsent("controllers_Application_index0_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_index0_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_index0_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "index",
+          Scala.asScala(List.of()),
+          "GET",
+          this.prefix + "",
+          "## Comments\n The index page",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:10
+  private ParamsExtractor controllers_Application_uriPattern1_route() {
+    return routes.computeIfAbsent("controllers_Application_uriPattern1_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("pattern/"), new DynamicPart("x", "\\d+", false))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_uriPattern1_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_uriPattern1_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "uriPattern",
+          Scala.asScala(List.of(String.class)),
+          "GET",
+          this.prefix + "pattern/$x<\\d+>",
+          "## Path and query parameters",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:11
+  private ParamsExtractor controllers_Application_urlcoding2_route() {
+    return routes.computeIfAbsent("controllers_Application_urlcoding2_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("urlcoding/"), new DynamicPart("d", "[^/]+", true), new StaticPart("/"), new DynamicPart("s", ".+", false))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_urlcoding2_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_urlcoding2_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "urlcoding",
+          Scala.asScala(List.of(String.class, String.class, String.class)),
+          "GET",
+          this.prefix + "urlcoding/$d<[^/]+>/$s<.+>",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:12
+  private ParamsExtractor controllers_StringController_queryListOptionalDefault3_route() {
+    return routes.computeIfAbsent("controllers_StringController_queryListOptionalDefault3_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("str-list-opt-d"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_StringController_queryListOptionalDefault3_invoker() {
+    return invokers.computeIfAbsent("controllers_StringController_queryListOptionalDefault3_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.StringController",
+          "queryListOptionalDefault",
+          Scala.asScala(List.of(java.util.Optional.class)),
+          "GET",
+          this.prefix + "str-list-opt-d",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:13
+  private ParamsExtractor controllers_Assets_versioned4_route() {
+    return routes.computeIfAbsent("controllers_Assets_versioned4_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("public/"), new DynamicPart("file", ".+", false))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Assets_versioned4_invoker() {
+    return invokers.computeIfAbsent("controllers_Assets_versioned4_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Assets",
+          "versioned",
+          Scala.asScala(List.of(String.class, controllers.Assets.Asset.class)),
+          "GET",
+          this.prefix + "public/$file<.+>",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:16
+  private ParamsExtractor controllers_Application_onlyRequestParam5_route() {
+    return routes.computeIfAbsent("controllers_Application_onlyRequestParam5_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("only-request"))))
+    ));
+  }
+  private HandlerInvoker<scala.Function1<play.mvc.Http.Request, Object>> controllers_Application_onlyRequestParam5_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_onlyRequestParam5_invoker", (key) ->
+      createJavaInvoker(
+        true,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "onlyRequestParam",
+          Scala.asScala(List.of(play.mvc.Http.Request.class)),
+          "GET",
+          this.prefix + "only-request",
+          "## Request parameters",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:17
+  private ParamsExtractor controllers_Application_notFirstRequestParam6_route() {
+    return routes.computeIfAbsent("controllers_Application_notFirstRequestParam6_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("not-first-request"))))
+    ));
+  }
+  private HandlerInvoker<scala.Function1<play.mvc.Http.Request, Object>> controllers_Application_notFirstRequestParam6_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_notFirstRequestParam6_invoker", (key) ->
+      createJavaInvoker(
+        true,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "notFirstRequestParam",
+          Scala.asScala(List.of(String.class, play.mvc.Http.Request.class)),
+          "GET",
+          this.prefix + "not-first-request",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:20
+  private ParamsExtractor controllers_Application_sameEscapedJavaIdentifier7_route() {
+    return routes.computeIfAbsent("controllers_Application_sameEscapedJavaIdentifier7_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("same-escaped-java-identifier"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_sameEscapedJavaIdentifier7_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_sameEscapedJavaIdentifier7_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "sameEscapedJavaIdentifier",
+          Scala.asScala(List.of(String.class, String.class)),
+          "GET",
+          this.prefix + "same-escaped-java-identifier",
+          "## Names",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:21
+  private ParamsExtractor controllers_Application_keyword8_route() {
+    return routes.computeIfAbsent("controllers_Application_keyword8_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("keyword/class"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_keyword8_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_keyword8_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "keyword",
+          Scala.asScala(List.of(String.class)),
+          "GET",
+          this.prefix + "keyword/class",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:22
+  private ParamsExtractor _root__controllers_Application_rootPrefixedController9_route() {
+    return routes.computeIfAbsent("_root__controllers_Application_rootPrefixedController9_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("root-prefixed-controller"))))
+    ));
+  }
+  private HandlerInvoker<Object> _root__controllers_Application_rootPrefixedController9_invoker() {
+    return invokers.computeIfAbsent("_root__controllers_Application_rootPrefixedController9_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "_root_.controllers.Application",
+          "rootPrefixedController",
+          Scala.asScala(List.of()),
+          "GET",
+          this.prefix + "root-prefixed-controller",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:23
+  private ParamsExtractor controllers_Application_rootPrefixedParam10_route() {
+    return routes.computeIfAbsent("controllers_Application_rootPrefixedParam10_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("root-prefixed-param/fixed"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_rootPrefixedParam10_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_rootPrefixedParam10_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "rootPrefixedParam",
+          Scala.asScala(List.of(java.lang.Integer.class, java.util.Optional.class)),
+          "GET",
+          this.prefix + "root-prefixed-param/fixed",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:24
+  private ParamsExtractor controllers_Application_rootPrefixedParam11_route() {
+    return routes.computeIfAbsent("controllers_Application_rootPrefixedParam11_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("root-prefixed-param/"), new DynamicPart("x", "[^/]+", true))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_rootPrefixedParam11_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_rootPrefixedParam11_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "rootPrefixedParam",
+          Scala.asScala(List.of(java.lang.Integer.class, java.util.Optional.class)),
+          "GET",
+          this.prefix + "root-prefixed-param/$x<[^/]+>",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:25
+  private ParamsExtractor controllers_InstanceController_index12_route() {
+    return routes.computeIfAbsent("controllers_InstanceController_index12_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("instance"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_InstanceController_index12_invoker() {
+    return invokers.computeIfAbsent("controllers_InstanceController_index12_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.InstanceController",
+          "index",
+          Scala.asScala(List.of()),
+          "GET",
+          this.prefix + "instance",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:26
+  private ParamsExtractor controllers_module_ModuleController_index13_route() {
+    return routes.computeIfAbsent("controllers_module_ModuleController_index13_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("module/index"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_module_ModuleController_index13_invoker() {
+    return invokers.computeIfAbsent("controllers_module_ModuleController_index13_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.module.ModuleController",
+          "index",
+          Scala.asScala(List.of()),
+          "GET",
+          this.prefix + "module/index",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:30
+  private ParamsExtractor controllers_Application_modifiers14_route() {
+    return routes.computeIfAbsent("controllers_Application_modifiers14_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("modifiers"))))
+    ));
+  }
+  private HandlerInvoker<scala.Function1<play.mvc.Http.Request, Object>> controllers_Application_modifiers14_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_modifiers14_invoker", (key) ->
+      createJavaInvoker(
+        true,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "modifiers",
+          Scala.asScala(List.of(play.mvc.Http.Request.class)),
+          "GET",
+          this.prefix + "modifiers",
+          "## Modifiers",
+          Scala.asScala(List.of("nocsrf", "quote\"and\\backslash"))
+        )
+      )
+    );
+  }
+
+  // @LINE:33
+  private ParamsExtractor controllers_Application_renamedParams15_route() {
+    return routes.computeIfAbsent("controllers_Application_renamedParams15_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/renamed/fixed"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_renamedParams15_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_renamedParams15_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "renamedParams",
+          Scala.asScala(List.of(String.class)),
+          "GET",
+          this.prefix + "reverse/renamed/fixed",
+          "## Reverse routes sharing an action",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:34
+  private ParamsExtractor controllers_Application_renamedParams16_route() {
+    return routes.computeIfAbsent("controllers_Application_renamedParams16_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/renamed/"), new DynamicPart("alias", "[^/]+", true))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_renamedParams16_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_renamedParams16_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "renamedParams",
+          Scala.asScala(List.of(String.class)),
+          "GET",
+          this.prefix + "reverse/renamed/$alias<[^/]+>",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:35
+  private ParamsExtractor controllers_Application_sharedFixedParams17_route() {
+    return routes.computeIfAbsent("controllers_Application_sharedFixedParams17_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/shared/one"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_sharedFixedParams17_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_sharedFixedParams17_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "sharedFixedParams",
+          Scala.asScala(List.of(String.class, String.class)),
+          "GET",
+          this.prefix + "reverse/shared/one",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:36
+  private ParamsExtractor controllers_Application_sharedFixedParams18_route() {
+    return routes.computeIfAbsent("controllers_Application_sharedFixedParams18_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/shared/two"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_sharedFixedParams18_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_sharedFixedParams18_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "sharedFixedParams",
+          Scala.asScala(List.of(String.class, String.class)),
+          "GET",
+          this.prefix + "reverse/shared/two",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:37
+  private ParamsExtractor controllers_Application_sharedFixedParams19_route() {
+    return routes.computeIfAbsent("controllers_Application_sharedFixedParams19_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/shared"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_sharedFixedParams19_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_sharedFixedParams19_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "sharedFixedParams",
+          Scala.asScala(List.of(String.class, String.class)),
+          "GET",
+          this.prefix + "reverse/shared",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:38
+  private ParamsExtractor controllers_Application_fixedOnlyParams20_route() {
+    return routes.computeIfAbsent("controllers_Application_fixedOnlyParams20_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/fixed-only/one"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_fixedOnlyParams20_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_fixedOnlyParams20_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "fixedOnlyParams",
+          Scala.asScala(List.of(String.class, String.class)),
+          "GET",
+          this.prefix + "reverse/fixed-only/one",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:39
+  private ParamsExtractor controllers_Application_fixedOnlyParams21_route() {
+    return routes.computeIfAbsent("controllers_Application_fixedOnlyParams21_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/fixed-only/two"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_fixedOnlyParams21_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_fixedOnlyParams21_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "fixedOnlyParams",
+          Scala.asScala(List.of(String.class, String.class)),
+          "GET",
+          this.prefix + "reverse/fixed-only/two",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:40
+  private ParamsExtractor controllers_Application_unconstrainedFirst22_route() {
+    return routes.computeIfAbsent("controllers_Application_unconstrainedFirst22_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/unconstrained/"), new DynamicPart("first", "[^/]+", true))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_unconstrainedFirst22_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_unconstrainedFirst22_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "unconstrainedFirst",
+          Scala.asScala(List.of(String.class)),
+          "GET",
+          this.prefix + "reverse/unconstrained/$first<[^/]+>",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:41
+  private ParamsExtractor controllers_Application_unconstrainedFirst23_route() {
+    return routes.computeIfAbsent("controllers_Application_unconstrainedFirst23_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/unreachable/fixed"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_unconstrainedFirst23_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_unconstrainedFirst23_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "unconstrainedFirst",
+          Scala.asScala(List.of(String.class)),
+          "GET",
+          this.prefix + "reverse/unreachable/fixed",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:42
+  private ParamsExtractor controllers_Application_reverse24_route() {
+    return routes.computeIfAbsent("controllers_Application_reverse24_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/fixed"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_reverse24_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_reverse24_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "reverse",
+          Scala.asScala(List.of(java.lang.Boolean.class, java.lang.Character.class, java.lang.Integer.class, java.lang.Long.class, java.util.UUID.class, java.util.Optional.class)),
+          "GET",
+          this.prefix + "reverse/fixed",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+  // @LINE:43
+  private ParamsExtractor controllers_Application_reverse25_route() {
+    return routes.computeIfAbsent("controllers_Application_reverse25_route", (key) ->
+      Route.apply("GET", new PathPattern(Scala.asScala(List.<PathPart>of(new StaticPart(this.prefix), new StaticPart(this.defaultPrefix()), new StaticPart("reverse/non-fixed"))))
+    ));
+  }
+  private HandlerInvoker<Object> controllers_Application_reverse25_invoker() {
+    return invokers.computeIfAbsent("controllers_Application_reverse25_invoker", (key) ->
+      createJavaInvoker(
+        false,
+        new play.api.routing.HandlerDef(this.getClass().getClassLoader(),
+          "snapshot",
+          "controllers.Application",
+          "reverse",
+          Scala.asScala(List.of(java.lang.Boolean.class, java.lang.Character.class, java.lang.Integer.class, java.lang.Long.class, java.util.UUID.class, java.util.Optional.class)),
+          "GET",
+          this.prefix + "reverse/non-fixed",
+          "",
+          Scala.asScala(List.of())
+        )
+      )
+    );
+  }
+
+
+  @Override
+  public scala.PartialFunction<RequestHeader, Handler> routes() {
+
+    // Avoid the inherited runWith signature clash between Scala library versions.
+    return new scala.PartialFunction<>() {
+      @Override
+      public boolean isDefinedAt(RequestHeader _req) {
+        try {
+          apply(_req, true);
+          return true;
+        } catch (JavaPartialFunction.NoMatchException e) {
+          return false;
+        }
+      }
+
+      @Override
+      public Handler apply(RequestHeader _req) {
+        try {
+          return apply(_req, false);
+        } catch (JavaPartialFunction.NoMatchException e) {
+          throw new scala.MatchError(_req);
+        }
+      }
+
+      @Override
+      public <A1 extends RequestHeader, B1> B1 applyOrElse(A1 _req, scala.Function1<A1, B1> defaultFunction) {
+        try {
+          return (B1) apply(_req, false);
+        } catch (JavaPartialFunction.NoMatchException e) {
+          return defaultFunction.apply(_req);
+        }
+      }
+
+      private Handler apply(RequestHeader _req, boolean isCheck) {
+        if (_req != null) {
+          scala.Option<RouteParams> params;
+          scala.Option<Handler> include;
+
+          // @LINE:7
+          params = controllers_Application_index0_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+
+              () -> {
+
+                return controllers_Application_index0_invoker().call(() ->
+                  Application_1.index()
+                );
+              }
+            );
+          }
+
+          // @LINE:10
+          params = controllers_Application_uriPattern1_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromPath("x", scala.Option.empty(),(PathBindable<String>)pathBindableFor(String.class)),
+              (x0) -> {
+
+                return controllers_Application_uriPattern1_invoker().call(() ->
+                  Application_1.uriPattern(x0)
+                );
+              }
+            );
+          }
+
+          // @LINE:11
+          params = controllers_Application_urlcoding2_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromPath("d", scala.Option.empty(),(PathBindable<String>)pathBindableFor(String.class)),
+              params.get().fromPath("s", scala.Option.empty(),(PathBindable<String>)pathBindableFor(String.class)),
+              params.get().fromQuery("q", scala.Option.empty(),(QueryStringBindable<String>)queryStringBindableFor(String.class)),
+              (d0, s1, q2) -> {
+
+                return controllers_Application_urlcoding2_invoker().call(() ->
+                  Application_1.urlcoding(d0, s1, q2)
+                );
+              }
+            );
+          }
+
+          // @LINE:12
+          params = controllers_StringController_queryListOptionalDefault3_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromQuery("x[]?=", scala.Some.apply(java.util.Optional.of(java.util.List.of("abc", "def"))),(QueryStringBindable<java.util.Optional<java.util.List<String>>>)queryStringBindableFor(java.util.Optional.class, java.util.List.class, String.class)),
+              (_x_____0) -> {
+
+                return controllers_StringController_queryListOptionalDefault3_invoker().call(() ->
+                  StringController_4.queryListOptionalDefault(_x_____0)
+                );
+              }
+            );
+          }
+
+          // @LINE:13
+          params = controllers_Assets_versioned4_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("path", new scala.util.Right<>("/public")),
+              params.get().fromPath("file", scala.Option.empty(),(PathBindable<controllers.Assets.Asset>)pathBindableFor(controllers.Assets.Asset.class)),
+              (path0, file1) -> {
+
+                return controllers_Assets_versioned4_invoker().call(() ->
+                  Assets_3.versioned(path0, file1)
+                );
+              }
+            );
+          }
+
+          // @LINE:16
+          params = controllers_Application_onlyRequestParam5_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+
+              () -> {
+
+                return controllers_Application_onlyRequestParam5_invoker().call(() ->
+                  (req) -> Application_1.onlyRequestParam(req)
+                );
+              }
+            );
+          }
+
+          // @LINE:17
+          params = controllers_Application_notFirstRequestParam6_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromQuery("a", scala.Option.empty(),(QueryStringBindable<String>)queryStringBindableFor(String.class)),
+              (a0) -> {
+
+                return controllers_Application_notFirstRequestParam6_invoker().call(() ->
+                  (req) -> Application_1.notFirstRequestParam(a0, req)
+                );
+              }
+            );
+          }
+
+          // @LINE:20
+          params = controllers_Application_sameEscapedJavaIdentifier7_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromQuery("[]", scala.Option.empty(),(QueryStringBindable<String>)queryStringBindableFor(String.class)),
+              params.get().fromQuery("%%", scala.Option.empty(),(QueryStringBindable<String>)queryStringBindableFor(String.class)),
+              (____0, ____1) -> {
+
+                return controllers_Application_sameEscapedJavaIdentifier7_invoker().call(() ->
+                  Application_1.sameEscapedJavaIdentifier(____0, ____1)
+                );
+              }
+            );
+          }
+
+          // @LINE:21
+          params = controllers_Application_keyword8_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromQuery("class", scala.Option.empty(),(QueryStringBindable<String>)queryStringBindableFor(String.class)),
+              (class0) -> {
+
+                return controllers_Application_keyword8_invoker().call(() ->
+                  Application_1.keyword(class0)
+                );
+              }
+            );
+          }
+
+          // @LINE:22
+          params = _root__controllers_Application_rootPrefixedController9_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+
+              () -> {
+
+                return _root__controllers_Application_rootPrefixedController9_invoker().call(() ->
+                  Application_5.rootPrefixedController()
+                );
+              }
+            );
+          }
+
+          // @LINE:23
+          params = controllers_Application_rootPrefixedParam10_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("x", new scala.util.Right<>(3)),
+              params.get().fromQuery("y", scala.Option.empty(),(QueryStringBindable<java.util.Optional<java.lang.Integer>>)queryStringBindableFor(java.util.Optional.class, java.lang.Integer.class)),
+              (x0, y1) -> {
+
+                return controllers_Application_rootPrefixedParam10_invoker().call(() ->
+                  Application_1.rootPrefixedParam(x0, y1)
+                );
+              }
+            );
+          }
+
+          // @LINE:24
+          params = controllers_Application_rootPrefixedParam11_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromPath("x", scala.Option.empty(),(PathBindable<java.lang.Integer>)pathBindableFor(java.lang.Integer.class)),
+              params.get().fromQuery("y", scala.Option.empty(),(QueryStringBindable<java.util.Optional<java.lang.Integer>>)queryStringBindableFor(java.util.Optional.class, java.lang.Integer.class)),
+              (x0, y1) -> {
+
+                return controllers_Application_rootPrefixedParam11_invoker().call(() ->
+                  Application_1.rootPrefixedParam(x0, y1)
+                );
+              }
+            );
+          }
+
+          // @LINE:25
+          params = controllers_InstanceController_index12_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+
+              () -> {
+
+                return controllers_InstanceController_index12_invoker().call(() ->
+                  InstanceController_0.get().index()
+                );
+              }
+            );
+          }
+
+          // @LINE:26
+          params = controllers_module_ModuleController_index13_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+
+              () -> {
+
+                return controllers_module_ModuleController_index13_invoker().call(() ->
+                  ModuleController_2.index()
+                );
+              }
+            );
+          }
+
+          // @LINE:30
+          params = controllers_Application_modifiers14_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+
+              () -> {
+
+                return controllers_Application_modifiers14_invoker().call(() ->
+                  (req) -> Application_1.modifiers(req)
+                );
+              }
+            );
+          }
+
+          // @LINE:33
+          params = controllers_Application_renamedParams15_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("value", new scala.util.Right<>("fixed")),
+              (value0) -> {
+
+                return controllers_Application_renamedParams15_invoker().call(() ->
+                  Application_1.renamedParams(value0)
+                );
+              }
+            );
+          }
+
+          // @LINE:34
+          params = controllers_Application_renamedParams16_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromPath("alias", scala.Option.empty(),(PathBindable<String>)pathBindableFor(String.class)),
+              (alias0) -> {
+
+                return controllers_Application_renamedParams16_invoker().call(() ->
+                  Application_1.renamedParams(alias0)
+                );
+              }
+            );
+          }
+
+          // @LINE:35
+          params = controllers_Application_sharedFixedParams17_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("first", new scala.util.Right<>("constant")),
+              Param.apply("second", new scala.util.Right<>("one")),
+              (first0, second1) -> {
+
+                return controllers_Application_sharedFixedParams17_invoker().call(() ->
+                  Application_1.sharedFixedParams(first0, second1)
+                );
+              }
+            );
+          }
+
+          // @LINE:36
+          params = controllers_Application_sharedFixedParams18_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("first", new scala.util.Right<>("constant")),
+              Param.apply("second", new scala.util.Right<>("two")),
+              (first0, second1) -> {
+
+                return controllers_Application_sharedFixedParams18_invoker().call(() ->
+                  Application_1.sharedFixedParams(first0, second1)
+                );
+              }
+            );
+          }
+
+          // @LINE:37
+          params = controllers_Application_sharedFixedParams19_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("first", new scala.util.Right<>("constant")),
+              params.get().fromQuery("second", scala.Some.apply("default"),(QueryStringBindable<String>)queryStringBindableFor(String.class)),
+              (first0, second1) -> {
+
+                return controllers_Application_sharedFixedParams19_invoker().call(() ->
+                  Application_1.sharedFixedParams(first0, second1)
+                );
+              }
+            );
+          }
+
+          // @LINE:38
+          params = controllers_Application_fixedOnlyParams20_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("first", new scala.util.Right<>("constant")),
+              Param.apply("second", new scala.util.Right<>("one")),
+              (first0, second1) -> {
+
+                return controllers_Application_fixedOnlyParams20_invoker().call(() ->
+                  Application_1.fixedOnlyParams(first0, second1)
+                );
+              }
+            );
+          }
+
+          // @LINE:39
+          params = controllers_Application_fixedOnlyParams21_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("first", new scala.util.Right<>("constant")),
+              Param.apply("second", new scala.util.Right<>("two")),
+              (first0, second1) -> {
+
+                return controllers_Application_fixedOnlyParams21_invoker().call(() ->
+                  Application_1.fixedOnlyParams(first0, second1)
+                );
+              }
+            );
+          }
+
+          // @LINE:40
+          params = controllers_Application_unconstrainedFirst22_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromPath("first", scala.Option.empty(),(PathBindable<String>)pathBindableFor(String.class)),
+              (first0) -> {
+
+                return controllers_Application_unconstrainedFirst22_invoker().call(() ->
+                  Application_1.unconstrainedFirst(first0)
+                );
+              }
+            );
+          }
+
+          // @LINE:41
+          params = controllers_Application_unconstrainedFirst23_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("first", new scala.util.Right<>("fixed")),
+              (first0) -> {
+
+                return controllers_Application_unconstrainedFirst23_invoker().call(() ->
+                  Application_1.unconstrainedFirst(first0)
+                );
+              }
+            );
+          }
+
+          // @LINE:42
+          params = controllers_Application_reverse24_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              Param.apply("b", new scala.util.Right<>(true)),
+              Param.apply("c", new scala.util.Right<>('a')),
+              Param.apply("i", new scala.util.Right<>(123)),
+              Param.apply("l", new scala.util.Right<>(123L)),
+              Param.apply("uuid", new scala.util.Right<>(java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"))),
+              Param.apply("ostr", new scala.util.Right<>(java.util.Optional.of("a"))),
+              (b0, c1, i2, l3, uuid4, ostr5) -> {
+
+                return controllers_Application_reverse24_invoker().call(() ->
+                  Application_1.reverse(b0, c1, i2, l3, uuid4, ostr5)
+                );
+              }
+            );
+          }
+
+          // @LINE:43
+          params = controllers_Application_reverse25_route().unapply(_req);
+          if (params.isDefined()) {
+            if (isCheck) {
+              return null;
+            }
+            return call(
+              params.get().fromQuery("b", scala.Option.empty(),(QueryStringBindable<java.lang.Boolean>)queryStringBindableFor(java.lang.Boolean.class)),
+              params.get().fromQuery("c", scala.Option.empty(),(QueryStringBindable<java.lang.Character>)queryStringBindableFor(java.lang.Character.class)),
+              params.get().fromQuery("i", scala.Option.empty(),(QueryStringBindable<java.lang.Integer>)queryStringBindableFor(java.lang.Integer.class)),
+              params.get().fromQuery("l", scala.Option.empty(),(QueryStringBindable<java.lang.Long>)queryStringBindableFor(java.lang.Long.class)),
+              params.get().fromQuery("uuid", scala.Option.empty(),(QueryStringBindable<java.util.UUID>)queryStringBindableFor(java.util.UUID.class)),
+              params.get().fromQuery("ostr", scala.Option.empty(),(QueryStringBindable<java.util.Optional<String>>)queryStringBindableFor(java.util.Optional.class, String.class)),
+              (b0, c1, i2, l3, uuid4, ostr5) -> {
+
+                return controllers_Application_reverse25_invoker().call(() ->
+                  Application_1.reverse(b0, c1, i2, l3, uuid4, ostr5)
+                );
+              }
+            );
+          }
+
+          // @LINE:46
+          include = prefixed_module_Routes_0_26.unapply(_req);
+          if (include.isDefined()) {
+            return include.get();
+          }
+
+        }
+        throw Scala.noMatch();
+      }
+    };
+  }
+}

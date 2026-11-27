@@ -1,0 +1,305 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers;
+
+import play.api.mvc.Call;
+import play.api.mvc.PathBindable;
+import play.api.mvc.QueryStringBindable;
+import play.core.routing.*;
+import java.util.function.Supplier;
+
+import java.util.*;
+
+// @LINE:7
+@SuppressWarnings({"unchecked"})
+public class ReverseRoutes {
+
+  // @LINE:13
+  public static class ReverseAssets {
+    private final Supplier<String> _prefix;
+    public ReverseAssets(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:13
+    public Call versioned(controllers.Assets.Asset file1) {
+      var _params = new HashMap<String, Object>();
+        _params.put("path", "/public");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "public/" + ((PathBindable<controllers.Assets.Asset>)JavaGeneratedRouter.pathBindableFor(_rrc, controllers.Assets.Asset.class)).unbind("file", file1), null);
+    }
+
+  }
+
+  // @LINE:12
+  public static class ReverseStringController {
+    private final Supplier<String> _prefix;
+    public ReverseStringController(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:12
+    public Call queryListOptionalDefault(java.util.Optional<java.util.List<String>> _x_____0) {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "str-list-opt-d" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(Objects.equals(_x_____0,java.util.Optional.of(java.util.List.of("abc", "def"))) ? scala.Option.<String>empty() : scala.Option.apply(((QueryStringBindable<java.util.Optional<java.util.List<String>>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, java.util.List.class, String.class)).unbind("x[]?=", _x_____0)))).toList()), null);
+    }
+
+  }
+
+  // @LINE:25
+  public static class ReverseInstanceController {
+    private final Supplier<String> _prefix;
+    public ReverseInstanceController(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:25
+    public Call index() {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "instance", null);
+    }
+
+  }
+
+  // @LINE:7
+  public static class ReverseApplication {
+    private final Supplier<String> _prefix;
+    public ReverseApplication(Supplier<String> _prefix) {
+      this._prefix = _prefix;
+    }
+    private String _defaultPrefix() {
+      return _prefix.get().endsWith("/") ? "" : "/";
+    }
+
+
+    // @LINE:33
+    public Call renamedParams(String value0) {
+
+
+      // @LINE:33
+
+      if (Objects.equals(value0, "fixed")) {
+        var _params = new HashMap<String, Object>();
+        _params.put("value", "fixed");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/renamed/fixed", null);
+      }
+
+
+      // @LINE:34
+
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/renamed/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("alias", value0)), null);
+
+
+
+
+    }
+
+    // @LINE:22
+    public Call rootPrefixedController() {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-controller", null);
+    }
+
+    // @LINE:42
+    public Call reverse(java.lang.Boolean b0, java.lang.Character c1, java.lang.Integer i2, java.lang.Long l3, java.util.UUID uuid4, java.util.Optional<String> ostr5) {
+
+
+      // @LINE:42
+
+      if (Objects.equals(b0, true) && Objects.equals(c1, 'a') && Objects.equals(i2, 123) && Objects.equals(l3, 123L) && Objects.equals(uuid4, java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")) && Objects.equals(ostr5, java.util.Optional.of("a"))) {
+        var _params = new HashMap<String, Object>();
+        _params.put("b", true);
+        _params.put("c", 'a');
+        _params.put("i", 123);
+        _params.put("l", 123L);
+        _params.put("uuid", java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd"));
+        _params.put("ostr", java.util.Optional.of("a"));
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/fixed", null);
+      }
+
+
+      // @LINE:43
+
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/non-fixed" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<java.lang.Boolean>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Boolean.class)).unbind("b", b0)), scala.Option.apply(((QueryStringBindable<java.lang.Character>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Character.class)).unbind("c", c1)), scala.Option.apply(((QueryStringBindable<java.lang.Integer>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Integer.class)).unbind("i", i2)), scala.Option.apply(((QueryStringBindable<java.lang.Long>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.lang.Long.class)).unbind("l", l3)), scala.Option.apply(((QueryStringBindable<java.util.UUID>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.UUID.class)).unbind("uuid", uuid4)), scala.Option.apply(((QueryStringBindable<java.util.Optional<String>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, String.class)).unbind("ostr", ostr5)))).toList()), null);
+
+
+
+
+    }
+
+    // @LINE:23
+    public Call rootPrefixedParam(java.lang.Integer x0, java.util.Optional<java.lang.Integer> y1) {
+
+
+      // @LINE:23
+
+      if (Objects.equals(x0, 3)) {
+        var _params = new HashMap<String, Object>();
+        _params.put("x", 3);
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-param/fixed" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, java.lang.Integer.class)).unbind("y", y1)))).toList()), null);
+      }
+
+
+      // @LINE:24
+
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-param/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<java.lang.Integer>)JavaGeneratedRouter.pathBindableFor(_rrc, java.lang.Integer.class)).unbind("x", x0)) + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<java.util.Optional<java.lang.Integer>>)JavaGeneratedRouter.queryStringBindableFor(_rrc, java.util.Optional.class, java.lang.Integer.class)).unbind("y", y1)))).toList()), null);
+
+
+
+
+    }
+
+    // @LINE:20
+    public Call sameEscapedJavaIdentifier(String ____0, String ____1) {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "same-escaped-java-identifier" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("[]", ____0)), scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("%%", ____1)))).toList()), null);
+    }
+
+    // @LINE:7
+    public Call index() {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get(), null);
+    }
+
+    // @LINE:11
+    public Call urlcoding(String d0, String s1, String q2) {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "urlcoding/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("d", d0)) + "/" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("s", s1) + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("q", q2)))).toList()), null);
+    }
+
+    // @LINE:17
+    public Call notFirstRequestParam(String a0) {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "not-first-request" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("a", a0)))).toList()), null);
+    }
+
+    // @LINE:21
+    public Call keyword(String _pf_escape_class0) {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "keyword/class" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("class", _pf_escape_class0)))).toList()), null);
+    }
+
+    // @LINE:40
+    public Call unconstrainedFirst(String first0) {
+
+
+      // @LINE:40
+
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/unconstrained/" + play.core.routing.package$.MODULE$.dynamicString(((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("first", first0)), null);
+
+
+
+
+    }
+
+    // @LINE:16
+    public Call onlyRequestParam() {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "only-request", null);
+    }
+
+    // @LINE:35
+    public Call sharedFixedParams(String second1) {
+
+
+      // @LINE:35
+
+      if (Objects.equals(second1, "one")) {
+        var _params = new HashMap<String, Object>();
+        _params.put("first", "constant");
+        _params.put("second", "one");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/shared/one", null);
+      }
+
+
+      // @LINE:36
+
+      if (Objects.equals(second1, "two")) {
+        var _params = new HashMap<String, Object>();
+        _params.put("first", "constant");
+        _params.put("second", "two");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/shared/two", null);
+      }
+
+
+      // @LINE:37
+
+      var _params = new HashMap<String, Object>();
+        _params.put("first", "constant");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/shared" + play.core.routing.package$.MODULE$.queryString(play.libs.Scala.asScala(List.of(Objects.equals(second1,"default") ? scala.Option.<String>empty() : scala.Option.apply(((QueryStringBindable<String>)JavaGeneratedRouter.queryStringBindableFor(_rrc, String.class)).unbind("second", second1)))).toList()), null);
+
+
+
+
+    }
+
+    // @LINE:38
+    public Call fixedOnlyParams(String second1) {
+
+
+      // @LINE:38
+
+      if (Objects.equals(second1, "one")) {
+        var _params = new HashMap<String, Object>();
+        _params.put("first", "constant");
+        _params.put("second", "one");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/fixed-only/one", null);
+      }
+
+
+      // @LINE:39
+
+      if (Objects.equals(second1, "two")) {
+        var _params = new HashMap<String, Object>();
+        _params.put("first", "constant");
+        _params.put("second", "two");
+        var _rrc = new play.core.routing.ReverseRouteContext(play.libs.Scala.asScala(_params));
+        return new Call("GET", _prefix.get() + _defaultPrefix() + "reverse/fixed-only/two", null);
+      }
+
+
+
+      throw new IllegalArgumentException("No route for controllers.Application.fixedOnlyParams matches the arguments " + Arrays.asList(second1));
+
+
+    }
+
+    // @LINE:30
+    public Call modifiers() {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "modifiers", null);
+    }
+
+    // @LINE:10
+    public Call uriPattern(String x0) {
+      var _rrc = play.core.routing.ReverseRouteContext.empty();
+      return new Call("GET", _prefix.get() + _defaultPrefix() + "pattern/" + ((PathBindable<String>)JavaGeneratedRouter.pathBindableFor(_rrc, String.class)).unbind("x", x0), null);
+    }
+
+  }
+
+}
