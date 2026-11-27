@@ -100,6 +100,16 @@ The router will invoke the `Assets.at` action with the following parameters:
 controllers.Assets.at("/public", "javascripts/jquery.js")
 ```
 
+Play also supports a `fallback` parameter. If the requested asset cannot be found, Play serves the fallback with `Cache-Control: no-cache`; a normal successful request receives status 200, while conditional and range requests retain the usual asset response semantics. This can be useful for single-page applications whose client-side router handles otherwise unmatched paths. The fallback is resolved relative to `path` and must itself exist; otherwise Play returns its normal 404 response.
+
+Here is an example mapping for a single-page application:
+
+@[assets-wildcard-spa](code/common.fallback.assets.routes)
+
+The fallback parameter is also available when serving versioned assets:
+
+@[assets-versioned-wildcard-spa](code/common.fallback.assets.routes)
+
 To route to a single static file, both the path and file have to be specified:
 
 @[assets-single-static-file](code/common.assets.routes)
