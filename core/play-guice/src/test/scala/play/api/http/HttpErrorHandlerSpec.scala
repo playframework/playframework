@@ -41,6 +41,8 @@ import play.i18n.MessagesApi
 class HttpErrorHandlerSpec extends Specification {
   import HttpErrorHandlerSpec._
 
+  private val ProblemJsonContentType = "application/problem+json"
+
   def await[T](future: Future[T]): T = Await.result(future, Duration.Inf)
 
   implicit val system: ActorSystem        = ActorSystem()
@@ -77,27 +79,39 @@ class HttpErrorHandlerSpec extends Specification {
     )(implicit system: ActorSystem, materializer: Materializer) = {
       lazy val errorHandler = _eh
 
-      def responseBody(result: Future[Result]): JsValue = Json.parse(await(await(result).body.consumeData).utf8String)
+      def responseBody(result: Future[Result]): JsValue = {
+        val response = await(result)
+        response.body.contentType match {
+          case Some(ProblemJsonContentType) =>
+          case contentType                  =>
+            throw new AssertionError(s"Expected $ProblemJsonContentType but got $contentType")
+        }
+        Json.parse(await(response.body.consumeData).utf8String)
+      }
 
       "answer a JSON error message on bad request" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 400))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
-        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+        (json \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "title").get must beAnInstanceOf[JsString]
+        (json \ "status").get must_=== JsNumber(400)
       }
       "answer a JSON error message on forbidden" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 403))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
-        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+        (json \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "title").get must beAnInstanceOf[JsString]
+        (json \ "status").get must_=== JsNumber(403)
       }
       "answer a JSON error message on not found" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 404))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
-        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+        (json \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "title").get must beAnInstanceOf[JsString]
+        (json \ "status").get must_=== JsNumber(404)
       }
       "answer a JSON error message on a generic client error" in {
         val json = responseBody(errorHandler.onClientError(FakeRequest(), 418))
-        (json \ "error" \ "requestId").get must beAnInstanceOf[JsNumber]
-        (json \ "error" \ "message").get must beAnInstanceOf[JsString]
+        (json \ "requestId").get must beAnInstanceOf[JsNumber]
+        (json \ "title").get must beAnInstanceOf[JsString]
+        (json \ "status").get must_=== JsNumber(418)
       }
       "refuse to render something that isn't a client error" in {
         responseBody(errorHandler.onClientError(FakeRequest(), 500)) must throwAn[IllegalArgumentException]
@@ -105,21 +119,24 @@ class HttpErrorHandlerSpec extends Specification {
       }
       "answer a JSON error message on a server error" in {
         val json                 = responseBody(errorHandler.onServerError(FakeRequest(), new RuntimeException()))
-        val id                   = json \ "error" \ "id"
-        val requestId            = json \ "error" \ "requestId"
-        val exceptionTitle       = json \ "error" \ "exception" \ "title"
-        val exceptionDescription = json \ "error" \ "exception" \ "description"
-        val exceptionCause       = json \ "error" \ "exception" \ "stacktrace"
+        val id                   = json \ "id"
+        val requestId            = json \ "requestId"
+        val status               = json \ "status"
+        val exceptionTitle       = json \ "title"
+        val exceptionDescription = json \ "detail"
+        val exceptionCause       = json \ "stacktrace"
 
         if (isProdMode) {
           id.get must beAnInstanceOf[JsString]
-          requestId.toOption must beNone
-          exceptionTitle.toOption must beNone
-          exceptionDescription.toOption must beNone
-          exceptionCause.toOption must beNone
+          requestId.get must beAnInstanceOf[JsNumber]
+          status.get must_=== JsNumber(500)
+          exceptionTitle.get must_=== JsString("Internal server error")
+          exceptionDescription.toOption must beEmpty
+          exceptionCause.toOption must beEmpty
         } else {
           id.get must beAnInstanceOf[JsString]
           requestId.get must beAnInstanceOf[JsNumber]
+          status.get must_=== JsNumber(500)
           exceptionTitle.get must beAnInstanceOf[JsString]
           exceptionDescription.get must beAnInstanceOf[JsString]
           exceptionCause.get must beAnInstanceOf[JsArray]
@@ -170,7 +187,12 @@ class HttpErrorHandlerSpec extends Specification {
         def errorHandler = handler(classOf[HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
         "json response" in {
           val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "application/json"), 400)
-          await(result).body.contentType must beSome("application/json")
+          await(result).body.contentType must beSome(ProblemJsonContentType)
+        }
+        "problem JSON response" in {
+          val result =
+            errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> ProblemJsonContentType), 400)
+          await(result).body.contentType must beSome(ProblemJsonContentType)
         }
         sharedSpecs(errorHandler)
       }
@@ -189,7 +211,12 @@ class HttpErrorHandlerSpec extends Specification {
         def errorHandler = handler(classOf[play.http.HtmlOrJsonHttpErrorHandler].getName, Mode.Prod)
         "json response" in {
           val result = errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> "application/json"), 400)
-          await(result).body.contentType must beSome("application/json")
+          await(result).body.contentType must beSome(ProblemJsonContentType)
+        }
+        "problem JSON response" in {
+          val result =
+            errorHandler.onClientError(FakeRequest().withHeaders("Accept" -> ProblemJsonContentType), 400)
+          await(result).body.contentType must beSome(ProblemJsonContentType)
         }
         sharedSpecs(errorHandler)
       }
