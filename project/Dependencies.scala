@@ -84,10 +84,10 @@ object Dependencies {
     "tyrex"              % "tyrex"     % "1.0.1"
   ) ++ specs2Deps.map(_ % Test)
 
+  // Keep Play's minimum API at 3.2; Hibernate ORM 8 supplies API 4.0 transitively.
   val jpaDeps = Seq(
     "jakarta.persistence" % "jakarta.persistence-api" % "3.2.0",
-    "org.hibernate.orm"   % "hibernate-core"          % "7.4.17.Final" % "test",
-    "org.hibernate.orm"   % "hibernate-scan-jandex"   % "7.4.17.Final" % "test"
+    "org.hibernate.orm"   % "hibernate-core"          % "8.0.0.CR2" % Test
   )
 
   def scalaReflect(scalaVersion: String) = CrossVersion.partialVersion(scalaVersion) match {
