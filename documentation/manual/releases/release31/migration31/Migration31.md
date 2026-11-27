@@ -34,6 +34,22 @@ Play now uses Pekko 2 and Pekko HTTP 2. If your build overrides Play's Pekko dep
 
 The deprecated low-level `org.apache.pekko.http.play.WebSocketHandler.handleWebSocket` overloads that accepted Pekko HTTP's old `UpgradeToWebSocket` API have been removed. Code using this internal Pekko HTTP bridge should use the maintained `WebSocketUpgrade` overload instead.
 
+### JPA supports Hibernate ORM 8 and 7
+
+Play's `javaJpa` module keeps Jakarta Persistence 3.2 as its minimum API dependency. Hibernate ORM 8 is now the recommended provider and requires Jakarta Persistence 4.0. Hibernate ORM 7 with API 3.2 remains supported without an API dependency override.
+
+When upgrading to Hibernate ORM 8, align the application's compile and runtime classpaths with API 4.0 and recompile application code and libraries that use changed Jakarta Persistence signatures. For example, the no-argument `EntityManagerFactory.createEntityManager()` method was replaced by a varargs overload. Play uses the `Map` overload, whose binary signature is shared by API 3.2 and 4.0; this does not make all application code compiled against one API version compatible with the other.
+
+Both providers can use a 3.2 `persistence.xml`. Adopt the 4.0 schema only when using its features; Hibernate ORM 7 does not support that schema. The namespace and Hibernate provider class remain unchanged. Prefer explicit `<class>` entries for entities. With Hibernate ORM 8, automatic entity discovery requires `org.hibernate.orm:hibernate-scan-jandex` at the same version as Hibernate and `<exclude-unlisted-classes>false</exclude-unlisted-classes>` to scan the persistence-unit root.
+
+When migrating to Hibernate ORM 8, replace mutation definitions using `@NamedQuery` or `@NamedNativeQuery` with `@NamedStatement` or `@NamedNativeStatement`. For native SQL updates, use `EntityManager.createNativeStatement(...).execute()` instead of the deprecated raw `Query.executeUpdate()` API. These statement APIs and annotations are not available with Hibernate ORM 7 and API 3.2.
+
+If you enable JPA bean validation with Hibernate ORM 8, review the changed [validation lifecycle](https://docs.hibernate.org/orm/8.0/migration-guide/#validation-lifecycle), including the move from `pre-persist` to `pre-insert` for insert-time validation groups. Keep `<validation-mode>NONE</validation-mode>` if you do not use JPA bean validation.
+
+Hibernate ORM 8 now validates `orm.xml` and `hbm.xml` against their schemas by default. Review the [XML mapping validation changes](https://docs.hibernate.org/orm/8.0/migration-guide/#xml-validation) when migrating.
+
+See [[Using JPA|JavaJPA]] for configuration examples and the [Hibernate ORM 8 migration guide](https://docs.hibernate.org/orm/8.0/migration-guide/) for provider-specific API, mapping, and behavior changes.
+
 ### Request metadata and forwarded-header changes
 
 Play replaces the legacy combined connection APIs with typed `remote`, `transport`, `scheme`, and `authority` metadata. Applications may need to update request accessors and test builders, IP filter entries, custom request implementations, and proxy configuration.
