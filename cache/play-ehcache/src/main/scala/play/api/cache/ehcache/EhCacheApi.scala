@@ -186,31 +186,33 @@ private[play] case class EhCacheExistsException(msg: String, cause: Throwable) e
 
 class SyncEhCacheApi @Inject() (private[ehcache] val cache: Ehcache) extends SyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Unit = {
-    val element = new Element(key, value)
     expiration match {
-      case infinite: Duration.Infinite => element.setEternal(true)
-      case finite: FiniteDuration      =>
-        val seconds = finite.toSeconds
-        if (seconds <= 0) {
-          element.setTimeToLive(1)
-        } else if (seconds > Int.MaxValue) {
-          element.setTimeToLive(Int.MaxValue)
-        } else {
-          element.setTimeToLive(seconds.toInt)
+      case Duration.MinusInf                                    => remove(key)
+      case finite: FiniteDuration if finite.lteq(Duration.Zero) => remove(key)
+      case duration                                             =>
+        val element = new Element(key, value)
+        duration match {
+          case _: Duration.Infinite   => element.setEternal(true)
+          case finite: FiniteDuration =>
+            // Ehcache only supports whole-second TTLs, so retain a positive sub-second value for one second.
+            val seconds = finite.toSeconds.max(1L)
+            element.setTimeToLive(seconds.min(Int.MaxValue.toLong).toInt)
         }
+        cache.put(element)
     }
-    cache.put(element)
-    Done
   }
 
   override def remove(key: String): Unit = cache.remove(key)
 
-  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A = {
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => A): A =
+    getOrElseUpdate(key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => A): A = {
     get[A](key) match {
       case Some(value) => value
       case None        =>
         val value = orElse
-        set(key, value, expiration)
+        set(key, value, expiration(value))
         value
     }
   }
@@ -247,10 +249,13 @@ class EhCacheApi @Inject() (private[ehcache] val cache: Ehcache)(implicit contex
     Done
   }
 
-  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] = {
+  def getOrElseUpdate[A: ClassTag](key: String, expiration: Duration)(orElse: => Future[A]): Future[A] =
+    getOrElseUpdate[A](key, (_: A) => expiration)(orElse)
+
+  override def getOrElseUpdate[A: ClassTag](key: String, expiration: A => Duration)(orElse: => Future[A]): Future[A] = {
     get[A](key).flatMap {
       case Some(value) => Future.successful(value)
-      case None        => orElse.flatMap(value => set(key, value, expiration).map(_ => value))
+      case None        => orElse.flatMap(value => set(key, value, expiration(value)).map(_ => value))
     }
   }
 

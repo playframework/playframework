@@ -12,6 +12,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.ToIntFunction;
 
 /**
  * An implementation of SyncCacheApi that wraps AsyncCacheApi
@@ -39,6 +40,13 @@ public class DefaultSyncCacheApi implements SyncCacheApi {
 
   @Override
   public <T> T getOrElseUpdate(String key, Callable<T> block, int expiration) {
+    return blocking(
+        cacheApi.getOrElseUpdate(
+            key, () -> CompletableFuture.completedFuture(block.call()), expiration));
+  }
+
+  @Override
+  public <T> T getOrElseUpdate(String key, Callable<T> block, ToIntFunction<T> expiration) {
     return blocking(
         cacheApi.getOrElseUpdate(
             key, () -> CompletableFuture.completedFuture(block.call()), expiration));
