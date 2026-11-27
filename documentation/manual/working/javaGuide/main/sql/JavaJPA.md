@@ -65,9 +65,7 @@ Here is a sample configuration file to use with Hibernate ORM 8:
 
 The Jakarta Persistence namespace and the Hibernate provider class are unchanged. The example uses the 4.0 schema and lists its entities explicitly, before `<exclude-unlisted-classes>` and `<validation-mode>` as required by the schema. Hibernate ORM 8 can also read older persistence descriptors. If you register package or module annotations, use `<package-descriptor>com.example</package-descriptor>` or `<module-descriptor>com.example.module</module-descriptor>` instead of listing `package-info` or `module-info` as a `<class>`.
 
-These validation settings disable both lifecycle callbacks and validation-derived DDL constraints. In Hibernate ORM 8, the DDL setting defaults to `AUTO`, so `<validation-mode>NONE</validation-mode>` alone can still bootstrap Hibernate Validator when it is on the classpath. This can cause startup to fail if its Jakarta Expression Language implementation is missing.
-
-The `PlayJava` sbt plugin includes Hibernate Validator through `javaForms`, without an EL implementation by default. With those dependencies, omitting the DDL opt-out causes JPA startup to fail even when `<validation-mode>NONE</validation-mode>` is set.
+These validation settings disable both lifecycle callbacks and validation-derived DDL constraints. In Hibernate ORM 8, the DDL setting defaults to `AUTO`, so `<validation-mode>NONE</validation-mode>` alone can still bootstrap Hibernate Validator. The `PlayJava` sbt plugin includes Hibernate Validator through `javaForms`, without a Jakarta Expression Language implementation by default, so JPA startup fails with those dependencies unless the DDL opt-out is also set.
 
 To enable lifecycle validation, use `AUTO` or `CALLBACK` for `<validation-mode>`. To apply validation constraints to DDL, use `AUTO` or `REQUIRED` for `hibernate.tooling.schema.apply_validation_constraints`. When using Hibernate Validator, also add a Jakarta Expression Language implementation to your classpath, or configure a non-EL message interpolator.
 
