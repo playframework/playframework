@@ -41,6 +41,8 @@ lazy val main = Project("Play-Documentation", file("."))
       "com.h2database" % "h2"           % "2.5.252" % Test,
       "org.mockito"    % "mockito-core" % "5.24.0"  % Test,
       "org.assertj"    % "assertj-core" % "3.27.7"  % Test,
+      // Compile the Hibernate ORM 8 examples against the provider's required Jakarta Persistence API.
+      "org.hibernate.orm" % "hibernate-core" % "8.0.0.CR2" % Test,
       // https://github.com/logstash/logstash-logback-encoder/tree/logstash-logback-encoder-4.9#including
       ("net.logstash.logback" % "logstash-logback-encoder" % "9.0" % Test)
         .excludeAll(ExclusionRule("com.fasterxml.jackson.core")), // Avoid conflicts with Play's Jackson dependency
