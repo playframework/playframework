@@ -17,7 +17,7 @@ public class HomeController extends Controller {
     Http.MultipartFormData<TemporaryFile> body = request.body().asMultipartFormData();
     Http.MultipartFormData.FilePart<TemporaryFile> picture = body.getFile("picture");
     if (picture != null) {
-      String fileName = picture.getFilename();
+      String fileName = picture.getSanitizedFilename();
       long fileSize = picture.getFileSize();
       String contentType = picture.getContentType();
       TemporaryFile file = picture.getRef();

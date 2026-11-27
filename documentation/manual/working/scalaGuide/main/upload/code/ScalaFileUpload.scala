@@ -50,9 +50,8 @@ package scalaguide.upload.fileupload {
             request.body
               .file("picture")
               .map { picture =>
-                // only get the last part of the filename
-                // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
-                val filename    = Paths.get(picture.filename).getFileName
+                // Only use the final component of the client-supplied filename.
+                val filename    = picture.sanitizedFilename
                 val fileSize    = picture.fileSize
                 val contentType = picture.contentType
 
