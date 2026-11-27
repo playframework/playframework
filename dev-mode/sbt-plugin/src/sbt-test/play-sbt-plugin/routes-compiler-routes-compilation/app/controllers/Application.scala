@@ -18,6 +18,12 @@ class Application @Inject() (c: ControllerComponents) extends AbstractController
   def post = Action {
     Ok
   }
+  def `type` = Action {
+    Ok("type")
+  }
+  def `match` = Action {
+    Ok("match")
+  }
   def withParam(param: String) = Action {
     Ok(param)
   }

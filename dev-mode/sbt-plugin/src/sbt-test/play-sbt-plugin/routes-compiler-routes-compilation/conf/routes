@@ -92,6 +92,8 @@ GET         /ident/:è27                     controllers.πø7ß.ôü65t(è27: I
 
 GET         /hello                          controllers.Application.hello
 GET         /hello2                         controllers.Application.hello
+GET         /reserved/type                  controllers.Application.type
+GET         /reserved/match                 controllers.Application.`match`
 
 ->          /module                         module.Routes
 

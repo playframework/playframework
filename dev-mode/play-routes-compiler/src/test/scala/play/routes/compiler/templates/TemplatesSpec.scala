@@ -8,6 +8,13 @@ import org.specs2.mutable.Specification
 import play.routes.compiler._
 
 class TemplatesSpec extends Specification {
+  "controller method names" should {
+    "always be escaped for generated Scala sources" in {
+      safeMethod("type") must_== "`type`"
+      safeMethod("futureKeyword") must_== "`futureKeyword`"
+    }
+  }
+
   "javascript reverse routes" should {
     "collect parameter names with index appended" in {
       val reverseParams: Seq[(Parameter, Int)] = reverseParametersJavascript(

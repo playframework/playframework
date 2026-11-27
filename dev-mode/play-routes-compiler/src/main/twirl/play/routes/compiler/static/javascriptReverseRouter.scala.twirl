@@ -22,7 +22,7 @@ package @{packageName.map(_ + ".").getOrElse("")}javascript @ob
   @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
   case Seq(route: Route) => {
     @markLines(route)
-    def @method: JavaScriptReverseRoute = JavaScriptReverseRoute(
+    def @{safeMethod(method)}: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "@{packageName.map(_ + ".").getOrElse("")}@(controller).@(method)",
       @tq
         function(@reverseParametersJavascript(routes).map(_._1.name).mkString(",")) @ob
@@ -33,7 +33,7 @@ package @{packageName.map(_ + ".").getOrElse("")}javascript @ob
   }
   case _ => {
     @markLines(routes: _*)
-    def @method: JavaScriptReverseRoute = JavaScriptReverseRoute(
+    def @{safeMethod(method)}: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "@{packageName.map(_ + ".").getOrElse("")}@(controller).@(method)",
       @tq
         function(@reverseParametersJavascript(routes).map(_._1.name).mkString(",")) @ob
