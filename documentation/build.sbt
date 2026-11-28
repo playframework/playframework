@@ -39,7 +39,7 @@ lazy val main = Project("Play-Documentation", file("."))
     libraryDependencies ++= Seq(
       "com.typesafe"   % "config"       % "1.4.4"   % Test,
       "com.h2database" % "h2"           % "2.5.252" % Test,
-      "org.mockito"    % "mockito-core" % "5.24.0"  % Test,
+      "org.mockito"    % "mockito-core" % "5.25.0"  % Test,
       "org.assertj"    % "assertj-core" % "3.27.7"  % Test,
       // Compile the Hibernate ORM 8 examples against the provider's required Jakarta Persistence API.
       "org.hibernate.orm" % "hibernate-core" % "8.0.0.CR2" % Test,
