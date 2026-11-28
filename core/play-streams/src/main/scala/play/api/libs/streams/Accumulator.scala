@@ -7,6 +7,7 @@ package play.api.libs.streams
 import java.util.Optional
 
 import scala.annotation.unchecked.{ uncheckedVariance => uV }
+import scala.annotation.unused
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.jdk.FutureConverters._
@@ -218,17 +219,11 @@ private class FlattenedAccumulator[-E, +A](future: Future[Accumulator[E, A]])(im
 object Accumulator {
   private[streams] def futureToSink[E, A](
       future: Future[Accumulator[E, A]]
-  )(implicit materializer: Materializer): Sink[E, Future[A]] = {
+  )(implicit @unused materializer: Materializer): Sink[E, Future[A]] = {
     import Execution.Implicits.trampoline
 
-    Sink.asPublisher[E](fanout = false).mapMaterializedValue { publisher =>
-      future
-        .recover {
-          case error =>
-            new SinkAccumulator(Sink.cancelled[E].mapMaterializedValue(_ => Future.failed(error)))
-        }
-        .flatMap(accumulator => Source.fromPublisher(publisher).toMat(accumulator.toSink)(Keep.right).run())
-    }
+    // Materialize the inner sink even if the upstream completes before delivering an element.
+    Sink.eagerFutureSink(future.map(_.toSink)).mapMaterializedValue(_.flatten)
   }
 
   /**

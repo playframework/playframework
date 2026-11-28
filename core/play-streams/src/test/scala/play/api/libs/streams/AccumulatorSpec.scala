@@ -8,13 +8,16 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.Promise
 import scala.jdk.FutureConverters._
 
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl.Flow
+import org.apache.pekko.stream.scaladsl.Keep
 import org.apache.pekko.stream.scaladsl.Sink
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.stream.Materializer
+import org.apache.pekko.util.ByteString
 import org.apache.pekko.NotUsed
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
@@ -106,6 +109,8 @@ class AccumulatorSpec extends Specification {
     }
 
     "be flattenable from a future of itself" in {
+      def collectBytes = Accumulator(Sink.fold[ByteString, ByteString](ByteString.empty)(_ ++ _))
+
       "for a successful future" in withMaterializer { implicit m =>
         await(Accumulator.flatten(Future(sum)).run(source)) must_== 6
       }
@@ -117,6 +122,36 @@ class AccumulatorSpec extends Specification {
 
       "for a failed stream" in withMaterializer { implicit m =>
         await(Accumulator.flatten(Future(sum)).run(errorSource)) must throwA[RuntimeException]("error")
+      }
+
+      "through its sink after an empty upstream completes" in withMaterializer { implicit m =>
+        val inner                  = Promise[Accumulator[ByteString, ByteString]]()
+        val (upstreamDone, result) = Source
+          .empty[ByteString]
+          .watchTermination()(Keep.right)
+          .toMat(Accumulator.flatten(inner.future).toSink)(Keep.both)
+          .run()
+
+        await(upstreamDone)
+        inner.success(collectBytes)
+        await(result) must_== ByteString.empty
+      }
+
+      "through its sink with input while the inner accumulator is pending" in withMaterializer { implicit m =>
+        val inner  = Promise[Accumulator[ByteString, ByteString]]()
+        val result = Source(List(ByteString("a"), ByteString("bc"))).runWith(Accumulator.flatten(inner.future).toSink)
+
+        inner.success(collectBytes)
+        await(result) must_== ByteString("abc")
+      }
+
+      "through its sink when the pending inner accumulator fails" in withMaterializer { implicit m =>
+        val error  = new RuntimeException("inner accumulator failed")
+        val inner  = Promise[Accumulator[ByteString, ByteString]]()
+        val result = Source.empty[ByteString].runWith(Accumulator.flatten(inner.future).toSink)
+
+        inner.failure(error)
+        await(result.failed) must beTheSameAs(error)
       }
     }
 
