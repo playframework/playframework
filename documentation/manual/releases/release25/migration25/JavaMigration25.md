@@ -22,7 +22,7 @@ In 2.5, `HttpRequestHandler`'s main purpose is to provide a handler for the requ
 
 You must supply the HTTP execution context explicitly as an executor when using a Java `CompletionStage` inside an [[Action|JavaActions]], to ensure that the HTTP.Context remains in scope.  If you don't supply the HTTP execution context, you'll get "There is no HTTP Context available from here" errors when you call `request()` or other methods that depend on `Http.Context`.
 
-You can supply the [`play.libs.concurrent.HttpExecutionContext`](api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
+You can supply the [`play.libs.concurrent.HttpExecutionContext`](https://www.playframework.com/documentation/2.5.x/api/java/play/libs/concurrent/HttpExecutionContext.html) instance through dependency injection:
 
 ``` java
 public class Application extends Controller {
