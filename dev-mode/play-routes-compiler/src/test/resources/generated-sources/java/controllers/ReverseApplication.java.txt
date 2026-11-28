@@ -1,0 +1,128 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers;
+
+
+// @LINE:7
+@SuppressWarnings("cast")
+public class ReverseApplication {
+
+  private final java.util.function.Supplier<String> _prefix;
+
+  public ReverseApplication(java.util.function.Supplier<String> _prefix) {
+    this._prefix = _prefix;
+  }
+
+  private String _defaultPrefix() {
+    return _prefix.get().endsWith("/") ? "" : "/";
+  }
+
+  // @LINE:7
+  public play.api.mvc.Call index() {
+    return new play.api.mvc.Call("GET", _prefix.get(), null);
+  }
+
+  // @LINE:10
+  public play.api.mvc.Call uriPattern(String x) {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "pattern/" + play.core.routing.JavaBinders.pathString().unbind("x", x), null);
+  }
+
+  // @LINE:11
+  public play.api.mvc.Call urlcoding(String d, String s, String q) {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "urlcoding/" + play.core.routing.JavaReverseRouting.dynamicString(play.core.routing.JavaBinders.pathString().unbind("d", d)) + "/" + play.core.routing.JavaBinders.pathString().unbind("s", s) + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryString().unbind("q", q)), null);
+  }
+
+  // @LINE:16
+  public play.api.mvc.Call onlyRequestParam() {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "only-request", null);
+  }
+
+  // @LINE:17
+  public play.api.mvc.Call notFirstRequestParam(String a) {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "not-first-request" + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryString().unbind("a", a)), null);
+  }
+
+  // @LINE:20
+  public play.api.mvc.Call sameEscapedJavaIdentifier(String __0, String __1) {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "same-escaped-java-identifier" + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryString().unbind("[]", __0), play.core.routing.JavaBinders.queryString().unbind("%%", __1)), null);
+  }
+
+  // @LINE:21
+  public play.api.mvc.Call keyword(String _pf_escape_class) {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "keyword/class" + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryString().unbind("class", _pf_escape_class)), null);
+  }
+
+  // @LINE:22
+  public play.api.mvc.Call rootPrefixedController() {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-controller", null);
+  }
+
+  // @LINE:23
+  public play.api.mvc.Call rootPrefixedParam(java.lang.Integer x, java.util.Optional<java.lang.Integer> y) {
+    // @LINE:23
+    if (play.core.routing.JavaReverseRouting.<java.lang.Integer>equal(x, 3)) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-param/fixed" + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryInteger()).unbind("y", y)), null);
+    }
+    // @LINE:24
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "root-prefixed-param/" + play.core.routing.JavaReverseRouting.dynamicString(play.core.routing.JavaBinders.pathInteger().unbind("x", x)) + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryInteger()).unbind("y", y)), null);
+  }
+
+  // @LINE:30
+  public play.api.mvc.Call modifiers() {
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "modifiers", null);
+  }
+
+  // @LINE:33
+  public play.api.mvc.Call renamedParams(String value) {
+    // @LINE:33
+    if (play.core.routing.JavaReverseRouting.<String>equal(value, "fixed")) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/renamed/fixed", null);
+    }
+    // @LINE:34
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/renamed/" + play.core.routing.JavaReverseRouting.dynamicString(play.core.routing.JavaBinders.pathString().unbind("alias", value)), null);
+  }
+
+  // @LINE:35
+  public play.api.mvc.Call sharedFixedParams(String second) {
+    // @LINE:35
+    if (play.core.routing.JavaReverseRouting.<String>equal(second, "one")) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/shared/one", null);
+    }
+    // @LINE:36
+    if (play.core.routing.JavaReverseRouting.<String>equal(second, "two")) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/shared/two", null);
+    }
+    // @LINE:37
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/shared" + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaReverseRouting.<String>equal(second, "default") ? null : play.core.routing.JavaBinders.queryString().unbind("second", second)), null);
+  }
+
+  // @LINE:38
+  public play.api.mvc.Call fixedOnlyParams(String second) {
+    // @LINE:38
+    if (play.core.routing.JavaReverseRouting.<String>equal(second, "one")) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/fixed-only/one", null);
+    }
+    // @LINE:39
+    if (play.core.routing.JavaReverseRouting.<String>equal(second, "two")) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/fixed-only/two", null);
+    }
+    throw play.core.routing.JavaReverseRouting.noMatch("controllers.Application.fixedOnlyParams", second);
+  }
+
+  // @LINE:40
+  public play.api.mvc.Call unconstrainedFirst(String first) {
+    // @LINE:40
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/unconstrained/" + play.core.routing.JavaReverseRouting.dynamicString(play.core.routing.JavaBinders.pathString().unbind("first", first)), null);
+  }
+
+  // @LINE:42
+  public play.api.mvc.Call reverse(java.lang.Boolean b, java.lang.Character c, java.lang.Integer i, java.lang.Long l, java.util.UUID uuid, java.util.Optional<String> ostr) {
+    // @LINE:42
+    if (play.core.routing.JavaReverseRouting.<java.lang.Boolean>equal(b, true) && play.core.routing.JavaReverseRouting.<java.lang.Character>equal(c, 'a') && play.core.routing.JavaReverseRouting.<java.lang.Integer>equal(i, 123) && play.core.routing.JavaReverseRouting.<java.lang.Long>equal(l, 123L) && play.core.routing.JavaReverseRouting.<java.util.UUID>equal(uuid, java.util.UUID.fromString("a90e582b-3c5b-4d37-b5f4-7730d2c672dd")) && play.core.routing.JavaReverseRouting.<java.util.Optional<String>>equal(ostr, java.util.Optional.of("a"))) {
+      return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/fixed", null);
+    }
+    // @LINE:43
+    return new play.api.mvc.Call("GET", _prefix.get() + _defaultPrefix() + "reverse/non-fixed" + play.core.routing.JavaReverseRouting.queryString(play.core.routing.JavaBinders.queryBoolean().unbind("b", b), play.core.routing.JavaBinders.queryCharacter().unbind("c", c), play.core.routing.JavaBinders.queryInteger().unbind("i", i), play.core.routing.JavaBinders.queryLong().unbind("l", l), play.core.routing.JavaBinders.queryUUID().unbind("uuid", uuid), play.core.routing.JavaBinders.queryOptional(play.core.routing.JavaBinders.queryString()).unbind("ostr", ostr)), null);
+  }
+}

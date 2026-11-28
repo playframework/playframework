@@ -1,0 +1,32 @@
+// @GENERATOR:play-routes-compiler
+// @SOURCE:snapshot.routes
+
+package controllers.javascript;
+
+
+// @LINE:25
+@SuppressWarnings("cast")
+public class ReverseInstanceController {
+
+  private final java.util.function.Supplier<String> _prefix;
+
+  public ReverseInstanceController(java.util.function.Supplier<String> _prefix) {
+    this._prefix = _prefix;
+  }
+
+  private String _defaultPrefix() {
+    return _prefix.get().endsWith("/") ? "" : "/";
+  }
+
+  // @LINE:25
+  public play.api.routing.JavaScriptReverseRoute index() {
+    return new play.api.routing.JavaScriptReverseRoute(
+      "controllers.InstanceController.index",
+      "\n" +
+      "        function() {\n" +
+      "          return _wA({method:\"GET\", url:\"" + _prefix.get() + _defaultPrefix() + "\" + \"instance\"})\n" +
+      "        }\n" +
+      "      "
+    );
+  }
+}

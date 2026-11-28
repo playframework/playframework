@@ -1,0 +1,8 @@
+# Copyright (C) from 2022 The Play Framework Contributors <https://github.com/playframework>, 2011-2021 Lightbend Inc. <https://www.lightbend.com>
+
+# The Java compiler rejects these routes, like the Scala compiler does for the generated Scala router
+GET     /index              controllers.Application.index
+GET     /text               controllers.Application.text
+GET     /item/:id           controllers.Application.item(id: models.Unbindable)
+GET     /fixed              controllers.Application.fixedValue(x: java.lang.Long = 1)
+GET     /default            controllers.Application.defaultValue(x: java.lang.Long ?= 1)

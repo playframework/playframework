@@ -1,0 +1,25 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@import play.routes.compiler.javagen.JavaTemplates._
+@(sourceInfo: RoutesSourceInfo, imports: Seq[String], packageName: Option[String], controller: String, routes: Seq[Route])
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+
+package @{packageName.map(_ + ".").getOrElse("")}javascript;
+@for(i <- imports) {
+import @javaImport(i);}
+
+@markRoutes(routes)
+@@SuppressWarnings("cast")
+public class Reverse@(controller.replace(".", "_")) @ob
+
+  private final java.util.function.Supplier<String> _prefix;
+
+  public Reverse@(controller.replace(".", "_"))(java.util.function.Supplier<String> _prefix) @ob
+    this._prefix = _prefix;
+  @cb
+
+  private String _defaultPrefix() @ob
+    return _prefix.get().endsWith("/") ? "" : "/";
+  @cb
+@for(method <- javaJavascriptReverseMethods(packageName, controller, routes)) {@method}@cb
